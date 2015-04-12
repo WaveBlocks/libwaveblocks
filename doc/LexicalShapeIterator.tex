@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{minted}
+\begin{document}
+
+\section{Shape}
+
+
+
+\section{Lexical Shape Iterator}
+
+\begin{listing}[h!]
+\begin{minted}{c}
+LexicalShapeIterator<D,S> it(shape);
+do {
+    std::cout << it.getMultiIndex() << std::endl;
+} while (it.advance());
+\end{minted}
+\end{listing}
+this is equivalent to:
+\begin{listing}[h!]
+\begin{minted}{c}
+for (int x = 0; x <= shape.getSurface(0, MultiIndex<3>{{0,0,0}}); x++) {
+    for (int y = 0; y <= shape.getSurface(1, MultiIndex<3>{{x,0,0}}); y++) {
+        for (int z = 0; z <= shape.getSurface(2, MultiIndex<3>{{x,y,0}}); z++) {
+            std::cout << MultiIndex<3>{{x,y,z}} << std::endl;
+        }
+    }
+}
+\end{minted}
+\end{listing}
+
+
+\section{Lexical Shape Enumeration}
+
+The default implementation provides for general shape a efficient implementation of an enumeration. For more specialized shapes there may exists a better way to map a multi-indices to ordinals. In this case you use template specialization to override the default implementation. Take a look to the specialized enumeration for the HyperCubicShape.
+
+\begin{minted}{c}
+template<std::size_t D>
+class LexicalShapeEnumeration<D,MyOwnShape<D>>
+{
+    // your more efficient implementation...
+};
+\end{minted}
+
+
+\end{document}

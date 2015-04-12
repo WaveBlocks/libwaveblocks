@@ -5,6 +5,11 @@ project(waveblocks)
 add_definitions(
     -std=c++11
     -Wall
+    -Wno-unused-variable
+    -Wno-unused-local-typedef
+    -Wno-unused-parameter
+    -Wextra
+    -pedantic
 )
 
 # needs pkg-config
@@ -27,7 +32,7 @@ if(PKG_CONFIG_FOUND)
     #  @return: <XPREFIX>_CFLAGS ... all required cflags
     #  @return:<XPREFIX>_CFLAGS_OTHER ... the other compiler flags
     pkg_search_module(EIGEN REQUIRED eigen3)
-
+    
     if(EIGEN_FOUND)
         # target_include_directories(waveblocks PUBLIC ${EIGEN_INCLUDE_DIRS})
         include_directories(${EIGEN_INCLUDE_DIRS})

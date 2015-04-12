@@ -12,9 +12,13 @@ private:
     MultiIndex<D> limits_;
     
 public:
-    HyperCubicShape(MultiIndex<D> limits) : limits_(limits) { }
+    HyperCubicShape(MultiIndex<D> limits) 
+        : limits_(limits)
+    { }
     
-    HyperCubicShape(const HyperCubicShape &that) : limits_(that.limits_) { }
+    HyperCubicShape(const HyperCubicShape &that)
+        : limits_(that.limits_)
+    { }
     
     HyperCubicShape &operator=(const HyperCubicShape &that)
     {
