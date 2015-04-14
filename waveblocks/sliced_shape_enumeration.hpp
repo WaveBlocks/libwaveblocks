@@ -23,6 +23,8 @@ public:
         std::size_t offset() const;
         std::size_t size() const;
         MultiIndex<D> at(std::size_t ordinal) const;
+        MultiIndex<D> operator[](std::size_t ordinal) const; //alias for at()
+        
         std::size_t find(MultiIndex<D> index) const;
         SlicedShapeEnumeration<D,S>::Slice::Iterator begin() const;
         SlicedShapeEnumeration<D,S>::Slice::Iterator end() const;
@@ -36,8 +38,7 @@ public:
     SlicedShapeEnumeration(S shape);
     
     std::size_t count() const;
-    const SlicedShapeEnumeration<D,S>::Slice &operator[](std::size_t slice);
-    
+    const SlicedShapeEnumeration<D,S>::Slice &operator[](std::size_t slice) const;
     
     typedef typename std::vector<Slice>::const_iterator Iterator;
     
@@ -135,6 +136,14 @@ typename SlicedShapeEnumeration<D,S>::Slice::Iterator SlicedShapeEnumeration<D,S
 template<std::size_t D, class S>
 MultiIndex<D> SlicedShapeEnumeration<D,S>::Slice::at(std::size_t ordinal) const
 {
+    assert(ordinal < table_.size());
+    return table_[ordinal];
+}
+
+template<std::size_t D, class S>
+MultiIndex<D> SlicedShapeEnumeration<D,S>::Slice::operator[](std::size_t ordinal) const
+{
+    assert(ordinal < table_.size());
     return table_[ordinal];
 }
 
@@ -160,7 +169,7 @@ std::size_t SlicedShapeEnumeration<D,S>::Slice::find(MultiIndex<D> index) const
 }
 
 template<std::size_t D, class S>
-const typename SlicedShapeEnumeration<D,S>::Slice &SlicedShapeEnumeration<D,S>::operator[](std::size_t slice)
+const typename SlicedShapeEnumeration<D,S>::Slice &SlicedShapeEnumeration<D,S>::operator[](std::size_t slice) const
 {
     return slices_[slice];
 }

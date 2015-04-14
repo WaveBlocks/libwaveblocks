@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 
 #include "waveblocks.hpp"
+#include <fstream>
 
 //#define BOOST_TEST_MODULE MyTest
 //#include <boost/test/unit_test.hpp>
@@ -81,17 +82,37 @@ int main() {
         std::cout << it.getMultiIndex() << std::endl;
     } while (it.advance());
     
-    /*
-    packet.parameters.eps = 0.9;
-    packet.parameters.q << -1, 0;
-    packet.parameters.p << 1, 1;
-    packet.parameters.Q << complex_t(2,2), complex_t(-1,-1), complex_t(1,1), complex_t(1,-3);
-    packet.parameters.P << complex_t(1,2), complex_t(1,1), complex_t(-1,1), complex_t(-2,3);
+    HagedornParameterSet<D> parameters;
+    //parameters.eps = 0.9;
+    //parameters.q << -1, 0;
+    parameters.p << 2, 0;
+    //parameters.Q << complex_t(2,2), complex_t(-1,-1), complex_t(1,1), complex_t(1,-3);
+    //parameters.P << complex_t(1,2), complex_t(1,1), complex_t(-1,1), complex_t(-2,3);
     
-    std::cout << packet.parameters.q << std::endl;
-    std::cout << packet.parameters.p << std::endl;
-    std::cout << packet.parameters.Q << std::endl;
-    std::cout << packet.parameters.P << std::endl;*/
+    std::cout << parameters << std::endl;
+    
+    std::vector<complex_t> coefficients(slices[slices.count()-1].offset() + slices[slices.count()-1].size());
+    
+    coefficients[0] = complex_t(1.0,0.0);
+    
+    std::size_t n1 = 20, n2 = 20;
+    double a1 = -5.0, b1 = 5.0;
+    double a2 = -5.0, b2 = 5.0;
+    
+    std::ofstream out("wavepacket.csv");
+    for (std::size_t i = 0; i < n1; i++) {
+        for (std::size_t j = 0; j < n2; j++) {
+            Eigen::Matrix<real_t,D,1> x;
+            
+            x[0] = a1 + i*(b1-a1)/n1;
+            x[1] = a2 + j*(b2-a2)/n2;
+            
+            out << x[0] << ' ';
+            out << x[1] << ' ';
+            out << evaluateWavepacket(coefficients, parameters, slices, x).real() << '\n';
+        }
+    }
+    out.close();
     
     //CMatrix A, B;
     

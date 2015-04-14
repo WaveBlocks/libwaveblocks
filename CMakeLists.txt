@@ -46,3 +46,5 @@ add_executable(waveblocks_
 target_link_libraries(waveblocks_
     hdf5
 )
+
+add_subdirectory(test)
