@@ -29,12 +29,7 @@ public:
     int getSurface(std::size_t axis, MultiIndex<D> position) const
     {
         { (void)(position); } //disable unused-parameter warning
-        return limits_[axis];
-    }
-    
-    MultiIndex<D> getLimits() const
-    {
-        return limits_;
+        return limits_[axis]-1;
     }
 };
 

@@ -26,12 +26,14 @@
 *.synctex.gz
 *.aux
 *.lopytx
-
-# anything else
 *.pdf
-waveblocks_
+
+# Output files
+*.png
+*.csv
+
+# build files
 build/
 scratch/
-test/
 .kdev4/
 *.kdev4

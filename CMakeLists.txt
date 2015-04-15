@@ -48,3 +48,4 @@ target_link_libraries(waveblocks_
 )
 
 add_subdirectory(test)
+add_subdirectory(examples)

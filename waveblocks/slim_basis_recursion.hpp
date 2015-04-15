@@ -43,12 +43,14 @@ inline complex_t evaluateBasis(const HagedornParameterSet<D> &parameters,
     //  e[i]: unit vector aligned to i-th axis
     Eigen::Matrix<complex_t,D,1> prev_bases_scaled = prev_bases;
     for (std::size_t d = 0; d < D; d++)
-        prev_bases_scaled(d,0) *= std::sqrt(k[d]);
+        prev_bases_scaled(d,0) *= std::sqrt( real_t(k[d]) );
     
-    complex_t pr1 = std::sqrt(2.0)/parameters.eps * Qinv.row(axis).dot(x-parameters.q)*curr_basis;
+    Eigen::Matrix<real_t,D,1> dx = x - parameters.q;
+    
+    complex_t pr1 = std::sqrt(2.0)/parameters.eps * Qinv.row(axis).dot(dx)*curr_basis;
     complex_t pr2 = QhQinvt.row(axis).dot(prev_bases_scaled);
     
-    return (pr1 - pr2) / std::sqrt(k[axis]+1);
+    return (pr1 - pr2) / std::sqrt( real_t(k[axis])+1.0);
 }
 
 template<std::size_t D, class S>
@@ -64,9 +66,11 @@ complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients,
     complex_t phi0 = evaluateGroundState(parameters, x);
     next_slice_values.push_back(phi0);
     complex_t result = phi0*coefficients[0];
+    //std::cout << "  PHI0: " << phi0 << std::endl;
+    //std::cout << "  result: " << result << std::endl;
     
     //loop over all slices [i = index of next slice]
-    for (std::size_t i = 1; i < D; i++) {
+    for (std::size_t i = 1; i < slices.count(); i++) {
         //exchange slices
         prev_slice_values = curr_slice_values;
         curr_slice_values = next_slice_values;
@@ -109,11 +113,17 @@ complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients,
             }
             
             //compute basis value within next slice
-            complex_t next_basis = evaluateBasis(parameters, axis, slices[i][j], curr_basis, prev_bases, x);
+            complex_t next_basis = evaluateBasis(parameters, axis, curr_index, curr_basis, prev_bases, x);
             next_slice_values[j] = next_basis;
             result += next_basis*coefficients[slices[i].offset() + j];
+            
+            //std::cout << "  SET: " << next_index << " = " << next_basis << std::endl;
+            //std::cout << "  coeff: " << coefficients[slices[i].offset() + j] << std::endl;
+            //std::cout << "  result: " << next_basis*coefficients[slices[i].offset() + j] << std::endl;
         }
     }
+    
+    //std::cout << "RESULT: " << result << std::endl;
     
     return result;
 }
