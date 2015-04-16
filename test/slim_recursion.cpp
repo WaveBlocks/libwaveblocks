@@ -57,7 +57,7 @@ int main()
     std::vector<complex_t> coefficients(slices[slices.count()-1].offset() + slices[slices.count()-1].size());
     
     //set coefficients
-    std::cout << "COEFFICIENTS: " << std::endl;
+    //std::cout << "COEFFICIENTS: " << std::endl;
     for (auto slice : slices) {
         std::size_t i = slice.offset();
         for (auto index : slice) {
@@ -66,16 +66,17 @@ int main()
     }
     
     ////DEBUG
-    //Eigen::Matrix<real_t,D,1> x;
-    //x << 0.5, -0.3;
-    //std::cout << x << std::endl;
-    //std::cout << evaluateWavepacket(coefficients, parameters, slices, x).real() << '\n';
+    std::cout << "Test One Evaluation" << std::endl;
+    Eigen::Matrix<real_t,D,1> x;
+    x << 0.5, -0.3;
+    std::cout << "x: \n" << x << std::endl;
+    std::cout << "psi: " << evaluateWavepacket(coefficients, parameters, slices, x) << '\n';
     
     std::size_t n1 = 20, n2 = 20;
     double a1 = -5.0, b1 = 5.0;
     double a2 = -5.0, b2 = 5.0;
     
-    std::ofstream out("slim_recursion.csv");
+    std::ofstream out("slim_recursion_cpp.csv");
     for (std::size_t i1 = 0; i1 <= n1; i1++) {
         for (std::size_t i2 = 0; i2 <= n2; i2++) {
             Eigen::Matrix<real_t,D,1> x;
@@ -85,7 +86,10 @@ int main()
             
             out << x[0] << ' ';
             out << x[1] << ' ';
-            out << evaluateWavepacket(coefficients, parameters, slices, x).real() << '\n';
+            
+            complex_t psi = evaluateWavepacket(coefficients, parameters, slices, x);
+            out << psi.real() << ' ';
+            out << psi.imag() << '\n';
         }
     }
     out.close();

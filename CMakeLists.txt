@@ -39,11 +39,11 @@ if(PKG_CONFIG_FOUND)
     endif()
 endif()
 
-add_executable(waveblocks_
+add_executable(main
     main.cpp
 )
 
-target_link_libraries(waveblocks_
+target_link_libraries(main
     hdf5
 )
 
