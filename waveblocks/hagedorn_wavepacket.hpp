@@ -11,7 +11,7 @@
 
 namespace waveblocks {
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 class HagedornWavepacket
 {
 private:
@@ -50,10 +50,10 @@ public:
         while (it.advance()) {
             MultiIndex<D> index = it.getMultiIndex();
             
-            std::size_t axis = D;
+            dim_t axis = D;
             
             //find first non-zero axis
-            for (std::size_t d = 0; d < D; d++) {
+            for (dim_t d = 0; d < D; d++) {
                 if (index[d] != 0) {
                     axis = d;
                     break;
@@ -70,7 +70,7 @@ public:
             complex_t value = result[preit.getOrdinal()];
             
             Eigen::Matrix<complex_t,D,1> values2;
-            for (std::size_t d = 0; d < D; d++) {
+            for (dim_t d = 0; d < D; d++) {
                 if (preit.getMultiIndex()[d] == 0) {
                     values2(d,0) = complex_t();
                 } else {

@@ -7,7 +7,7 @@
 
 namespace waveblocks {
 
-template<std::size_t D>
+template<dim_t D>
 class HyperbolicCutShape
 {
 private:
@@ -27,7 +27,7 @@ public:
     MultiIndex<D> getLimits() const
     {
         MultiIndex<D> bbox;
-        for (std::size_t i = 0; i < D; i++)
+        for (dim_t i = 0; i < D; i++)
             bbox[i] = std::floor(K_-1);
         return bbox;
     }
@@ -36,7 +36,7 @@ public:
     {
         //choose large enough integer type to prevent overflow bugs
         long long product = 1;
-        for (std::size_t i = 0; i < D; i++)
+        for (dim_t i = 0; i < D; i++)
             if (i != axis)
                 product *= (1 + coordinate[i]);
         
@@ -45,7 +45,7 @@ public:
     }
 };
 
-template<std::size_t D>
+template<dim_t D>
 class LimitedHyperbolicCutShape
 {
 private:
@@ -67,8 +67,9 @@ public:
     MultiIndex<D> getLimits() const
     {
         MultiIndex<D> bbox;
-        for (std::size_t i = 0; i < D; i++)
+        for (dim_t i = 0; i < D; i++) {
             bbox[i] = std::min((int)limits_[i]-1,(int)std::floor(K_-1));
+        }
         return bbox;
     }
     
@@ -76,9 +77,11 @@ public:
     {
         //choose large enough integer type to prevent overflow bugs
         long long product = 1;
-        for (std::size_t i = 0; i < D; i++)
-            if (i != axis)
+        for (dim_t i = 0; i < D; i++) {
+            if (i != axis) {
                 product *= (1 + coordinate[i]);
+            }
+        }
         
         //std::floor is necessary since C++ rounds negative numbers up (so -0.5 becomes 0)
         return std::min((int)limits_[axis]-1, (int)std::floor(K_/product - 1));

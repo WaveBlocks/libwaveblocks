@@ -11,7 +11,7 @@
 
 namespace waveblocks {
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 class LexicalShapeIterator
 {
 private:
@@ -104,7 +104,7 @@ public:
      */
     static int compare(MultiIndex<D> a, MultiIndex<D> b)
     {
-        for (std::size_t i = 0; i < D; i--) {
+        for (dim_t i = 0; i < D; i++) {
             int diff = a[i] - b[i];
             if (diff != 0)
                 return diff;
@@ -113,14 +113,14 @@ public:
     }
 };
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 std::ostream &operator<<(std::ostream &out, const LexicalShapeIterator<D,S> &it)
 {
     out << it.getOrdinal() << ": " << it.getMultiIndex();
     return out;
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 class LexicalShapeEnumeration
 {
 private:

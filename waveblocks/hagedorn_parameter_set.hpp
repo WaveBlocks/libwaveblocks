@@ -12,7 +12,7 @@
 
 namespace waveblocks {
 
-template<std::size_t D>
+template<dim_t D>
 struct HagedornParameterSet
 {
 public:
@@ -60,7 +60,7 @@ public:
      * 
      */
     complex_t evaluateBasis(const RVector &x, 
-                            std::size_t axis,
+                            dim_t axis,
                             MultiIndex<D> k, 
                             complex_t cur_v, 
                             const CVector &prev_v) const
@@ -71,7 +71,7 @@ public:
         //compute {sqrt(k[i])*phi[k-e[i]]}
         //  e[i]: unit vector aligned to i-th axis
         CVector prev_v_scaled = prev_v;
-        for (std::size_t i = 0; i < D; i++)
+        for (dim_t i = 0; i < D; i++)
             prev_v_scaled(i,0) *= std::sqrt(k[i]);
         
         complex_t pr1 = std::sqrt(2.0)/eps * Qinv.row(axis).dot(x-q)*cur_v;
@@ -81,7 +81,7 @@ public:
     }
 };
 
-template<std::size_t D>
+template<dim_t D>
 std::ostream &operator<<(std::ostream &out, const HagedornParameterSet<D> &parameters)
 {
     Eigen::IOFormat matrix_format(Eigen::StreamPrecision, 0, ", ", ",\n", "[", "]", "[", "]");

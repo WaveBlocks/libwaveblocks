@@ -37,3 +37,7 @@ build/
 scratch/
 .kdev4/
 *.kdev4
+
+# 
+main.cpp
+*~

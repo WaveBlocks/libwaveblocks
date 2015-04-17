@@ -7,12 +7,12 @@
 
 using namespace waveblocks;
 
-template<std::size_t D>
+template<dim_t D>
 void test(std::size_t limit)
 {
     MultiIndex<D> limits;
     
-    for (std::size_t d = 0; d < D; d++)
+    for (dim_t d = 0; d < D; d++)
         limits[d] = limit;
     
     HyperCubicShape<D> shape(limits);
@@ -31,13 +31,13 @@ void test(std::size_t limit)
 int main()
 {
     // test 2 dimensional
-    const std::size_t D = 2;
+    const dim_t D = 2;
     
-    typedef Eigen::Matrix<complex_t,D,D> CMatrix;
-    typedef Eigen::Matrix<complex_t,D,1> CVector;
+    //typedef Eigen::Matrix<complex_t,D,D> CMatrix;
+    //typedef Eigen::Matrix<complex_t,D,1> CVector;
     
-    typedef Eigen::Matrix<real_t,D,D> RMatrix;
-    typedef Eigen::Matrix<real_t,D,1> RVector;
+    //typedef Eigen::Matrix<real_t,D,D> RMatrix;
+    //typedef Eigen::Matrix<real_t,D,1> RVector;
     
     HyperCubicShape<D> shape(MultiIndex<D>{{4,4}});
     
@@ -76,7 +76,7 @@ int main()
     double a1 = -5.0, b1 = 5.0;
     double a2 = -5.0, b2 = 5.0;
     
-    std::ofstream out("slim_recursion_cpp.csv");
+    std::ofstream out("wavepacket.csv");
     for (std::size_t i1 = 0; i1 <= n1; i1++) {
         for (std::size_t i2 = 0; i2 <= n2; i2++) {
             Eigen::Matrix<real_t,D,1> x;

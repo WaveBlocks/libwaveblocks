@@ -7,7 +7,7 @@
 
 namespace waveblocks {
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 class SlicedShapeEnumeration
 {
 public:
@@ -50,7 +50,7 @@ private:
     std::vector<Slice> slices_;
 };
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
     : shape_(shape)
     , slices_()
@@ -60,7 +60,7 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
         MultiIndex<D> index = it.getMultiIndex();
         
         std::size_t slice = 0;
-        for (std::size_t i = 0; i < D; i++)
+        for (dim_t i = 0; i < D; i++)
             slice += index[i];
         
         if (slice >= slices_.size())
@@ -78,76 +78,76 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
     }
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 typename SlicedShapeEnumeration<D,S>::Iterator SlicedShapeEnumeration<D,S>::begin() const
 {
     return slices_.begin();
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 typename SlicedShapeEnumeration<D,S>::Iterator SlicedShapeEnumeration<D,S>::end() const
 {
     return slices_.end();
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 SlicedShapeEnumeration<D,S>::Slice::Slice()
     : table_()
     , offset_()
     , index_()
 { }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 std::size_t SlicedShapeEnumeration<D,S>::count() const
 {
     return slices_.size();
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 std::size_t SlicedShapeEnumeration<D,S>::Slice::offset() const
 {
     return offset_;
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 std::size_t SlicedShapeEnumeration<D,S>::Slice::size() const
 {
     return table_.size();
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 std::size_t SlicedShapeEnumeration<D,S>::Slice::index() const
 {
     return index_;
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 typename SlicedShapeEnumeration<D,S>::Slice::Iterator SlicedShapeEnumeration<D,S>::Slice::begin() const
 {
     return table_.begin();
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 typename SlicedShapeEnumeration<D,S>::Slice::Iterator SlicedShapeEnumeration<D,S>::Slice::end() const
 {
     return table_.end();
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 MultiIndex<D> SlicedShapeEnumeration<D,S>::Slice::at(std::size_t ordinal) const
 {
     assert(ordinal < table_.size());
     return table_[ordinal];
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 MultiIndex<D> SlicedShapeEnumeration<D,S>::Slice::operator[](std::size_t ordinal) const
 {
     assert(ordinal < table_.size());
     return table_[ordinal];
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 std::size_t SlicedShapeEnumeration<D,S>::Slice::find(MultiIndex<D> index) const
 {
     //do binary search
@@ -168,7 +168,7 @@ std::size_t SlicedShapeEnumeration<D,S>::Slice::find(MultiIndex<D> index) const
         return a;
 }
 
-template<std::size_t D, class S>
+template<dim_t D, class S>
 const typename SlicedShapeEnumeration<D,S>::Slice &SlicedShapeEnumeration<D,S>::operator[](std::size_t slice) const
 {
     return slices_[slice];

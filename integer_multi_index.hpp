@@ -5,7 +5,7 @@
 #include <vector>
 #include <initializer_list>
 
-template<class UINT, std::size_t D, std::size_t BITS>
+template<class UINT, dim_t D, std::size_t BITS>
 class IntegerMultiIndex
 {
 private:
@@ -105,19 +105,19 @@ public:
         return *this;
     }
     
-    UINT operator[](std::size_t index) const
+    UINT operator[](int index) const
     {
         return (values_ >> BITS*index) & ( (1<<BITS)-1 );
     }
     
-    Entry operator[](std::size_t index)
+    Entry operator[](int index)
     {
         return Entry(values_, index);
     }
     
     IntegerMultiIndex(std::initializer_list<UINT> list)
     {
-        std::size_t i = 0;
+        int i = 0;
         for (typename std::initializer_list<UINT>::iterator it = list.begin(); it != list.end() && i < D; it++)
             operator[](i++) = *it;
     }

@@ -5,7 +5,7 @@
 
 namespace waveblocks {
 
-template<std::size_t D>
+template<dim_t D>
 class HyperCubicShape
 {
 private:
@@ -26,7 +26,7 @@ public:
         return *this;
     }
     
-    int getSurface(std::size_t axis, MultiIndex<D> position) const
+    int getSurface(dim_t axis, MultiIndex<D> position) const
     {
         { (void)(position); } //disable unused-parameter warning
         return limits_[axis]-1;
