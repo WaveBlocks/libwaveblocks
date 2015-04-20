@@ -1,3 +1,4 @@
+#include "waveblocks/hyperbolic_shape.hpp"
 #include "waveblocks/hypercubic_shape.hpp"
 #include "waveblocks/slim_basis_recursion.hpp"
 
@@ -7,25 +8,63 @@
 
 using namespace waveblocks;
 
-template<dim_t D>
-void test(std::size_t limit)
+template<dim_t D, class S>
+void check(const SlicedShapeEnumeration<D,S> &enumeration)
 {
-    MultiIndex<D> limits;
+    std::cout << "check enumeration {" << std::endl;
     
-    for (dim_t d = 0; d < D; d++)
-        limits[d] = limit;
+    {
+        std::size_t ordinal = 0;
+        for (auto index : enumeration) {
+            if (ordinal != enumeration.find(index)) {
+                std::cout << "   [FAILURE] find("<<index<<") != "<<ordinal << std::endl;
+            }
+            
+            if (index != enumeration[ordinal]) {
+                std::cout << "   [FAILURE] at("<<ordinal<<") != "<<index << std::endl;
+            }
+            ordinal++;
+        }
+        
+        if (ordinal != enumeration.size()) {
+            std::cout << "   [FAILURE] size() != "<<ordinal << std::endl;
+        }
+    }
     
-    HyperCubicShape<D> shape(limits);
+    {
+        std::size_t ordinal = 0;
+        for (std::size_t islice = 0; islice < enumeration.slices().count(); islice++) {
+            auto slice = enumeration.slice(islice);
+            
+            if (ordinal != slice.offset()) {
+                std::cout << "   [FAILURE] slice_"<<islice<<".offset() != "<< ordinal << std::endl;
+            }
+            
+            std::size_t ientry = 0;
+            for (auto index : slice) {
+                if (ientry != slice.find(index)) {
+                    std::cout << "   [FAILURE] slice_"<<islice<<".find("<<index<< ") != "<<ientry << std::endl;
+                }
+                
+                if (index != slice[ientry]) {
+                    std::cout << "   [FAILURE] slice_"<<islice<<".at("<<ientry<< ") != "<<index << std::endl;
+                }
+                
+                if (index != enumeration[ordinal]) {
+                    std::cout << "   [FAILURE] order of slice_"<<islice<<" iteration != order of full iteration" << std::endl;
+                }
+                
+                ++ientry;
+                ++ordinal;
+            }
+            
+            if (ientry != slice.size()) {
+                std::cout << "   [FAILURE] slice_"<<islice<<".size() != "<<ientry << std::endl;
+            }
+        }
+    }
     
-    SlicedShapeEnumeration<D,HyperCubicShape<D>> slices(shape);
-    
-    HagedornParameterSet<D> parameters;
-    
-    std::vector<complex_t> coefficients(slices[slices.count()-1].offset() + slices[slices.count()-1].size());
-    
-    Eigen::Matrix<real_t,D,1> x;
-    
-    std::cout << evaluateWavepacket(coefficients, parameters, slices, x) << std::endl;
+    std::cout << "}" << std::endl;
 }
 
 int main()
@@ -33,17 +72,11 @@ int main()
     // test 2 dimensional
     const dim_t D = 2;
     
-    //typedef Eigen::Matrix<complex_t,D,D> CMatrix;
-    //typedef Eigen::Matrix<complex_t,D,1> CVector;
-    
-    //typedef Eigen::Matrix<real_t,D,D> RMatrix;
-    //typedef Eigen::Matrix<real_t,D,1> RVector;
-    
     HyperCubicShape<D> shape(MultiIndex<D>{{4,4}});
     
-    LexicalShapeEnumeration<D,HyperCubicShape<D>> enumeration(shape, 5);
+    SlicedShapeEnumeration<D,HyperCubicShape<D>> enumeration(shape);
     
-    SlicedShapeEnumeration<D,HyperCubicShape<D>> slices(shape);
+    check(enumeration);
     
     HagedornParameterSet<D> parameters;
     parameters.eps = 0.9;
@@ -54,14 +87,14 @@ int main()
     
     std::cout << parameters << std::endl;
     
-    std::vector<complex_t> coefficients(slices[slices.count()-1].offset() + slices[slices.count()-1].size());
+    std::vector<complex_t> coefficients(enumeration.size());
     
     //set coefficients
     //std::cout << "COEFFICIENTS: " << std::endl;
-    for (auto slice : slices) {
-        std::size_t i = slice.offset();
-        for (auto index : slice) {
-            coefficients[i++] = complex_t(std::exp(-double(0.5*index[0])),std::exp(-double(0.5*index[1])));
+    {
+        std::size_t ordinal = 0;
+        for (auto index : enumeration) {
+            coefficients[ordinal++] = complex_t(std::exp(-double(0.5*index[0])),std::exp(-double(0.5*index[1])));
         }
     }
     
@@ -70,7 +103,7 @@ int main()
     Eigen::Matrix<real_t,D,1> x;
     x << 0.5, -0.3;
     std::cout << "x: \n" << x << std::endl;
-    std::cout << "psi: " << evaluateWavepacket(coefficients, parameters, slices, x) << '\n';
+    std::cout << "psi: " << evaluateWavepacket(coefficients, parameters, enumeration, x) << '\n';
     
     std::size_t n1 = 20, n2 = 20;
     double a1 = -5.0, b1 = 5.0;
@@ -87,7 +120,7 @@ int main()
             out << x[0] << ' ';
             out << x[1] << ' ';
             
-            complex_t psi = evaluateWavepacket(coefficients, parameters, slices, x);
+            complex_t psi = evaluateWavepacket(coefficients, parameters, enumeration, x);
             out << psi.real() << ' ';
             out << psi.imag() << '\n';
         }

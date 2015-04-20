@@ -10,6 +10,25 @@ namespace waveblocks {
 
 template<dim_t D>
 using MultiIndex = std::array<unsigned,std::size_t(D)>;
+
+template<dim_t D>
+class LexicalMultiIndexCompare
+{
+public:
+    /**
+     * yields true if the dirst argument appears before the second
+     */
+    bool operator()(const MultiIndex<D> &a, const MultiIndex<D> &b)
+    {
+        for (dim_t i = 0; i < D; i++) {
+            if (a[i] < b[i])
+                return true;
+            if (a[i] > b[i])
+                return false;
+        }
+        return false; //strict weak ordering: a = b => comp(a,b) = false
+    }
+};
     
 // This code does not work on GNU-Compiler
 //

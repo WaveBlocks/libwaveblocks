@@ -56,9 +56,11 @@ inline complex_t evaluateBasis(const HagedornParameterSet<D> &parameters,
 template<dim_t D, class S>
 complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients, 
                              const HagedornParameterSet<D> &parameters, 
-                             const SlicedShapeEnumeration<D,S> &slices,
+                             const SlicedShapeEnumeration<D,S> &enumeration,
                              const Eigen::Matrix<real_t,D,1> &x)
 {
+    auto slices = enumeration.slices();
+    
     std::vector<complex_t> curr_slice_values;
     std::vector<complex_t> prev_slice_values;
     std::vector<complex_t> next_slice_values;
