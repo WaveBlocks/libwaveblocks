@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 #include "multi_index.hpp"
 

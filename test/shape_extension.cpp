@@ -1,8 +1,4 @@
-#include "waveblocks/hyperbolic_shape.hpp"
-#include "waveblocks/hypercubic_shape.hpp"
-
-#include "waveblocks/shape_extension.hpp"
-#include "waveblocks/sliced_shape_enumeration.hpp"
+#include "waveblocks.hpp"
 
 using namespace waveblocks;
 

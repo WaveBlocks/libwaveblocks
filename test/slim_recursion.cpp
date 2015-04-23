@@ -1,15 +1,13 @@
-#include "waveblocks/hyperbolic_shape.hpp"
-#include "waveblocks/hypercubic_shape.hpp"
-#include "waveblocks/slim_basis_recursion.hpp"
-
 #include <vector>
 #include <iostream>
 #include <fstream>
 
+#include "waveblocks.hpp"
+
 using namespace waveblocks;
 
 template<dim_t D, class S>
-void check(const SlicedShapeEnumeration<D,S> &enumeration)
+void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
 {
     std::cout << "check enumeration {" << std::endl;
     
@@ -76,7 +74,7 @@ int main()
     
     SlicedShapeEnumeration<D,HyperCubicShape<D>> enumeration(shape);
     
-    check(enumeration);
+    testSlicedShapeEnumeration(enumeration);
     
     HagedornParameterSet<D> parameters;
     parameters.eps = 0.9;
@@ -98,13 +96,14 @@ int main()
         }
     }
     
-    ////DEBUG
+    // evaluate wavepacket at a chosen location
     std::cout << "Test One Evaluation" << std::endl;
     Eigen::Matrix<real_t,D,1> x;
     x << 0.5, -0.3;
     std::cout << "x: \n" << x << std::endl;
     std::cout << "psi: " << evaluateWavepacket(coefficients, parameters, enumeration, x) << '\n';
     
+    // plot wavepacket
     std::size_t n1 = 20, n2 = 20;
     double a1 = -5.0, b1 = 5.0;
     double a2 = -5.0, b2 = 5.0;
