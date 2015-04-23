@@ -29,7 +29,17 @@ public:
     int getSurface(dim_t axis, MultiIndex<D> position) const
     {
         { (void)(position); } //disable unused-parameter warning
+        
+        for (dim_t d = 0; d < D; d++) {
+            if (d != axis && position[d] >= limits_[d])
+                return -1;
+        }
         return limits_[axis]-1;
+    }
+    
+    MultiIndex<D> limits() const
+    {
+        return limits_;
     }
 };
 

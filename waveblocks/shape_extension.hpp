@@ -3,9 +3,12 @@
 
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include "basic_types.hpp"
 #include "multi_index.hpp"
+
+#include "hypercubic_shape.hpp"
 
 namespace waveblocks {
 
@@ -25,7 +28,7 @@ public:
         int value = shape_.getSurface(axis, index);
         
         //extend only when there actually are some nodes
-        if (value > 0)
+        if (value >= 0)
             value += 1;
         
         for (dim_t d = 0; d < D; d++) {
@@ -38,6 +41,28 @@ public:
         }
         
         return value;
+    }
+};
+
+template<dim_t D>
+class ShapeExtension<D,HyperCubicShape<D>>
+{
+private:
+    HyperCubicShape<D> expansion_;
+    
+public:
+    ShapeExtension(HyperCubicShape<D> shape)
+        : expansion_(shape)
+    {
+        MultiIndex<D> limits = shape.limits();
+        for (dim_t d = 0; d < D; d++)
+            limits[d] += 1;
+        expansion_ = HyperCubicShape<D>(limits);
+    }
+    
+    int getSurface(dim_t axis, const MultiIndex<D> &index) const
+    {
+        return expansion_.getSurface(axis,index);
     }
 };
 
@@ -57,19 +82,22 @@ public:
     {
         MultiIndex<D> index = {{}};
         
-        //get first extension node
-        index[D-1] = 1 + shape_.getSurface(D-1,index);
-        
         while (true) {
-            for (dim_t i = 1 + shape_.getSurface(D-1,index); i <= extension_.getSurface(D-1,index); i++) {
+            int imin = std::max(0, 1+shape_.getSurface(D-1,index));
+            int imax = extension_.getSurface(D-1,index);
+            for (dim_t i = imin; i <= imax; i++)
+            {
                 index[D-1] = i;
                 table_->push_back(index);
             }
             index[D-1] = 0;
             
-            if (D > 1) {
+            if (D == 1) {
+                return;
+            }
+            else {
                 dim_t j = D-2;
-                while ((int)index[j] == 1 + shape_.getSurface(j, index)) {
+                while ((int)index[j] == extension_.getSurface(j, index)) {
                     index[j] = 0;
                     if (j == 0)
                         return;
@@ -95,7 +123,41 @@ public:
         return *this;
     }
     
+    std::size_t size() const
+    {
+        return table_->size();
+    }
     
+    std::size_t find(MultiIndex<D> index) const
+    {
+        LexicalMultiIndexCompare<D> comp;
+        
+        auto it = std::lower_bound(table_->begin(), table_->end(), index, comp);
+        //std::cout << index << ":" << *it << ":" << comp(index, *it) << std::endl;
+        if (*it == index)
+            return (it - table_->begin());
+        else
+            return table_->size(); //not found
+    }
+    
+    MultiIndex<D> operator[](std::size_t ordinal) const
+    {
+        assert (ordinal < table_.size());
+        
+        return table_->at(ordinal);
+    }
+    
+    typedef typename std::vector<MultiIndex<D>>::const_iterator Iterator;
+    
+    Iterator begin() const
+    {
+        return table_->begin();
+    }
+    
+    Iterator end() const
+    {
+        return table_->end();
+    }
 };
 
 }

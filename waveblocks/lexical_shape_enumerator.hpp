@@ -135,7 +135,12 @@ public:
     {
         LexicalMultiIndexCompare<D> comp;
         
-        return std::lower_bound(table_->begin(), table_->end(), index, comp) - table_->begin();
+        auto it = std::lower_bound(table_->begin(), table_->end(), index, comp);
+        
+        if (*it == index)
+            return it - table_->begin();
+        else
+            return table_->size(); //not found
     }
     
     MultiIndex<D> operator[](std::size_t ordinal) const

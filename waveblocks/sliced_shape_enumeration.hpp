@@ -84,7 +84,12 @@ public:
         std::size_t find(MultiIndex<D> index) const
         {
             LexicalMultiIndexCompare<D> comp;
-            return std::lower_bound(begin(), end(), index, comp) - begin();
+            
+            auto it = std::lower_bound(begin(), end(), index, comp);
+            if (*it == index)
+                return it - begin();
+            else
+                return size();
         }
     };
     
@@ -151,10 +156,13 @@ public:
         for (dim_t i = 0; i < D; i++)
             islice += index[i];
         
+        if (islice >= slices().count())
+            return size(); //entry does not exist
+        
         std::size_t ientry =  slice(islice).find(index);
         
         if (ientry >= slice(islice).size())
-            return size(); //entry does not exists
+            return size(); //entry does not exist
         else
             return slice(islice).offset() + ientry;
     }

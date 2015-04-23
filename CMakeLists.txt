@@ -39,13 +39,10 @@ if(PKG_CONFIG_FOUND)
     endif()
 endif()
 
-add_executable(main
-    main.cpp
-)
+#add_executable(main main.cpp)
 
-target_link_libraries(main
-    hdf5
-)
+#target_link_libraries(main
+    #hdf5)
 
 add_subdirectory(test)
 add_subdirectory(examples)

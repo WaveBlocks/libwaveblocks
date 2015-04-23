@@ -16,7 +16,7 @@ class LexicalMultiIndexCompare
 {
 public:
     /**
-     * yields true if the dirst argument appears before the second
+     * yields true if the first argument appears before the second
      */
     bool operator()(const MultiIndex<D> &a, const MultiIndex<D> &b)
     {
