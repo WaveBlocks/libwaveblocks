@@ -11,20 +11,33 @@ int main()
 {
     double start;
     
-    const dim_t D = 6;
+    const dim_t D = 4;
     typedef HyperCubicShape<D> Shape;
     
-    Shape shape(MultiIndex<D>{{10,10,10,10,10,10}});
+    Shape shape(MultiIndex<D>{{10,10,10,10}});
     
     start = getRealTime();
     SlicedShapeEnumeration<D,Shape> enumeration(shape);
-    std::cout << "create enumeration: " << (getRealTime() - start) << std::endl;
+    std::cout << "[TIME] create enumeration: " << (getRealTime() - start) << std::endl;
     
     start = getRealTime();
     ShapeExtensionEnumeration<D,Shape> extension(shape);
-    std::cout << "create extension: " << (getRealTime() - start) << std::endl;
+    std::cout << "[TIME] create extension: " << (getRealTime() - start) << std::endl;
     
+    //set "random" paramaters
     HagedornParameterSet<D> parameters;
+    parameters.eps = 0.9;
+    for (dim_t i = 0; i < D; i++) {
+        parameters.q(i,0) = std::cos(i+1);
+        parameters.p(i,0) = std::sin(i+1);
+        
+        for (dim_t j = 0; j < D; j++) {
+            parameters.Q(i,j) += complex_t( 0.3*std::sin(i+j+1), 0.3*std::cos(i+j+1) );
+            parameters.P(i,j) += complex_t( 0.3*std::cos(i+j+1), 0.3*std::sin(i+j+1) );
+        }
+    }
+    
+    std::cout << parameters << std::endl;
     
     std::vector<complex_t> coefficients(enumeration.size());
     
@@ -48,23 +61,23 @@ int main()
             ordinal++;
         }
     }
-    std::cout << "create coefficients: " << (getRealTime() - start) << std::endl;
+    std::cout << "[TIME] create coefficients: " << (getRealTime() - start) << std::endl;
     
     std::vector<complex_t> gradient[D];
-    Eigen::Matrix<real_t,D,1> x;
+    //Eigen::Matrix<real_t,D,1> x;
     
     //scatter-type
 //     start = getRealTime();
 //     for (dim_t d = 0; d < D; d++)
-//         evaluateWavepacketGradient(coefficients, parameters, enumeration, extension, x, d, gradient[d]);
+//         evaluateWavepacketGradient(coefficients, parameters, enumeration, extension, d, gradient[d]);
 //     std::cout << "evaluate gradient (scatter type): " << (getRealTime() - start) << std::endl;
     
     //gather-type
     start = getRealTime();
     GradientOperator<D,Shape> nabla;
     for (dim_t d = 0; d < D; d++)
-        nabla.evaluateWavepacketGradient(coefficients, parameters, enumeration, extension, x, d, gradient[d]);
-    std::cout << "evaluate gradient (gather type): " << (getRealTime() - start) << std::endl;
+        nabla.evaluateWavepacketGradient(coefficients, parameters, enumeration, extension, d, gradient[d]);
+    std::cout << "[TIME] evaluate gradient (gather type): " << (getRealTime() - start) << std::endl;
     
 //     std::size_t ordinal = 0;
 //     {
@@ -96,8 +109,6 @@ int main()
 //             ++ordinal;
 //         }
 //     }
-    
-    return 0;
     
     //compare result to csv file 
     std::cout << "compare results to csv file {" << std::endl;

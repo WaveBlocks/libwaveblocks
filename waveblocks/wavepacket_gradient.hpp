@@ -28,15 +28,13 @@ public:
                                     const HagedornParameterSet<D> &parameters, 
                                     const SlicedShapeEnumeration<D,S> &enumeration,
                                     const ShapeExtensionEnumeration<D,S> &extension,
-                                    const Eigen::Matrix<real_t,D,1> &x,
                                     dim_t axis,
                                     std::vector<complex_t> &result)
     {
         auto &eps = parameters.eps;
-        auto &P = parameters.P;
         auto &p = parameters.p;
-        
-        Eigen::Matrix<complex_t,D,D> Pbar = P * P.adjoint() * P.inverse().transpose();
+        Eigen::Matrix<complex_t,1,D> P_row = parameters.P.row(axis);
+        Eigen::Matrix<complex_t,1,D> Pbar_row = parameters.P.conjugate().row(axis);
         
         std::size_t shape_size = enumeration.size();
         
@@ -52,7 +50,7 @@ public:
                 std::size_t curr_ordinal = slices[i].offset() + j;
                 
                 //central node
-                complex_t cc = coefficients[curr_ordinal]*p(axis,0);
+                complex_t cc = coefficients[curr_ordinal];
                 
                 //backward neighbours
                 Eigen::Matrix<complex_t,D,1> cb;
@@ -82,7 +80,10 @@ public:
                     }
                 }
                 
-                result[curr_ordinal] = -(eps/std::sqrt(real_t(2))*(Pbar.row(axis).dot(cf) + P.row(axis).dot(cb)) + cc*p(axis,0));
+                complex_t first = Pbar_row*cf;
+                complex_t second = P_row*cb;
+                
+                result[curr_ordinal] = eps/std::sqrt(real_t(2)) * (first + second) + cc*p(axis,0);
             }
         }
         
@@ -95,11 +96,12 @@ public:
                     MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1;
                     std::size_t prev_ordinal = enumeration.find(prev_index);
                     if (prev_ordinal < enumeration.size())
-                        cb[d] = std::sqrt(real_t(prev_index[d] + 1))*coefficients[prev_ordinal];
+                        cb[d] = std::sqrt(real_t(curr_index[d]))*coefficients[prev_ordinal];
                 }
             }
             
-            result[curr_ordinal] = -(eps/std::sqrt(real_t(2))*(P.row(axis).dot(cb)));
+            complex_t first = P_row*cb;
+            result[curr_ordinal] = eps/std::sqrt(real_t(2))*first;
             
             ++curr_ordinal;
         }
@@ -123,7 +125,7 @@ void evaluateWavepacketGradient(const std::vector<complex_t> &coefficients,
     auto &P = parameters.P;
     auto &p = parameters.p;
     
-    Eigen::Matrix<complex_t,D,D> Pbar = P * P.adjoint() * P.inverse().transpose();
+    Eigen::Matrix<complex_t,D,D> Pbar = P.conjugate();
     
     std::size_t shape_size = enumeration.size();
     
