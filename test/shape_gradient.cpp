@@ -5,16 +5,18 @@
 #include "waveblocks.hpp"
 #include "util/time.hpp"
 
+#include "sample_wavefunc.hpp"
+
 using namespace waveblocks;
 
 int main()
 {
     double start;
     
-    const dim_t D = 4;
+    const dim_t D = 3;
     typedef HyperCubicShape<D> Shape;
     
-    Shape shape(MultiIndex<D>{{10,10,10,10}});
+    Shape shape(MultiIndex<D>{{10,10,10}});
     
     start = getRealTime();
     SlicedShapeEnumeration<D,Shape> enumeration(shape);
@@ -24,43 +26,18 @@ int main()
     ShapeExtensionEnumeration<D,Shape> extension(shape);
     std::cout << "[TIME] create extension: " << (getRealTime() - start) << std::endl;
     
-    //set "random" paramaters
     HagedornParameterSet<D> parameters;
-    parameters.eps = 0.9;
-    for (dim_t i = 0; i < D; i++) {
-        parameters.q(i,0) = std::cos(i+1);
-        parameters.p(i,0) = std::sin(i+1);
-        
-        for (dim_t j = 0; j < D; j++) {
-            parameters.Q(i,j) += complex_t( 0.3*std::sin(i+j+1), 0.3*std::cos(i+j+1) );
-            parameters.P(i,j) += complex_t( 0.3*std::cos(i+j+1), 0.3*std::sin(i+j+1) );
-        }
-    }
+    
+    //set "random"-like parameters
+    createSampleParameters(parameters);
     
     std::cout << parameters << std::endl;
     
     std::vector<complex_t> coefficients(enumeration.size());
     
-    //std::cout << "coefficients: " << std::endl;
     start = getRealTime();
-    {
-        std::size_t ordinal = 0;
-        for (auto index : enumeration) {
-            int sum = 0;
-            for (dim_t d = 0; d < D; d++)
-                sum += index[d];
-            
-            real_t falloff = 0.1;
-            
-            coefficients[ordinal] = complex_t(
-                std::exp(-falloff*sum),
-                std::exp(-falloff*sum));
-            
-            //std::cout << index << ": " << coefficients[ordinal] << std::endl;
-            
-            ordinal++;
-        }
-    }
+    //set "random"-like coefficients
+    createSampleCoefficients(enumeration, coefficients);
     std::cout << "[TIME] create coefficients: " << (getRealTime() - start) << std::endl;
     
     std::vector<complex_t> gradient[D];
@@ -79,39 +56,8 @@ int main()
         nabla.evaluateWavepacketGradient(coefficients, parameters, enumeration, extension, d, gradient[d]);
     std::cout << "[TIME] evaluate gradient (gather type): " << (getRealTime() - start) << std::endl;
     
-//     std::size_t ordinal = 0;
-//     {
-//         for (auto index : enumeration) {
-//             std::cout << index << "  ";
-//             for (dim_t d = 0; d < D; d++) {
-//                 complex_t value = gradient[d][ordinal];
-//                 std::cout << std::setw(11) << value.real() << " ";
-//             }
-//             for (dim_t d = 0; d < D; d++) {
-//                 complex_t value = gradient[d][ordinal];
-//                 std::cout << std::setw(11) << value.imag() << " ";
-//             }
-//             std::cout << "\n";
-//             ++ordinal;
-//         }
-//         
-//         for (auto index : extension) {
-//             std::cout << index << "  ";
-//             for (dim_t d = 0; d < D; d++) {
-//                 complex_t value = gradient[d][ordinal];
-//                 std::cout << std::setw(11) << value.real() << " ";
-//             }
-//             for (dim_t d = 0; d < D; d++) {
-//                 complex_t value = gradient[d][ordinal];
-//                 std::cout << std::setw(11) << value.imag() << " ";
-//             }
-//             std::cout << "\n";
-//             ++ordinal;
-//         }
-//     }
-    
     //compare result to csv file 
-    std::cout << "compare results to csv file {" << std::endl;
+    std::cout << "compare results to reference file {" << std::endl;
     std::ifstream csv("../../test/gradient.csv");
     if (csv.fail())
         std::cout << "   [ERROR] File not found!" << std::endl;

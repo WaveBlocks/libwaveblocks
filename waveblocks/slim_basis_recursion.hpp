@@ -47,8 +47,8 @@ inline complex_t evaluateBasis(const HagedornParameterSet<D> &parameters,
     
     Eigen::Matrix<real_t,D,1> dx = x - parameters.q;
     
-    complex_t pr1 = std::sqrt(2.0)/parameters.eps * Qinv.row(axis).dot(dx)*curr_basis;
-    complex_t pr2 = QhQinvt.row(axis).dot(prev_bases_scaled);
+    complex_t pr1 = std::sqrt(2.0)/parameters.eps * complex_t(Qinv.row(axis)*dx) * curr_basis;
+    complex_t pr2 = QhQinvt.row(axis)*prev_bases_scaled;
     
     return (pr1 - pr2) / std::sqrt( real_t(k[axis])+1.0);
 }

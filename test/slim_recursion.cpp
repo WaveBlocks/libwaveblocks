@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "waveblocks.hpp"
+#include "sample_wavefunc.hpp"
 
 using namespace waveblocks;
 
@@ -68,20 +69,16 @@ void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
 int main()
 {
     // test 2 dimensional
-    const dim_t D = 2;
+    const dim_t D = 5;
     
-    HyperCubicShape<D> shape(MultiIndex<D>{{4,4}});
+    HyperCubicShape<D> shape(MultiIndex<D>{{4,4,4,4,4}});
     
     SlicedShapeEnumeration<D,HyperCubicShape<D>> enumeration(shape);
     
     testSlicedShapeEnumeration(enumeration);
     
     HagedornParameterSet<D> parameters;
-    parameters.eps = 0.9;
-    //parameters.q << -1, 0;
-    parameters.p << 2, 0;
-    //parameters.Q << complex_t(2,2), complex_t(-1,-1), complex_t(1,1), complex_t(1,-3);
-    //parameters.P << complex_t(1,2), complex_t(1,1), complex_t(-1,1), complex_t(-2,3);
+    createSampleParameters(parameters);
     
     std::cout << parameters << std::endl;
     
@@ -89,42 +86,75 @@ int main()
     
     //set coefficients
     //std::cout << "COEFFICIENTS: " << std::endl;
-    {
-        std::size_t ordinal = 0;
-        for (auto index : enumeration) {
-            coefficients[ordinal++] = complex_t(std::exp(-double(0.5*index[0])),std::exp(-double(0.5*index[1])));
-        }
-    }
+    createSampleCoefficients(enumeration, coefficients);
     
     // evaluate wavepacket at a chosen location
-    std::cout << "Test One Evaluation" << std::endl;
-    Eigen::Matrix<real_t,D,1> x;
-    x << 0.5, -0.3;
-    std::cout << "x: \n" << x << std::endl;
-    std::cout << "psi: " << evaluateWavepacket(coefficients, parameters, enumeration, x) << '\n';
+    {
+        std::cout << "Test One Evaluation" << std::endl;
+        
+        Eigen::Matrix<real_t,D,1> x;
+        for (dim_t d = 0; d < D; d++)
+            x(d,0) = (d+1)/real_t(2*D);
+        
+        std::cout << "x: \n" << x << std::endl;
+        std::cout << "psi: " << evaluateWavepacket(coefficients, parameters, enumeration, x) << '\n';
+    }
     
     // plot wavepacket
-    std::size_t n1 = 20, n2 = 20;
-    double a1 = -5.0, b1 = 5.0;
-    double a2 = -5.0, b2 = 5.0;
+//     std::size_t n1 = 20, n2 = 20;
+//     double a1 = -5.0, b1 = 5.0;
+//     double a2 = -5.0, b2 = 5.0;
+//     
+//     std::ofstream out("wavepacket.csv");
+//     for (std::size_t i1 = 0; i1 <= n1; i1++) {
+//         for (std::size_t i2 = 0; i2 <= n2; i2++) {
+//             Eigen::Matrix<real_t,D,1> x;
+//             
+//             x[0] = a1 + i1*(b1-a1)/n1;
+//             x[1] = a2 + i2*(b2-a2)/n2;
+//             
+//             out << x[0] << ' ';
+//             out << x[1] << ' ';
+//             
+//             complex_t psi = evaluateWavepacket(coefficients, parameters, enumeration, x);
+//             out << psi.real() << ' ';
+//             out << psi.imag() << '\n';
+//         }
+//     }
+//     out.close();
     
-    std::ofstream out("wavepacket.csv");
-    for (std::size_t i1 = 0; i1 <= n1; i1++) {
-        for (std::size_t i2 = 0; i2 <= n2; i2++) {
+    std::cout << "compare results to reference file {" << std::endl;
+    {
+        std::ifstream in("../../test/wavepacket.csv");
+        
+        std::size_t lines = 0;
+        while (in.good()) {
+            ++lines;
+            
+            //read position
             Eigen::Matrix<real_t,D,1> x;
+            for (dim_t d = 0; d < D; d++)
+                in >> x(d,0);
             
-            x[0] = a1 + i1*(b1-a1)/n1;
-            x[1] = a2 + i2*(b2-a2)/n2;
+            //read reference value
+            real_t ref_real, ref_imag;
+            in >> ref_real;
+            in >> ref_imag;
+            complex_t ref(ref_real, ref_imag);
             
-            out << x[0] << ' ';
-            out << x[1] << ' ';
-            
+            //compute wavepacket value
             complex_t psi = evaluateWavepacket(coefficients, parameters, enumeration, x);
-            out << psi.real() << ' ';
-            out << psi.imag() << '\n';
+            
+            auto error = std::norm(psi - ref)/std::norm(ref);
+            
+            if (error > 10e-10) {
+                std::cout << "   [FAILURE] mismatch at line " << lines << ". error = " << error << std::endl;
+            }
         }
+        
+        std::cout << "   [INFO] processed " << lines << " lines" << std::endl;
     }
-    out.close();
+    std::cout << "}" << std::endl;
     
     return 0;
 }
