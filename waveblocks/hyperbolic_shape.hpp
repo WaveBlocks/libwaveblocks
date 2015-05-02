@@ -73,7 +73,7 @@ public:
         return bbox;
     }
     
-    int getSurface(std::size_t axis, const MultiIndex<D> &coordinate) const
+    int getSurface(dim_t axis, const MultiIndex<D> &coordinate) const
     {
         //choose large enough integer type to prevent overflow bugs
         long long product = 1;

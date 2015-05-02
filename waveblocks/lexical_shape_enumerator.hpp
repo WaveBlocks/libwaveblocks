@@ -26,7 +26,7 @@ public:
         , index_()
     { }
     
-    LexicalIndexGenerator(S shape, std::size_t ordinal, MultiIndex<D> index)
+    LexicalIndexGenerator(S shape, MultiIndex<D> index)
         : shape_(shape)
         , index_(index)
     { }
@@ -134,7 +134,7 @@ public:
     
     std::size_t find(MultiIndex<D> index) const
     {
-        LexicalMultiIndexCompare<D> comp;
+        std::less< MultiIndex<D> > comp;
         
         auto it = std::lower_bound(table_->begin(), table_->end(), index, comp);
         

@@ -130,7 +130,7 @@ public:
     
     std::size_t find(MultiIndex<D> index) const
     {
-        LexicalMultiIndexCompare<D> comp;
+        std::less< MultiIndex<D> > comp;
         
         auto it = std::lower_bound(table_->begin(), table_->end(), index, comp);
         //std::cout << index << ":" << *it << ":" << comp(index, *it) << std::endl;

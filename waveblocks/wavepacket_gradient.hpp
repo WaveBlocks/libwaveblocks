@@ -117,7 +117,6 @@ void evaluateWavepacketGradient(const std::vector<complex_t> &coefficients,
                                 const HagedornParameterSet<D> &parameters, 
                                 const SlicedShapeEnumeration<D,S> &enumeration,
                                 const ShapeExtensionEnumeration<D,S> &extension,
-                                const Eigen::Matrix<real_t,D,1> &x,
                                 dim_t axis,
                                 std::vector<complex_t> &result)
 {

@@ -5,6 +5,7 @@
 #include <memory>
 #include <algorithm>
 #include <iostream>
+#include <unordered_map>
 
 #include "lexical_shape_enumerator.hpp"
 
@@ -16,7 +17,7 @@ class SlicedShapeEnumeration
 private:
     S shape_;
     
-    std::shared_ptr<std::vector<MultiIndex<D>>> table_;
+    std::shared_ptr< std::vector<MultiIndex<D> > > table_;
     
     /**
      * stores offset of every slice
@@ -25,6 +26,8 @@ private:
      * last entry: table_->size()
      */
     std::vector<std::size_t> offsets_;
+    
+    std::shared_ptr< std::unordered_map< MultiIndex<D>, std::size_t > > dict_;
     
 public:
     class Slice
@@ -83,9 +86,13 @@ public:
         
         std::size_t find(MultiIndex<D> index) const
         {
-            LexicalMultiIndexCompare<D> comp;
+            //LexicalOrder<D,MultiIndex<D>> comp;
+            std::less< MultiIndex<D> > comp;
             
+            incr_flag();
             auto it = std::lower_bound(begin(), end(), index, comp);
+            decr_flag();
+            
             if (*it == index)
                 return it - begin();
             else
@@ -172,8 +179,9 @@ public:
 template<dim_t D, class S>
 SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
     : shape_(shape)
-    , table_(std::make_shared<std::vector<MultiIndex<D>>>())
+    , table_(std::make_shared< std::vector< MultiIndex<D> > >())
     , offsets_()
+    , dict_(std::make_shared< std::unordered_map< MultiIndex<D>, std::size_t> >())
 {
     LexicalIndexGenerator<D,S> it(shape);
     
@@ -202,6 +210,14 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
         slices[i].shrink_to_fit(); //force memory release
     }
     offsets_.push_back(table_->size());
+    
+    //create dictionary
+    {
+        std::size_t ordinal = 0;
+        for (auto index : *table_) {
+            dict_->operator[](index) = ordinal++;
+        }
+    }
 }
 
 }

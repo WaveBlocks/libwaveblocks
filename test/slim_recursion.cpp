@@ -1,6 +1,10 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
+
+#include "util/profiling.hpp"
+#include "util/time.hpp"
 
 #include "waveblocks.hpp"
 #include "sample_wavefunc.hpp"
@@ -15,8 +19,9 @@ void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
     {
         std::size_t ordinal = 0;
         for (auto index : enumeration) {
-            if (ordinal != enumeration.find(index)) {
-                std::cout << "   [FAILURE] find("<<index<<") != "<<ordinal << std::endl;
+            auto ifound = enumeration.find(index);
+            if (ordinal != ifound) {
+                std::cout << "   [FAILURE] find("<<index<<") = "<<ifound<<" != "<<ordinal << std::endl;
             }
             
             if (index != enumeration[ordinal]) {
@@ -41,8 +46,9 @@ void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
             
             std::size_t ientry = 0;
             for (auto index : slice) {
-                if (ientry != slice.find(index)) {
-                    std::cout << "   [FAILURE] slice_"<<islice<<".find("<<index<< ") != "<<ientry << std::endl;
+                auto ifound = slice.find(index);
+                if (ientry != ifound) {
+                    std::cout << "   [FAILURE] slice_"<<islice<<".find("<<index<< ") = "<<ifound<<" != "<<ientry << std::endl;
                 }
                 
                 if (index != slice[ientry]) {
@@ -66,12 +72,20 @@ void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
     std::cout << "}" << std::endl;
 }
 
+template<dim_t D>
+MultiIndex<D> createFilledMultiIndex(int entry)
+{
+    MultiIndex<D> index;
+    for (dim_t i = 0; i < D; i++)
+        index[i] = entry;
+    return index;
+}
+
 int main()
 {
-    // test 2 dimensional
-    const dim_t D = 5;
+    const dim_t D = 6;
     
-    HyperCubicShape<D> shape(MultiIndex<D>{{4,4,4,4,4}});
+    HyperCubicShape<D> shape(createFilledMultiIndex<D>(12));
     
     SlicedShapeEnumeration<D,HyperCubicShape<D>> enumeration(shape);
     
@@ -80,25 +94,32 @@ int main()
     HagedornParameterSet<D> parameters;
     createSampleParameters(parameters);
     
-    std::cout << parameters << std::endl;
-    
     std::vector<complex_t> coefficients(enumeration.size());
     
     //set coefficients
     //std::cout << "COEFFICIENTS: " << std::endl;
     createSampleCoefficients(enumeration, coefficients);
     
+    start_profiler();
+    
     // evaluate wavepacket at a chosen location
+    double start = getRealTime();
     {
-        std::cout << "Test One Evaluation" << std::endl;
+        std::cout << "Test One Evaluation {" << std::endl;
         
         Eigen::Matrix<real_t,D,1> x;
         for (dim_t d = 0; d < D; d++)
             x(d,0) = (d+1)/real_t(2*D);
         
-        std::cout << "x: \n" << x << std::endl;
-        std::cout << "psi: " << evaluateWavepacket(coefficients, parameters, enumeration, x) << '\n';
+        std::cout << "   psi: " << evaluateWavepacket(coefficients, parameters, enumeration, x) << '\n';
+        std::cout << "}\n";
     }
+    double stop = getRealTime();
+    
+    stop_profiler();
+    
+    std::cout << positive_sample_count() << "/" << total_sample_count() << " (" << positive_sample_count()/(total_sample_count()/100.0) << "%)" << std::endl;
+    std::cout << "time: " << (stop - start) << std::endl;
     
     // plot wavepacket
 //     std::size_t n1 = 20, n2 = 20;
@@ -123,38 +144,38 @@ int main()
 //     }
 //     out.close();
     
-    std::cout << "compare results to reference file {" << std::endl;
-    {
-        std::ifstream in("../../test/wavepacket.csv");
-        
-        std::size_t lines = 0;
-        while (in.good()) {
-            ++lines;
-            
-            //read position
-            Eigen::Matrix<real_t,D,1> x;
-            for (dim_t d = 0; d < D; d++)
-                in >> x(d,0);
-            
-            //read reference value
-            real_t ref_real, ref_imag;
-            in >> ref_real;
-            in >> ref_imag;
-            complex_t ref(ref_real, ref_imag);
-            
-            //compute wavepacket value
-            complex_t psi = evaluateWavepacket(coefficients, parameters, enumeration, x);
-            
-            auto error = std::norm(psi - ref)/std::norm(ref);
-            
-            if (error > 10e-10) {
-                std::cout << "   [FAILURE] mismatch at line " << lines << ". error = " << error << std::endl;
-            }
-        }
-        
-        std::cout << "   [INFO] processed " << lines << " lines" << std::endl;
-    }
-    std::cout << "}" << std::endl;
+//     std::cout << "compare results to reference file {" << std::endl;
+//     {
+//         std::ifstream in("../../test/wavepacket.csv");
+//         
+//         std::size_t lines = 0;
+//         while (in.good()) {
+//             ++lines;
+//             
+//             //read position
+//             Eigen::Matrix<real_t,D,1> x;
+//             for (dim_t d = 0; d < D; d++)
+//                 in >> x(d,0);
+//             
+//             //read reference value
+//             real_t ref_real, ref_imag;
+//             in >> ref_real;
+//             in >> ref_imag;
+//             complex_t ref(ref_real, ref_imag);
+//             
+//             //compute wavepacket value
+//             complex_t psi = evaluateWavepacket(coefficients, parameters, enumeration, x);
+//             
+//             auto error = std::norm(psi - ref)/std::norm(ref);
+//             
+//             if (error > 10e-10) {
+//                 std::cout << "   [FAILURE] mismatch at line " << lines << ". error = " << error << std::endl;
+//             }
+//         }
+//         
+//         std::cout << "   [INFO] processed " << lines << " lines" << std::endl;
+//     }
+//     std::cout << "}" << std::endl;
     
     return 0;
 }

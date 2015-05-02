@@ -29,16 +29,15 @@ complex_t evaluateGroundState(const HagedornParameterSet<D> &parameters,
 }
 
 template<dim_t D>
-inline complex_t evaluateBasis(const HagedornParameterSet<D> &parameters,
+inline complex_t evaluateBasis(const Eigen::Matrix<complex_t,D,D> &Qinv,
+                               const Eigen::Matrix<complex_t,D,D> &QhQinvt,
+                               const HagedornParameterSet<D> &parameters,
                                dim_t axis, 
                                MultiIndex<D> k, 
                                complex_t curr_basis, 
                                const Eigen::Matrix<complex_t,D,1> &prev_bases,
                                const Eigen::Matrix<real_t,D,1> &x)
 {
-    Eigen::Matrix<complex_t,D,D> Qinv = parameters.Q.inverse();
-    Eigen::Matrix<complex_t,D,D> QhQinvt = parameters.Q.adjoint()*Qinv.transpose();
-    
     //compute {sqrt(k[i])*phi[k-e[i]]}
     //  e[i]: unit vector aligned to i-th axis
     Eigen::Matrix<complex_t,D,1> prev_bases_scaled = prev_bases;
@@ -47,7 +46,9 @@ inline complex_t evaluateBasis(const HagedornParameterSet<D> &parameters,
     
     Eigen::Matrix<real_t,D,1> dx = x - parameters.q;
     
-    complex_t pr1 = std::sqrt(2.0)/parameters.eps * complex_t(Qinv.row(axis)*dx) * curr_basis;
+    complex_t temp = Qinv.row(axis)*dx;
+    
+    complex_t pr1 = std::sqrt(2.0)/parameters.eps * temp * curr_basis;
     complex_t pr2 = QhQinvt.row(axis)*prev_bases_scaled;
     
     return (pr1 - pr2) / std::sqrt( real_t(k[axis])+1.0);
@@ -59,6 +60,9 @@ complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients,
                              const SlicedShapeEnumeration<D,S> &enumeration,
                              const Eigen::Matrix<real_t,D,1> &x)
 {
+    Eigen::Matrix<complex_t,D,D> Qinv = parameters.Q.inverse();
+    Eigen::Matrix<complex_t,D,D> QhQinvt = parameters.Q.adjoint()*Qinv.transpose();
+    
     auto slices = enumeration.slices();
     
     std::vector<complex_t> curr_slice_values;
@@ -113,7 +117,7 @@ complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients,
             }
             
             //compute basis value within next slice
-            complex_t next_basis = evaluateBasis(parameters, axis, curr_index, curr_basis, prev_bases, x);
+            complex_t next_basis = evaluateBasis(Qinv, QhQinvt, parameters, axis, curr_index, curr_basis, prev_bases, x);
             next_slice_values[j] = next_basis;
             result += next_basis*coefficients[slices[i].offset() + j];
         }
