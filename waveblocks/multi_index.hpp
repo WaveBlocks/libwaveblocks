@@ -26,7 +26,7 @@ namespace waveblocks {
     
 #endif
 
-template<dim_t D> 
+template<dim_t D>
 std::ostream &operator<<(std::ostream &out, const MultiIndex<D> &index)
 {
     std::cout << "(";

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <stdexcept>
 #include <initializer_list>
 
 namespace waveblocks {
@@ -12,6 +13,13 @@ class TinyMultiIndex
 {
 public:
     const static std::size_t BITS_PER_ENTRY = (8*sizeof(UINT))/D;
+    
+    /**
+     * for a given axis: returns the largest value that this implementation is able to store
+     */
+    static int limit(dim_t axis) {
+        return (1<<BITS_PER_ENTRY)-1;
+    }
     
     UINT values_;
     
@@ -125,8 +133,12 @@ public:
     TinyMultiIndex(std::initializer_list<int> list)
     {
         dim_t index = 0;
-        for (typename std::initializer_list<int>::iterator it = list.begin(); it != list.end() && index < D; it++)
+        for (typename std::initializer_list<int>::iterator it = list.begin(); it != list.end() && index < D; it++) {
+            if (*it > limit())
+                throw std::range_error("this multi-index implementation is unable to store a large value than " + std::to_string(limit()));
+            
             operator[](index++) = *it;
+        }
     }
     
     bool operator==(const TinyMultiIndex &that) const

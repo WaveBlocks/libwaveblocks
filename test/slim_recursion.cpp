@@ -83,9 +83,9 @@ MultiIndex<D> createFilledMultiIndex(int entry)
 
 int main()
 {
-    const dim_t D = 6;
+    const dim_t D = 3;
     
-    HyperCubicShape<D> shape(createFilledMultiIndex<D>(12));
+    HyperCubicShape<D> shape(createFilledMultiIndex<D>(250));
     
     SlicedShapeEnumeration<D,HyperCubicShape<D>> enumeration(shape);
     

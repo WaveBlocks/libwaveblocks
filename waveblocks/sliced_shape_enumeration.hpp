@@ -17,7 +17,9 @@ class SlicedShapeEnumeration
 private:
     S shape_;
     
-    std::shared_ptr< std::vector<MultiIndex<D> > > table_;
+    bool use_dict_;
+    
+    std::shared_ptr< std::vector< MultiIndex<D> > > table_;
     
     /**
      * stores offset of every slice
@@ -27,7 +29,8 @@ private:
      */
     std::vector<std::size_t> offsets_;
     
-    std::shared_ptr< std::unordered_map< MultiIndex<D>, std::size_t > > dict_;
+    //std::shared_ptr< std::unordered_map< MultiIndex<D>, std::size_t > > dict_;
+    std::shared_ptr< std::vector< std::unordered_map< MultiIndex<D>, std::size_t > > > dict_;
     
 public:
     class Slice
@@ -86,17 +89,26 @@ public:
         
         std::size_t find(MultiIndex<D> index) const
         {
-            //LexicalOrder<D,MultiIndex<D>> comp;
-            std::less< MultiIndex<D> > comp;
-            
-            incr_flag();
-            auto it = std::lower_bound(begin(), end(), index, comp);
-            decr_flag();
-            
-            if (*it == index)
-                return it - begin();
-            else
-                return size();
+            if (enumeration_->use_dict_) {
+                
+                auto & slice_dict = enumeration_->dict_->at(islice_);
+                
+                auto it = slice_dict.find(index);
+                if (it == slice_dict.end())
+                    return size(); //shape does not contain node
+                else
+                    return it->second;
+                
+            } else {
+                std::less< MultiIndex<D> > comp;
+                
+                auto it = std::lower_bound(begin(), end(), index, comp);
+                
+                if (*it == index)
+                    return it - begin();
+                else
+                    return size();
+            }
         }
     };
     
@@ -175,17 +187,18 @@ public:
     }
 };
 
-
 template<dim_t D, class S>
 SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
     : shape_(shape)
+    , use_dict_(true)
     , table_(std::make_shared< std::vector< MultiIndex<D> > >())
     , offsets_()
-    , dict_(std::make_shared< std::unordered_map< MultiIndex<D>, std::size_t> >())
+    , dict_(std::make_shared< std::vector< std::unordered_map< MultiIndex<D>, std::size_t > > >())
 {
     LexicalIndexGenerator<D,S> it(shape);
     
     std::vector< std::vector<MultiIndex<D>> > slices;
+    std::size_t ordinal = 0;
     do {
         MultiIndex<D> index = it.index();
         
@@ -195,8 +208,9 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
         
         assert(islice <= slices.size()); //assert that lexical index generator does not jump
         
-        if (islice == slices.size())
+        if (islice == slices.size()) {
             slices.emplace_back();
+        }
         
         slices[islice].push_back(index);
     } while (it.forward());
@@ -212,10 +226,16 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
     offsets_.push_back(table_->size());
     
     //create dictionary
-    {
-        std::size_t ordinal = 0;
-        for (auto index : *table_) {
-            dict_->operator[](index) = ordinal++;
+    if (use_dict_) {
+        for (std::size_t islice = 0; islice < slices.size(); islice++) {
+            dict_->emplace_back();
+            
+            auto & slicedict = dict_->back();
+            
+            std::size_t ordinal = 0;
+            for (auto index : slice(islice)) {
+                slicedict[index] = ordinal++;
+            }
         }
     }
 }

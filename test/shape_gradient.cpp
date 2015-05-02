@@ -71,8 +71,11 @@ int main()
         
         //read index
         MultiIndex<D> index;
-        for (dim_t d = 0; d < D; d++)
-            csv >> index[d];
+        for (dim_t d = 0; d < D; d++) {
+            int entry;
+            csv >> entry;
+            index[d] = entry;
+        }
         
         //read real gradient part
         real_t temp[D];
