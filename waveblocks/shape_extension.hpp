@@ -13,13 +13,13 @@
 namespace waveblocks {
 
 template<dim_t D, class S>
-class ShapeExtension
+class ExtendedShape
 {
 private:
     S shape_;
     
 public:
-    ShapeExtension(S shape)
+    ExtendedShape(S shape)
         : shape_(shape)
     { }
     
@@ -45,13 +45,13 @@ public:
 };
 
 template<dim_t D>
-class ShapeExtension<D,HyperCubicShape<D>>
+class ExtendedShape<D,HyperCubicShape<D>>
 {
 private:
     HyperCubicShape<D> expansion_;
     
 public:
-    ShapeExtension(HyperCubicShape<D> shape)
+    ExtendedShape(HyperCubicShape<D> shape)
         : expansion_(shape)
     {
         MultiIndex<D> limits = shape.limits();
@@ -66,12 +66,29 @@ public:
     }
 };
 
+/**
+ * Extended shapes are needed for the gradient computation of the wavepacket.
+ * 
+ * This class is not used anymore. The original idea was that the enumeration
+ * of the extended shape consists of two parts: The first part is equal to the
+ * enumeration of the original shape. This class forms the second part. It stores
+ * the additional nodes that are part of the shape extension 'shell'. This saves
+ * some memory as the first part is identical to the enumeration of the corresponding
+ * basic shape.
+ * Since the gradient computation involves the evaluation of a wavepacket, this
+ * two-part idea implicates that two implementations of the evaluation are needed.
+ * One implementation for a wavepacket using a basic shape and one for using 
+ * an extended shape. This two-part idea has been abandoned for the sake of
+ * simplicity.
+ * 
+ * This class has been fully tested and works.
+ */
 template<dim_t D, class S>
 class ShapeExtensionEnumeration
 {
 private:
     S shape_;
-    ShapeExtension<D,S> extension_;
+    ExtendedShape<D,S> extension_;
     std::shared_ptr<std::vector<MultiIndex<D>>> table_;
     
 public:
@@ -80,7 +97,7 @@ public:
         , extension_(shape)
         , table_(std::make_shared<std::vector<MultiIndex<D>>>())
     {
-        MultiIndex<D> index = {{}};
+        MultiIndex<D> index = {};
         
         while (true) {
             int imin = std::max(0, 1+shape_.getSurface(D-1,index));
@@ -97,7 +114,7 @@ public:
             }
             else {
                 dim_t j = D-2;
-                while ((int)index[j] == extension_.getSurface(j, index)) {
+                while (index[j] == extension_.getSurface(j, index)) {
                     index[j] = 0;
                     if (j == 0)
                         return;
@@ -133,7 +150,7 @@ public:
         std::less< MultiIndex<D> > comp;
         
         auto it = std::lower_bound(table_->begin(), table_->end(), index, comp);
-        //std::cout << index << ":" << *it << ":" << comp(index, *it) << std::endl;
+        
         if (*it == index)
             return (it - table_->begin());
         else

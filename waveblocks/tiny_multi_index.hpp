@@ -113,6 +113,17 @@ public:
     TinyMultiIndex() : values_(0) {}
     TinyMultiIndex(const TinyMultiIndex &that) : values_(that.values_) {}
     
+    TinyMultiIndex(std::initializer_list<int> list)
+    {
+        dim_t axis = 0;
+        for (typename std::initializer_list<int>::iterator it = list.begin(); it != list.end() && axis < D; it++) {
+            if (*it > limit(axis))
+                throw std::range_error("this multi-index implementation is unable to store a large value than " + std::to_string(limit(axis)));
+            
+            operator[](axis++) = *it;
+        }
+    }
+    
     TinyMultiIndex &operator=(const TinyMultiIndex &that)
     {
         values_ = that.values_;
@@ -128,17 +139,6 @@ public:
     Entry operator[](dim_t index)
     {
         return Entry(values_, (D-1)-index);
-    }
-    
-    TinyMultiIndex(std::initializer_list<int> list)
-    {
-        dim_t index = 0;
-        for (typename std::initializer_list<int>::iterator it = list.begin(); it != list.end() && index < D; it++) {
-            if (*it > limit())
-                throw std::range_error("this multi-index implementation is unable to store a large value than " + std::to_string(limit()));
-            
-            operator[](index++) = *it;
-        }
     }
     
     bool operator==(const TinyMultiIndex &that) const

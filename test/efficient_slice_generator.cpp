@@ -11,20 +11,20 @@ template<int D, class S, int I>
 struct Loop
 {
     Loop<D,S,I+1> inner;
-    
+
     int total;
     const S &shape;
-    
+
     Loop(const S &shape, int total)
         : inner(shape, total)
         , total(total)
         , shape(shape)
     { }
-    
-    void operator()(MultiIndex<D> &index, int sum) const 
+
+    void operator()(MultiIndex<D> &index, int sum) const
     {
         int limit = shape.getSurface(I-1,index);
-        
+
         for (int ki = 0; ki <= std::min(limit, total - sum); ki++) {
             index[I-1] = ki;
             inner(index, sum + ki);
@@ -38,11 +38,11 @@ struct Loop<D,S,D>
 {
     int total;
     const S &shape;
-    
+
     Loop(const S &shape, int total)
         : total(total), shape(shape)
     { }
-    
+
     void operator()(MultiIndex<D> &index, int sum) const
     {
         int kd = total - sum;
@@ -57,15 +57,15 @@ struct Loop<D,S,D>
 int main()
 {
     const int D = 4;
-    
+
     typedef HyperbolicCutShape<D> S;
-    
+
     S shape(7.0);
-    
+
     Loop<D,S,1> loop(shape, 2);
-    
-    MultiIndex<D> index{};
+
+    MultiIndex<D> index {};
     loop(index, 0);
-    
+
     return 0;
 }

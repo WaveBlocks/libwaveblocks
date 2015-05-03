@@ -47,9 +47,9 @@ void start_profiler()
     counter.store(0);
     interrupt.store(0);
     finished.clear();
-    
+
     positive = total = 0;
-    
+
     std::thread profiler(profile);
     profiler.detach();
 }

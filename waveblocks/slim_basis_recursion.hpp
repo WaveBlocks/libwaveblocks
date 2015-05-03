@@ -3,12 +3,16 @@
 
 #include <vector>
 #include <map>
+#include <iomanip>
 
 #include "basic_types.hpp"
 
 #include "hagedorn_parameter_set.hpp"
 #include "lexical_shape_enumerator.hpp"
 #include "sliced_shape_enumeration.hpp"
+#include "hagedorn_wavepacket.hpp"
+
+#include "kahan_sum.hpp"
 
 namespace waveblocks {
 
@@ -29,7 +33,7 @@ complex_t evaluateGroundState(const HagedornParameterSet<D> &parameters,
 }
 
 template<dim_t D>
-inline complex_t evaluateBasis(const Eigen::Matrix<complex_t,D,D> &Qinv,
+complex_t evaluateBasis(const Eigen::Matrix<complex_t,D,D> &Qinv,
                                const Eigen::Matrix<complex_t,D,D> &QhQinvt,
                                const HagedornParameterSet<D> &parameters,
                                dim_t axis, 
@@ -55,11 +59,13 @@ inline complex_t evaluateBasis(const Eigen::Matrix<complex_t,D,D> &Qinv,
 }
 
 template<dim_t D, class S>
-complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients, 
-                             const HagedornParameterSet<D> &parameters, 
-                             const SlicedShapeEnumeration<D,S> &enumeration,
+complex_t evaluateWavepacket(const HagedornWavepacket<D,S> &wavepacket,
                              const Eigen::Matrix<real_t,D,1> &x)
 {
+    auto & parameters = *wavepacket.parameters();
+    auto & coefficients = *wavepacket.coefficients();
+    auto & enumeration = *wavepacket.coefficients().enumeration();
+    
     Eigen::Matrix<complex_t,D,D> Qinv = parameters.Q.inverse();
     Eigen::Matrix<complex_t,D,D> QhQinvt = parameters.Q.adjoint()*Qinv.transpose();
     
@@ -69,16 +75,20 @@ complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients,
     std::vector<complex_t> prev_slice_values;
     std::vector<complex_t> next_slice_values;
     
+    //Use Kahan's algorithm to accumulate bases with O(1) numerical error
+    KahanSum<complex_t> psi;
+    
     complex_t phi0 = evaluateGroundState(parameters, x);
     next_slice_values.push_back(phi0);
-    complex_t result = phi0*coefficients[0];
+    
+    psi += phi0*coefficients[0];
     
     //loop over all slices [i = index of next slice]
     for (std::size_t i = 1; i < slices.count(); i++) {
         //exchange slices
-        prev_slice_values = curr_slice_values;
-        curr_slice_values = next_slice_values;
-        next_slice_values.resize(slices[i].size());
+        std::swap(prev_slice_values, curr_slice_values);
+        std::swap(curr_slice_values, next_slice_values);
+        next_slice_values = std::vector<complex_t>(slices[i].size());
         
         //loop over all multi-indices within next slice [j = position of multi-index within next slice]
         for (std::size_t j = 0; j < slices[i].size(); j++) {
@@ -119,12 +129,88 @@ complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients,
             //compute basis value within next slice
             complex_t next_basis = evaluateBasis(Qinv, QhQinvt, parameters, axis, curr_index, curr_basis, prev_bases, x);
             next_slice_values[j] = next_basis;
-            result += next_basis*coefficients[slices[i].offset() + j];
+            psi += next_basis*coefficients[slices[i].offset() + j];
         }
     }
     
-    return result;
+    return psi();
 }
+
+/**
+template<dim_t D, class S>
+complex_t evaluateWavepacket(const std::vector<complex_t> &coefficients, 
+                             const HagedornParameterSet<D> &parameters, 
+                             const SlicedShapeEnumeration<D,S> &enumeration,
+                             const Eigen::Matrix<real_t,D,1> &x)
+{
+    Eigen::Matrix<complex_t,D,D> Qinv = parameters.Q.inverse();
+    Eigen::Matrix<complex_t,D,D> QhQinvt = parameters.Q.adjoint()*Qinv.transpose();
+    
+    auto slices = enumeration.slices();
+    
+    std::vector<complex_t> curr_slice_values;
+    std::vector<complex_t> prev_slice_values;
+    std::vector<complex_t> next_slice_values;
+    
+    KahanSum<complex_t> psi;
+    
+    complex_t phi0 = evaluateGroundState(parameters, x);
+    next_slice_values.push_back(phi0);
+    
+    psi += phi0*coefficients[0];
+    
+    //loop over all slices [i = index of next slice]
+    for (std::size_t i = 1; i < slices.count(); i++) {
+        //exchange slices
+        std::swap(prev_slice_values, curr_slice_values);
+        std::swap(curr_slice_values, next_slice_values);
+        next_slice_values = std::vector<complex_t>(slices[i].size());
+        
+        //loop over all multi-indices within next slice [j = position of multi-index within next slice]
+        for (std::size_t j = 0; j < slices[i].size(); j++) {
+            MultiIndex<D> next_index = slices[i][j];
+            //find valid precursor: find first non-zero entry
+            dim_t axis = D;
+            for (dim_t d = 0; d < D; d++) {
+                if (next_index[d] != 0) {
+                    axis = d;
+                    break;
+                }
+            }
+            
+            assert(axis != D); //assert that multi-index contains some non-zero entries
+            
+            //retrieve the basis value within current slice
+            MultiIndex<D> curr_index = next_index; curr_index[axis] -= 1; //get backward neighbour
+            std::size_t curr_ordinal = slices[i-1].find(curr_index);
+            
+            assert(curr_ordinal < slices[i-1].size()); //assert that multi-index has been found within current slice
+            complex_t curr_basis = curr_slice_values[curr_ordinal];
+            
+            //retrieve the basis values within previous slice
+            Eigen::Matrix<complex_t,D,1> prev_bases;
+            for (dim_t d = 0; d < D; d++) {
+                if (curr_index[d] == 0) {
+                    //precursor is out of shape therefore set this precursor value to zero
+                    prev_bases[d] = complex_t(0.0, 0.0);
+                }
+                else {
+                    MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1; //get backward neighbour
+                    std::size_t prev_ordinal = slices[i-2].find(prev_index);
+                    assert (prev_ordinal < slices[i-2].size()); //assert that multi-index has been found within previous slice
+                    prev_bases[d] = prev_slice_values[prev_ordinal];
+                }
+            }
+            
+            //compute basis value within next slice
+            complex_t next_basis = evaluateBasis(Qinv, QhQinvt, parameters, axis, curr_index, curr_basis, prev_bases, x);
+            next_slice_values[j] = next_basis;
+            psi += next_basis*coefficients[slices[i].offset() + j];
+        }
+    }
+    
+    return psi();
+}*/
 
 }
 

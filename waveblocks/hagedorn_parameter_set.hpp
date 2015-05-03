@@ -55,30 +55,6 @@ public:
         
         return 1.0/std::pow(pi*eps*eps, D/4.0) * std::exp(exponent);
     }
-    
-    /**
-     * 
-     */
-    complex_t evaluateBasis(const RVector &x, 
-                            dim_t axis,
-                            MultiIndex<D> k, 
-                            complex_t cur_v, 
-                            const CVector &prev_v) const
-    {
-        CMatrix Qinv = Q.inverse();
-        CMatrix QhQinvt = Q.adjoint()*Qinv.transpose();
-        
-        //compute {sqrt(k[i])*phi[k-e[i]]}
-        //  e[i]: unit vector aligned to i-th axis
-        CVector prev_v_scaled = prev_v;
-        for (dim_t i = 0; i < D; i++)
-            prev_v_scaled(i,0) *= std::sqrt(k[i]);
-        
-        complex_t pr1 = std::sqrt(2.0)/eps * Qinv.row(axis).dot(x-q)*cur_v;
-        complex_t pr2 = QhQinvt.row(axis).dot(prev_v_scaled);
-        
-        return (pr1 - pr2) / std::sqrt(k[axis]+1);
-    }
 };
 
 template<dim_t D>

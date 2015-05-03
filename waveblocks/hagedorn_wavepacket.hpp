@@ -5,9 +5,14 @@
 #include <Eigen/Dense>
 
 #include <vector>
+#include <memory>
 
 #include "basic_types.hpp"
-#include "lexical_shape_enumerator.hpp"
+#include "hagedorn_parameter_set.hpp"
+#include "sliced_shape_enumeration.hpp"
+#include "hagedorn_coefficient_vector.hpp"
+
+#include "kahan_sum.hpp"
 
 namespace waveblocks {
 
@@ -15,76 +20,145 @@ template<dim_t D, class S>
 class HagedornWavepacket
 {
 private:
-    LexicalShapeEnumeration<D,S> enumeration_;
-    std::vector<complex_t> coefficients_;
+    std::shared_ptr< const HagedornParameterSet<D> > parameters_;
+    std::shared_ptr< const CoefficientVector<D,S> > coefficients_;
+    
+    complex_t evaluateBasis(const Eigen::Matrix<complex_t,D,D> &Qinv,
+                                const Eigen::Matrix<complex_t,D,D> &QhQinvt,
+                                const HagedornParameterSet<D> &parameters,
+                                dim_t axis, 
+                                MultiIndex<D> k, 
+                                complex_t curr_basis, 
+                                const Eigen::Matrix<complex_t,D,1> &prev_bases,
+                                const Eigen::Matrix<real_t,D,1> &x) const
+    {
+        //compute {sqrt(k[i])*phi[k-e[i]]}
+        //  e[i]: unit vector aligned to i-th axis
+        Eigen::Matrix<complex_t,D,1> prev_bases_scaled = prev_bases;
+        for (dim_t d = 0; d < D; d++)
+            prev_bases_scaled(d,0) *= std::sqrt( real_t(k[d]) );
+        
+        Eigen::Matrix<real_t,D,1> dx = x - parameters.q;
+        
+        complex_t temp = Qinv.row(axis)*dx;
+        
+        complex_t pr1 = std::sqrt(2.0)/parameters.eps * temp * curr_basis;
+        complex_t pr2 = QhQinvt.row(axis)*prev_bases_scaled;
+        
+        return (pr1 - pr2) / std::sqrt( real_t(k[axis])+1.0);
+    }
     
 public:
-    HagedornParameterSet<D> parameters;
-    
-    HagedornWavepacket(LexicalShapeEnumeration<D,S> enumeration)
-        : enumeration_(enumeration)
-        , coefficients_(enumeration.size())
-        , parameters()
-    { }
-    
-    HagedornWavepacket(LexicalShapeEnumeration<D,S> enumeration, const HagedornParameterSet<D> &parameters)
-        : enumeration_(enumeration)
-        , coefficients_(enumeration.size())
-        , parameters(parameters)
-    { }
-    
-    /**
-     * stores function values of all bases in vector
-     */
-    void evaluateBases(const Eigen::Matrix<real_t,D,1> &x, std::vector<complex_t> &result) const
+    HagedornWavepacket(std::shared_ptr< const HagedornParameterSet<D> > parameters, 
+                       std::shared_ptr< const CoefficientVector<D,S> > coefficients)
+        : parameters_(parameters)
+        , coefficients_(coefficients)
     {
-        result.resize(enumeration_.size());
+        assert(enumeration.size() == coefficients.size());
+    }
+    
+    HagedornWavepacket(const HagedornWavepacket<D,S> &other)
+        : parameters_(other.parameters_)
+        , coefficients_(other.coefficients_)
+    { }
+    
+    HagedornWavepacket &operator=(const HagedornWavepacket<D,S> &other)
+    {
+        parameters_ = other.parameters_;
+        coefficients_ = other.coefficients_;
         
-        LexicalShapeIterator<D,S> it = enumeration_.begin();
+        return *this;
+    }
+    
+    std::shared_ptr< const HagedornParameterSet<D> > parameters() const
+    {
+        return parameters_;
+    }
+    
+    std::shared_ptr< const CoefficientVector<D,S> > coefficients() const
+    {
+        return coefficients_;
+    }
+    
+    std::shared_ptr< const SlicedShapeEnumeration<D,S> > enumeration() const
+    {
+        return coefficients_->enumeration();
+    }
+    
+    complex_t operator[](const Eigen::Matrix<real_t,D,1> &x) const
+    {
+        auto & parameters = *parameters_;
+        auto & coefficients = *coefficients_;
+        auto & enumeration = *coefficients_->enumeration();
         
-        //first entry in iterator must be 0
-        assert( it.getMultiIndex() == MultiIndex<D>{} );
+        Eigen::Matrix<complex_t,D,D> Qinv = parameters.Q.inverse();
+        Eigen::Matrix<complex_t,D,D> QhQinvt = parameters.Q.adjoint()*Qinv.transpose();
         
-        complex_t phi0 = parameters.evaluateGroundState(x);
+        auto slices = enumeration.slices();
         
-        while (it.advance()) {
-            MultiIndex<D> index = it.getMultiIndex();
+        std::vector<complex_t> curr_slice_values;
+        std::vector<complex_t> prev_slice_values;
+        std::vector<complex_t> next_slice_values;
+        
+        //Use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
+        KahanSum<complex_t> psi;
+        
+        complex_t phi0 = parameters_->evaluateGroundState(x);
+        next_slice_values.push_back(phi0);
+        
+        psi += phi0*coefficients[0];
+        
+        //loop over all slices [i = index of next slice]
+        for (std::size_t i = 1; i < slices.count(); i++) {
+            //exchange slices
+            std::swap(prev_slice_values, curr_slice_values);
+            std::swap(curr_slice_values, next_slice_values);
+            next_slice_values = std::vector<complex_t>(slices[i].size());
             
-            dim_t axis = D;
-            
-            //find first non-zero axis
-            for (dim_t d = 0; d < D; d++) {
-                if (index[d] != 0) {
-                    axis = d;
-                    break;
+            //loop over all multi-indices within next slice [j = position of multi-index within next slice]
+            for (std::size_t j = 0; j < slices[i].size(); j++) {
+                MultiIndex<D> next_index = slices[i][j];
+                //find valid precursor: find first non-zero entry
+                dim_t axis = D;
+                for (dim_t d = 0; d < D; d++) {
+                    if (next_index[d] != 0) {
+                        axis = d;
+                        break;
+                    }
                 }
-            }
-            
-            assert(axis != D);
-            
-            //receive precursors
-            LexicalShapeIterator<D,S> preit = enumeration_.getBackwardNeighbour(it, axis);
-            
-            assert(preit.getOrdinal() < it.getOrdinal());
-            
-            complex_t value = result[preit.getOrdinal()];
-            
-            Eigen::Matrix<complex_t,D,1> values2;
-            for (dim_t d = 0; d < D; d++) {
-                if (preit.getMultiIndex()[d] == 0) {
-                    values2(d,0) = complex_t();
-                } else {
-                    LexicalShapeIterator<D,S> pre2it = enumeration_.getBackwardNeighbour(preit, d);
-                    
-                    assert(pre2it.getOrdinal() < preit.getOrdinal());
-                    
-                    values2(d,0) = result[pre2it.getOrdinal()];
+                
+                assert(axis != D); //assert that multi-index contains some non-zero entries
+                
+                //retrieve the basis value within current slice
+                MultiIndex<D> curr_index = next_index; curr_index[axis] -= 1; //get backward neighbour
+                std::size_t curr_ordinal = slices[i-1].find(curr_index);
+                
+                assert(curr_ordinal < slices[i-1].size()); //assert that multi-index has been found within current slice
+                complex_t curr_basis = curr_slice_values[curr_ordinal];
+                
+                //retrieve the basis values within previous slice
+                Eigen::Matrix<complex_t,D,1> prev_bases;
+                for (dim_t d = 0; d < D; d++) {
+                    if (curr_index[d] == 0) {
+                        //precursor is out of shape therefore set this precursor value to zero
+                        prev_bases[d] = complex_t(0.0, 0.0);
+                    }
+                    else {
+                        MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1; //get backward neighbour
+                        std::size_t prev_ordinal = slices[i-2].find(prev_index);
+                        assert (prev_ordinal < slices[i-2].size()); //assert that multi-index has been found within previous slice
+                        prev_bases[d] = prev_slice_values[prev_ordinal];
+                    }
                 }
+                
+                //compute basis value within next slice
+                complex_t next_basis = evaluateBasis(Qinv, QhQinvt, parameters, axis, curr_index, curr_basis, prev_bases, x);
+                next_slice_values[j] = next_basis;
+                psi += next_basis*coefficients[slices[i].offset() + j];
             }
-            
-            result[it.getOrdinal()] = 
-                parameters.evaluateBasis(x, axis, preit.getMultiIndex(), value, values2);
         }
+        
+        return psi();
     }
 };
 

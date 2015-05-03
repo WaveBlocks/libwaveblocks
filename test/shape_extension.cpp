@@ -11,8 +11,9 @@ void testShapeExtension(bool strict,
     for (auto entry : enumeration) {
         //check whether forward neighbours exists
         for (dim_t d = 0; d < D; d++) {
-            MultiIndex<D> neighbour = entry; neighbour[d] += 1;
-            
+            MultiIndex<D> neighbour = entry;
+            neighbour[d] += 1;
+
             std::size_t extord = extension.find(neighbour);
             if (extord < extension.size()) {
                 //extension contains neighbour node
@@ -29,9 +30,9 @@ void testShapeExtension(bool strict,
             }
         }
     }
-    
+
     std::size_t nUnneeded = 0;
-    
+
     //check that for every node inside extension:
     // -> at least one neighbour is contained in shape
     for (auto entry : extension) {
@@ -39,36 +40,37 @@ void testShapeExtension(bool strict,
         for (dim_t d = 0; d < D; d++) {
             if (entry[d] == 0)
                 continue;
-            
-            MultiIndex<D> neighbour = entry; neighbour[d] -= 1;
+
+            MultiIndex<D> neighbour = entry;
+            neighbour[d] -= 1;
             if (enumeration.find(neighbour) < enumeration.size())
                 ++count;
         }
-        
+
         if (count == 0) {
             ++nUnneeded;
             if (strict)
                 std::cout << "   [WARNING] extension contains unneeded entry: "<<entry<<std::endl;
         }
     }
-    
+
     std::cout << "   [INFO] unneeded nodes ratio : "<<nUnneeded<<"/"<<extension.size()<<" = "<<
-            double(nUnneeded)/double(extension.size())*100.<<"%"<<std::endl;
-    
+              double(nUnneeded)/double(extension.size())*100.<<"%"<<std::endl;
+
     std::cout << "}" << std::endl;
 }
 
 int main()
 {
     const dim_t D = 30;
-    
+
     HyperbolicCutShape<D> shape(15.0);
-    
+
     SlicedShapeEnumeration<D,HyperbolicCutShape<D>> enumeration(shape);
-    
+
     ShapeExtensionEnumeration<D,HyperbolicCutShape<D>> extension(shape);
-    
+
     testShapeExtension(false, enumeration, extension);
-    
+
     return 0;
 }

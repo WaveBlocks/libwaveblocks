@@ -37,6 +37,7 @@ profiling/
 
 # build files
 build/
+test/.ipynb_checkpoints/
 scratch/
 .kdev4/
 *.kdev4
