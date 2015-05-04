@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
+#include <valarray>
 
 #include "lexical_shape_enumerator.hpp"
 
@@ -17,6 +18,8 @@ public:
     class Slice
     {
     public:
+        virtual ~Slice() { }
+        
         virtual std::size_t offset() const = 0;
         
         virtual std::size_t size() const = 0;
@@ -164,7 +167,7 @@ private:
     
     std::vector< MultiIndex<D> > table_;
     
-    std::vector<Slice> slices_;
+    std::valarray<Slice> slices_;
     
 public:
     class Slice : public ShapeEnumeration<D>::Slice
@@ -172,7 +175,7 @@ public:
         friend class SlicedShapeEnumeration<D,S>;
         
     private:
-        const SlicedShapeEnumeration<D,S> &enumeration_;
+        const SlicedShapeEnumeration<D,S> *enumeration_;
         
         std::size_t start_;
         std::size_t end_;
@@ -180,13 +183,6 @@ public:
         std::unordered_map< MultiIndex<D>, std::size_t > dict_;
         
     public:
-        Slice(const SlicedShapeEnumeration<D,S> &enumeration)
-            : enumeration_(enumeration)
-            , start_()
-            , end_()
-            , dict_()
-        { }
-        
         typedef typename std::vector<MultiIndex<D>>::const_iterator Iterator;
         
         std::size_t offset() const override
@@ -201,12 +197,12 @@ public:
         
         Iterator begin() const
         {
-            return enumeration_.table_.begin() + start_;
+            return enumeration_->table_.begin() + start_;
         }
         
         Iterator end() const
         {
-            return enumeration_.table_.begin() + end_;
+            return enumeration_->table_.begin() + end_;
         }
         
         MultiIndex<D> operator[](std::size_t ientry) const override
@@ -218,7 +214,7 @@ public:
         
         std::size_t find(MultiIndex<D> index) const override
         {
-            if (enumeration_.use_dict_) {
+            if (enumeration_->use_dict_) {
                 
                 auto it = dict_.find(index);
                 if (it == dict_.end())
@@ -296,13 +292,15 @@ public:
 template<dim_t D, class S>
 SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
     : shape_(shape)
-    , use_dict_(false)
+    , use_dict_(true)
     , table_()
-    , slices_()
 {
     LexicalIndexGenerator<D,S> it(shape);
     
-    std::vector< std::vector<MultiIndex<D>> > temp;
+    //holds for each slice its own vector
+    std::vector< std::vector< MultiIndex<D> >* > temp;
+    
+    //generate nodes and put them into the corresponding slice
     std::size_t ordinal = 0;
     do {
         MultiIndex<D> index = it.index();
@@ -314,18 +312,20 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
         assert(islice <= temp.size()); //assert that lexical index generator does not jump
         
         if (islice == temp.size()) {
-            temp.emplace_back();
+            temp.push_back( new std::vector< MultiIndex<D> >() );
         }
         
-        temp[islice].push_back(index);
+        temp[islice]->push_back(index);
     } while (it.forward());
     
-    //copy all slices into same vector and store offsets
+    //all slices are now populated
+    //copy all nodes into the same vector and store offsets
+    slices_ = std::valarray<Slice>(temp.size());
     for (std::size_t i = 0; i < temp.size(); i++) {
-        slices_.emplace_back(*this);
+        slices_[i].enumeration_ = this;
         
         slices_[i].start_ = table_.size();
-        table_.insert(table_.end(), temp[i].begin(), temp[i].end());
+        table_.insert(table_.end(), temp[i]->begin(), temp[i]->end());
         slices_[i].end_ = table_.size();
         
         //create dictionary
@@ -336,8 +336,8 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
             }
         }
         
-        temp[i].clear();
-        temp[i].shrink_to_fit(); //force memory release
+        delete temp[i];
+        temp[i] = nullptr;
     }
 }
 

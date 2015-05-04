@@ -90,7 +90,8 @@ int main(int argc, char *argv[])
     
     auto parameters = createSampleParameters<D>();
     
-    std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,S>(shape) );
+    auto tmp = new SlicedShapeEnumeration<D,S>(shape);
+    std::shared_ptr< ShapeEnumeration<D> > enumeration( tmp );
     
     testSlicedShapeEnumeration(*enumeration);
     
@@ -107,14 +108,14 @@ int main(int argc, char *argv[])
         for (dim_t d = 0; d < D; d++)
             x(d,0) = (d+1)/real_t(2*D);
         double stop = getRealTime();
-
+        
         complex_t psi = wavepacket(x);
-
+        
         std::cout << "   psi: " << psi << '\n';
         std::cout << "   time: " << (stop - start) << '\n';
         std::cout << "}" << std::endl;
     }
-
+    
     /**
      * read space delimited csv files with columns x_1 x_2 .. x_d real(psi[x]) imag(psi[x])
      */
@@ -122,7 +123,7 @@ int main(int argc, char *argv[])
     for (int iarg = 1; iarg < argc; iarg++) {
         std::cout << "   [FILE] " << argv[iarg] << std::endl;
         std::ifstream in(argv[iarg]);
-
+        
         std::size_t lines = 0;
         while (in.good()) {
             ++lines;
