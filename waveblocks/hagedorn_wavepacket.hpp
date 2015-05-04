@@ -16,12 +16,12 @@
 
 namespace waveblocks {
 
-template<dim_t D, class S>
+template<dim_t D>
 class HagedornWavepacket
 {
 private:
     std::shared_ptr< const HagedornParameterSet<D> > parameters_;
-    std::shared_ptr< const CoefficientVector<D,S> > coefficients_;
+    std::shared_ptr< const CoefficientVector<D> > coefficients_;
     
     complex_t evaluateBasis(const Eigen::Matrix<complex_t,D,D> &Qinv,
                                 const Eigen::Matrix<complex_t,D,D> &QhQinvt,
@@ -50,19 +50,17 @@ private:
     
 public:
     HagedornWavepacket(std::shared_ptr< const HagedornParameterSet<D> > parameters, 
-                       std::shared_ptr< const CoefficientVector<D,S> > coefficients)
+                       std::shared_ptr< const CoefficientVector<D> > coefficients)
         : parameters_(parameters)
         , coefficients_(coefficients)
-    {
-        assert(enumeration.size() == coefficients.size());
-    }
+    { }
     
-    HagedornWavepacket(const HagedornWavepacket<D,S> &other)
+    HagedornWavepacket(const HagedornWavepacket<D> &other)
         : parameters_(other.parameters_)
         , coefficients_(other.coefficients_)
     { }
     
-    HagedornWavepacket &operator=(const HagedornWavepacket<D,S> &other)
+    HagedornWavepacket &operator=(const HagedornWavepacket<D> &other)
     {
         parameters_ = other.parameters_;
         coefficients_ = other.coefficients_;
@@ -75,17 +73,17 @@ public:
         return parameters_;
     }
     
-    std::shared_ptr< const CoefficientVector<D,S> > coefficients() const
+    std::shared_ptr< const CoefficientVector<D> > coefficients() const
     {
         return coefficients_;
     }
     
-    std::shared_ptr< const SlicedShapeEnumeration<D,S> > enumeration() const
+    std::shared_ptr< const ShapeEnumeration<D> > enumeration() const
     {
         return coefficients_->enumeration();
     }
     
-    complex_t operator[](const Eigen::Matrix<real_t,D,1> &x) const
+    complex_t operator()(const Eigen::Matrix<real_t,D,1> &x) const
     {
         auto & parameters = *parameters_;
         auto & coefficients = *coefficients_;
@@ -93,8 +91,6 @@ public:
         
         Eigen::Matrix<complex_t,D,D> Qinv = parameters.Q.inverse();
         Eigen::Matrix<complex_t,D,D> QhQinvt = parameters.Q.adjoint()*Qinv.transpose();
-        
-        auto slices = enumeration.slices();
         
         std::vector<complex_t> curr_slice_values;
         std::vector<complex_t> prev_slice_values;
@@ -109,15 +105,15 @@ public:
         psi += phi0*coefficients[0];
         
         //loop over all slices [i = index of next slice]
-        for (std::size_t i = 1; i < slices.count(); i++) {
+        for (std::size_t i = 1; i < enumeration.count_slices(); i++) {
             //exchange slices
             std::swap(prev_slice_values, curr_slice_values);
             std::swap(curr_slice_values, next_slice_values);
-            next_slice_values = std::vector<complex_t>(slices[i].size());
+            next_slice_values = std::vector<complex_t>(enumeration.slice(i).size());
             
             //loop over all multi-indices within next slice [j = position of multi-index within next slice]
-            for (std::size_t j = 0; j < slices[i].size(); j++) {
-                MultiIndex<D> next_index = slices[i][j];
+            for (std::size_t j = 0; j < enumeration.slice(i).size(); j++) {
+                MultiIndex<D> next_index = enumeration.slice(i)[j];
                 //find valid precursor: find first non-zero entry
                 dim_t axis = D;
                 for (dim_t d = 0; d < D; d++) {
@@ -131,9 +127,9 @@ public:
                 
                 //retrieve the basis value within current slice
                 MultiIndex<D> curr_index = next_index; curr_index[axis] -= 1; //get backward neighbour
-                std::size_t curr_ordinal = slices[i-1].find(curr_index);
+                std::size_t curr_ordinal = enumeration.slice(i-1).find(curr_index);
                 
-                assert(curr_ordinal < slices[i-1].size()); //assert that multi-index has been found within current slice
+                assert(curr_ordinal < enumeration.slice(i-1).size()); //assert that multi-index has been found within current slice
                 complex_t curr_basis = curr_slice_values[curr_ordinal];
                 
                 //retrieve the basis values within previous slice
@@ -145,8 +141,8 @@ public:
                     }
                     else {
                         MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1; //get backward neighbour
-                        std::size_t prev_ordinal = slices[i-2].find(prev_index);
-                        assert (prev_ordinal < slices[i-2].size()); //assert that multi-index has been found within previous slice
+                        std::size_t prev_ordinal = enumeration.slice(i-2).find(prev_index);
+                        assert (prev_ordinal < enumeration.slice(i-2).size()); //assert that multi-index has been found within previous slice
                         prev_bases[d] = prev_slice_values[prev_ordinal];
                     }
                 }
@@ -154,7 +150,7 @@ public:
                 //compute basis value within next slice
                 complex_t next_basis = evaluateBasis(Qinv, QhQinvt, parameters, axis, curr_index, curr_basis, prev_bases, x);
                 next_slice_values[j] = next_basis;
-                psi += next_basis*coefficients[slices[i].offset() + j];
+                psi += next_basis*coefficients[enumeration.slice(i).offset() + j];
             }
         }
         

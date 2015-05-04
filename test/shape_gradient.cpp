@@ -15,9 +15,9 @@ int main()
 
     const dim_t D = 3;
     typedef HyperCubicShape<D> S;
-
+    
     S shape(MultiIndex<D> {{10,10,10}});
-
+    
     auto parameters = createSampleParameters<D>();
     auto enumeration = std::make_shared< SlicedShapeEnumeration<D,S> >(shape);
     auto coefficients = createSampleCoefficients<D,S>(enumeration);
@@ -28,7 +28,9 @@ int main()
     
     //gather-type
     start = getRealTime();
+    
     auto gradient = nabla(wavepacket, 0);
+    
     std::cout << "[TIME] evaluate gradient (gather type): " << (getRealTime() - start) << std::endl;
     
 //     //compare result to csv file

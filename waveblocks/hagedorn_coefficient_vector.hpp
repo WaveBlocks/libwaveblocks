@@ -15,34 +15,26 @@ namespace waveblocks {
  *    [2] a field containing the coefficient values
  *        the size of the field matches the size of the enumeration
  */
-template<dim_t D, class S>
+template<dim_t D>
 class CoefficientVector
 {
 private:
-    std::shared_ptr< const SlicedShapeEnumeration<D,S> > enumeration_;
+    std::shared_ptr< const ShapeEnumeration<D> > enumeration_;
     std::vector<complex_t> values_;
     
 public:
-    /**
-     * Actions:
-     *    [1] allocate & initialize new enumeration
-     *    [2] allocate & zero-initialize coefficient field
-     */
-    CoefficientVector(const S &shape)
-        : enumeration_( std::make_shared< const SlicedShapeEnumeration<D,S> >(shape) )
-        , values_(enumeration_->size())
-    { }
-    
-    CoefficientVector(const std::shared_ptr< const SlicedShapeEnumeration<D,S> > &enumeration)
+    CoefficientVector(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration)
         : enumeration_(enumeration)
         , values_(enumeration->size())
     { }
     
-    CoefficientVector(const std::shared_ptr< const SlicedShapeEnumeration<D,S> > &enumeration,
+    CoefficientVector(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration,
                       const std::vector<complex_t> &values)
         : enumeration_(enumeration)
         , values_(values)
-    { }
+    { 
+        assert (enumeration.size() == values.size());
+    }
     
     /**
      * Copy constructor
@@ -67,8 +59,8 @@ public:
      *    [B] enumeration is different
      *        @TODO transformation
      */
-    CoefficientVector(const std::shared_ptr< const SlicedShapeEnumeration<D,S> > &enumeration, 
-                      const CoefficientVector &other)
+    CoefficientVector(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration, 
+                      const CoefficientVector<D> &other)
         : enumeration_(enumeration)
         , values_(enumeration.size())
     {
@@ -84,7 +76,7 @@ public:
      * 
      * equivalent to the copy constructor
      */
-    CoefficientVector<D,S> &operator=(const CoefficientVector<D,S> &other)
+    CoefficientVector<D> &operator=(const CoefficientVector<D> &other)
     {
         enumeration_ = other.enumeration_;
         values_ = other.values_;
@@ -92,7 +84,7 @@ public:
         return *this;
     }
     
-    const std::shared_ptr< const SlicedShapeEnumeration<D,S> > &enumeration() const
+    const std::shared_ptr< const ShapeEnumeration<D> > &enumeration() const
     {
         return enumeration_;
     }

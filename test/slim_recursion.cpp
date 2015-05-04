@@ -5,16 +5,17 @@
 
 #include "util/time.hpp"
 
-#include "waveblocks.hpp"
+#include "waveblocks/hypercubic_shape.hpp"
+#include "waveblocks/hagedorn_wavepacket.hpp"
 #include "sample_wavefunc.hpp"
 
 using namespace waveblocks;
 
-template<dim_t D, class S>
-void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
+template<dim_t D>
+void testSlicedShapeEnumeration(const ShapeEnumeration<D> &enumeration)
 {
     std::cout << "check enumeration {" << std::endl;
-
+    
     {
         std::size_t ordinal = 0;
         for (auto index : enumeration) {
@@ -22,7 +23,7 @@ void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
             if (ordinal != ifound) {
                 std::cout << "   [FAILURE] find("<<index<<") = "<<ifound<<" != "<<ordinal << std::endl;
             }
-
+            
             if (index != enumeration[ordinal]) {
                 std::cout << "   [FAILURE] at("<<ordinal<<") != "<<index << std::endl;
             }
@@ -33,11 +34,11 @@ void testSlicedShapeEnumeration(const SlicedShapeEnumeration<D,S> &enumeration)
             std::cout << "   [FAILURE] size() != "<<ordinal << std::endl;
         }
     }
-
+    
     {
         std::size_t ordinal = 0;
-        for (std::size_t islice = 0; islice < enumeration.slices().count(); islice++) {
-            auto slice = enumeration.slice(islice);
+        for (std::size_t islice = 0; islice < enumeration.count_slices(); islice++) {
+            auto & slice = enumeration.slice(islice);
 
             if (ordinal != slice.offset()) {
                 std::cout << "   [FAILURE] slice_"<<islice<<".offset() != "<< ordinal << std::endl;
@@ -88,22 +89,26 @@ int main(int argc, char *argv[])
     S shape(createFilledMultiIndex<D>(15));
     
     auto parameters = createSampleParameters<D>();
-    auto enumeration = std::make_shared< SlicedShapeEnumeration<D,S> >(shape);
-    auto coefficients = createSampleCoefficients<D,S>(enumeration);
     
-    HagedornWavepacket<D,S> wavepacket(parameters, coefficients);
-
+    std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,S>(shape) );
+    
+    testSlicedShapeEnumeration(*enumeration);
+    
+    auto coefficients = createSampleCoefficients<D>(enumeration);
+    
+    HagedornWavepacket<D> wavepacket(parameters, coefficients);
+    
     // evaluate wavepacket at a chosen location
     {
         std::cout << "chosen evaluation {" << std::endl;
-
+        
         double start = getRealTime();
         Eigen::Matrix<real_t,D,1> x;
         for (dim_t d = 0; d < D; d++)
             x(d,0) = (d+1)/real_t(2*D);
         double stop = getRealTime();
 
-        complex_t psi = wavepacket[x];
+        complex_t psi = wavepacket(x);
 
         std::cout << "   psi: " << psi << '\n';
         std::cout << "   time: " << (stop - start) << '\n';
@@ -134,7 +139,7 @@ int main(int argc, char *argv[])
             complex_t ref(ref_real, ref_imag);
 
             //compute wavepacket value
-            complex_t psi = wavepacket[x];
+            complex_t psi = wavepacket(x);
 
             auto error = std::norm(psi - ref)/std::norm(ref);
 

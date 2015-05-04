@@ -14,6 +14,5 @@
 #include "waveblocks/sliced_shape_enumeration.hpp"
 
 #include "waveblocks/shape_extension.hpp"
-#include "waveblocks/gradient_operator.hpp"
 
 #endif
