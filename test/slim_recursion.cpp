@@ -7,70 +7,11 @@
 
 #include "waveblocks/hypercubic_shape.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
-#include "sample_wavefunc.hpp"
+#include "sample_wavepacket.hpp"
+
+#include "test_shape_enumeration.hpp"
 
 using namespace waveblocks;
-
-template<dim_t D>
-void testSlicedShapeEnumeration(const ShapeEnumeration<D> &enumeration)
-{
-    std::cout << "check enumeration {" << std::endl;
-    
-    {
-        std::size_t ordinal = 0;
-        for (auto index : enumeration) {
-            auto ifound = enumeration.find(index);
-            if (ordinal != ifound) {
-                std::cout << "   [FAILURE] find("<<index<<") = "<<ifound<<" != "<<ordinal << std::endl;
-            }
-            
-            if (index != enumeration[ordinal]) {
-                std::cout << "   [FAILURE] at("<<ordinal<<") != "<<index << std::endl;
-            }
-            ordinal++;
-        }
-
-        if (ordinal != enumeration.size()) {
-            std::cout << "   [FAILURE] size() != "<<ordinal << std::endl;
-        }
-    }
-    
-    {
-        std::size_t ordinal = 0;
-        for (std::size_t islice = 0; islice < enumeration.count_slices(); islice++) {
-            auto & slice = enumeration.slice(islice);
-
-            if (ordinal != slice.offset()) {
-                std::cout << "   [FAILURE] slice_"<<islice<<".offset() != "<< ordinal << std::endl;
-            }
-
-            std::size_t ientry = 0;
-            for (auto index : slice) {
-                auto ifound = slice.find(index);
-                if (ientry != ifound) {
-                    std::cout << "   [FAILURE] slice_"<<islice<<".find("<<index<< ") = "<<ifound<<" != "<<ientry << std::endl;
-                }
-
-                if (index != slice[ientry]) {
-                    std::cout << "   [FAILURE] slice_"<<islice<<".at("<<ientry<< ") != "<<index << std::endl;
-                }
-
-                if (index != enumeration[ordinal]) {
-                    std::cout << "   [FAILURE] order of slice_"<<islice<<" iteration != order of full iteration" << std::endl;
-                }
-
-                ++ientry;
-                ++ordinal;
-            }
-
-            if (ientry != slice.size()) {
-                std::cout << "   [FAILURE] slice_"<<islice<<".size() != "<<ientry << std::endl;
-            }
-        }
-    }
-
-    std::cout << "}" << std::endl;
-}
 
 template<dim_t D>
 MultiIndex<D> createFilledMultiIndex(int entry)
@@ -86,7 +27,7 @@ int main(int argc, char *argv[])
     const dim_t D = 3;
     typedef HyperCubicShape<D> S;
     
-    S shape(createFilledMultiIndex<D>(15));
+    S shape(createFilledMultiIndex<D>(5));
     
     std::shared_ptr< const HagedornParameterSet<D> > parameters = createSampleParameters<D>();
     
@@ -96,7 +37,7 @@ int main(int argc, char *argv[])
     
     std::shared_ptr< const std::valarray<complex_t> > coefficients = createSampleCoefficients<D>(enumeration);
     
-    HagedornWavepacket<D> wavepacket(parameters, enumeration, {coefficients});
+    HagedornWavepacket<D> wavepacket(0.9, parameters, enumeration, {coefficients});
     
     // evaluate wavepacket at a chosen location
     {
@@ -137,7 +78,7 @@ int main(int argc, char *argv[])
             in >> ref_real;
             in >> ref_imag;
             complex_t ref(ref_real, ref_imag);
-
+            
             //compute wavepacket value
             complex_t psi = wavepacket(x)(0,0);
             

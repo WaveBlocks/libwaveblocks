@@ -50,7 +50,6 @@ public:
         if (wavepacket.enumeration() != base_enum_)
             throw "incompatible shapes";
         
-        const auto & eps = wavepacket.parameters()->eps;
         const auto & q = wavepacket.parameters()->q;
         const auto & p = wavepacket.parameters()->p;
         const auto & Q = wavepacket.parameters()->Q;
@@ -58,7 +57,7 @@ public:
         
         Eigen::Matrix<complex_t,D,D> Pbar = P.conjugate();
         
-        HagedornWavepacket<D,D> gradpacket(wavepacket.parameters(), grad_enum_);
+        HagedornWavepacket<D,D> gradpacket(wavepacket.eps(), wavepacket.parameters(), grad_enum_);
         
         //iterate over each slice [i = index of current slice]
         for (std::size_t i = 0; i < grad_enum_->count_slices(); i++) {
@@ -117,7 +116,7 @@ public:
                 Eigen::Matrix<complex_t,D,1> Pcf = Pbar*cf;
                 Eigen::Matrix<complex_t,D,1> Pcb = P*cb;
                 
-                Eigen::Matrix<complex_t,D,1> bgrad = (Pcf + Pcb)*eps/std::sqrt(real_t(2)) + Pcc;
+                Eigen::Matrix<complex_t,D,1> bgrad = (Pcf + Pcb)*wavepacket.eps()/std::sqrt(real_t(2)) + Pcc;
                 
                 for (dim_t d = 0; d < D; d++) {
                     const_cast< std::valarray<complex_t>& >(* (gradpacket.coefficients()[d]))[grad_enum_->slice(i).offset() + j] = bgrad(d,0);
