@@ -2,10 +2,11 @@
 #define SAMPLE_WAVEFUNC_HPP
 
 #include <memory>
+#include <valarray>
 
 #include "waveblocks/basic_types.hpp"
+#include "waveblocks/sliced_shape_enumeration.hpp"
 #include "waveblocks/hagedorn_parameter_set.hpp"
-#include "waveblocks/hagedorn_coefficient_vector.hpp"
 
 namespace waveblocks {
 template<dim_t D>
@@ -28,9 +29,9 @@ std::shared_ptr< HagedornParameterSet<D> > createSampleParameters()
 }
 
 template<dim_t D>
-std::shared_ptr< CoefficientVector<D> > createSampleCoefficients(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration)
+std::shared_ptr< std::valarray<complex_t> > createSampleCoefficients(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration)
 {
-    auto coeffs = std::make_shared< CoefficientVector<D> >(enumeration);
+    auto coeffs = std::make_shared< std::valarray<complex_t> >(enumeration->size());
 
     std::size_t ordinal = 0;
     for (auto index : *enumeration) {

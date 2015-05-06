@@ -18,6 +18,7 @@ public:
      * for a given axis: returns the largest value that this implementation is able to store
      */
     static int limit(dim_t axis) {
+        (void) axis; //supress -Wunused-parameter
         return (1<<BITS_PER_ENTRY)-1;
     }
     

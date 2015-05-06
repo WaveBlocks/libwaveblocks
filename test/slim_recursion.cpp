@@ -88,16 +88,15 @@ int main(int argc, char *argv[])
     
     S shape(createFilledMultiIndex<D>(15));
     
-    auto parameters = createSampleParameters<D>();
+    std::shared_ptr< const HagedornParameterSet<D> > parameters = createSampleParameters<D>();
     
-    auto tmp = new SlicedShapeEnumeration<D,S>(shape);
-    std::shared_ptr< ShapeEnumeration<D> > enumeration( tmp );
+    std::shared_ptr< const ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,S>(shape) );
     
     testSlicedShapeEnumeration(*enumeration);
     
-    auto coefficients = createSampleCoefficients<D>(enumeration);
+    std::shared_ptr< const std::valarray<complex_t> > coefficients = createSampleCoefficients<D>(enumeration);
     
-    HagedornWavepacket<D> wavepacket(parameters, coefficients);
+    HagedornWavepacket<D> wavepacket(parameters, enumeration, {coefficients});
     
     // evaluate wavepacket at a chosen location
     {
@@ -109,7 +108,7 @@ int main(int argc, char *argv[])
             x(d,0) = (d+1)/real_t(2*D);
         double stop = getRealTime();
         
-        complex_t psi = wavepacket(x);
+        auto psi = wavepacket(x);
         
         std::cout << "   psi: " << psi << '\n';
         std::cout << "   time: " << (stop - start) << '\n';
@@ -127,12 +126,12 @@ int main(int argc, char *argv[])
         std::size_t lines = 0;
         while (in.good()) {
             ++lines;
-
+            
             //read position
             Eigen::Matrix<real_t,D,1> x;
             for (dim_t d = 0; d < D; d++)
                 in >> x(d,0);
-
+            
             //read reference value
             real_t ref_real, ref_imag;
             in >> ref_real;
@@ -140,10 +139,10 @@ int main(int argc, char *argv[])
             complex_t ref(ref_real, ref_imag);
 
             //compute wavepacket value
-            complex_t psi = wavepacket(x);
-
+            complex_t psi = wavepacket(x)(0,0);
+            
             auto error = std::norm(psi - ref)/std::norm(ref);
-
+            
             if (error > 10e-10) {
                 std::cout << "      [FAILURE] mismatch at line " << lines << ". error = " << error << std::endl;
             }

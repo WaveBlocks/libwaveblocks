@@ -12,273 +12,122 @@
 
 #include <Eigen/Core>
 
-#include <map>
 #include <vector>
+#include <array>
+#include <valarray>
 
 namespace waveblocks {
 
-template<dim_t D, class S>
+template<dim_t D>
 class GradientOperator
 {
 public:
-    std::shared_ptr< SlicedShapeEnumeration<D,S> > enumeration_;
-    std::shared_ptr< SlicedShapeEnumeration<D,ExtendedShape<D,S> > > extended_enumeration_;
+    std::shared_ptr< ShapeEnumeration<D> > base_enum_;
+    std::shared_ptr< ShapeEnumeration<D> > grad_enum_;
     
 public:
-    GradientOperator(const S shape, const std::shared_ptr< SlicedShapeEnumeration<D,S> > &enumeration)
-        : enumeration_(enumeration)
-        , extended_enumeration_( std::make_shared< SlicedShapeEnumeration<D,ExtendedShape<D,S> > >(ExtendedShape<D,S>{{shape}}) )
+    GradientOperator(const std::shared_ptr< ShapeEnumeration<D> > &base_enum,
+                     const std::shared_ptr< ShapeEnumeration<D> > &grad_enum_)
+        : base_enum_(base_enum)
+        , grad_enum_(grad_enum_)
     { }
     
-    GradientOperator(const GradientOperator<D,S> &other)
-        : enumeration_(other.enumeration_)
-        , extended_enumeration_(other.extended_enumeration_)
+    GradientOperator(const GradientOperator<D> &other)
+        : base_enum_(other.base_enum_)
+        , grad_enum_(other.grad_enum_)
     { }
     
-    GradientOperator &operator=(const GradientOperator<D,S> &other)
+    GradientOperator &operator=(const GradientOperator<D> &other)
     {
-        enumeration_ = other.enumeration_;
-        extended_enumeration_ = other.extended_enumeration_;
+        base_enum_ = other.base_enum_;
+        grad_enum_ = other.grad_enum_;
         
         return *this;
     }
     
-    HagedornWavepacket< D,ExtendedShape<D,S> > operator()(const HagedornWavepacket<D,S> &wavepacket, int axis) const
+    HagedornWavepacket<D,D> operator()(const HagedornWavepacket<D,1> &wavepacket) const
     {
-        if (wavepacket.enumeration() != enumeration_)
+        if (wavepacket.enumeration() != base_enum_)
             throw "incompatible shapes";
         
-        auto & parameters = *wavepacket.parameters();
-        auto & coefficients = *wavepacket.coefficients();
-        auto & enumeration = *wavepacket.enumeration();
+        const auto & eps = wavepacket.parameters()->eps;
+        const auto & q = wavepacket.parameters()->q;
+        const auto & p = wavepacket.parameters()->p;
+        const auto & Q = wavepacket.parameters()->Q;
+        const auto & P = wavepacket.parameters()->P;
         
-        auto &eps = parameters.eps;
-        auto &p = parameters.p;
-        Eigen::Matrix<complex_t,1,D> P_row = parameters.P.row(axis);
-        Eigen::Matrix<complex_t,1,D> Pbar_row = parameters.P.conjugate().row(axis);
+        Eigen::Matrix<complex_t,D,D> Pbar = P.conjugate();
         
-        std::size_t shape_size = enumeration.size();
-        
-        auto gradient_coefficients = std::make_shared< CoefficientVector< D,ExtendedShape<D,S> > >(extended_enumeration_);
+        HagedornWavepacket<D,D> gradpacket(wavepacket.parameters(), grad_enum_);
         
         //iterate over each slice [i = index of current slice]
-        auto slices = enumeration.slices();
-        for (std::size_t i = 0; i < slices.count(); i++) {
+        for (std::size_t i = 0; i < grad_enum_->count_slices(); i++) {
             //loop over all multi-indices within current slice [j = position of multi-index within current slice]
-            for (std::size_t j = 0; j < slices[i].size(); j++) {
-                MultiIndex<D> curr_index = slices[i][j];
-                std::size_t curr_ordinal = slices[i].offset() + j;
+            for (std::size_t j = 0; j < grad_enum_->slice(i).size(); j++) {
+                MultiIndex<D> curr_index = grad_enum_->slice(i)[j];
                 
                 //central node
-                complex_t cc = coefficients[curr_ordinal];
+                complex_t cc;
+                if (base_enum_->contains(curr_index)) {
+                    std::size_t curr_ordinal = base_enum_->slice(i).find(curr_index);
+                    
+                    assert (curr_ordinal < base_enum_->slice(i).size());
+                    
+                    curr_ordinal += base_enum_->slice(i).offset();
+                    
+                    cc = wavepacket.coefficient(curr_ordinal)(0,0);
+                }
                 
                 //backward neighbours
                 Eigen::Matrix<complex_t,D,1> cb;
                 for (dim_t d = 0; d < D; d++) {
                     if (curr_index[d] != 0) {
                         MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1;
-                        std::size_t prev_ordinal = slices[i-1].find(prev_index);
-                        assert (prev_ordinal < slices[i-1].size()); //assert that backward neighbour exist
-                        prev_ordinal += slices[i-1].offset();
-                        
-                        cb[d] = std::sqrt(real_t(curr_index[d])) * coefficients[prev_ordinal];
+                        if (base_enum_->contains(prev_index)) {
+                            std::size_t prev_ordinal = base_enum_->slice(i-1).find(prev_index);
+                            
+                            assert (prev_ordinal < base_enum_->slice(i-1).size());
+                            
+                            prev_ordinal += base_enum_->slice(i-1).offset();
+                            
+                            cb[d] = wavepacket.coefficient(prev_ordinal)(0,0) * std::sqrt(real_t(curr_index[d]));
+                        }
                     }
                 }
                 
                 //forward neighbours
                 Eigen::Matrix<complex_t,D,1> cf;
-                for (dim_t d = 0; d < D; d++) {
-                    MultiIndex<D> next_index = curr_index; next_index[d] += 1;
-                    
-                    if (i+1 != slices.count()) {
-                        std::size_t next_ordinal = slices[i+1].find(next_index);
-                        if (next_ordinal < slices[i+1].size()) {
-                            next_ordinal += slices[i+1].offset();
+                if (i+1 < base_enum_->count_slices() && base_enum_->contains(curr_index)) {
+                    for (dim_t d = 0; d < D; d++) {
+                        MultiIndex<D> next_index = curr_index; next_index[d] += 1;
+                        
+                        if (base_enum_->contains(next_index)) {
+                            std::size_t next_ordinal = base_enum_->slice(i+1).find(next_index);
                             
-                            cf[d] = std::sqrt(real_t(curr_index[d]+1)) * coefficients[next_ordinal];
+                            assert (next_ordinal < base_enum_->slice(i+1).size());
+                            
+                            next_ordinal += base_enum_->slice(i+1).offset();
+                            
+                            cf[d] = wavepacket.coefficient(next_ordinal)(0,0) * std::sqrt(real_t(curr_index[d]+1));
                         }
                     }
                 }
                 
-                complex_t first = Pbar_row*cf;
-                complex_t second = P_row*cb;
+                Eigen::Matrix<complex_t,D,1> Pcc = p*cc;
+                Eigen::Matrix<complex_t,D,1> Pcf = Pbar*cf;
+                Eigen::Matrix<complex_t,D,1> Pcb = P*cb;
                 
-                (*gradient_coefficients)[curr_ordinal] = eps/std::sqrt(real_t(2)) * (first + second) + cc*p(axis,0);
+                Eigen::Matrix<complex_t,D,1> bgrad = (Pcf + Pcb)*eps/std::sqrt(real_t(2)) + Pcc;
+                
+                for (dim_t d = 0; d < D; d++) {
+                    const_cast< std::valarray<complex_t>& >(* (gradpacket.coefficients()[d]))[grad_enum_->slice(i).offset() + j] = bgrad(d,0);
+                }
             }
         }
         
-        HagedornWavepacket< D, ExtendedShape<D,S> > gradient_packet(wavepacket.parameters(), gradient_coefficients);
-        
-        return gradient_packet;
+        return gradpacket;
     }
-    
-//     /**
-//     * Computes gradient by gather-type stencil application.
-//     * See master thesis chapter 3.8 for details.
-//     */
-//     void evaluateWavepacketGradient(const std::vector<complex_t> &coefficients, 
-//                                     const HagedornParameterSet<D> &parameters, 
-//                                     const SlicedShapeEnumeration<D,S> &enumeration,
-//                                     const ShapeExtensionEnumeration<D,S> &extension,
-//                                     dim_t axis,
-//                                     std::vector<complex_t> &result)
-//     {
-//         auto &eps = parameters.eps;
-//         auto &p = parameters.p;
-//         Eigen::Matrix<complex_t,1,D> P_row = parameters.P.row(axis);
-//         Eigen::Matrix<complex_t,1,D> Pbar_row = parameters.P.conjugate().row(axis);
-//         
-//         std::size_t shape_size = enumeration.size();
-//         
-//         result.clear();
-//         result.resize(shape_size + extension.size());
-//         
-//         //iterate over each slice [i = index of current slice]
-//         auto slices = enumeration.slices();
-//         for (std::size_t i = 0; i < slices.count(); i++) {
-//             //loop over all multi-indices within current slice [j = position of multi-index within current slice]
-//             for (std::size_t j = 0; j < slices[i].size(); j++) {
-//                 MultiIndex<D> curr_index = slices[i][j];
-//                 std::size_t curr_ordinal = slices[i].offset() + j;
-//                 
-//                 //central node
-//                 complex_t cc = coefficients[curr_ordinal];
-//                 
-//                 //backward neighbours
-//                 Eigen::Matrix<complex_t,D,1> cb;
-//                 for (dim_t d = 0; d < D; d++) {
-//                     if (curr_index[d] != 0) {
-//                         MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1;
-//                         std::size_t prev_ordinal = slices[i-1].find(prev_index);
-//                         assert (prev_ordinal < slices[i-1].size()); //assert that backward neighbour exist
-//                         prev_ordinal += slices[i-1].offset();
-//                         
-//                         cb[d] = std::sqrt(real_t(curr_index[d])) * coefficients[prev_ordinal];
-//                     }
-//                 }
-//                 
-//                 //forward neighbours
-//                 Eigen::Matrix<complex_t,D,1> cf;
-//                 for (dim_t d = 0; d < D; d++) {
-//                     MultiIndex<D> next_index = curr_index; next_index[d] += 1;
-//                     
-//                     if (i+1 != slices.count()) {
-//                         std::size_t next_ordinal = slices[i+1].find(next_index);
-//                         if (next_ordinal < slices[i+1].size()) {
-//                             next_ordinal += slices[i+1].offset();
-//                             
-//                             cf[d] = std::sqrt(real_t(curr_index[d]+1)) * coefficients[next_ordinal];
-//                         }
-//                     }
-//                 }
-//                 
-//                 complex_t first = Pbar_row*cf;
-//                 complex_t second = P_row*cb;
-//                 
-//                 result[curr_ordinal] = eps/std::sqrt(real_t(2)) * (first + second) + cc*p(axis,0);
-//             }
-//         }
-//         
-//         std::size_t curr_ordinal = enumeration.size();
-//         for (auto curr_index : extension) {
-//             //backward neighbours
-//             Eigen::Matrix<complex_t,D,1> cb;
-//             for (dim_t d = 0; d < D; d++) {
-//                 if (curr_index[d] != 0) {
-//                     MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1;
-//                     std::size_t prev_ordinal = enumeration.find(prev_index);
-//                     if (prev_ordinal < enumeration.size())
-//                         cb[d] = std::sqrt(real_t(curr_index[d]))*coefficients[prev_ordinal];
-//                 }
-//             }
-//             
-//             complex_t first = P_row*cb;
-//             result[curr_ordinal] = eps/std::sqrt(real_t(2))*first;
-//             
-//             ++curr_ordinal;
-//         }
-//     }
 };
-
-/**
- * Computes gradient by scatter-type stencil application.
- * See master thesis chapter 3.8 for details.
- */
-// template<dim_t D, class S>
-// void evaluateWavepacketGradient(const std::vector<complex_t> &coefficients, 
-//                                 const HagedornParameterSet<D> &parameters, 
-//                                 const SlicedShapeEnumeration<D,S> &enumeration,
-//                                 const ShapeExtensionEnumeration<D,S> &extension,
-//                                 dim_t axis,
-//                                 std::vector<complex_t> &result)
-// {
-//     auto &eps = parameters.eps;
-//     auto &P = parameters.P;
-//     auto &p = parameters.p;
-//     
-//     Eigen::Matrix<complex_t,D,D> Pbar = P.conjugate();
-//     
-//     std::size_t shape_size = enumeration.size();
-//     
-//     result.clear();
-//     result.resize(shape_size + extension.size());
-//     
-//     //iterate over each slice [i = index of current slice]
-//     auto slices = enumeration.slices();
-//     for (std::size_t i = 0; i < slices.count(); i++) {
-//         //loop over all multi-indices within current slice [j = position of multi-index within current slice]
-//         for (std::size_t j = 0; j < slices[i].size(); j++) {
-//             MultiIndex<D> curr_index = slices[i][j];
-//             std::size_t curr_ordinal = slices[i].offset() + j;
-//             complex_t coefficient = coefficients[curr_ordinal];
-//             
-//             //central node
-//             result[curr_ordinal] += coefficient*p(axis,0);
-//             
-//             //backward neighbours
-//             for (dim_t d = 0; d < D; d++) {
-//                 if (curr_index[d] != 0) {
-//                     MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1;
-//                     std::size_t prev_ordinal = slices[i-1].find(prev_index);
-//                     assert (prev_ordinal < slices[i-1].size()); //assert that backward neighbour exist
-//                     prev_ordinal += slices[i-1].offset();
-//                     
-//                     result[prev_ordinal] += 
-//                             eps/std::sqrt(real_t(2)) *
-//                             std::sqrt(real_t(curr_index[d])) *
-//                             coefficient *
-//                             Pbar(axis,d);
-//                 }
-//             }
-//             
-//             //forward neighbours
-//             for (dim_t d = 0; d < D; d++) {
-//                 MultiIndex<D> next_index = curr_index; next_index[d] += 1;
-//                 
-//                 bool is_ext = true;
-//                 std::size_t next_ordinal;
-//                 if (i+1 != slices.count()) {
-//                     next_ordinal = slices[i+1].find(next_index);
-//                     if (next_ordinal < slices[i+1].size()) {
-//                         is_ext = false;
-//                         next_ordinal += slices[i+1].offset();
-//                     }
-//                 }
-//                 if (is_ext) {
-//                     next_ordinal = extension.find(next_index);
-//                     assert (next_ordinal < extension.size()); //assert that forward neighbour exists
-//                     next_ordinal += enumeration.size();
-//                 }
-//                 
-//                 result[next_ordinal] += 
-//                         eps/std::sqrt(real_t(2)) *
-//                         std::sqrt(real_t(curr_index[d]+1)) *
-//                         coefficient * 
-//                         P(axis,d);
-//             }
-//         }
-//     }
-// }
 
 }
 

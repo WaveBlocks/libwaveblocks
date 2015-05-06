@@ -2,8 +2,17 @@
 #include <fstream>
 #include <unordered_set>
 
-#include "waveblocks.hpp"
 #include "util/time.hpp"
+
+#include "waveblocks/hypercubic_shape.hpp"
+#include "waveblocks/hyperbolic_shape.hpp"
+#include "waveblocks/shape_extension.hpp"
+
+#include "waveblocks/sliced_shape_enumeration.hpp"
+
+#include "waveblocks/hagedorn_wavepacket.hpp"
+#include "waveblocks/gradient_operator.hpp"
+
 
 #include "sample_wavefunc.hpp"
 
@@ -19,19 +28,23 @@ int main()
     S shape(MultiIndex<D> {{10,10,10}});
     
     auto parameters = createSampleParameters<D>();
-    auto enumeration = std::make_shared< SlicedShapeEnumeration<D,S> >(shape);
-    auto coefficients = createSampleCoefficients<D,S>(enumeration);
     
-    HagedornWavepacket<D,S> wavepacket(parameters, coefficients);
+    std::shared_ptr< ShapeEnumeration<D> > wave_enum( new SlicedShapeEnumeration<D,S>(shape) );
+    std::shared_ptr< ShapeEnumeration<D> > grad_enum( new SlicedShapeEnumeration<D,ExtendedShape<D,S> >( ExtendedShape<D,S>{shape} ));
     
-    GradientOperator<D,S> nabla(shape, enumeration);
+    auto wave_coeffs = createSampleCoefficients<D>(wave_enum);
+    
+    HagedornWavepacket<D> wavepacket(parameters, wave_enum, {{wave_coeffs}});
+    
+    GradientOperator<D> nabla(wave_enum, grad_enum);
     
     //gather-type
     start = getRealTime();
     
-    auto gradient = nabla(wavepacket, 0);
+    auto gradient = nabla(wavepacket);
     
     std::cout << "[TIME] evaluate gradient (gather type): " << (getRealTime() - start) << std::endl;
+    std::cout << gradient(Eigen::Matrix<real_t,D,1>::Ones()) << std::endl;
     
 //     //compare result to csv file
 //     std::cout << "compare results to reference file {" << std::endl;

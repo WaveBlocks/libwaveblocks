@@ -97,6 +97,8 @@ public:
     
     virtual std::size_t count_slices() const = 0;
     
+    virtual bool contains(MultiIndex<D> index) const = 0;
+    
     class Iterator
     {
     private:
@@ -286,6 +288,11 @@ public:
             return size(); //entry does not exist
         else
             return slice(islice).offset() + ientry;
+    }
+    
+    bool contains(MultiIndex<D> index) const override
+    {
+        return index[0] <= shape_.getSurface(0, index);
     }
 };
 

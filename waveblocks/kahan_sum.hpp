@@ -25,8 +25,8 @@ public:
      * Zero initialize
      */
     KahanSum()
-        : sum_(static_cast<T>(0))
-        , c_(static_cast<T>(0))
+        : sum_()
+        , c_()
     { }
     
     /**

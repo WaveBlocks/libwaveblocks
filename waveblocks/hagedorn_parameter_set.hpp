@@ -10,12 +10,12 @@
 #include "basic_types.hpp"
 #include "multi_index.hpp"
 
+
 namespace waveblocks {
 
 template<dim_t D>
 struct HagedornParameterSet
 {
-public:
     typedef Eigen::Matrix<real_t,D,D> RMatrix;
     typedef Eigen::Matrix<complex_t,D,D> CMatrix;
     
