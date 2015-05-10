@@ -6,6 +6,8 @@
 #include <iostream>
 #include <unordered_map>
 #include <valarray>
+#include <string>
+#include <sstream>
 
 #include "lexical_shape_enumerator.hpp"
 
@@ -98,6 +100,8 @@ public:
     virtual std::size_t count_slices() const = 0;
     
     virtual bool contains(MultiIndex<D> index) const = 0;
+    
+    virtual std::string description() const = 0;
     
     class Iterator
     {
@@ -293,6 +297,17 @@ public:
     bool contains(MultiIndex<D> index) const override
     {
         return index[0] <= shape_.getSurface(0, index);
+    }
+    
+    std::string description() const override
+    {
+        std::stringstream out;
+        out << "ShapeEnumeration {";
+        out << "dimension: " << D << ", ";
+        out << "shape: " << shape_.description() << ", ";
+        out << "#entries: " << size() << ", ";
+        out << "#slices: " << count_slices() << "}";
+        return out.str();
     }
 };
 

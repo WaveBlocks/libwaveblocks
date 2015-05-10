@@ -1,6 +1,9 @@
 #ifndef WAVEBLOCKS_HYPERCUBIC_SHAPE
 #define WAVEBLOCKS_HYPERCUBIC_SHAPE
 
+#include <string>
+#include <sstream>
+
 #include "multi_index.hpp"
 
 namespace waveblocks {
@@ -40,6 +43,15 @@ public:
     MultiIndex<D> limits() const
     {
         return limits_;
+    }
+    
+    std::string description() const
+    {
+        std::stringstream out;
+        out << "HyperCubicShape{";
+        out << "dimension: " << D << ", ";
+        out << "limits (exclusive): " << limits_ << "}";
+        return out.str();
     }
 };
 

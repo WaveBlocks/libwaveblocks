@@ -19,7 +19,7 @@ public:
      */
     static int limit(dim_t axis) {
         (void) axis; //supress -Wunused-parameter
-        return (1<<BITS_PER_ENTRY)-1;
+        return (UINT(1)<<BITS_PER_ENTRY)-1;
     }
     
     UINT values_;
@@ -39,7 +39,7 @@ public:
         
         inline UINT mask() const
         {
-            return (1<<BITS_PER_ENTRY)-1;
+            return (UINT(1)<<BITS_PER_ENTRY)-1;
         }
         
         inline int get() const
@@ -134,7 +134,7 @@ public:
     
     int operator[](dim_t index) const
     {
-        return (values_ >> BITS_PER_ENTRY*((D-1)-index)) & ( (1<<BITS_PER_ENTRY)-1 );
+        return (values_ >> BITS_PER_ENTRY*((D-1)-index)) & ( (UINT(1)<<BITS_PER_ENTRY)-1 );
     }
     
     Entry operator[](dim_t index)

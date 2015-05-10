@@ -8,7 +8,7 @@
 namespace waveblocks {
 
 template<dim_t D>
-void testSlicedShapeEnumeration(const ShapeEnumeration<D> &enumeration)
+void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration)
 {
     std::cout << "check enumeration {" << std::endl;
     

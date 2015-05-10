@@ -30,9 +30,9 @@ class HagedornWavepacket
 {
 private:
     real_t eps_;
-    std::shared_ptr< const HagedornParameterSet<D> > parameters_;
-    std::shared_ptr< const ShapeEnumeration<D> > enumeration_;
-    std::array< std::shared_ptr< const std::valarray<complex_t> >, C> coefficients_;
+    std::shared_ptr< HagedornParameterSet<D> > parameters_;
+    std::shared_ptr< ShapeEnumeration<D> > enumeration_;
+    std::array< std::shared_ptr< std::valarray<complex_t> >, C> coefficients_;
     
     complex_t evaluateGroundState(const Eigen::Matrix<real_t,D,1> &x) const
     {
@@ -74,9 +74,9 @@ private:
     
 public:
     HagedornWavepacket(real_t eps,
-                       std::shared_ptr< const HagedornParameterSet<D> > parameters, 
-                       std::shared_ptr< const ShapeEnumeration<D> > enumeration,
-                       std::initializer_list< std::shared_ptr< const std::valarray<complex_t> > > coefficients)
+                       std::shared_ptr< HagedornParameterSet<D> > parameters, 
+                       std::shared_ptr< ShapeEnumeration<D> > enumeration,
+                       std::initializer_list< std::shared_ptr< std::valarray<complex_t> > > coefficients)
         : eps_(eps)
         , parameters_(parameters)
         , enumeration_(enumeration)
@@ -89,9 +89,9 @@ public:
     }
     
     HagedornWavepacket(real_t eps,
-                       std::shared_ptr< const HagedornParameterSet<D> > parameters, 
-                       std::shared_ptr< const ShapeEnumeration<D> > enumeration,
-                       std::array< std::shared_ptr< const std::valarray<complex_t> >, C> coefficients)
+                       std::shared_ptr< HagedornParameterSet<D> > parameters, 
+                       std::shared_ptr< ShapeEnumeration<D> > enumeration,
+                       std::array< std::shared_ptr< std::valarray<complex_t> >, C> coefficients)
         : eps_(eps)
         , parameters_(parameters)
         , enumeration_(enumeration)
@@ -99,15 +99,15 @@ public:
     { }
     
     HagedornWavepacket(real_t eps,
-                       std::shared_ptr< const HagedornParameterSet<D> > parameters, 
-                       std::shared_ptr< const ShapeEnumeration<D> > enumeration)
+                       std::shared_ptr< HagedornParameterSet<D> > parameters, 
+                       std::shared_ptr< ShapeEnumeration<D> > enumeration)
         : eps_(eps)
         , parameters_(parameters)
         , enumeration_(enumeration)
         , coefficients_()
     {
         for (dim_t c = 0; c < C; c++)
-            coefficients_[c] = std::make_shared< const std::valarray<complex_t> >(enumeration->size());
+            coefficients_[c] = std::make_shared< std::valarray<complex_t> >(enumeration->size());
     }
     
     HagedornWavepacket(const HagedornWavepacket<D,C> &other)
@@ -139,22 +139,22 @@ public:
         return eps_;
     }
     
-    std::shared_ptr< const HagedornParameterSet<D> > parameters() const
+    std::shared_ptr< HagedornParameterSet<D> > parameters() const
     {
         return parameters_;
     }
     
-    std::shared_ptr< const ShapeEnumeration<D> > enumeration() const
+    std::shared_ptr< ShapeEnumeration<D> > enumeration() const
     {
         return enumeration_;
     }
     
-    std::shared_ptr< const std::valarray<complex_t> > coefficients(dim_t component) const
+    std::shared_ptr< std::valarray<complex_t> > coefficients(dim_t component) const
     {
         return coefficients_[component];
     }
     
-    const std::array< std::shared_ptr< const std::valarray<complex_t> >, C> &coefficients() const
+    std::array< std::shared_ptr< std::valarray<complex_t> >, C> coefficients() const
     {
         return coefficients_;
     }
@@ -172,8 +172,8 @@ public:
     {
     private:
         real_t eps_;
-        std::shared_ptr< const HagedornParameterSet<D> > parameters_;
-        std::shared_ptr< const ShapeEnumeration<D> > enumeration_;
+        std::shared_ptr< HagedornParameterSet<D> > parameters_;
+        std::shared_ptr< ShapeEnumeration<D> > enumeration_;
         
         Eigen::Matrix<real_t,D,1> x;
         

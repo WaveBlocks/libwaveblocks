@@ -2,6 +2,8 @@
 #define HYPERBOLIC_SHAPE_HPP
 
 #include <cmath>
+#include <string>
+#include <sstream>
 
 #include "multi_index.hpp"
 
@@ -42,6 +44,15 @@ public:
         
         //std::floor is necessary since C++ rounds negative numbers up (so -0.8 becomes 0)
         return (int)std::floor(K_/product - 1);
+    }
+    
+    std::string description() const
+    {
+        std::stringstream out;
+        out << "HyperbolicCutShape{";
+        out << "dimension: " << D << ", ";
+        out << "sparsity: " << K_ << "}";
+        return out.str();
     }
 };
 
@@ -85,6 +96,16 @@ public:
         
         //std::floor is necessary since C++ rounds negative numbers up (so -0.5 becomes 0)
         return std::min((int)limits_[axis]-1, (int)std::floor(K_/product - 1));
+    }
+    
+    std::string description() const
+    {
+        std::stringstream out;
+        out << "LimitedHyperbolicCutShape{";
+        out << "dimension: " << D << ", ";
+        out << "sparsity: " << K_ << ", ";
+        out << "limits (exclusive): " << limits_ << "}";
+        return out.str();
     }
 };
 
