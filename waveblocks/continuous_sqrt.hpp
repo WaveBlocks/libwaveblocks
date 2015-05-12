@@ -25,12 +25,17 @@ public:
     ContinuousSqrt()
         : sqrt_()
         , state_()
-    {}
+    { }
+    
+    ContinuousSqrt(std::complex<T> sqrt)
+        : sqrt_(sqrt)
+        , state_(std::arg(sqrt))
+    { }
     
     ContinuousSqrt(const ContinuousSqrt &that) 
         : sqrt_(that.sqrt_)
         , state_(that.state_)
-    {}
+    { }
     
     ContinuousSqrt &operator=(const ContinuousSqrt &that)
     {
@@ -38,6 +43,7 @@ public:
         state_ = that.state_;
         return *this;
     }
+    
     
     /**
      * Chooses the square root angle (aka argument) that continuates the reference angle the best.

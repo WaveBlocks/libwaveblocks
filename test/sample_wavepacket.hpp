@@ -12,19 +12,23 @@ namespace waveblocks {
 template<dim_t D>
 std::shared_ptr< HagedornParameterSet<D> > createSampleParameters()
 {
-    auto params = std::make_shared< HagedornParameterSet<D> >();
-
+    Eigen::Matrix<real_t,D,1> q,p;
+    Eigen::Matrix<complex_t,D,D> Q,P;
+    
     for (dim_t i = 0; i < D; i++) {
-        params->q(i,0) = std::cos(i+1);
-        params->p(i,0) = std::sin(i+1);
-
+        q(i,0) = std::cos(i+1);
+        p(i,0) = std::sin(i+1);
+        
         for (dim_t j = 0; j < D; j++) {
-            params->Q(i,j) += complex_t( 0.3*std::sin(i+j+1), 0.3*std::cos(i+j+1) );
-            params->P(i,j) += complex_t( 0.3*std::cos(i+j+1), 0.3*std::sin(i+j+1) );
+            Q(i,j) = complex_t( 0.3*std::sin(i+j+1), 0.3*std::cos(i+j+1) );
+            P(i,j) = complex_t( 0.3*std::cos(i+j+1), 0.3*std::sin(i+j+1) );
         }
+        
+        Q(i,i) += complex_t(1.0,0.0);
+        P(i,i) += complex_t(0.0,1.0);
     }
-
-    return params;
+    
+    return std::shared_ptr< HagedornParameterSet<D> >( new HagedornParameterSet<D>(q,p,Q,P) );
 }
 
 template<dim_t D>

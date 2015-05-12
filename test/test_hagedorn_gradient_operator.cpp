@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
     std::shared_ptr< ShapeEnumeration<D> > wave_enum( new SlicedShapeEnumeration<D,S>(shape) );
     std::shared_ptr< ShapeEnumeration<D> > grad_enum( new SlicedShapeEnumeration<D,ExtendedShape<D,S> >( ExtendedShape<D,S> {shape} ));
 
-    checkShapeEnumeration(*wave_enum);
-    checkShapeEnumeration(*grad_enum);
+    checkShapeEnumeration(*wave_enum, "wavepacket enumeration");
+    checkShapeEnumeration(*grad_enum, "gradient enumeration");
 
     auto wave_coeffs = createSampleCoefficients<D>(wave_enum);
 

@@ -34,10 +34,10 @@ int main(int argc, char *argv[])
 
     std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,S>(shape) );
 
-    checkShapeEnumeration(*enumeration);
+    checkShapeEnumeration(*enumeration, "wavepacket enumeration");
 
     std::shared_ptr< std::valarray<complex_t> > coefficients = createSampleCoefficients<D>(enumeration);
-
+    
     HagedornWavepacket<D> wavepacket(0.9, parameters, enumeration, {coefficients});
 
     // evaluate wavepacket at a chosen location

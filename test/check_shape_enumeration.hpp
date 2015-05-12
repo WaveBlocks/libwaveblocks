@@ -2,15 +2,16 @@
 #define WAVEBLOCKS_TEST_SHAPE_ENUMERATION
 
 #include <iostream>
+#include <string>
 
 #include "waveblocks/sliced_shape_enumeration.hpp"
 
 namespace waveblocks {
 
 template<dim_t D>
-void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration)
+void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration, std::string tag)
 {
-    std::cout << "check enumeration {" << std::endl;
+    std::cout << "check " << tag << " {" << std::endl;
 
     {
         std::size_t ordinal = 0;
