@@ -17,7 +17,7 @@ private:
     
     /**
      * argument (angle) of stored square root
-     * domain = [0;2*pi)
+     * domain = [-pi;pi]
      */
     T state_;
     
@@ -40,42 +40,39 @@ public:
     }
     
     /**
-     * retrieve stored square root
-     */
-    std::complex<T> operator()() const
-    {
-        return sqrt_;
-    }
-    
-    /**
      * Chooses the square root angle (aka argument) that continuates the reference angle the best.
      * Throws an exception if the deviation above an accepted value (by default >45°) as this
      * strongly indicates a problem in higher level code (for example a too large timestep).
-     * \param[in] ref angle of reference root. domain = [0;2*pi)
-     * \param[in] arg angle of first(!) root. domain = [0;pi)
-     * \return angle of continuating root. domain = [0;2*pi)
+     * \param[in] ref angle of reference root. domain = [-pi;pi]
+     * \param[in] arg angle of  root. domain = [-pi;pi]
+     * \return angle of continuating root. domain = [-pi;pi]
      */
     static T continuate(T ref, T arg)
     {
-        const T pi = 3.14159265359;
+        const T pi = 3.14159265358979323846;
         const T RANGE = 0.25*pi; // 0.5*pi allows all inputs
         
         //determine, how long one needs to 
         //rotate the reference angle counter-clock-wise to hit the angle of the 1st root
-        T rot = arg - ref; // domain = (-2pi;pi)
+        T rot = arg - ref; // domain = [-2*pi;2*pi]
         
-        // force rotation into domain [0;2*pi)
-        if (rot < 0.0)
+        // force rotation into domain [-pi;pi]
+        if (rot >= pi)
+            rot -= 2.0*pi;
+        else if (rot < -pi)
             rot += 2.0*pi;
         
-        if (rot < RANGE || rot > 2.0*pi-RANGE) {
+        if (rot > -RANGE && rot < RANGE) {
             return arg;
         }
-        else if (rot > pi-RANGE && rot < pi+RANGE) {
-            return arg + pi;
+        else if (rot > pi-RANGE || rot < -pi+RANGE) {
+            if (arg > 0.0)
+                return arg - pi;
+            else
+                return arg + pi;
         }
         else {
-            throw std::runtime_error("too large step");
+            throw std::runtime_error("continuous_sqrt: too large step");
         }
     }
     
@@ -91,6 +88,14 @@ public:
         
         sqrt_ = std::polar(std::sqrt(std::abs(input)), state_);
         
+        return sqrt_;
+    }
+    
+    /**
+     * retrieve stored square root
+     */
+    std::complex<T> operator()() const
+    {
         return sqrt_;
     }
 };

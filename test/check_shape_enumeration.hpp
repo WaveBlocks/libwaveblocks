@@ -11,7 +11,7 @@ template<dim_t D>
 void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration)
 {
     std::cout << "check enumeration {" << std::endl;
-    
+
     {
         std::size_t ordinal = 0;
         for (auto index : enumeration) {
@@ -19,7 +19,7 @@ void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration)
             if (ordinal != ifound) {
                 std::cout << "   [FAILURE] find("<<index<<") = "<<ifound<<" != "<<ordinal << std::endl;
             }
-            
+
             if (index != enumeration[ordinal]) {
                 std::cout << "   [FAILURE] at("<<ordinal<<") != "<<index << std::endl;
             }
@@ -30,7 +30,7 @@ void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration)
             std::cout << "   [FAILURE] size() != "<<ordinal << std::endl;
         }
     }
-    
+
     {
         std::size_t ordinal = 0;
         for (std::size_t islice = 0; islice < enumeration.count_slices(); islice++) {

@@ -9,3 +9,7 @@ add_executable(test_hagedorn_gradient_operator
     test_hagedorn_gradient_operator.cpp 
     util/time.cpp
 )
+
+add_executable(test_cont_sqrt
+    test_cont_sqrt.cpp
+)

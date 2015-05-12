@@ -6,25 +6,12 @@
 
 #include "basic_types.hpp"
 
-
-
-#define TINY_MULTI_INDEX
-
 #include "tiny_multi_index.hpp"
 
 namespace waveblocks {
 
-#ifdef TINY_MULTI_INDEX
-    
-    template<dim_t D>
-    using MultiIndex = TinyMultiIndex<std::size_t,D>;
-    
-#else
-    
-    template<dim_t D>
-    using MultiIndex = std::array<unsigned,std::size_t(D)>;
-    
-#endif
+template<dim_t D>
+using MultiIndex = TinyMultiIndex<std::size_t,D>;
 
 template<dim_t D>
 std::ostream &operator<<(std::ostream &out, const MultiIndex<D> &index)
