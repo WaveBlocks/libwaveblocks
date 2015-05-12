@@ -4,6 +4,8 @@
 #include <complex>
 #include <stdexcept>
 
+#include "math_util.hpp"
+
 namespace waveblocks {
 
 template<class T>
@@ -55,27 +57,27 @@ public:
      */
     static T continuate(T ref, T arg)
     {
-        const T pi = 3.14159265358979323846;
-        const T RANGE = 0.25*pi; // 0.5*pi allows all inputs
+        const T PI = pi<T>();
+        const T RANGE = 0.25*PI; // 0.5*pi allows all inputs
         
         //determine, how long one needs to 
         //rotate the reference angle counter-clock-wise to hit the angle of the 1st root
         T rot = arg - ref; // domain = [-2*pi;2*pi]
         
         // force rotation into domain [-pi;pi]
-        if (rot >= pi)
-            rot -= 2.0*pi;
-        else if (rot < -pi)
-            rot += 2.0*pi;
+        if (rot >= PI)
+            rot -= 2.0*PI;
+        else if (rot < -PI)
+            rot += 2.0*PI;
         
         if (rot > -RANGE && rot < RANGE) {
             return arg;
         }
-        else if (rot > pi-RANGE || rot < -pi+RANGE) {
+        else if (rot > PI-RANGE || rot < -PI+RANGE) {
             if (arg > 0.0)
-                return arg - pi;
+                return arg - PI;
             else
-                return arg + pi;
+                return arg + PI;
         }
         else {
             throw std::runtime_error("continuous_sqrt: too large step");
@@ -87,8 +89,7 @@ public:
      */
     std::complex<T> operator()(std::complex<T> input)
     {
-        const T pi = 3.14159265359;
-        const T range = 0.25*pi; // 0.5*pi allows all inputs
+        const T range = 0.25*pi<T>(); // 0.5*pi allows all inputs
         
         state_ = continuate(state_, 0.5*std::arg(input) );
         

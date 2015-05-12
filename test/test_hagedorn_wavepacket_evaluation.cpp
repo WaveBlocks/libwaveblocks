@@ -43,17 +43,19 @@ int main(int argc, char *argv[])
     // evaluate wavepacket at a chosen location
     {
         std::cout << "chosen evaluation {" << std::endl;
-
+        
         double start = getRealTime();
-        Eigen::Matrix<real_t,D,1> x;
-        for (dim_t d = 0; d < D; d++)
-            x(d,0) = (d+1)/real_t(2*D);
+        Eigen::Matrix<complex_t,D,1> x;
+        for (dim_t d = 0; d < D; d++) {
+            x(d,0) = complex_t( (d+1)/real_t(2*D), (D-d)/real_t(2*D));
+        }
         double stop = getRealTime();
-
+        
         auto psi = wavepacket(x);
-
+        
         std::cout << "   x: " << x.transpose() << '\n';
         std::cout << "   psi: " << psi.transpose() << '\n';
+        std::cout << "   psi (with prefactor): " << psi.transpose()*wavepacket.prefactor() << std::endl;
         std::cout << "   time: " << (stop - start) << '\n';
         std::cout << "}" << std::endl;
     }

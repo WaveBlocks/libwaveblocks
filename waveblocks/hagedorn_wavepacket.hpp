@@ -10,6 +10,7 @@
 #include <initializer_list>
 
 #include "basic_types.hpp"
+#include "math_util.hpp"
 #include "hagedorn_parameter_set.hpp"
 #include "sliced_shape_enumeration.hpp"
 
@@ -33,44 +34,6 @@ private:
     std::shared_ptr< HagedornParameterSet<D> > parameters_;
     std::shared_ptr< ShapeEnumeration<D> > enumeration_;
     std::array< std::shared_ptr< std::valarray<complex_t> >, C> coefficients_;
-    
-    complex_t evaluateGroundState(const Eigen::Matrix<real_t,D,1> &x) const
-    {
-        const real_t pi = 3.14159265359;
-        
-        Eigen::Matrix<real_t,D,1> dx = x - parameters_->q;
-        
-        complex_t pr1 = dx.transpose()*parameters_->P*parameters_->Q.inverse()*dx;
-        real_t pr2 = parameters_->p.transpose()*dx;
-        
-        complex_t exponent = complex_t(0.0, 1.0)/(eps_*eps_) * (0.5*pr1 + pr2);
-        
-        return 1.0/std::pow(pi*eps_*eps_, D/4.0) * std::exp(exponent);
-    }
-    
-    Eigen::Matrix<complex_t,C,1> evaluateBasis(const Eigen::Matrix<complex_t,D,D> &Qinv,
-                                const Eigen::Matrix<complex_t,D,D> &QhQinvt,
-                                dim_t axis, 
-                                MultiIndex<D> k, 
-                                const Eigen::Matrix<complex_t,C,1> &curr_basis, 
-                                const Eigen::Matrix<complex_t,C,D> &prev_bases, 
-                                const Eigen::Matrix<real_t,D,1> &x) const
-    {
-        //compute {sqrt(k[i])*phi[k-e[i]]}
-        //  e[i]: unit vector aligned to i-th axis
-        Eigen::Matrix<complex_t,D,C> prev_bases_scaled = prev_bases.transpose();
-        for (dim_t d = 0; d < D; d++)
-            prev_bases_scaled.row(d) *= std::sqrt( real_t(k[d]) );
-        
-        Eigen::Matrix<real_t,D,1> dx = x - parameters_->q;
-        
-        complex_t temp = Qinv.row(axis)*dx;
-        
-        Eigen::Matrix<complex_t,C,1> pr1 = curr_basis.transpose() * std::sqrt(2.0)/eps_ * temp;
-        Eigen::Matrix<complex_t,C,1> pr2 = QhQinvt.row(axis)*prev_bases_scaled;
-        
-        return (pr1 - pr2) / std::sqrt( real_t(k[axis])+1.0);
-    }
     
 public:
     HagedornWavepacket(real_t eps,
@@ -164,40 +127,55 @@ public:
         Eigen::Matrix<complex_t,C,1> coeff;
         for (dim_t c = 0; c < C; c++)
             coeff(c,0) = coefficients_[c]->operator[](ordinal);
-                
+        
         return coeff;
     }
     
-    class Evaluator
+    
+private:
+    class EvaluatorBase_
     {
     private:
         real_t eps_;
         std::shared_ptr< HagedornParameterSet<D> > parameters_;
         std::shared_ptr< ShapeEnumeration<D> > enumeration_;
         
-        Eigen::Matrix<real_t,D,1> x;
+        Eigen::Matrix<complex_t,D,1> x;
         
         std::vector< Eigen::Matrix<complex_t,C,1> > prev_slice_values;
         std::vector< Eigen::Matrix<complex_t,C,1> > curr_slice_values;
         std::vector< Eigen::Matrix<complex_t,C,1> > next_slice_values;
         
+        /**
+         * precomputed expression: x - q
+         */
+        Eigen::Matrix<complex_t,D,1> dx;
+        
+        /**
+         * precomputed expression: Q^{-1}
+         */
         Eigen::Matrix<complex_t,D,D> Qinv;
+        
+        /**
+         * precomputed expression: Q^H * Q^{-T}
+         */
         Eigen::Matrix<complex_t,D,D> QhQinvt;
+        
+        /**
+         * precomputed expression: Q^{-1} * (x - q)
+         */
+        Eigen::Matrix<complex_t,D,1> Qinv_dx;
         
         int islice;
         
         complex_t evaluateGroundState() const
         {
-            const real_t pi = 3.14159265359;
-            
-            Eigen::Matrix<real_t,D,1> dx = x - parameters_->q;
-            
             complex_t pr1 = dx.transpose()*parameters_->P*parameters_->Q.inverse()*dx;
-            real_t pr2 = parameters_->p.transpose()*dx;
+            complex_t pr2 = parameters_->p.transpose()*dx;
             
             complex_t exponent = complex_t(0.0, 1.0)/(eps_*eps_) * (0.5*pr1 + pr2);
             
-            return 1.0/std::pow(pi*eps_*eps_, D/4.0) * std::exp(exponent);
+            return 1.0/std::pow(pi<real_t>()*eps_*eps_, D/4.0) * std::exp(exponent);
         }
         
         Eigen::Matrix<complex_t,C,1> evaluateBasis(dim_t axis, 
@@ -211,18 +189,14 @@ public:
             for (dim_t d = 0; d < D; d++)
                 prev_bases_scaled.row(d) *= std::sqrt( real_t(k[d]) );
             
-            Eigen::Matrix<real_t,D,1> dx = x - parameters_->q;
-            
-            complex_t temp = Qinv.row(axis)*dx;
-            
-            Eigen::Matrix<complex_t,C,1> pr1 = curr_basis.transpose() * std::sqrt(2.0)/eps_ * temp;
+            Eigen::Matrix<complex_t,C,1> pr1 = curr_basis.transpose() * std::sqrt(2.0)/eps_ * Qinv_dx(axis,0);
             Eigen::Matrix<complex_t,C,1> pr2 = QhQinvt.row(axis)*prev_bases_scaled;
             
             return (pr1 - pr2) / std::sqrt( real_t(k[axis])+1.0);
         }
         
     public:
-        Evaluator(const HagedornWavepacket<D,C> &wavepacket, const Eigen::Matrix<real_t,D,1> &x)
+        EvaluatorBase_(const HagedornWavepacket<D,C> &wavepacket, const Eigen::Matrix<complex_t,D,1> &x)
             : eps_(wavepacket.eps_)
             , parameters_(wavepacket.parameters_)
             , enumeration_(wavepacket.enumeration_)
@@ -230,10 +204,14 @@ public:
             , prev_slice_values()
             , curr_slice_values()
             , next_slice_values()
-            , Qinv(wavepacket.parameters_->Q.inverse())
-            , QhQinvt(wavepacket.parameters_->Q.adjoint()*Qinv.transpose())
             , islice(-1)
-        { }
+        {
+            // precompute ...
+            dx = x - parameters_->q.template cast<complex_t>();
+            Qinv = parameters_->Q.inverse();
+            QhQinvt = parameters_->Q.adjoint()*Qinv.transpose();
+            Qinv_dx = Qinv*dx;
+        }
         
         bool next_slice()
         {
@@ -306,15 +284,28 @@ public:
         }
     };
     
+public:
     /**
-     * 
+     * This class evaluates one slice by one.
+     * \tparam T type of quadrature/evaluation points (either real_t or complex_t)
      */
-    Eigen::Matrix<complex_t,C,1> operator()(const Eigen::Matrix<real_t,D,1> &x) const
+    template<class T>
+    class Evaluator : public EvaluatorBase_
+    {
+    public:
+        Evaluator(const HagedornWavepacket<D,C> &wavepacket, const Eigen::Matrix<T,D,1> &x)
+            : EvaluatorBase_(wavepacket, x.template cast<complex_t>())
+        { }
+    };
+    
+private:
+    template<class T>
+    Eigen::Matrix<complex_t,C,1> evaluate_and_reduce_(const Eigen::Matrix<T,D,1> &x) const
     {
         //Use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         KahanSum< Eigen::Matrix<complex_t,C,1> > psi;
         
-        Evaluator evaluator(*this, x);
+        Evaluator<T> evaluator(*this, x);
         
         while (evaluator.next_slice()) {
             const auto &values = evaluator.values();
@@ -325,6 +316,31 @@ public:
         }
         
         return psi();
+    }
+    
+public:
+    /**
+     * 
+     */
+    complex_t prefactor() const
+    {
+        return real_t(1)/parameters_->sqrt_detQ();
+    }
+    
+    /**
+     * 
+     */
+    Eigen::Matrix<complex_t,C,1> operator()(const Eigen::Matrix<real_t,D,1> &x) const
+    {
+        return evaluate_and_reduce_<real_t>(x);
+    }
+    
+    /**
+     * 
+     */
+    Eigen::Matrix<complex_t,C,1> operator()(const Eigen::Matrix<complex_t,D,1> &x) const
+    {
+        return evaluate_and_reduce_<complex_t>(x);
     }
 };
 

@@ -10,8 +10,8 @@
 
 namespace waveblocks {
 
-template<dim_t D, int V>
-void compareCoefficientsToReferenceFile(const HagedornWavepacket<D,V> &wavepacket, const char *filename)
+template<dim_t D, int C>
+void compareCoefficientsToReferenceFile(const HagedornWavepacket<D,C> &wavepacket, const char *filename)
 {
     auto enumeration = wavepacket.enumeration();
 
@@ -24,29 +24,29 @@ void compareCoefficientsToReferenceFile(const HagedornWavepacket<D,V> &wavepacke
     while (csv.good()) {
         real_t tol = 1e-10;
 
-        Eigen::Matrix<complex_t,V,1> ref;
+        Eigen::Matrix<complex_t,C,1> ref;
 
         //read index
-        MultiIndex<V> index;
-        for (dim_t v = 0; v < V; v++) {
+        MultiIndex<C> index;
+        for (dim_t c = 0; c < C; c++) {
             int entry;
             csv >> entry;
-            index[v] = entry;
+            index[c] = entry;
         }
 
         //read real gradient part
-        real_t temp[V];
-        for (dim_t v = 0; v < V; v++) {
+        real_t temp[C];
+        for (dim_t c = 0; c < C; c++) {
             real_t value;
             csv >> value;
-            temp[v] = value;
+            temp[c] = value;
         }
 
         //read imaginary gradient part
-        for (dim_t v = 0; v < V; v++) {
+        for (dim_t c = 0; c < C; c++) {
             real_t value;
             csv >> value;
-            ref(v,0) = complex_t(temp[v],value);
+            ref(c,0) = complex_t(temp[c],value);
         }
 
         if (csv.good()) {
@@ -57,7 +57,7 @@ void compareCoefficientsToReferenceFile(const HagedornWavepacket<D,V> &wavepacke
                 continue;
             }
 
-            Eigen::Matrix<complex_t,V,1> coeff = wavepacket.coefficient( enumeration->find(index) );
+            Eigen::Matrix<complex_t,C,1> coeff = wavepacket.coefficient( enumeration->find(index) );
 
             real_t error = (coeff - ref).norm()/ref.norm();
 

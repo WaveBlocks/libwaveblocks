@@ -16,8 +16,8 @@ namespace waveblocks {
  * \param wavepacket
  * \param filename
  */
-template<dim_t D, int V>
-void compareWavepacketToReferenceFile(const HagedornWavepacket<D,V> &wavepacket, const char *filename)
+template<dim_t D, int C>
+void compareWavepacketToReferenceFile(const HagedornWavepacket<D,C> &wavepacket, const char *filename)
 {
     std::cout << "compare wavepacket to reference files {" << std::endl;
     std::cout << "   [FILE] " << filename << std::endl;
@@ -34,33 +34,33 @@ void compareWavepacketToReferenceFile(const HagedornWavepacket<D,V> &wavepacket,
             in >> x(d,0);
 
         //read reference values
-        Eigen::Matrix<real_t,V,1> ref_real;
-        for (int v = 0; v < V; v++) {
+        Eigen::Matrix<real_t,C,1> ref_real;
+        for (int c = 0; c < C; c++) {
             real_t val;
             in >> val;
-            ref_real(v,0) = val;
+            ref_real(c,0) = val;
         }
 
-        Eigen::Matrix<real_t,V,1> ref_imag;
-        for (int v = 0; v < V; v++) {
+        Eigen::Matrix<real_t,C,1> ref_imag;
+        for (int c = 0; c < C; c++) {
             real_t val;
             in >> val;
-            ref_imag(v,0) = val;
+            ref_imag(c,0) = val;
         }
 
-        Eigen::Matrix<complex_t,V,1> ref;
-        for (int v = 0; v < V; v++) {
-            ref(v,0) = complex_t(ref_real(v,0), ref_imag(v,0));
+        Eigen::Matrix<complex_t,C,1> ref;
+        for (int c = 0; c < C; c++) {
+            ref(c,0) = complex_t(ref_real(c,0), ref_imag(c,0));
         }
 
         //compute wavepacket value
         if (in.good()) {
             ++lines;
 
-            Eigen::Matrix<complex_t,V,1> psi = wavepacket(x);
+            Eigen::Matrix<complex_t,C,1> psi = wavepacket(x);
 
             auto error = (psi - ref).norm()/ref.norm();
-
+            
             if (error > 10e-10) {
                 std::cout << "      [FAILURE] mismatch at line " << lines << ". error = " << error << std::endl;
             }

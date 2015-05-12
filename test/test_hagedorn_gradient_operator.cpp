@@ -42,10 +42,9 @@ int main(int argc, char* argv[])
     auto wave_coeffs = createSampleCoefficients<D>(wave_enum);
 
     HagedornWavepacket<D> wavepacket(0.9, parameters, wave_enum, {{wave_coeffs}});
-
+    
     GradientOperator<D> nabla(wave_enum, grad_enum);
-
-
+    
     start = getRealTime();
     HagedornWavepacket<D,D> gradient = nabla(wavepacket);
     std::cout << "[TIME] apply gradient: " << (getRealTime() - start) << std::endl;
