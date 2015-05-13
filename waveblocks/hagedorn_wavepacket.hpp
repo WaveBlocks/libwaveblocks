@@ -140,12 +140,6 @@ private:
         std::shared_ptr< HagedornParameterSet<D> > parameters_;
         std::shared_ptr< ShapeEnumeration<D> > enumeration_;
         
-        Eigen::Matrix<complex_t,D,1> x;
-        
-        std::vector< Eigen::Matrix<complex_t,C,1> > prev_slice_values;
-        std::vector< Eigen::Matrix<complex_t,C,1> > curr_slice_values;
-        std::vector< Eigen::Matrix<complex_t,C,1> > next_slice_values;
-        
         /**
          * precomputed expression: x - q
          */
@@ -200,10 +194,6 @@ private:
             : eps_(wavepacket.eps_)
             , parameters_(wavepacket.parameters_)
             , enumeration_(wavepacket.enumeration_)
-            , x(x)
-            , prev_slice_values()
-            , curr_slice_values()
-            , next_slice_values()
             , islice(-1)
         {
             // precompute ...
@@ -213,20 +203,20 @@ private:
             Qinv_dx = Qinv*dx;
         }
         
-        bool next_slice()
+        /**
+         * \param[in] islice index of next slice
+         * \param[in] prev_slice_values
+         * \param[in] curr_slice_values
+         * \param[out] next_slice_values
+         */
+        void do_recursion(std::size_t islice,
+                          typename std::vector< Eigen::Matrix<complex_t,C,1> >::const_iterator prev_slice_values,
+                          typename std::vector< Eigen::Matrix<complex_t,C,1> >::const_iterator curr_slice_values,
+                          typename std::vector< Eigen::Matrix<complex_t,C,1> >::iterator next_slice_values)
         {
-            if (++islice >= (int)enumeration_->count_slices())
-                return false;
-            
             if (islice == 0) {
-                next_slice_values.push_back( Eigen::Matrix<complex_t,C,1>::Constant( evaluateGroundState() ) );
-                return true;
+                next_slice_values[0] = Eigen::Matrix<complex_t,C,1>::Constant( evaluateGroundState() );
             } else {
-                //exchange slices
-                std::swap(prev_slice_values, curr_slice_values);
-                std::swap(curr_slice_values, next_slice_values);
-                next_slice_values = std::vector< Eigen::Matrix<complex_t,C,1> >( enumeration_->slice(islice).size() );
-                
                 //loop over all multi-indices within next slice [j = position of multi-index within next slice]
                 for (std::size_t j = 0; j < enumeration_->slice(islice).size(); j++) {
                     MultiIndex<D> next_index = enumeration_->slice(islice)[j];
@@ -267,20 +257,7 @@ private:
                     Eigen::Matrix<complex_t,C,1> next_basis = evaluateBasis(axis, curr_index, curr_basis, prev_bases);
                     next_slice_values[j] = next_basis;
                 }
-                
-                return true;
             }
-        }
-        
-        const std::vector< Eigen::Matrix<complex_t,C,1> > &values() const
-        {
-            return next_slice_values;
-        }
-        
-        std::size_t slice_offset() const
-        {
-            assert (islice != -1);
-            return enumeration_->slice(islice).offset();
         }
     };
     
@@ -307,11 +284,24 @@ private:
         
         Evaluator<T> evaluator(*this, x);
         
-        while (evaluator.next_slice()) {
-            const auto &values = evaluator.values();
+        std::vector< Eigen::Matrix<complex_t,C,1> > prev_slice_values(0);
+        std::vector< Eigen::Matrix<complex_t,C,1> > curr_slice_values(0);
+        std::vector< Eigen::Matrix<complex_t,C,1> > next_slice_values(1);
+        
+        evaluator.do_recursion(0, prev_slice_values.begin(), curr_slice_values.begin(), next_slice_values.begin());
+        
+        psi += coefficient(0).cwiseProduct( next_slice_values[0] );
+        
+        for (std::size_t islice = 1; islice < enumeration_->count_slices(); islice++) {
+            //exchange slices
+            std::swap(prev_slice_values, curr_slice_values);
+            std::swap(curr_slice_values, next_slice_values);
+            next_slice_values.resize( enumeration_->slice(islice).size() );
             
-            for (std::size_t j = 0; j < values.size(); j++) {
-                psi += coefficient(evaluator.slice_offset() + j).cwiseProduct( values[j] );
+            evaluator.do_recursion(islice, prev_slice_values.begin(), curr_slice_values.begin(), next_slice_values.begin());
+            
+            for (std::size_t j = 0; j < next_slice_values.size(); j++) {
+                psi += coefficient(enumeration_->slice(islice).offset() + j).cwiseProduct( next_slice_values[j] );
             }
         }
         

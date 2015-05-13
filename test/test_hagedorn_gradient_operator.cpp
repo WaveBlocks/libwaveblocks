@@ -35,12 +35,12 @@ int main(int argc, char* argv[])
 
     std::shared_ptr< ShapeEnumeration<D> > wave_enum( new SlicedShapeEnumeration<D,S>(shape) );
     std::shared_ptr< ShapeEnumeration<D> > grad_enum( new SlicedShapeEnumeration<D,ExtendedShape<D,S> >( ExtendedShape<D,S> {shape} ));
-
+    
     checkShapeEnumeration(*wave_enum, "wavepacket enumeration");
     checkShapeEnumeration(*grad_enum, "gradient enumeration");
-
+    
     auto wave_coeffs = createSampleCoefficients<D>(wave_enum);
-
+    
     HagedornWavepacket<D> wavepacket(0.9, parameters, wave_enum, {{wave_coeffs}});
     
     GradientOperator<D> nabla(wave_enum, grad_enum);
@@ -48,18 +48,18 @@ int main(int argc, char* argv[])
     start = getRealTime();
     HagedornWavepacket<D,D> gradient = nabla(wavepacket);
     std::cout << "[TIME] apply gradient: " << (getRealTime() - start) << std::endl;
-
+    
     // evaluate wavepacket at a chosen location
     {
         std::cout << "chosen evaluation {" << std::endl;
 
-        double start = getRealTime();
         Eigen::Matrix<real_t,D,1> x;
         for (dim_t d = 0; d < D; d++)
             x(d,0) = (d+1)/real_t(2*D);
-        double stop = getRealTime();
-
+        
+        double start = getRealTime();
         auto psi = gradient(x);
+        double stop = getRealTime();
 
         std::cout << "   psi: " << psi.transpose() << '\n';
         std::cout << "   time: " << (stop - start) << '\n';

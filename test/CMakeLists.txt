@@ -5,6 +5,11 @@ add_executable(test_hagedorn_wavepacket_evaluation
     util/time.cpp
 )
 
+add_executable(profile_hagedorn_wavepacket_evaluation 
+    profile_hagedorn_wavepacket_evaluation.cpp 
+    util/time.cpp
+)
+
 add_executable(test_hagedorn_gradient_operator 
     test_hagedorn_gradient_operator.cpp 
     util/time.cpp
