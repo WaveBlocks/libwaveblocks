@@ -13,6 +13,8 @@
 #include "waveblocks/hagedorn_wavepacket.hpp"
 #include "waveblocks/hagedorn_gradient_operator.hpp"
 
+#include "waveblocks/tiny_multi_index.hpp"
+
 #include "sample_wavepacket.hpp"
 
 #include "check_shape_enumeration.hpp"
@@ -27,14 +29,16 @@ int main(int argc, char* argv[])
 
     const dim_t D = 4;
 
+    typedef TinyMultiIndex<std::size_t,D> MultiIndex;
     typedef HyperbolicCutShape<D> S;
 
     S shape(7.0);
 
     auto parameters = createSampleParameters<D>();
 
-    std::shared_ptr< ShapeEnumeration<D> > wave_enum( new SlicedShapeEnumeration<D,S>(shape) );
-    std::shared_ptr< ShapeEnumeration<D> > grad_enum( new SlicedShapeEnumeration<D,ExtendedShape<D,S> >( ExtendedShape<D,S> {shape} ));
+    std::shared_ptr< ShapeEnumeration<D> > wave_enum( new SlicedShapeEnumeration<D,MultiIndex,S>(shape) );
+    
+    std::shared_ptr< ShapeEnumeration<D> > grad_enum( new SlicedShapeEnumeration<D,MultiIndex,ExtendedShape<D,S> >( ExtendedShape<D,S> {shape} ));
     
     checkShapeEnumeration(*wave_enum, "wavepacket enumeration");
     checkShapeEnumeration(*grad_enum, "gradient enumeration");

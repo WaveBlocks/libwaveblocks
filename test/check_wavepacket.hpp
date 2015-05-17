@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/multi_index.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
 
 namespace waveblocks {

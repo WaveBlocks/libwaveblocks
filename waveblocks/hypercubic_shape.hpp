@@ -4,8 +4,10 @@
 #include <string>
 #include <sstream>
 #include <array>
+#include <stdexcept>
+#include <initializer_list>
 
-#include "multi_index.hpp"
+#include "basic_types.hpp"
 
 namespace waveblocks {
 
@@ -13,15 +15,34 @@ template<dim_t D>
 class HyperCubicShape
 {
 private:
-    MultiIndex<D> limits_;
+    std::array<int,D> limits_;
     
 public:
     /**
      * \param[in] limits (exclusive)
      */
-    HyperCubicShape(MultiIndex<D> limits) 
+    HyperCubicShape(const std::array<int,D> &limits) 
         : limits_(limits)
     { }
+    
+    HyperCubicShape(int size)
+    {
+        for (std::size_t d = 0; d < D; d++)
+            limits_[d] = size;
+    }
+    
+    HyperCubicShape(std::initializer_list<int> list)
+    {
+        int deflt = 0;
+        std::size_t i = 0;
+        for (int e : list) {
+            limits_[i++] = deflt = e;
+        }
+        //fill remaining elements with last value of initializer list
+        while (i < D) {
+            limits_[i++] = deflt;
+        }
+    }
     
     HyperCubicShape(const HyperCubicShape &that)
         : limits_(that.limits_)
@@ -33,7 +54,8 @@ public:
         return *this;
     }
     
-    int getSurface(dim_t axis, MultiIndex<D> position) const
+    template<class MultiIndex>
+    int limit(MultiIndex position, dim_t axis) const
     {
         { (void)(position); } //disable unused-parameter warning
         
@@ -44,9 +66,9 @@ public:
         return limits_[axis]-1;
     }
     
-    MultiIndex<D> limits() const
+    int bbox(dim_t axis) const
     {
-        return limits_;
+        return limits_[axis]-1;
     }
     
     std::string description() const

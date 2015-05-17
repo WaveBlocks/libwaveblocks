@@ -5,11 +5,11 @@
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
-#include <valarray>
 #include <array>
 #include <string>
 #include <sstream>
 
+#include "basic_types.hpp"
 #include "lexical_shape_enumerator.hpp"
 
 namespace waveblocks {
@@ -27,9 +27,9 @@ public:
         
         virtual std::size_t size() const = 0;
         
-        virtual MultiIndex<D> operator[](std::size_t ordinal) const = 0;
+        virtual std::array<int,D> operator[](std::size_t ordinal) const = 0;
         
-        virtual std::size_t find(MultiIndex<D> index) const = 0;
+        virtual std::size_t find(const std::array<int,D> &index) const = 0;
         
         class Iterator
         {
@@ -61,7 +61,7 @@ public:
                 return *this;
             }
             
-            MultiIndex<D> operator*() const
+            std::array<int,D> operator*() const
             {
                 return (*ref_)[ientry_];
             }
@@ -92,22 +92,22 @@ public:
     
     virtual std::size_t size() const = 0;
     
-    virtual MultiIndex<D> operator[](std::size_t ordinal) const = 0;
+    virtual std::array<int,D> operator[](std::size_t ordinal) const = 0;
     
-    virtual std::size_t find(MultiIndex<D> index) const = 0;
+    virtual std::size_t find(const std::array<int,D> &index) const = 0;
     
     virtual const Slice &slice(std::size_t islice) const = 0;
     
     virtual std::size_t count_slices() const = 0;
     
-    virtual bool contains(MultiIndex<D> index) const = 0;
+    virtual bool contains(const std::array<int,D> &index) const = 0;
     
     virtual std::string description() const = 0;
     
     /**
-     * \return smallest tuple L s.t for every k element of K: k_d < L_d
+     * \return smallest tuple L s.t for every k element of K: k_d <= L_d
      */
-    virtual MultiIndex<D> limits() const = 0;
+    virtual int bbox(dim_t axis) const = 0;
     
     class Iterator
     {
@@ -139,7 +139,7 @@ public:
             return *this;
         }
         
-        MultiIndex<D> operator*() const
+        std::array<int,D> operator*() const
         {
             return (*ref_)[ientry_];
         }
@@ -165,8 +165,8 @@ public:
         return Iterator(this, size());
     }
 };
-    
-template<dim_t D, class S>
+
+template<dim_t D, class MultiIndex, class S>
 class SlicedShapeEnumeration : public ShapeEnumeration<D>
 {
 public:
@@ -177,35 +177,24 @@ private:
     
     bool use_dict_;
     
-    std::vector< MultiIndex<D> > table_;
+    std::vector< MultiIndex > table_;
     
-    std::valarray<Slice> slices_;
+    std::vector< Slice > slices_;
     
 public:
     class Slice : public ShapeEnumeration<D>::Slice
     {
-        friend class SlicedShapeEnumeration<D,S>;
+        friend class SlicedShapeEnumeration;
         
     private:
-        const SlicedShapeEnumeration<D,S> *enumeration_;
+        const SlicedShapeEnumeration *enumeration_;
         
         std::size_t start_;
         std::size_t end_;
         
-        std::unordered_map< MultiIndex<D>, std::size_t > dict_;
+        std::unordered_map< MultiIndex, std::size_t > dict_;
         
-    public:
-        typedef typename std::vector<MultiIndex<D>>::const_iterator Iterator;
-        
-        std::size_t offset() const override
-        {
-            return start_;
-        }
-        
-        std::size_t size() const override
-        {
-            return end_ - start_;
-        }
+        typedef typename std::vector< MultiIndex >::const_iterator Iterator;
         
         Iterator begin() const
         {
@@ -217,15 +206,28 @@ public:
             return enumeration_->table_.begin() + end_;
         }
         
-        MultiIndex<D> operator[](std::size_t ientry) const override
+    public:
+        std::size_t offset() const override
+        {
+            return start_;
+        }
+        
+        std::size_t size() const override
+        {
+            return end_ - start_;
+        }
+        
+        std::array<int,D> operator[](std::size_t ientry) const override
         {
             assert (ientry < size());
             
-            return *(begin() + ientry);
+            return static_cast< std::array<int,D> >( *(begin() + ientry) );
         }
         
-        std::size_t find(MultiIndex<D> index) const override
+        std::size_t find(const std::array<int,D> &_index) const override
         {
+            MultiIndex index(_index);
+            
             if (enumeration_->use_dict_) {
                 
                 auto it = dict_.find(index);
@@ -235,7 +237,7 @@ public:
                     return it->second;
                 
             } else {
-                std::less< MultiIndex<D> > comp;
+                std::less< MultiIndex > comp;
                 
                 auto it = std::lower_bound(begin(), end(), index, comp);
                 
@@ -254,23 +256,11 @@ public:
         return table_.size();
     }
     
-    MultiIndex<D> operator[](std::size_t ordinal) const override
+    std::array<int,D> operator[](std::size_t ordinal) const override
     {
         assert(ordinal < size());
         
-        return table_[ordinal];
-    }
-    
-    typedef typename std::vector<MultiIndex<D>>::const_iterator Iterator;
-    
-    Iterator begin() const
-    {
-        return table_.begin();
-    }
-    
-    Iterator end() const
-    {
-        return table_.end();
+        return static_cast< std::array<int,D> >( table_[ordinal] );
     }
     
     const Slice &slice(std::size_t islice) const override
@@ -283,7 +273,7 @@ public:
         return slices_.size();
     }
     
-    std::size_t find(MultiIndex<D> index) const override
+    std::size_t find(const std::array<int,D> &index) const override
     {
         std::size_t islice = 0;
         for (dim_t i = 0; i < D; i++)
@@ -300,9 +290,9 @@ public:
             return slice(islice).offset() + ientry;
     }
     
-    bool contains(MultiIndex<D> index) const override
+    bool contains(const std::array<int,D> &index) const override
     {
-        return index[0] <= shape_.getSurface(0, index);
+        return index[0] <= shape_.template limit< std::array<int,D> >(index, 0);
     }
     
     std::string description() const override
@@ -316,27 +306,33 @@ public:
         return out.str();
     }
     
-    MultiIndex<D> limits() const override
+    int bbox(dim_t axis) const override
     {
-        return shape_.limits();
+        return shape_.bbox(axis);
     }
 };
 
-template<dim_t D, class S>
-SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
+template<dim_t D, class MultiIndex, class S>
+SlicedShapeEnumeration<D,MultiIndex,S>::SlicedShapeEnumeration(S shape)
     : shape_(shape)
-    , use_dict_(true)
+    , use_dict_(false) //using a hashmap is slower than binary search
     , table_()
 {
-    LexicalIndexGenerator<D,S> it(shape);
+    //check multi-index type
+    for (dim_t d = 0; d < D; d++) {
+        if (shape.bbox(d) > MultiIndex::limit(d))
+            throw std::runtime_error("multi-index type is not suitable. reason: overflow");
+    }
+    
+    LexicalIndexGenerator<D,MultiIndex,S> it(shape);
     
     //holds for each slice its own vector
-    std::vector< std::vector< MultiIndex<D> >* > temp;
+    std::vector< std::vector< MultiIndex >* > temp;
     
     //generate nodes and put them into the corresponding slice
     std::size_t ordinal = 0;
     do {
-        MultiIndex<D> index = it.index();
+        MultiIndex index = it.index();
         
         std::size_t islice = 0;
         for (dim_t i = 0; i < D; i++)
@@ -345,7 +341,7 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
         assert(islice <= temp.size()); //assert that lexical index generator does not jump
         
         if (islice == temp.size()) {
-            temp.push_back( new std::vector< MultiIndex<D> >() );
+            temp.push_back( new std::vector< MultiIndex >() );
         }
         
         temp[islice]->push_back(index);
@@ -353,7 +349,7 @@ SlicedShapeEnumeration<D,S>::SlicedShapeEnumeration(S shape)
     
     //all slices are now populated
     //copy all nodes into the same vector and store offsets
-    slices_ = std::valarray<Slice>(temp.size());
+    slices_ = std::vector<Slice>(temp.size());
     for (std::size_t i = 0; i < temp.size(); i++) {
         slices_[i].enumeration_ = this;
         

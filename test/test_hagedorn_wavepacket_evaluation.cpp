@@ -7,6 +7,7 @@
 
 #include "waveblocks/hypercubic_shape.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
+#include "waveblocks/tiny_multi_index.hpp"
 #include "sample_wavepacket.hpp"
 
 #include "check_shape_enumeration.hpp"
@@ -17,15 +18,16 @@ using namespace waveblocks;
 int main(int argc, char *argv[])
 {
     const dim_t D = 3;
+    typedef TinyMultiIndex<std::size_t,D> MultiIndex;
     typedef HyperCubicShape<D> S;
-
-    S shape({5,5,5});
-
+    
+    S shape({5});
+    
     std::shared_ptr< HagedornParameterSet<D> > parameters = createSampleParameters<D>();
     
     std::cout << *parameters << std::endl;
 
-    std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,S>(shape) );
+    std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,MultiIndex,S>(shape) );
 
     checkShapeEnumeration(*enumeration, "wavepacket enumeration");
 
@@ -37,10 +39,9 @@ int main(int argc, char *argv[])
     {
         std::cout << "chosen evaluation {" << std::endl;
         
-        Eigen::Matrix<complex_t,D,2> x(D,2);
+        Eigen::Matrix<complex_t,D,1> x;
         for (dim_t d = 0; d < D; d++) {
             x(d,0) = complex_t( (d+1)/real_t(2*D), (D-d)/real_t(2*D) );
-            x(d,1) = complex_t( (D-d)/real_t(2*D), (d+1)/real_t(2*D) );
         }
         
         double start = getRealTime();
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
         std::cout << "   psi: " << psi.transpose() << '\n';
         std::cout << "   psi (with prefactor): " << psi.transpose()*wavepacket.prefactor() << std::endl;
         std::cout << "   time: " << (stop - start) << '\n';
-        std::cout << "}" << std::endl;
+        std::cout << "}" << std::endl; //10.4
     }
     
     if (argc == 2)

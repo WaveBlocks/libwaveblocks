@@ -15,6 +15,10 @@ add_executable(test_hagedorn_gradient_operator
     util/time.cpp
 )
 
+add_executable(test_shape_extension
+    test_shape_extension.cpp
+)
+
 add_executable(test_cont_sqrt
     test_cont_sqrt.cpp
 )

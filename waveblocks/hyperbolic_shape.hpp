@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 
-#include "multi_index.hpp"
+#include "basic_types.hpp"
 
 namespace waveblocks {
 
@@ -26,17 +26,16 @@ public:
         return *this;
     }
     
-    MultiIndex<D> limits() const
+    int bbox(dim_t axis) const
     {
-        MultiIndex<D> bbox;
-        for (dim_t i = 0; i < D; i++)
-            bbox[i] = std::floor(K_);
-        return bbox;
+        (void)(axis); //suppress -Wunused-parameter
+        return std::floor(K_-1.0);
     }
     
-    int getSurface(dim_t axis, const MultiIndex<D> &coordinate) const
+    template<class MultiIndex>
+    int limit(const MultiIndex &coordinate, dim_t axis) const
     {
-        //choose large enough integer type to prevent overflow bugs
+        //choose large enough integer type to prevent overflow
         long long product = 1;
         for (dim_t i = 0; i < D; i++)
             if (i != axis)
@@ -61,10 +60,34 @@ class LimitedHyperbolicCutShape
 {
 private:
     double K_;
-    MultiIndex<D> limits_;
+    std::array<int,D> limits_;
     
 public:
-    LimitedHyperbolicCutShape(double K, MultiIndex<D> limits) : K_(K), limits_(limits) {}
+    LimitedHyperbolicCutShape(double K, const std::array<int,D> &limits)
+        : K_(K)
+        , limits_(limits) 
+    { }
+    
+    LimitedHyperbolicCutShape(double K, int size)
+        : K_(K)
+    {
+        for (std::size_t d = 0; d < D; d++)
+            limits_[d] = size;
+    }
+    
+    LimitedHyperbolicCutShape(double K, std::initializer_list<int> list)
+        : K_(K)
+    {
+        int deflt = 0;
+        std::size_t i = 0;
+        for (int e : list) {
+            limits_[i++] = deflt = e;
+        }
+        //fill remaining elements with last value of initializer list
+        while (i < D) {
+            limits_[i++] = deflt;
+        }
+    }
     
     LimitedHyperbolicCutShape(const LimitedHyperbolicCutShape &that) : K_(that.K_), limits_(that.limits_) {}
     
@@ -75,16 +98,13 @@ public:
         return *this;
     }
     
-    MultiIndex<D> limits() const
+    int bbox(dim_t axis) const
     {
-        MultiIndex<D> bbox;
-        for (dim_t i = 0; i < D; i++) {
-            bbox[i] = std::min((int)limits_[i],(int)std::floor(K_));
-        }
-        return bbox;
+        return std::min( limits_[axis]-1, std::floor(K_-1.0));
     }
     
-    int getSurface(dim_t axis, const MultiIndex<D> &coordinate) const
+    template<class MultiIndex>
+    int limit(const MultiIndex &coordinate, dim_t axis) const
     {
         //choose large enough integer type to prevent overflow bugs
         long long product = 1;

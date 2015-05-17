@@ -2,9 +2,12 @@
 #define UINT_MULTI_INDEX
 
 #include <iostream>
+#include <array>
 #include <cassert>
 #include <stdexcept>
 #include <initializer_list>
+
+#include "stdarray2stream.hpp"
 
 namespace waveblocks {
 
@@ -111,8 +114,19 @@ public:
         }
     };
     
-    TinyMultiIndex() : values_(0) {}
-    TinyMultiIndex(const TinyMultiIndex &that) : values_(that.values_) {}
+    TinyMultiIndex()
+        : values_(0)
+    { }
+    
+    TinyMultiIndex(const TinyMultiIndex &that)
+        : values_(that.values_)
+    { }
+    
+    TinyMultiIndex(const std::array<int,D> &that)
+    { 
+        for (dim_t d = 0; d < D; d++)
+            operator[](d) = that[d];
+    }
     
     TinyMultiIndex(std::initializer_list<int> list)
     {
@@ -151,7 +165,28 @@ public:
     {
         return values_ != that.values_;
     }
+    
+    operator std::array<int,D>() const
+    {
+        std::array<int,D> copy;
+        for (dim_t d = 0; d < D; d++) {
+            copy[d] = operator[](d);
+        }
+        return copy;
+    }
 };
+
+template<class UINT, dim_t D>
+std::ostream &operator<<(std::ostream &out, const TinyMultiIndex<UINT, D> &index)
+{
+    std::cout << "(";
+    for (dim_t i = 0; i < D-1; i++)
+        std::cout << index[i] << ", ";
+    if (D != 0)
+        std::cout << index[D-1];
+    std::cout << ")";
+    return out;
+}
 
 }
 

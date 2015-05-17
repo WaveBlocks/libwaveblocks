@@ -2,7 +2,6 @@
 #define WAVEBLOCKS_SHAPE_EXTENSION_HPP
 
 #include "basic_types.hpp"
-#include "multi_index.hpp"
 
 #include "hypercubic_shape.hpp"
 
@@ -19,9 +18,15 @@ public:
         : shape_(shape)
     { }
     
-    int getSurface(dim_t axis, const MultiIndex<D> &index) const
+    int bbox(dim_t axis) const
     {
-        int value = shape_.getSurface(axis, index);
+        return shape_.bbox(axis)+1;
+    }
+    
+    template<class MultiIndex>
+    int limit(const MultiIndex &index, dim_t axis) const
+    {
+        int value = shape_.limit(index, axis);
         
         //extend only when there actually are some nodes
         if (value >= 0)
@@ -30,9 +35,9 @@ public:
         for (dim_t d = 0; d < D; d++) {
             if (d != axis && index[d] != 0) {
                 //backward neighbour index
-                MultiIndex<D> prev_index = index; prev_index[d] -= 1;
+                MultiIndex prev_index = index; prev_index[d] -= 1;
                 
-                value = std::max(value, shape_.getSurface(axis, prev_index));
+                value = std::max(value, shape_.limit(prev_index, axis) );
             }
         }
         
@@ -44,14 +49,6 @@ public:
         std::stringstream out;
         out << "ExtendedShape<?>[" << shape_.description() << "]";
         return out.str();
-    }
-    
-    MultiIndex<D> limits() const
-    {
-        MultiIndex<D> base = shape_.limits();
-        for (dim_t d = 0; d < D; d++)
-            base[d] += 1;
-        return base;
     }
 };
 
@@ -65,25 +62,26 @@ public:
     ExtendedShape(HyperCubicShape<D> shape)
         : expansion_(shape)
     {
-        MultiIndex<D> limits = shape.limits();
+        std::array<int,D> limits2;
         for (dim_t d = 0; d < D; d++)
-            limits[d] += 1;
-        expansion_ = HyperCubicShape<D>(limits);
+            limits2[d] = shape.bbox(d)+2;
+        expansion_ = HyperCubicShape<D>(limits2);
     }
     
-    int getSurface(dim_t axis, const MultiIndex<D> &index) const
+    int bbox(dim_t axis) const
     {
-        return expansion_.getSurface(axis,index);
+        return expansion_.bbox(axis);
+    }
+    
+    template<class MultiIndex>
+    int limit(const MultiIndex &index, dim_t axis) const
+    {
+        return expansion_.template limit< MultiIndex >(index, axis);
     }
     
     std::string description() const
     {
         return "ExtendedHyperCubicShape";
-    }
-    
-    MultiIndex<D> limits() const
-    {
-        return expansion_.limits();
     }
 };
 

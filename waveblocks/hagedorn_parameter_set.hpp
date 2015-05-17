@@ -9,7 +9,6 @@
 #include <Eigen/Dense>
 
 #include "basic_types.hpp"
-#include "multi_index.hpp"
 #include "continuous_sqrt.hpp"
 
 

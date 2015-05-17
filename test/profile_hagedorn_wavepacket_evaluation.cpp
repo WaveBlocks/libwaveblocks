@@ -8,6 +8,7 @@
 #include "waveblocks/hyperbolic_shape.hpp"
 #include "waveblocks/hypercubic_shape.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
+#include "waveblocks/tiny_multi_index.hpp"
 #include "sample_wavepacket.hpp"
 
 #include "check_shape_enumeration.hpp"
@@ -18,13 +19,14 @@ using namespace waveblocks;
 int main()
 {
     const dim_t D = 3;
+    typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     typedef HyperCubicShape<D> S;
     
     S shape({7,7,7,7,7, 7,7,7,7,7});
     
     std::shared_ptr< HagedornParameterSet<D> > parameters = createSampleParameters<D>();
     
-    std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,S>(shape) );
+    std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,MultiIndex,S>(shape) );
     
     std::shared_ptr< std::valarray<complex_t> > coefficients = createSampleCoefficients<D>(enumeration);
     

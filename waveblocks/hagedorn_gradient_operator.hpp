@@ -2,7 +2,6 @@
 #define WAVEBLOCKS_HAGEDORN_GRADIENT_OPERATOR_HPP
 
 #include "basic_types.hpp"
-#include "multi_index.hpp"
 
 #include "hagedorn_parameter_set.hpp"
 #include "sliced_shape_enumeration.hpp"
@@ -63,7 +62,7 @@ public:
         for (std::size_t i = 0; i < grad_enum_->count_slices(); i++) {
             //loop over all multi-indices within current slice [j = position of multi-index within current slice]
             for (std::size_t j = 0; j < grad_enum_->slice(i).size(); j++) {
-                MultiIndex<D> curr_index = grad_enum_->slice(i)[j];
+                std::array<int,D> curr_index = grad_enum_->slice(i)[j];
                 
                 //central node
                 complex_t cc;
@@ -81,7 +80,7 @@ public:
                 Eigen::Matrix<complex_t,D,1> cb;
                 for (dim_t d = 0; d < D; d++) {
                     if (curr_index[d] != 0) {
-                        MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1;
+                        std::array<int,D> prev_index = curr_index; prev_index[d] -= 1;
                         if (base_enum_->contains(prev_index)) {
                             std::size_t prev_ordinal = base_enum_->slice(i-1).find(prev_index);
                             
@@ -98,7 +97,7 @@ public:
                 Eigen::Matrix<complex_t,D,1> cf;
                 if (i+1 < base_enum_->count_slices() && base_enum_->contains(curr_index)) {
                     for (dim_t d = 0; d < D; d++) {
-                        MultiIndex<D> next_index = curr_index; next_index[d] += 1;
+                        std::array<int,D> next_index = curr_index; next_index[d] += 1;
                         
                         if (base_enum_->contains(next_index)) {
                             std::size_t next_ordinal = base_enum_->slice(i+1).find(next_index);

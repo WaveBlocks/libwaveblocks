@@ -2,10 +2,10 @@
 #define WAVEBLOCKS_TEST_CHECK_COEFFICIENTS_HPP
 
 #include <iostream>
+#include <array>
 #include <fstream>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/multi_index.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
 
 namespace waveblocks {
@@ -27,7 +27,7 @@ void compareCoefficientsToReferenceFile(const HagedornWavepacket<D,C> &wavepacke
         Eigen::Matrix<complex_t,C,1> ref;
 
         //read index
-        MultiIndex<C> index;
+        std::array<int,D> index;
         for (dim_t c = 0; c < C; c++) {
             int entry;
             csv >> entry;

@@ -8,17 +8,15 @@
 #include <iostream>
 #include <vector>
 
-#include "multi_index.hpp"
-
 namespace waveblocks {
 
-template<dim_t D, class S>
+template<dim_t D, class MultiIndex, class S>
 class LexicalIndexGenerator
 {
 private:
     S shape_;
     
-    MultiIndex<D> index_;
+    MultiIndex index_;
     
 public:
     LexicalIndexGenerator(S shape)
@@ -26,7 +24,7 @@ public:
         , index_()
     { }
     
-    LexicalIndexGenerator(S shape, MultiIndex<D> index)
+    LexicalIndexGenerator(S shape, MultiIndex index)
         : shape_(shape)
         , index_(index)
     { }
@@ -44,7 +42,7 @@ public:
         return *this;
     }
     
-    MultiIndex<D> index() const
+    MultiIndex index() const
     {
         return index_;
     }
@@ -62,7 +60,7 @@ public:
         
         index_[axis++] -= 1;
         for (; axis < D; axis++) {
-            index_[axis] = shape_.getSurface(axis, index_);
+            index_[axis] = shape_.template limit< MultiIndex >(index_, axis);
         }
         
         return true;
@@ -71,7 +69,7 @@ public:
     bool forward()
     {
         std::size_t axis = D-1;
-        while ((int)index_[axis] == shape_.getSurface(axis, index_)) {
+        while ((int)index_[axis] == shape_.template limit< MultiIndex >(index_, axis)) {
             index_[axis] = 0;
             if (axis == 0)
                 return false; //end of chain

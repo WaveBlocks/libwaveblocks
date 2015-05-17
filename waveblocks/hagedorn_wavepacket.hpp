@@ -234,9 +234,9 @@ public:
          * Complexity: theta(N*D)
          */
         CArray1N evaluateBasis(dim_t axis, 
-                                MultiIndex<D> k, 
-                                const CArray1N &curr_basis, 
-                                const std::array< CArray1N, D > &prev_bases) const
+                               const std::array<int,D> &k, 
+                               const CArray1N &curr_basis, 
+                               const std::array< CArray1N, D > &prev_bases) const
         {
             CArray1N pr1 = curr_basis * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
             
@@ -267,10 +267,9 @@ public:
             
             //precompute sqrt lookup table
             {
-                MultiIndex<D> limits = enumeration_->limits();
                 int limit = 0;
                 for (dim_t d = 0; d < D; d++)
-                    limit = std::max(limit, (int)limits[d]);
+                    limit = std::max(limit, enumeration_->bbox(d));
                 
                 for (int i = 0; i <= limit+1; i++)
                     sqrt_.push_back( std::sqrt( real_t(i) ) );
@@ -299,7 +298,7 @@ public:
             } else {
                 //loop over all multi-indices within next slice [j = position of multi-index within next slice]
                 for (std::size_t j = 0; j < enumeration_->slice(islice).size(); j++) {
-                    MultiIndex<D> next_index = enumeration_->slice(islice)[j];
+                    std::array<int,D> next_index = enumeration_->slice(islice)[j];
                     //find valid precursor: find first non-zero entry
                     dim_t axis = D;
                     for (dim_t d = 0; d < D; d++) {
@@ -312,7 +311,7 @@ public:
                     assert(axis != D); //assert that multi-index contains some non-zero entries
                     
                     //retrieve the basis value within current slice
-                    MultiIndex<D> curr_index = next_index; curr_index[axis] -= 1; //get backward neighbour
+                    std::array<int,D> curr_index = next_index; curr_index[axis] -= 1; //get backward neighbour
                     std::size_t curr_ordinal = enumeration_->slice(islice-1).find(curr_index);
                     
                     assert(curr_ordinal < enumeration_->slice(islice-1).size()); //assert that multi-index has been found within current slice
@@ -326,7 +325,7 @@ public:
                             prev_bases[d] = CArray1N::Zero(1,npts_);
                         }
                         else {
-                            MultiIndex<D> prev_index = curr_index; prev_index[d] -= 1; //get backward neighbour
+                            std::array<int,D> prev_index = curr_index; prev_index[d] -= 1; //get backward neighbour
                             std::size_t prev_ordinal = enumeration_->slice(islice-2).find(prev_index);
                             assert (prev_ordinal < enumeration_->slice(islice-2).size()); //assert that multi-index has been found within previous slice
                             prev_bases[d] = prev_slice_values.row(prev_ordinal);
