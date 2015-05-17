@@ -81,7 +81,7 @@ public:
     
     std::string description() const
     {
-        return "ExtendedHyperCubicShape";
+        return expansion_.description();
     }
 };
 

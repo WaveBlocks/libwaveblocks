@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 
     typedef TinyMultiIndex<std::size_t,D> MultiIndex;
     typedef HyperbolicCutShape<D> S;
-
+    
     S shape(7.0);
 
     auto parameters = createSampleParameters<D>();

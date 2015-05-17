@@ -7,7 +7,7 @@ namespace waveblocks
 /**
  * The Kahan's algorithm achieves O(1) error growth for summing N numbers.
  * 
- * This implementation works for complex numbers too.
+ * This implementation works for complex numbers & matrices too.
  */
 template<class T>
 class KahanSum
@@ -30,7 +30,7 @@ public:
     { }
     
     /**
-     * Zero initialization for types that don't have a default constructor.
+     * Zero initialization for types that don't have a (working) default constructor.
      */
     KahanSum(const T &zero)
         : sum_(zero)
