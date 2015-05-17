@@ -119,7 +119,7 @@ public:
                 Eigen::Matrix<complex_t,D,1> bgrad = (Pcf + Pcb)*wavepacket.eps()/std::sqrt(real_t(2)) + Pcc;
                 
                 for (dim_t d = 0; d < D; d++) {
-                    const_cast< std::valarray<complex_t>& >(* (gradpacket.coefficients()[d]))[grad_enum_->slice(i).offset() + j] = bgrad(d,0);
+                    gradpacket.coefficients()[d]->operator[](grad_enum_->slice(i).offset() + j) = bgrad(d,0);
                 }
             }
         }

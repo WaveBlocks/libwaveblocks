@@ -30,21 +30,27 @@ namespace waveblocks {
 template<dim_t D, dim_t C = 1>
 class HagedornWavepacket
 {
+public:
+    typedef Eigen::Matrix<complex_t,D,1> CMatrixD1;
+    typedef Eigen::Matrix<real_t,D,1> RMatrixD1;
+    
+    /**
+     * complex square matrix
+     * size: (#dimensions)
+     */
+    typedef Eigen::Matrix<complex_t,D,D> CMatrixDD;
+    
+    /**
+     * complex column vector
+     * size: (#dimensions)
+     */
+    typedef Eigen::Matrix<complex_t,C,1> CMatrixC1;
+    
 private:
     real_t eps_;
     std::shared_ptr< HagedornParameterSet<D> > parameters_;
     std::shared_ptr< ShapeEnumeration<D> > enumeration_;
     std::array< std::shared_ptr< std::valarray<complex_t> >, C> coefficients_;
-    
-    typedef Eigen::Matrix<complex_t,D,1> CMatrixD1;
-    typedef Eigen::Matrix<real_t,D,1> RMatrixD1;
-    
-    /**
-     * matrix size: (#dimensions, #dimensions)
-     */
-    typedef Eigen::Matrix<complex_t,D,D> CMatrixDD;
-    
-    typedef Eigen::Matrix<complex_t,C,1> CMatrixC1;
     
 public:
     HagedornWavepacket(real_t eps,
@@ -225,7 +231,7 @@ public:
         }
         
         /**
-         * Complexity: theta(N*D*C)
+         * Complexity: theta(N*D)
          */
         CArray1N evaluateBasis(dim_t axis, 
                                 MultiIndex<D> k, 
@@ -272,7 +278,7 @@ public:
         }
         
         /**
-         * Complexity: theta(S*N*D*C)
+         * Complexity: theta(S*N*D)
          * 
          * \param[in] islice index of next slice
          * \param[in] prev_slice_values
