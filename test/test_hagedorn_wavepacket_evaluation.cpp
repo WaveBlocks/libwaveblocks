@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     const dim_t D = 3;
     typedef HyperCubicShape<D> S;
 
-    S shape({3,3,3});
+    S shape({5,5,5});
 
     std::shared_ptr< HagedornParameterSet<D> > parameters = createSampleParameters<D>();
     
@@ -37,9 +37,10 @@ int main(int argc, char *argv[])
     {
         std::cout << "chosen evaluation {" << std::endl;
         
-        Eigen::Matrix<complex_t,D,1> x;
+        Eigen::Matrix<complex_t,D,2> x(D,2);
         for (dim_t d = 0; d < D; d++) {
-            x(d,0) = complex_t( (d+1)/real_t(2*D), (D-d)/real_t(2*D));
+            x(d,0) = complex_t( (d+1)/real_t(2*D), (D-d)/real_t(2*D) );
+            x(d,1) = complex_t( (D-d)/real_t(2*D), (d+1)/real_t(2*D) );
         }
         
         double start = getRealTime();

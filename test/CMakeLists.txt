@@ -18,3 +18,7 @@ add_executable(test_hagedorn_gradient_operator
 add_executable(test_cont_sqrt
     test_cont_sqrt.cpp
 )
+
+add_executable(spielwiese
+    spielwiese.cpp
+)

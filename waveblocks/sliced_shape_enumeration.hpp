@@ -6,6 +6,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <valarray>
+#include <array>
 #include <string>
 #include <sstream>
 
@@ -102,6 +103,11 @@ public:
     virtual bool contains(MultiIndex<D> index) const = 0;
     
     virtual std::string description() const = 0;
+    
+    /**
+     * \return smallest tuple L s.t for every k element of K: k_d < L_d
+     */
+    virtual MultiIndex<D> limits() const = 0;
     
     class Iterator
     {
@@ -308,6 +314,11 @@ public:
         out << "#entries: " << size() << ", ";
         out << "#slices: " << count_slices() << "}";
         return out.str();
+    }
+    
+    MultiIndex<D> limits() const override
+    {
+        return shape_.limits();
     }
 };
 

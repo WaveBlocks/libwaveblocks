@@ -26,11 +26,11 @@ public:
         return *this;
     }
     
-    MultiIndex<D> getLimits() const
+    MultiIndex<D> limits() const
     {
         MultiIndex<D> bbox;
         for (dim_t i = 0; i < D; i++)
-            bbox[i] = std::floor(K_-1);
+            bbox[i] = std::floor(K_);
         return bbox;
     }
     
@@ -75,11 +75,11 @@ public:
         return *this;
     }
     
-    MultiIndex<D> getLimits() const
+    MultiIndex<D> limits() const
     {
         MultiIndex<D> bbox;
         for (dim_t i = 0; i < D; i++) {
-            bbox[i] = std::min((int)limits_[i]-1,(int)std::floor(K_-1));
+            bbox[i] = std::min((int)limits_[i],(int)std::floor(K_));
         }
         return bbox;
     }

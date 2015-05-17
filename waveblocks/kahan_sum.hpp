@@ -30,6 +30,14 @@ public:
     { }
     
     /**
+     * Zero initialization for types that don't have a default constructor.
+     */
+    KahanSum(const T &zero)
+        : sum_(zero)
+        , c_(zero)
+    { }
+    
+    /**
      * Copy constructor
      */
     KahanSum(const KahanSum<T> &that)

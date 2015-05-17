@@ -17,7 +17,7 @@ using namespace waveblocks;
 
 int main()
 {
-    const dim_t D = 8;
+    const dim_t D = 3;
     typedef HyperCubicShape<D> S;
     
     S shape({7,7,7,7,7, 7,7,7,7,7});

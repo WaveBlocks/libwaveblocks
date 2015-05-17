@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <array>
 
 #include "multi_index.hpp"
 
@@ -15,6 +16,9 @@ private:
     MultiIndex<D> limits_;
     
 public:
+    /**
+     * \param[in] limits (exclusive)
+     */
     HyperCubicShape(MultiIndex<D> limits) 
         : limits_(limits)
     { }

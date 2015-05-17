@@ -45,6 +45,14 @@ public:
         out << "ExtendedShape<?>[" << shape_.description() << "]";
         return out.str();
     }
+    
+    MultiIndex<D> limits() const
+    {
+        MultiIndex<D> base = shape_.limits();
+        for (dim_t d = 0; d < D; d++)
+            base[d] += 1;
+        return base;
+    }
 };
 
 template<dim_t D>
@@ -71,6 +79,11 @@ public:
     std::string description() const
     {
         return "ExtendedHyperCubicShape";
+    }
+    
+    MultiIndex<D> limits() const
+    {
+        return expansion_.limits();
     }
 };
 
