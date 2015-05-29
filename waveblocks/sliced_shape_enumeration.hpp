@@ -330,7 +330,6 @@ SlicedShapeEnumeration<D,MultiIndex,S>::SlicedShapeEnumeration(S shape)
     std::vector< std::vector< MultiIndex >* > temp;
     
     //generate nodes and put them into the corresponding slice
-    std::size_t ordinal = 0;
     do {
         MultiIndex index = it.index();
         

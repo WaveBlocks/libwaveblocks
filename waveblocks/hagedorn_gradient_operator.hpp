@@ -49,9 +49,7 @@ public:
         if (wavepacket.enumeration() != base_enum_)
             throw "incompatible shapes";
         
-        const auto & q = wavepacket.parameters()->q;
         const auto & p = wavepacket.parameters()->p;
-        const auto & Q = wavepacket.parameters()->Q;
         const auto & P = wavepacket.parameters()->P;
         
         Eigen::Matrix<complex_t,D,D> Pbar = P.conjugate();

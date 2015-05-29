@@ -5,12 +5,12 @@ project(waveblocks)
 add_definitions(
     -std=c++11
     -Wall
-    -Wno-unused-variable
-    -Wno-unused-local-typedef
-    -Wno-unused-parameter
+    -Wno-deprecated-declarations
     -Wextra
     -pedantic
 )
+
+
 
 # needs pkg-config
 include(FindPkgConfig)
