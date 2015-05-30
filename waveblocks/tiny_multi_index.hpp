@@ -11,21 +11,40 @@
 
 namespace waveblocks {
 
+/**
+ * \brief Represents the whole multi-index using a single integer.
+ * 
+ * This implementation splits an integer into same sized parts.
+ * For example using a 64bit integer for 20 entries yields only 3 bits per entry.
+ * This means when using this class, special care must be taken to prevent <b>overflows</b>.
+ * When running in release mode, input is not checked.
+ * 
+ * \tparam UINT option to select which integer type to use
+ * \tparam D number of multi-index dimension i.e number of entries
+ */
 template<class UINT, dim_t D>
 class TinyMultiIndex
 {
+    friend class std::less< waveblocks::TinyMultiIndex<UINT,D> >;
+    friend class std::hash< waveblocks::TinyMultiIndex<UINT,D> >;
+    friend class std::equal_to< waveblocks::TinyMultiIndex<UINT,D> >;
+    
+private:
+    UINT values_;
+    
 public:
     const static std::size_t BITS_PER_ENTRY = (8*sizeof(UINT))/D;
     
     /**
      * for a given axis: returns the largest value that this implementation is able to store
      */
-    static int limit(dim_t axis) {
+    static int limit(dim_t axis)
+    {
         (void) axis; //supress -Wunused-parameter
         return (UINT(1)<<BITS_PER_ENTRY)-1;
     }
     
-    UINT values_;
+    
     
     class Entry
     {
@@ -133,7 +152,7 @@ public:
         dim_t axis = 0;
         for (typename std::initializer_list<int>::iterator it = list.begin(); it != list.end() && axis < D; it++) {
             if (*it > limit(axis))
-                throw std::range_error("this multi-index implementation is unable to store a large value than " + std::to_string(limit(axis)));
+                throw std::range_error("this multi-index implementation is unable to store a larger value than " + std::to_string(limit(axis)));
             
             operator[](axis++) = *it;
         }

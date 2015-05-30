@@ -14,23 +14,95 @@
 
 namespace waveblocks {
 
+/**
+ * \brief Base class for all shape enumeration implementations.
+ * 
+ * 
+ * The purpose of this class is to unify access to all implementations by hiding the
+ * real implementation details behind virtual functions.
+ * 
+ * Since translating multi-indices to ordinals is quite tricky if not impossible,
+ * implementations will use a dictionary or lookup-table to perform this conversions.
+ * If a shape contains several million nodes, such data structures consume quite a lot of memory, 
+ * so implementations will somehow compress multi-indices to save memory. All multi-indices 
+ * are passed as as a tuple of integers (std::array<int,D>). Implementations will transform it
+ * into the internal format.
+ * 
+ * Instantiation
+ * -------------
+ * \code{.cpp}
+ * const dim_t D = 4;
+ * TinyMultiIndex<std::size_t,D> MultiIndex;
+ * typedef HyperbolicCutShape<D> S;
+ * 
+ * S shape(7.0);
+ * 
+ * ShapeEnumeration<D> *enumeration = new SlicedShapeEnumeration< D, MultiIndex, S >(shape);
+ * \endcode
+ * 
+ * \tparam D number of multi-index dimensions
+ * 
+ * \see TinyMultiIndex A compressed multi-index type that represents all multi-indices using a single integer.
+ */
 template<dim_t D>
 class ShapeEnumeration
 {
 public:
+    /**
+     * \brief A slice contains all 
+     * 
+     * The <b>s</b>-th slice contains all nodes <b>k</b> with the property: \f$ \sum_{i=1}^{D} k_i = s \f$
+     */
     class Slice
     {
     public:
         virtual ~Slice() { }
         
+        /**
+         * \return number of nodes in all previous slices
+         */
         virtual std::size_t offset() const = 0;
         
+        /**
+         * \return number of nodes in this slice
+         */
         virtual std::size_t size() const = 0;
         
+        /**
+         * \brief Returns the multi-index of the node at position <i>ordinal</i>.
+         * 
+         * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
+         * 
+         * Portable programs should never call this function with an argument that is <i>out-of-range</i>,
+         * since this causes <i>undefined behaviour</i>.
+         * 
+         * <b>complexity: </b>logarithmic in the number of slice-nodes
+         * 
+         * \param[in] ordinal position of a node in this slice
+         * \return multi-index of the specified node
+         */
         virtual std::array<int,D> operator[](std::size_t ordinal) const = 0;
         
+        /**
+         * \brief Returns the position of the node with multi-index <i>index</i>.
+         * 
+         * Notice that the first node in the slice has position 0 (not 1 or offset()).
+         * 
+         * Portable programs should never call this function with an argument 
+         * that is inexistant in this slice since this causes <i>undefined behaviour</i>.
+         * 
+         * Use contains(index) to check whether this slice contains this node.
+         * 
+         * <b>complexity: </b>logarithmic in the number of slice-nodes
+         * 
+         * \param[in] index multi-index of a node in this slice
+         * \return position of the specified node
+         */
         virtual std::size_t find(const std::array<int,D> &index) const = 0;
         
+        /**
+         * \brief const_iterator over a slice to support foreach statements
+         */
         class Iterator
         {
         private:
@@ -90,16 +162,36 @@ public:
     
     virtual ~ShapeEnumeration() { }
     
+    /**
+     * \return number of nodes
+     */
     virtual std::size_t size() const = 0;
     
     virtual std::array<int,D> operator[](std::size_t ordinal) const = 0;
     
     virtual std::size_t find(const std::array<int,D> &index) const = 0;
     
+    /**
+     * \param[in] islice slice-index (first slice has index 0)
+     * \return reference to a slice
+     */
     virtual const Slice &slice(std::size_t islice) const = 0;
     
     virtual std::size_t count_slices() const = 0;
     
+    /**
+     * \brief Checks whether this slice contains a node with multi-index <i>index</i>.
+     * 
+     * To proof that a shape contains a specific node, it is sufficient to consult 
+     * the shape's member function limit(axis, index). However querying the ordinal of a 
+     * node however is expensive since it usually requires a dictionary lookup.
+     * Therefore contains(<i>index</i>) is very cheap compared to find(<i>index</i>).
+     * 
+     * <b>complexity: </b> constant-time
+     * 
+     * \param index multi-index of the node
+     * \return true if the shape contains the node; false otherwise
+     */
     virtual bool contains(const std::array<int,D> &index) const = 0;
     
     virtual std::string description() const = 0;
@@ -109,6 +201,9 @@ public:
      */
     virtual int bbox(dim_t axis) const = 0;
     
+    /**
+     * \brief const_iterator over the whole shape to support foreach statements
+     */
     class Iterator
     {
     private:
@@ -155,17 +250,49 @@ public:
         }
     };
     
+    /**
+     * \brief 
+     */
     Iterator begin() const
     {
         return Iterator(this, 0);
     }
     
+    /**
+     * \brief
+     */
     Iterator end() const
     {
         return Iterator(this, size());
     }
 };
 
+/**
+ * \brief Default implementation of a shape enumeration. 
+ * 
+ * This class takes a shape description object and builds a lookup-table to
+ * perform queries. It lets the user freely choose an appropriate type to
+ * represent multi-indices internally.
+ * 
+ * <b>Implementation details</b>
+ * 
+ * This class uses a vector to do <i>ordinal -> multi-index</i> queries.
+ * For <i>multi-index -> ordinal</i> it does binary search by default. 
+ * The constructor provides an option to use an hashmap instead. 
+ * However it turned out that binary search is slightly faster than 
+ * a hashmap regardless of the hash-function.
+ * 
+ * \tparam D number of multi-index dimensions
+ * \tparam MultiIndex 
+ * \parblock
+ * Type to internally represent a multi-index. <br>
+ * A custom type should provide same interface as std::array<int,D>. <br>
+ * Furthermore a custom type must specialize std::less, std::hash, std::equal_to.
+ * \endparblock
+ * \tparam S shape description class
+ * 
+ * \see TinyMultiIndex A compressed multi-index type that represents all multi-indices using a single integer.
+ */
 template<dim_t D, class MultiIndex, class S>
 class SlicedShapeEnumeration : public ShapeEnumeration<D>
 {
@@ -173,8 +300,14 @@ public:
     class Slice;
     
 private:
+    /**
+     * shape description
+     */
     S shape_;
     
+    /**
+     * flag whether a dictionary is used.
+     */
     bool use_dict_;
     
     std::vector< MultiIndex > table_;
@@ -249,7 +382,13 @@ public:
         }
     };
     
-    SlicedShapeEnumeration(S shape);
+    /**
+     * \brief Takes a shape description and builds a lookup-table for it.
+     * 
+     * \param[in] shape shape description
+     * \param[in] use_dict option whether to use a dictionary (see class description for details)
+     */
+    SlicedShapeEnumeration(S shape, bool use_dict = false);
     
     std::size_t size() const override
     {
@@ -313,9 +452,9 @@ public:
 };
 
 template<dim_t D, class MultiIndex, class S>
-SlicedShapeEnumeration<D,MultiIndex,S>::SlicedShapeEnumeration(S shape)
+SlicedShapeEnumeration<D,MultiIndex,S>::SlicedShapeEnumeration(S shape, bool use_dict)
     : shape_(shape)
-    , use_dict_(false) //using a hashmap is slower than binary search
+    , use_dict_(use_dict) //using a dictionary is slower than binary search
     , table_()
 {
     //check multi-index type

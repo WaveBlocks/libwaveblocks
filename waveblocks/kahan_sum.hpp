@@ -5,14 +5,23 @@ namespace waveblocks
 {
 
 /**
- * The Kahan's algorithm achieves O(1) error growth for summing N numbers.
+ * \brief The Kahan's algorithm achieves O(1) error growth for summing N numbers.
  * 
- * This implementation works for complex numbers & matrices too.
+ * This implementation works for every type that satisfies following requirements:
+ *  - copy constructor
+ *  - copy assignment operator
+ *  - binary plus operator that performs element-wise addition
+ *  - binary minus operator that performs element-wise subtraction
+ * 
+ * \tparam T type of summands
  */
 template<class T>
 class KahanSum
 {
 private:
+    /**
+     * Accumulated sum.
+     */
     T sum_;
     
     /**
@@ -22,15 +31,21 @@ private:
     
 public:
     /**
-     * Zero initialize
+     * \brief compiler-generated default constructor
+     * 
+     * Be aware that this constructor fails on summand types that cannot 
+     * provide a default constructor like dynamically sized arrays/matrices.
+     * 
+     * \see KahanSum::KahanSum(const T&)
      */
-    KahanSum()
-        : sum_()
-        , c_()
-    { }
+    KahanSum() = default;
     
     /**
-     * Zero initialization for types that don't have a (working) default constructor.
+     * \brief A zero initializing constructor for types that cannot provide a default constructor.
+     * 
+     * A noteable example is a dynamically sized matrix.
+     * 
+     * \param[in] zero initialized zero value as a template
      */
     KahanSum(const T &zero)
         : sum_(zero)
@@ -38,29 +53,23 @@ public:
     { }
     
     /**
-     * Copy constructor
+     * \brief compiler-generated copy constructor
      */
-    KahanSum(const KahanSum<T> &that)
-        : sum_(that.sum_)
-        , c_(that.c_)
-    { }
+    KahanSum(const KahanSum<T> &that) = default;
     
     /**
-     * Assignment operator
+     * \brief compiler-generated copy assignment operator
      */
-    KahanSum &operator=(const KahanSum<T> &that)
-    {
-        c_ = that.c_;
-        sum_ = that.sum_;
-        return *this;
-    }
+    KahanSum &operator=(const KahanSum<T> &that) = default;
     
     /**
-     * Add a number
+     * \brief adds a number 
+     * 
+     * \param[in] summand summand
      */
-    KahanSum &operator+=(T input)
+    KahanSum &operator+=(const T &summand)
     {
-        T y = input - c_;
+        T y = summand - c_;
         T t = sum_ + y;
         c_ = (t - sum_) - y;
         sum_ = t;
@@ -68,9 +77,11 @@ public:
     }
     
     /**
-     * Retrieve accumulated sum
+     * \brief retrieves accumulated sum.
+     * 
+     * \return accumulated sum
      */
-    T operator()() const
+    const T &operator()() const
     {
         return sum_;
     }
