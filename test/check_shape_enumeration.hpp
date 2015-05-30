@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "waveblocks/sliced_shape_enumeration.hpp"
+#include "waveblocks/shape_enumeration_base.hpp"
 
 namespace waveblocks {
 

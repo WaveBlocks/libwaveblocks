@@ -1,8 +1,8 @@
 #include <Eigen/Core>
 #include <iostream>
 
-#include <waveblocks/hyperbolic_shape.hpp>
-#include <waveblocks/shape_extension.hpp>
+#include <waveblocks/shape_hyperbolic.hpp>
+#include <waveblocks/shape_extended.hpp>
 #include <waveblocks/tiny_multi_index.hpp>
 #include <waveblocks/lexical_shape_enumerator.hpp>
 

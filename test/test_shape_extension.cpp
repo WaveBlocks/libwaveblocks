@@ -2,9 +2,9 @@
 #include <string>
 #include <iostream>
 
-#include <waveblocks/hypercubic_shape.hpp>
-#include <waveblocks/hyperbolic_shape.hpp>
-#include <waveblocks/shape_extension.hpp>
+#include <waveblocks/shape_hypercubic.hpp>
+#include <waveblocks/shape_hyperbolic.hpp>
+#include <waveblocks/shape_extended.hpp>
 #include <waveblocks/lexical_shape_enumerator.hpp>
 #include <waveblocks/stdarray2stream.hpp>
 

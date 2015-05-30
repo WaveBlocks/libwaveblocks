@@ -5,7 +5,7 @@
 
 #include "hagedorn_parameter_set.hpp"
 
-#include "sliced_shape_enumeration.hpp"
+#include "shape_enumeration_base.hpp"
 
 namespace waveblocks {
 

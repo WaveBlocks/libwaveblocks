@@ -5,7 +5,7 @@
 #include <valarray>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/sliced_shape_enumeration.hpp"
+#include "waveblocks/shape_enumeration_default.hpp"
 #include "waveblocks/hagedorn_parameter_set.hpp"
 
 namespace waveblocks {

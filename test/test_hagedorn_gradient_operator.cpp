@@ -4,11 +4,11 @@
 
 #include "util/time.hpp"
 
-#include "waveblocks/hypercubic_shape.hpp"
-#include "waveblocks/hyperbolic_shape.hpp"
-#include "waveblocks/shape_extension.hpp"
+#include "waveblocks/shape_hypercubic.hpp"
+#include "waveblocks/shape_hyperbolic.hpp"
+#include "waveblocks/shape_extended.hpp"
 
-#include "waveblocks/sliced_shape_enumeration.hpp"
+#include "waveblocks/shape_enumeration_default.hpp"
 
 #include "waveblocks/hagedorn_wavepacket.hpp"
 #include "waveblocks/hagedorn_gradient_operator.hpp"
@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
 
     auto parameters = createSampleParameters<D>();
 
-    std::shared_ptr< ShapeEnumeration<D> > wave_enum( new SlicedShapeEnumeration<D,MultiIndex,S>(shape) );
+    std::shared_ptr< ShapeEnumeration<D> > wave_enum( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
     
-    std::shared_ptr< ShapeEnumeration<D> > grad_enum( new SlicedShapeEnumeration<D,MultiIndex,ExtendedShape<D,S> >( ExtendedShape<D,S> {shape} ));
+    std::shared_ptr< ShapeEnumeration<D> > grad_enum( new DefaultShapeEnumeration<D,MultiIndex,ExtendedShape<D,S> >( ExtendedShape<D,S> {shape} ));
     
     checkShapeEnumeration(*wave_enum, "wavepacket enumeration");
     checkShapeEnumeration(*grad_enum, "gradient enumeration");

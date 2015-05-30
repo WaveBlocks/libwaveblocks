@@ -3,7 +3,7 @@
 
 #include "basic_types.hpp"
 
-#include "hypercubic_shape.hpp"
+#include "shape_hypercubic.hpp"
 
 namespace waveblocks {
 

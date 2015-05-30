@@ -4,8 +4,8 @@
 #include "basic_types.hpp"
 
 #include "hagedorn_parameter_set.hpp"
-#include "sliced_shape_enumeration.hpp"
-#include "shape_extension.hpp"
+#include "shape_enumeration_default.hpp"
+#include "shape_extended.hpp"
 #include "hagedorn_wavepacket.hpp"
 #include "kahan_sum.hpp"
 

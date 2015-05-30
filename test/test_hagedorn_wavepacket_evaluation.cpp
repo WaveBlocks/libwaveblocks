@@ -5,7 +5,7 @@
 
 #include "util/time.hpp"
 
-#include "waveblocks/hypercubic_shape.hpp"
+#include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
 #include "sample_wavepacket.hpp"
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     
     std::cout << *parameters << std::endl;
 
-    std::shared_ptr< ShapeEnumeration<D> > enumeration( new SlicedShapeEnumeration<D,MultiIndex,S>(shape) );
+    std::shared_ptr< ShapeEnumeration<D> > enumeration( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
 
     checkShapeEnumeration(*enumeration, "wavepacket enumeration");
 
