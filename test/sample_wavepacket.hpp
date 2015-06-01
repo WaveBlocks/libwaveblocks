@@ -32,9 +32,9 @@ std::shared_ptr< HagedornParameterSet<D> > createSampleParameters()
 }
 
 template<dim_t D>
-std::shared_ptr< std::valarray<complex_t> > createSampleCoefficients(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration)
+std::vector<complex_t> createSampleCoefficients(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration)
 {
-    auto coeffs = std::make_shared< std::valarray<complex_t> >(enumeration->size());
+    std::vector<complex_t> coeffs(enumeration->size());
 
     real_t norm = 0.0;
 
@@ -55,7 +55,7 @@ std::shared_ptr< std::valarray<complex_t> > createSampleCoefficients(const std::
         x *= std::exp(-falloff*sum);
         y *= std::exp(-falloff*sum);
 
-        (*coeffs)[ordinal] = complex_t(x,y);
+        coeffs[ordinal] = complex_t(x,y);
 
         //std::cout << index << ": " << coeffs[ordinal] << std::endl;
 
@@ -63,11 +63,11 @@ std::shared_ptr< std::valarray<complex_t> > createSampleCoefficients(const std::
 
         ordinal++;
     }
-
+    
     //normalize wavepacket
-    for (auto & c : *coeffs)
+    for (auto & c : coeffs)
         c /= norm;
-
+    
     return coeffs;
 }
 

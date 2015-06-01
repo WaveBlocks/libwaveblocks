@@ -6,6 +6,7 @@
 #include "util/time.hpp"
 
 #include "waveblocks/shape_hypercubic.hpp"
+#include "waveblocks/shape_hyperbolic.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
 #include "sample_wavepacket.hpp"
@@ -17,11 +18,11 @@ using namespace waveblocks;
 
 int main(int argc, char *argv[])
 {
-    const dim_t D = 3;
+    const dim_t D = 8;
     typedef TinyMultiIndex<std::size_t,D> MultiIndex;
-    typedef HyperCubicShape<D> S;
+    typedef LimitedHyperbolicCutShape<D> S;
     
-    S shape({5});
+    S shape(20.0, {5});
     
     std::shared_ptr< HagedornParameterSet<D> > parameters = createSampleParameters<D>();
     
@@ -30,11 +31,9 @@ int main(int argc, char *argv[])
     std::shared_ptr< ShapeEnumeration<D> > enumeration( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
 
     checkShapeEnumeration(*enumeration, "wavepacket enumeration");
-
-    std::shared_ptr< std::valarray<complex_t> > coefficients = createSampleCoefficients<D>(enumeration);
     
-    HagedornWavepacket<D> wavepacket(0.9, parameters, enumeration, {coefficients});
-
+    HagedornWavepacket<D> wavepacket(0.9, parameters, enumeration, createSampleCoefficients<D>(enumeration));
+    
     // evaluate wavepacket at a chosen location
     {
         std::cout << "chosen evaluation {" << std::endl;

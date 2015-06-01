@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     GradientOperator<D> nabla(wave_enum, grad_enum);
     
     start = getRealTime();
-    HagedornWavepacket<D,D> gradient = nabla(wavepacket);
+    std::array< HagedornWavepacket<D>, D> gradient = nabla(wavepacket);
     std::cout << "[TIME] apply gradient: " << (getRealTime() - start) << std::endl;
     
     // evaluate wavepacket at a chosen location
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
         double start = getRealTime();
         auto psi = gradient(x);
         double stop = getRealTime();
-
+        
         std::cout << "   psi: " << psi.transpose() << '\n';
         std::cout << "   time: " << (stop - start) << '\n';
         std::cout << "}" << std::endl;

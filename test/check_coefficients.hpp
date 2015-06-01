@@ -10,45 +10,45 @@
 
 namespace waveblocks {
 
-template<dim_t D, int C>
-void compareCoefficientsToReferenceFile(const HagedornWavepacket<D,C> &wavepacket, const char *filename)
+template<dim_t D>
+void compareCoefficientsToReferenceFile(const std::array< HagedornWavepacket<D>, D> &tuple, const char *filename)
 {
-    auto enumeration = wavepacket.enumeration();
-
+    auto enumeration = tuple[0].enumeration();
+    
     std::cout << "compare wavepacket coefficients to reference file {" << std::endl;
     std::ifstream csv(filename);
     if (csv.fail())
         std::cout << "   [ERROR] File not found!" << std::endl;
-
+    
     std::size_t lines = 0;
     while (csv.good()) {
         real_t tol = 1e-10;
-
-        Eigen::Matrix<complex_t,C,1> ref;
-
+        
+        Eigen::Matrix<complex_t,D,1> ref;
+        
         //read index
         std::array<int,D> index;
-        for (dim_t c = 0; c < C; c++) {
+        for (dim_t d = 0; d < D; d++) {
             int entry;
             csv >> entry;
-            index[c] = entry;
+            index[d] = entry;
         }
-
+        
         //read real gradient part
-        real_t temp[C];
-        for (dim_t c = 0; c < C; c++) {
+        real_t temp[D];
+        for (dim_t d = 0; d < D; d++) {
             real_t value;
             csv >> value;
-            temp[c] = value;
+            temp[d] = value;
         }
-
+        
         //read imaginary gradient part
-        for (dim_t c = 0; c < C; c++) {
+        for (dim_t d = 0; d < D; d++) {
             real_t value;
             csv >> value;
-            ref(c,0) = complex_t(temp[c],value);
+            ref(d,0) = complex_t(temp[d],value);
         }
-
+        
         if (csv.good()) {
             ++lines;
 
@@ -57,7 +57,12 @@ void compareCoefficientsToReferenceFile(const HagedornWavepacket<D,C> &wavepacke
                 continue;
             }
 
-            Eigen::Matrix<complex_t,C,1> coeff = wavepacket.coefficient( enumeration->find(index) );
+            Eigen::Matrix<complex_t,D,1> coeff;
+            for (int d = 0; d < D; d++) {
+                coeff(d,0) = tuple[d].coefficient( enumeration->find(index) );
+            }
+            
+            
 
             real_t error = (coeff - ref).norm()/ref.norm();
 

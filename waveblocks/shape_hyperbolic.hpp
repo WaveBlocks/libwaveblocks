@@ -100,7 +100,7 @@ public:
     
     int bbox(dim_t axis) const
     {
-        return std::min( limits_[axis]-1, std::floor(K_-1.0));
+        return std::min( limits_[axis]-1, (int)std::floor(K_-1.0));
     }
     
     template<class MultiIndex>
