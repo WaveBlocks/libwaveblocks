@@ -231,6 +231,154 @@ void enumerate(const S& shape, Func func, int slice)
     enumerate<D,S,Func>(shape, func, user, index, 0, slice);
 }
 
+/**
+ * There exist 3 types of nodes:
+ *  - white leaf: represents a node that is NOT part of the shape
+ *  - black leaf: represents a node that is part of the shape
+ *  - inner node: contains subtrees
+ */
+struct Node
+{
+    /**
+     * \brief stores number of nodes (of all types) in its subset
+     * 
+     * value is 1 if this node is a leaf
+     * value is >1 if this nodes is an inner node
+     */
+    std::size_t n_nodes;
+    
+    /**
+     * \brief stores number of black leaves in its subset
+     * 
+     * value is 1 if this node is a black leaf
+     * value is 0 if this node is a white leaf
+     * value is N if this node is an inner node that contains N black leaves
+     */
+    std::size_t n_fill;
+    
+    Node &operator+=(const Node& rhs)
+    {
+        n_nodes += rhs.n_nodes;
+        n_fill += rhs.n_fill;
+        return *this;
+    }
+};
+
+template<int D>
+class ShapeSliceTree;
+
+template<int D, class S>
+class ShapeSliceBuilder
+{
+    friend class ShapeSliceTree<D>;
+private:
+    const S& shape_;
+    std::vector<Node> tree_; // number of nodes
+    
+    /**
+     * \return 2-tuple (#nodes, #leaves)
+     */
+    Node enumerate_(typename S::stack_entry_type userstack,
+                    std::array<int,D> &index,
+                    int depth, int remain)
+    {
+        Node stats;
+        
+        // reserve space for this node
+        std::size_t mark = tree_.size();
+        tree_.emplace_back();
+        
+        // current node is leaf
+        if (depth == D-1 || remain == 0) {
+            index[depth] = remain;
+            if (shape_.accept(index, userstack)) {
+                stats = {1, 1}; //mark leaf as black
+            } else {
+                stats = {1, 0}; //mark leaf as white
+            }
+        }
+        // current node is an inner node
+        else {
+            stats = {1,0};
+            
+            for (int i = 0; i <= remain; i++) {
+                index[depth] = i;
+                
+                typename S::stack_entry_type top = userstack; // push entry to user stack
+                if (!shape_.empty(index, depth, i, top, remain-i)) {
+                    stats += enumerate_(top, index, depth+1, remain-i);
+                }
+            }
+            
+            if (stats.n_fill == 0) {
+                // Optimization: all subtrees are empty, no need to keep them => delete them
+                tree_.resize(mark+1);
+                stats.n_nodes = 1;
+            }
+        }
+        
+        index[depth] = 0; // dont forget!
+        
+        // write current node
+        tree_[mark] = stats;
+        
+        return stats;
+    }
+public:
+    ShapeSliceBuilder(const S& shape, int slice)
+        : shape_(shape)
+        , tree_()
+    { 
+        Node stats = {1,0};
+        
+        //reserve space for root
+        tree_.emplace_back();
+        
+        std::array<int,D> index{}; //zero initialize
+        
+        typename S::stack_entry_type userstack{};
+        stats += enumerate_(userstack, index, 0, slice);
+        
+        if (stats.n_fill == 0) {
+            //all subtrees are empty, no need to keep them => delete them
+            tree_.resize(1);
+            stats.n_nodes = 1;
+        }
+        
+        tree_[0] = stats;
+    }
+};
+
+template<int D>
+class ShapeSliceTree
+{
+private:
+    std::vector<Node> tree_;
+    
+public:
+    template<class S>
+    ShapeSliceTree(ShapeSliceBuilder<D,S>& builder)
+        : tree_(std::move(builder.tree_))
+    { }
+    
+    ShapeSliceTree(ShapeSliceTree&& that) = default;
+    
+    std::size_t size() const
+    {
+        return tree_.front().n_fill;
+    }
+    
+    /**
+     * \brief determines memory used in bytes (useful for comparisons)
+     */
+    std::size_t memory() const
+    {
+        return sizeof(Node)*tree_.size();
+    }
+    
+    ShapeSliceTree &operator=(ShapeSliceTree&& that) = default;
+};
+
 using namespace waveblocks;
 
 int main()
@@ -243,13 +391,20 @@ int main()
     
     int islice = 5;
     
+    // compare
     {
         typedef RLimitedHyperbolicCutShape<D> S;
         typedef ExtendedShape<D, RLimitedHyperbolicCutShape<D> > ES;
         
-        S shape(K,bbox);
+        S shape{K,bbox};
         
         ES eshape(shape);
+        
+        ShapeSliceBuilder<D,S> builder{shape, islice};
+        
+        ShapeSliceTree<D> tree{builder};
+        std::cout << tree.size() << std::endl;
+        std::cout << double(tree.memory())/double(tree.size()) << std::endl;
         
         double start = getRealTime();
         
@@ -264,8 +419,6 @@ int main()
         };
         
         enumerate<D,S,std::function<void(const std::array<int,D>&)> >(shape, func, islice);
-        
-        
         
         std::cout << "slice: " << islice << ", count: " << counter << std::endl;
         

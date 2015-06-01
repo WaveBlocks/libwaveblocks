@@ -31,7 +31,7 @@ class TinyMultiIndex
     friend class std::equal_to< waveblocks::TinyMultiIndex<UINT,D> >;
     
 private:
-    UINT values_;
+    UINT values_ = 0;
     
 public:
     const static std::size_t BITS_PER_ENTRY = (8*sizeof(UINT))/D;
