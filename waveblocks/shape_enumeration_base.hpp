@@ -4,6 +4,8 @@
 #include <array>
 #include <string>
 
+#include "basic_types.hpp"
+
 namespace waveblocks {
 
 /**

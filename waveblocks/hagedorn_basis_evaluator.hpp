@@ -115,6 +115,20 @@ private:
     }
     
 public:
+    Evaluator(real_t eps, const HagedornParameterSet<D> &parameters)
+    {
+        // compute ground state
+        
+    }
+    
+    std::vector<complex_t> do_recursion(const std::vector<complex_t>& prev_bases, 
+                                        const ShapeSlice& prev_enum, 
+                                        const ShapeSlice& curr_enum, 
+                                        CArrayXN &next_slice_values)
+    {
+        
+    }
+    
     Evaluator(real_t eps, 
               std::shared_ptr< HagedornParameterSet<D> > parameters, 
               std::shared_ptr< ShapeEnumeration<D> > enumeration, 

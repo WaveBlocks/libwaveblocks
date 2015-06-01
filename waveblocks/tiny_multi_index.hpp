@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <initializer_list>
 
+#include "basic_types.hpp"
 #include "stdarray2stream.hpp"
 
 namespace waveblocks {

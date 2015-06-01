@@ -13,7 +13,7 @@
 #include "math_util.hpp"
 #include "hagedorn_parameter_set.hpp"
 #include "hagedorn_basis_evaluator.hpp"
-#include "shape_enumeration_base.hpp"
+#include "shape_slice_base.hpp"
 
 #include "kahan_sum.hpp"
 
@@ -43,9 +43,9 @@ public:
 private:
     real_t eps_;
     std::shared_ptr< HagedornParameterSet<D> > parameters_;
-    std::shared_ptr< ShapeEnumeration<D> > enumeration_;
     
-    std::vector<complex_t> coefficients_;
+    std::vector< ShapeSlice > enumeration_;
+    std::vector< std::vector<complex_t> > coefficients_;
     
 public:
     /**
@@ -139,7 +139,6 @@ public:
         return coefficients_;
     }
     
-    
     template<int N>
     Eigen::Array<complex_t,1,N> evaluate_and_reduce_(const Eigen::Matrix<complex_t,D,N> &x) const
     {
@@ -155,11 +154,15 @@ public:
         Eigen::Array<complex_t,Eigen::Dynamic,N> prev_slice_values(0,npts);
         Eigen::Array<complex_t,Eigen::Dynamic,N> curr_slice_values(0,npts);
         Eigen::Array<complex_t,Eigen::Dynamic,N> next_slice_values(1,npts);
-
+        
         evaluator.do_recursion(0, prev_slice_values, curr_slice_values, next_slice_values);
-
+        
         psi += coefficients_[0]*next_slice_values.row(0).matrix();
-
+        
+        for (auto & slice_enum : enumeration_) {
+            evaluator.do_recusion();
+        }
+        
         for (std::size_t islice = 1; islice < enumeration_->count_slices(); islice++) {
             //exchange slices
             std::swap(prev_slice_values, curr_slice_values);

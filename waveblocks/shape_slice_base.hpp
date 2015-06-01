@@ -5,7 +5,7 @@ template<dim_t D>
 class ShapeSlice
 {
 public:
-    virtual ~Slice() { }
+    virtual ~ShapeSlice() { }
     
     /**
      * \return number of nodes in all previous slices

@@ -4,7 +4,18 @@
 #include <vector>
 #include <functional>
 #include <cassert>
+#include <fstream>
 
+#include "util/time.hpp"
+
+#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/shape_hyperbolic.hpp"
+#include "waveblocks/shape_enumeration_base.hpp"
+#include "waveblocks/shape_enumeration_default.hpp"
+
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+/*
 template<class T, std::size_t S>
 std::ostream &operator<<(std::ostream &out, const std::array<T,S> &index)
 {
@@ -15,28 +26,7 @@ std::ostream &operator<<(std::ostream &out, const std::array<T,S> &index)
         std::cout << index[S-1];
     std::cout << ")";
     return out;
-}
-
-template<int D>
-void enumerate(std::array<int,D> &index, int depth, int acc_sum, int tot_sum)
-{
-    
-    if (depth == D-1) {
-        index[depth] = tot_sum - acc_sum;
-        std::cout << index << std::endl;
-        index[depth] = 0;
-    }
-    else if (acc_sum == tot_sum) {
-        std::cout << index << std::endl;
-    }
-    else {
-        for (int i = 0; i <= tot_sum - acc_sum; i++) {
-            index[depth] = i;
-            enumerate<D>(index, depth+1, acc_sum+i, tot_sum);
-        }
-        index[depth] = 0;
-    }
-}
+}*/
 
     
 //     NodeSize build_(const std::vector<NodeSize>& data, std::size_t begin, std::array<int,D> &index, int depth, int acc_sum, int tot_sum)
@@ -74,14 +64,16 @@ void enumerate(std::array<int,D> &index, int depth, int acc_sum, int tot_sum)
 //     }
 
 template<int D>
-struct HyperbolicCutShape
+struct RLimitedHyperbolicCutShape
 {
 private:
     int K_;
+    std::array<int,D> limit_;
     
 public:
-    HyperbolicCutShape(int K)
+    RLimitedHyperbolicCutShape(int K, const std::array<int,D>& bbox)
         : K_(K)
+        , limit_(bbox)
     { }
     
     struct stack_entry_type
@@ -91,6 +83,10 @@ public:
     
     inline bool empty(const std::array<int,D> &index, int dim, int value, stack_entry_type &top, int remain) const
     {
+        if (value >= limit_[dim]) {
+            return true;
+        }
+        
         // update accumulated product
         top.product *= value+1;
         
@@ -100,6 +96,14 @@ public:
         //std::cout << dim << ": " << index << " : " << top.product << " lowerbound: " << lowerbound << std::endl;
         
         return lowerbound > K_;
+    }
+    
+    inline bool accept(const std::array<int,D> &index, stack_entry_type &top) const
+    {
+        if (index[D-1] >= limit_[D-1])
+            return false;
+        else
+            return index[D-1]*top.product <= K_;
     }
     
     inline bool contains(const std::array<int,D> &index)
@@ -113,7 +117,7 @@ public:
 };
 
 template<int D>
-struct HyperCubicShape
+struct RHyperCubicShape
 {
 private:
     std::array<int,D> bbox_;
@@ -189,31 +193,27 @@ public:
     }
 };
 
-template<int D, class S>
-void enumerate(const S& shape,
-               const std::function< void(const std::array<int,D>&) > &func,
+template<int D, class S, typename Func>
+void enumerate(const S& shape, Func func, 
                typename S::stack_entry_type user,
                std::array<int,D> &index,
                int depth, int remain)
 {
-    if (depth == D-1) {
+    if (depth == D-1 || remain == 0) {
+        // LEAF
         index[depth] = remain;
-        remain = 0;
-    }
-    
-    if (remain == 0) {
-        // leaf
-        func(index);
+        if (shape.accept(index, user)) {
+            func(index);
+        }
     }
     else {
+        // TREE
         for (int i = 0; i <= remain; i++) {
             index[depth] = i;
             
             typename S::stack_entry_type top = user;
             if (!shape.empty(index, depth, i, top, remain-i)) {
-                enumerate<D,S>(shape, func, top, index, depth+1, remain-i);
-            } else {
-                std::cout << "filtered: " << depth << " " << index << std::endl;
+                enumerate<D,S,Func>(shape, func, top, index, depth+1, remain-i);
             }
         }
     }
@@ -221,39 +221,81 @@ void enumerate(const S& shape,
     index[depth] = 0;
 }
 
-template<int D, class S>
-void enumerate(const S& shape, const std::function< void(const std::array<int,D>&) > &func, int slice)
+template<int D, class S, typename Func>
+void enumerate(const S& shape, Func func, int slice)
 {
     std::array<int,D> index{};
     
     typename S::stack_entry_type user{};
     
-    enumerate<D,S>(shape, func, user, index, 0, slice);
+    enumerate<D,S,Func>(shape, func, user, index, 0, slice);
 }
+
+using namespace waveblocks;
 
 int main()
 {
     //SparseManhattanTree<3> tree(5);
     
-    const int D = 5;
+    const int D = 15;
+    const int K = 21;
+    std::array<int,D> bbox = {8,8,8,8,8, 8,8,8,8,8, 8,8,8,8,8};
     
-    typedef HyperbolicCutShape<D> S;
-    typedef ExtendedShape<D, HyperbolicCutShape<D> > ES;
+    int islice = 5;
     
-    double K = 11.0;
-    
-    S shape(K);
-    
-    ES eshape(shape);
-    
-    enumerate<D,S>(shape, [&shape,K](const std::array<int,D>& index) { 
-        int prod = 1;
-        for (int i = 0; i < D; i++)
-            prod *= index[i]+1;
+    {
+        typedef RLimitedHyperbolicCutShape<D> S;
+        typedef ExtendedShape<D, RLimitedHyperbolicCutShape<D> > ES;
         
-        if (!shape.contains(index))
-            std::cout << "fail: " << index << std::endl;
-    }, 5);
+        S shape(K,bbox);
+        
+        ES eshape(shape);
+        
+        double start = getRealTime();
+        
+        int counter = 0;
+        
+        std::ofstream out("recursive.csv");
+        
+        auto func = [&out, &counter](const std::array<int,D>& index) {
+            ++counter;
+            out << index << std::endl;
+            //std::cout << index << std::endl;
+        };
+        
+        enumerate<D,S,std::function<void(const std::array<int,D>&)> >(shape, func, islice);
+        
+        
+        
+        std::cout << "slice: " << islice << ", count: " << counter << std::endl;
+        
+        double end = getRealTime();
+        
+        std::cout << "time: " << (end - start) << std::endl;
+    }
+    
+    {
+        typedef LimitedHyperbolicCutShape<D> S;
+        
+        S shape(K, bbox);
+        
+        double start = getRealTime();
+        
+        ShapeEnumeration<D> *ref_enum = new DefaultShapeEnumeration<D,TinyMultiIndex<std::size_t,D>,S>(shape);
+        
+        double end = getRealTime();
+        
+        std::ofstream out("iterative.csv");
+        
+        for (auto index : ref_enum->slice(islice)) {
+            out << index << std::endl;
+            //std::cout << entry << std::endl;
+        }
+        
+        std::cout << "count: " << ref_enum->slice(islice).size() << std::endl;
+        std::cout << "slices: " << ref_enum->count_slices() << std::endl;
+        std::cout << "time: " << (end - start) << std::endl;
+    }
     
     return 0;
 }

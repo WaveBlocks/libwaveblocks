@@ -25,5 +25,5 @@ add_executable(test_cont_sqrt
 )
 
 add_executable(spielwiese
-    spielwiese.cpp
+    spielwiese.cpp util/time.cpp
 )
