@@ -240,7 +240,7 @@ void enumerate(const S& shape, Func func, int slice)
 struct Node
 {
     /**
-     * \brief stores number of nodes (of all types) in its subset
+     * \brief stores number of nodes (of all types) in its subset inclusive itself
      * 
      * value is 1 if this node is a leaf
      * value is >1 if this nodes is an inner node
@@ -271,7 +271,9 @@ template<int D, class S>
 class ShapeSliceBuilder
 {
     friend class ShapeSliceTree<D>;
+    
 private:
+    int slice_;
     const S& shape_;
     std::vector<Node> tree_; // number of nodes
     
@@ -284,16 +286,13 @@ private:
     {
         Node stats;
         
-        // reserve space for this node
-        std::size_t mark = tree_.size();
-        tree_.emplace_back();
-        
         // current node is leaf
         if (depth == D-1 || remain == 0) {
             index[depth] = remain;
             if (shape_.accept(index, userstack)) {
                 stats = {1, 1}; //mark leaf as black
             } else {
+                std::cout << index << std::endl;
                 stats = {1, 0}; //mark leaf as white
             }
         }
@@ -301,64 +300,112 @@ private:
         else {
             stats = {1,0};
             
+            std::size_t mark = tree_.size();
+            
             for (int i = 0; i <= remain; i++) {
                 index[depth] = i;
                 
+                tree_.emplace_back(); // reserve space
+                Node & substats = tree_.back();
+                
                 typename S::stack_entry_type top = userstack; // push entry to user stack
                 if (!shape_.empty(index, depth, i, top, remain-i)) {
-                    stats += enumerate_(top, index, depth+1, remain-i);
+                    stats += substats = enumerate_(top, index, depth+1, remain-i);
+                } else {
+                    stats += substats = Node{1,0};
                 }
             }
             
             if (stats.n_fill == 0) {
                 // Optimization: all subtrees are empty, no need to keep them => delete them
-                tree_.resize(mark+1);
+                tree_.resize(mark);
                 stats.n_nodes = 1;
             }
         }
         
         index[depth] = 0; // dont forget!
         
-        // write current node
-        tree_[mark] = stats;
-        
         return stats;
     }
 public:
     ShapeSliceBuilder(const S& shape, int slice)
         : shape_(shape)
+        , slice_(slice)
         , tree_()
-    { 
-        Node stats = {1,0};
-        
-        //reserve space for root
-        tree_.emplace_back();
-        
+    {
         std::array<int,D> index{}; //zero initialize
         
+        tree_.emplace_back(); // reserve space
+        Node & stats = tree_.back();
+        
         typename S::stack_entry_type userstack{};
-        stats += enumerate_(userstack, index, 0, slice);
-        
-        if (stats.n_fill == 0) {
-            //all subtrees are empty, no need to keep them => delete them
-            tree_.resize(1);
-            stats.n_nodes = 1;
-        }
-        
-        tree_[0] = stats;
+        stats = enumerate_(userstack, index, 0, slice);
     }
 };
+
+std::string indent(int count)
+{
+    std::string txt = "";
+    while (count-- > 0) {
+        txt += "   ";
+    }
+    return txt;
+}
 
 template<int D>
 class ShapeSliceTree
 {
 private:
+    int slice;
     std::vector<Node> tree_;
     
 public:
+    struct Iterator
+    {
+    private:
+        std::vector<Node>::const_iterator it_; // points to (black) leaf node
+        std::array<int,D> index_;
+        std::array<int,D> stack_;
+        
+        Iterator(std::vector<Node>::const_iterator it, const std::array<int,D>& index)
+            : it_(it)
+            , index_(index)
+        { }
+        
+        void advance_()
+        {
+            
+        }
+        
+    public:
+        Iterator operator++()
+        {
+            //walk until next black leaf
+            while (true) {
+                ++it_;
+                
+                // is leaf?
+                if (it_->n_nodes == 1) {
+                    // is black?
+                    if (it_->n_fill == 1) {
+                        break;
+                    }
+                    
+                    assert(it->n_fill == 0);
+                }
+            }
+        }
+        
+        const std::array<int,D> &operator*() const
+        {
+            return index_;
+        }
+    };
+    
     template<class S>
     ShapeSliceTree(ShapeSliceBuilder<D,S>& builder)
-        : tree_(std::move(builder.tree_))
+        : slice(builder.slice_)
+        , tree_(std::move(builder.tree_))
     { }
     
     ShapeSliceTree(ShapeSliceTree&& that) = default;
@@ -369,7 +416,7 @@ public:
     }
     
     /**
-     * \brief determines memory used in bytes (useful for comparisons)
+     * \brief determines memory used in bytes
      */
     std::size_t memory() const
     {
@@ -377,6 +424,90 @@ public:
     }
     
     ShapeSliceTree &operator=(ShapeSliceTree&& that) = default;
+    
+    Iterator begin() const
+    {
+        
+    }
+    
+    Iterator end() const
+    {
+        
+    }
+    
+    void print() const
+    {
+        for (auto entry : tree_) {
+            std::cout << "(" << entry.n_nodes << "," << entry.n_fill << ")" << std::endl;
+        }
+    }
+    
+    void enumerate() const
+    {
+        std::vector<Node>::const_iterator it = tree_.begin() + 1;
+        
+        int depth = 0;
+        std::array<int,D> index{};
+        
+        int remain = slice;
+        std::cout << "----" << std::endl;
+        do {
+            std::cout << indent(depth) << "(" << it->n_nodes << "," << it->n_fill << ")" << std::endl;
+            // current node represents a leaf
+            if (it->n_nodes == 1) {
+                // leaf is black
+                if (it->n_fill == 1) {
+                    index[depth+1] = remain;
+                    std::cout << indent(depth+1) << "$" << index << std::endl;
+                    index[depth+1] = 0;
+                } else {
+                    index[depth+1] = remain;
+                    //std::cout << indent(depth+1) << "!" << index << std::endl;
+                    index[depth+1] = 0;
+                }
+                
+                // next entry is sibling
+                if (remain > 0) {
+                    index[depth] += 1;
+                    remain -= 1;
+                }
+                // next entry is uncle
+                else {
+                    remain += index[depth];
+                    index[depth] = 0;
+                    
+                    if (depth != 0) {
+                        remain -= 1;
+                        index[depth-1] += 1;
+                    }
+                    
+                    depth -= 1;
+                }
+            }
+            // current node represents an inner node (is NOT a leaf) => next entry is child or uncle
+            else {
+                // next entry is a child
+                if (remain > 0) {
+                    depth += 1;
+                }
+                // next entry is an uncle
+                else {
+                    remain += index[depth];
+                    index[depth] = 0;
+                    
+                    if (depth != 0) {
+                        remain -= 1;
+                        index[depth-1] += 1;
+                    }
+                    
+                    --depth;
+                }
+            }
+            
+            //poll next entry
+            ++it;
+        } while (depth >= 0);
+    }
 };
 
 using namespace waveblocks;
@@ -385,11 +516,11 @@ int main()
 {
     //SparseManhattanTree<3> tree(5);
     
-    const int D = 15;
-    const int K = 21;
-    std::array<int,D> bbox = {8,8,8,8,8, 8,8,8,8,8, 8,8,8,8,8};
+    const int D = 4;
+    const int K = 6;
+    std::array<int,D> bbox = {4,4,4,4};
     
-    int islice = 5;
+    int islice = 3;
     
     // compare
     {
@@ -406,6 +537,9 @@ int main()
         std::cout << tree.size() << std::endl;
         std::cout << double(tree.memory())/double(tree.size()) << std::endl;
         
+        tree.print();
+        tree.enumerate();
+        
         double start = getRealTime();
         
         int counter = 0;
@@ -415,7 +549,7 @@ int main()
         auto func = [&out, &counter](const std::array<int,D>& index) {
             ++counter;
             out << index << std::endl;
-            //std::cout << index << std::endl;
+            std::cout << index << std::endl;
         };
         
         enumerate<D,S,std::function<void(const std::array<int,D>&)> >(shape, func, islice);
