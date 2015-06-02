@@ -26,9 +26,9 @@ namespace waveblocks {
 template<class UINT, dim_t D>
 class TinyMultiIndex
 {
-    friend class std::less< waveblocks::TinyMultiIndex<UINT,D> >;
-    friend class std::hash< waveblocks::TinyMultiIndex<UINT,D> >;
-    friend class std::equal_to< waveblocks::TinyMultiIndex<UINT,D> >;
+    friend struct std::less< waveblocks::TinyMultiIndex<UINT,D> >;
+    friend struct std::hash< waveblocks::TinyMultiIndex<UINT,D> >;
+    friend struct std::equal_to< waveblocks::TinyMultiIndex<UINT,D> >;
     
 private:
     UINT values_ = 0;

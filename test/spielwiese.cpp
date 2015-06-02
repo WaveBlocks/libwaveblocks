@@ -273,8 +273,8 @@ class ShapeSliceBuilder
     friend class ShapeSliceTree<D>;
     
 private:
-    int slice_;
     const S& shape_;
+    int slice_;
     std::vector<Node> tree_; // number of nodes
     
     /**
@@ -284,16 +284,13 @@ private:
                     std::array<int,D> &index,
                     int depth, int remain)
     {
-        Node stats;
+        Node stats = {1,0};
         
         // current node is leaf
         if (depth == D-1 || remain == 0) {
             index[depth] = remain;
             if (shape_.accept(index, userstack)) {
                 stats = {1, 1}; //mark leaf as black
-            } else {
-                std::cout << index << std::endl;
-                stats = {1, 0}; //mark leaf as white
             }
         }
         // current node is an inner node
@@ -305,15 +302,18 @@ private:
             for (int i = 0; i <= remain; i++) {
                 index[depth] = i;
                 
+                std::size_t submark = tree_.size();
                 tree_.emplace_back(); // reserve space
-                Node & substats = tree_.back();
+                
+                Node substats = {1,0};
                 
                 typename S::stack_entry_type top = userstack; // push entry to user stack
                 if (!shape_.empty(index, depth, i, top, remain-i)) {
-                    stats += substats = enumerate_(top, index, depth+1, remain-i);
-                } else {
-                    stats += substats = Node{1,0};
+                    substats = enumerate_(top, index, depth+1, remain-i);
                 }
+                
+                tree_[submark] = substats;
+                stats += substats;
             }
             
             if (stats.n_fill == 0) {
@@ -336,10 +336,10 @@ public:
         std::array<int,D> index{}; //zero initialize
         
         tree_.emplace_back(); // reserve space
-        Node & stats = tree_.back();
         
         typename S::stack_entry_type userstack{};
-        stats = enumerate_(userstack, index, 0, slice);
+        Node xxx = enumerate_(userstack, index, 0, slice);
+        tree_[0] = xxx;
     }
 };
 
@@ -360,48 +360,6 @@ private:
     std::vector<Node> tree_;
     
 public:
-    struct Iterator
-    {
-    private:
-        std::vector<Node>::const_iterator it_; // points to (black) leaf node
-        std::array<int,D> index_;
-        std::array<int,D> stack_;
-        
-        Iterator(std::vector<Node>::const_iterator it, const std::array<int,D>& index)
-            : it_(it)
-            , index_(index)
-        { }
-        
-        void advance_()
-        {
-            
-        }
-        
-    public:
-        Iterator operator++()
-        {
-            //walk until next black leaf
-            while (true) {
-                ++it_;
-                
-                // is leaf?
-                if (it_->n_nodes == 1) {
-                    // is black?
-                    if (it_->n_fill == 1) {
-                        break;
-                    }
-                    
-                    assert(it->n_fill == 0);
-                }
-            }
-        }
-        
-        const std::array<int,D> &operator*() const
-        {
-            return index_;
-        }
-    };
-    
     template<class S>
     ShapeSliceTree(ShapeSliceBuilder<D,S>& builder)
         : slice(builder.slice_)
@@ -424,23 +382,6 @@ public:
     }
     
     ShapeSliceTree &operator=(ShapeSliceTree&& that) = default;
-    
-    Iterator begin() const
-    {
-        
-    }
-    
-    Iterator end() const
-    {
-        
-    }
-    
-    void print() const
-    {
-        for (auto entry : tree_) {
-            std::cout << "(" << entry.n_nodes << "," << entry.n_fill << ")" << std::endl;
-        }
-    }
     
     void enumerate() const
     {
@@ -516,11 +457,13 @@ int main()
 {
     //SparseManhattanTree<3> tree(5);
     
-    const int D = 4;
-    const int K = 6;
-    std::array<int,D> bbox = {4,4,4,4};
+    const int D = 7;
+    const int K = 1e6;
+    std::array<int,D> bbox = {8,8,8,8,8,8,8};
     
-    int islice = 3;
+    std::cout << bbox << std::endl;
+    
+    int islice = 6;
     
     // compare
     {
@@ -531,34 +474,48 @@ int main()
         
         ES eshape(shape);
         
-        ShapeSliceBuilder<D,S> builder{shape, islice};
-        
-        ShapeSliceTree<D> tree{builder};
-        std::cout << tree.size() << std::endl;
-        std::cout << double(tree.memory())/double(tree.size()) << std::endl;
-        
-        tree.print();
-        tree.enumerate();
-        
         double start = getRealTime();
         
-        int counter = 0;
-        
-        std::ofstream out("recursive.csv");
-        
-        auto func = [&out, &counter](const std::array<int,D>& index) {
-            ++counter;
-            out << index << std::endl;
-            std::cout << index << std::endl;
-        };
-        
-        enumerate<D,S,std::function<void(const std::array<int,D>&)> >(shape, func, islice);
-        
-        std::cout << "slice: " << islice << ", count: " << counter << std::endl;
+        std::size_t count = 0;
+        for (int islice = 0; ; islice++) {
+            ShapeSliceBuilder<D,S> builder{shape, islice};
+            ShapeSliceTree<D> tree{builder};
+            
+            std::cout << "slice (" << islice << ")" << std::endl;
+            std::cout << "  count: " << tree.size() << std::endl;
+            std::cout << "  efficiency: " << double(tree.memory())/double(tree.size()) << std::endl;
+            
+            count += tree.size();
+            if (tree.size() == 0)
+                break;
+        }
         
         double end = getRealTime();
         
+        std::cout << "count: " << count << std::endl;
         std::cout << "time: " << (end - start) << std::endl;
+        
+        //tree.enumerate();
+//         
+//         double start = getRealTime();
+//         
+//         int counter = 0;
+//         
+//         //std::ofstream out("recursive.csv");
+//         
+//         auto func = [&counter](const std::array<int,D>& index) {
+//             ++counter;
+//             //out << index << std::endl;
+//             std::cout << index << std::endl;
+//         };
+//         
+//         enumerate<D,S,std::function<void(const std::array<int,D>&)> >(shape, func, islice);
+//         
+//         std::cout << "slice: " << islice << ", count: " << counter << std::endl;
+//         
+//         double end = getRealTime();
+//         
+//         std::cout << "time: " << (end - start) << std::endl;
     }
     
     {
@@ -575,11 +532,11 @@ int main()
         std::ofstream out("iterative.csv");
         
         for (auto index : ref_enum->slice(islice)) {
-            out << index << std::endl;
+            //out << index << std::endl;
             //std::cout << entry << std::endl;
         }
         
-        std::cout << "count: " << ref_enum->slice(islice).size() << std::endl;
+        std::cout << "count: " << ref_enum->size() << std::endl;
         std::cout << "slices: " << ref_enum->count_slices() << std::endl;
         std::cout << "time: " << (end - start) << std::endl;
     }
