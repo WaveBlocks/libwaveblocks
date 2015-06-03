@@ -18,19 +18,21 @@ using namespace waveblocks;
 
 int main(int argc, char *argv[])
 {
-    const dim_t D = 8;
+    const dim_t D = 3;
     typedef TinyMultiIndex<std::size_t,D> MultiIndex;
     typedef LimitedHyperbolicCutShape<D> S;
     
-    S shape(20.0, {5});
+    S shape(7.0, {5});
     
     std::shared_ptr< HagedornParameterSet<D> > parameters = createSampleParameters<D>();
     
-    std::cout << *parameters << std::endl;
+    //std::cout << *parameters << std::endl;
 
     std::shared_ptr< ShapeEnumeration<D> > enumeration( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
-
+    
     checkShapeEnumeration(*enumeration, "wavepacket enumeration");
+    
+    return 0;
     
     HagedornWavepacket<D> wavepacket(0.9, parameters, enumeration, createSampleCoefficients<D>(enumeration));
     

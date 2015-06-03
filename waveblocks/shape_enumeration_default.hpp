@@ -1,19 +1,15 @@
-#ifndef WAVEBLOCKS_SHAPE_ENUMERATION_DEFAULT
-#define WAVEBLOCKS_SHAPE_ENUMERATION_DEFAULT
+#ifndef WAVEBLOCKS_DEFAULT_SHAPE_ENUMERATION_HPP
+#define WAVEBLOCKS_DEFAULT_SHAPE_ENUMERATION_HPP
 
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <unordered_map>
-#include <array>
-#include <string>
-#include <sstream>
-
-#include "basic_types.hpp"
-#include "lexical_shape_enumerator.hpp"
 #include "shape_enumeration_base.hpp"
 
+#include <stdexcept>
+#include <algorithm>
+
 namespace waveblocks {
+
+template<dim_t D, class MultiIndex, class S>
+class DefaultShapeEnumeration;
 
 /**
  * \brief Default implementation of a shape enumeration. 
@@ -41,17 +37,15 @@ namespace waveblocks {
  * 
  * \see TinyMultiIndex A compressed multi-index type that represents all multi-indices using a single integer.
  */
-template<dim_t D, class MultiIndex, class S>
-class DefaultShapeEnumeration : public ShapeEnumeration<D>
+template<dim_t D, class MultiIndex>
+class DefaultShapeSlice : public ShapeSlice<D>
 {
-public:
-    class Slice;
-    
+    template<dim_t D_, class M_, class S_>
+    friend class DefaultShapeEnumeration;
 private:
-    /**
-     * shape description
-     */
-    S shape_;
+    std::size_t islice;
+    
+    std::size_t offset_;
     
     /**
      * flag whether a dictionary is used.
@@ -60,87 +54,36 @@ private:
     
     std::vector< MultiIndex > table_;
     
-    std::vector< Slice > slices_;
+    std::unordered_map< MultiIndex, std::size_t > dict_;
+    
+    inline MultiIndex forward_(MultiIndex index, dim_t axis) const
+    {
+        index[axis] += 1;
+        return index;
+    }
+    
+    inline MultiIndex backward_(MultiIndex index, dim_t axis) const
+    {
+        index[axis] -= 1;
+        return index;
+    }
     
 public:
-    class Slice : public ShapeEnumeration<D>::Slice
-    {
-        friend class DefaultShapeEnumeration;
-        
-    private:
-        const DefaultShapeEnumeration *enumeration_;
-        
-        std::size_t start_;
-        std::size_t end_;
-        
-        std::unordered_map< MultiIndex, std::size_t > dict_;
-        
-        typedef typename std::vector< MultiIndex >::const_iterator Iterator;
-        
-        Iterator begin() const
-        {
-            return enumeration_->table_.begin() + start_;
-        }
-        
-        Iterator end() const
-        {
-            return enumeration_->table_.begin() + end_;
-        }
-        
-    public:
-        std::size_t offset() const override
-        {
-            return start_;
-        }
-        
-        std::size_t size() const override
-        {
-            return end_ - start_;
-        }
-        
-        std::array<int,D> operator[](std::size_t ientry) const override
-        {
-            assert (ientry < size());
-            
-            return static_cast< std::array<int,D> >( *(begin() + ientry) );
-        }
-        
-        std::size_t find(const std::array<int,D> &_index) const override
-        {
-            MultiIndex index(_index);
-            
-            if (enumeration_->use_dict_) {
-                
-                auto it = dict_.find(index);
-                if (it == dict_.end())
-                    return size(); //shape does not contain node
-                else
-                    return it->second;
-                
-            } else {
-                std::less< MultiIndex > comp;
-                
-                auto it = std::lower_bound(begin(), end(), index, comp);
-                
-                if (*it == index)
-                    return it - begin();
-                else
-                    return size();
-            }
-        }
-    };
+    DefaultShapeSlice() = default;
     
-    /**
-     * \brief Takes a shape description and builds a lookup-table for it.
-     * 
-     * \param[in] shape shape description
-     * \param[in] use_dict option whether to use a dictionary (see class description for details)
-     */
-    DefaultShapeEnumeration(S shape, bool use_dict = false);
+    std::size_t offset() const override
+    {
+        return offset_;
+    }
     
     std::size_t size() const override
     {
         return table_.size();
+    }
+    
+    std::size_t slice_index() const override
+    {
+        return islice;
     }
     
     std::array<int,D> operator[](std::size_t ordinal) const override
@@ -150,31 +93,175 @@ public:
         return static_cast< std::array<int,D> >( table_[ordinal] );
     }
     
-    const Slice &slice(std::size_t islice) const override
+    std::size_t find(const std::array<int,D> &_index) const override
     {
-        return slices_[islice];
+        
+        
+        MultiIndex index(_index);
+        
+        if (use_dict_) {
+            
+            auto it = dict_.find(index);
+            if (it == dict_.end())
+                throw std::invalid_argument("slice does not contain multi-index");
+            else
+                return it->second;
+            
+        } else {
+            std::less< MultiIndex > comp;
+            
+            auto it = std::lower_bound(table_.begin(), table_.end(), index, comp);
+            
+            if (*it == index)
+                return it - table_.begin();
+            else
+                throw std::invalid_argument("slice does not contain multi-index");
+        }
     }
     
-    std::size_t count_slices() const override
+    virtual std::array<std::size_t,D> findBackwardNeighbours(const std::array<int,D> &_index) const override
     {
-        return slices_.size();
+        std::array<std::size_t,D> ordinals{}; //zero initialize
+        
+        MultiIndex index(_index);
+        
+        std::less< MultiIndex > comp;
+        
+        // find last non-zero entry
+        dim_t dlast = D-1;
+        while (dlast >= 0 && index[dlast] == 0) {
+            --dlast;
+        }
+        
+        if (dlast >= 0) {
+            auto lower = table_.begin();
+            
+            auto upper = std::lower_bound(lower, table_.end(), backward_(index, dlast), comp);
+            ordinals[dlast] = upper - table_.begin();
+            
+            for (dim_t i = 0; i < dlast; i++) {
+                if (index[i] != 0) {
+                    lower = std::lower_bound(lower, upper, backward_(index, i), comp);
+                    ordinals[i] = lower - table_.begin();
+                }
+            }
+        }
+        
+        return ordinals;
+    }
+};
+
+template<dim_t D, class MultiIndex, class S>
+class DefaultShapeEnumeration : public ShapeEnumeration<D>
+{
+private:
+    std::size_t size_;
+    std::size_t n_slices_;
+    S shape_;
+    std::vector< DefaultShapeSlice<D, MultiIndex> > slices_;
+    
+public:
+    DefaultShapeEnumeration(const S& shape, bool use_dict_ = false)
+        : shape_(shape)
+        , slices_()
+    {
+        // check multi-index type for compatibility
+        {
+            for (dim_t d = 0; d < D; d++) {
+                if (shape_.bbox(d) > MultiIndex::limit(d))
+                    throw std::runtime_error("multi-index type is not suitable. reason: overflow");
+            }
+        }
+        
+        // initialize slice vector
+        {
+            std::size_t sum = 0;
+            for (dim_t d = 0; d < D; d++) {
+                sum += shape_.bbox(d)+1;
+            }
+            
+            slices_.resize(sum);
+            for (std::size_t i = 0; i < sum; i++) {
+                slices_[i].islice = i;
+                slices_[i].use_dict_ = use_dict_;
+            }
+        }
+        
+        // enumerate shape & store all multi-indices
+        {
+            MultiIndex index{}; //zero initialize
+            std::size_t islice = 0;
+            
+            while (true) {
+                // iterate over last axis
+                for (dim_t i = 0; i <= shape_.template limit<MultiIndex>(index,D-1); i++) {
+                    index[D-1] = i;
+                    
+                    if (use_dict_)
+                        slices_[islice+i].dict_[index] = slices_[islice+i].table_.size();
+                    
+                    slices_[islice+i].table_.push_back(index);
+                }
+                index[D-1] = 0;
+                
+                // iterate over other axes
+                if (D > 1) {
+                    dim_t j = D-2;
+                    while ((int)index[j] == shape_.template limit<MultiIndex>(index,j)) {
+                        islice -= index[j];
+                        index[j] = 0;
+                        if (j == 0)
+                            goto enumeration_complete;
+                        else
+                            j = j-1;
+                    }
+                    islice += 1;
+                    index[j] += 1;
+                }
+            }
+enumeration_complete:
+            (void)0;
+        }
+        
+        // determine number of slices & slice offsets
+        {
+            std::size_t offset = 0;
+            n_slices_ = 0;
+            while (n_slices_ < slices_.size() && slices_[n_slices_].table_.size() != 0) {
+                slices_[n_slices_].offset_ = offset;
+                
+                offset += slices_[n_slices_].table_.size();
+                
+                ++n_slices_;
+            }
+            
+            slices_.resize(n_slices_);
+            
+            size_ = offset;
+        }
+        
+        // end of constructor
     }
     
-    std::size_t find(const std::array<int,D> &index) const override
+    std::size_t n_slices() const override
     {
-        std::size_t islice = 0;
-        for (dim_t i = 0; i < D; i++)
-            islice += index[i];
+        return n_slices_;
+    }
+    
+    std::size_t size() const override
+    {
+        return size_;
+    }
+    
+    const ShapeSlice<D>& slice(std::size_t islice) const override
+    {
+        const static DefaultShapeSlice<D,MultiIndex> empty_slice{};
         
-        if (islice >= slices_.size())
-            return size(); //entry does not exist
-        
-        std::size_t ientry =  slice(islice).find(index);
-        
-        if (ientry >= slice(islice).size())
-            return size(); //entry does not exist
-        else
-            return slice(islice).offset() + ientry;
+        if (islice >= slices_.size()) {
+            return empty_slice; // empty slice
+        } else {
+            return slices_[islice];
+        }
     }
     
     bool contains(const std::array<int,D> &index) const override
@@ -182,79 +269,14 @@ public:
         return index[0] <= shape_.template limit< std::array<int,D> >(index, 0);
     }
     
-    std::string description() const override
-    {
-        std::stringstream out;
-        out << "ShapeEnumeration {";
-        out << "dimension: " << D << ", ";
-        out << "shape: " << shape_.description() << ", ";
-        out << "#entries: " << size() << ", ";
-        out << "#slices: " << count_slices() << "}";
-        return out.str();
-    }
-    
+    /**
+     * 
+     */
     int bbox(dim_t axis) const override
     {
         return shape_.bbox(axis);
     }
 };
-
-template<dim_t D, class MultiIndex, class S>
-DefaultShapeEnumeration<D,MultiIndex,S>::DefaultShapeEnumeration(S shape, bool use_dict)
-    : shape_(shape)
-    , use_dict_(use_dict) //using a dictionary is slower than binary search
-    , table_()
-{
-    //check multi-index type
-    for (dim_t d = 0; d < D; d++) {
-        if (shape.bbox(d) > MultiIndex::limit(d))
-            throw std::runtime_error("multi-index type is not suitable. reason: overflow");
-    }
-    
-    LexicalIndexGenerator<D,MultiIndex,S> it(shape);
-    
-    //holds for each slice its own vector
-    std::vector< std::vector< MultiIndex >* > temp;
-    
-    //generate nodes and put them into the corresponding slice
-    do {
-        MultiIndex index = it.index();
-        
-        std::size_t islice = 0;
-        for (dim_t i = 0; i < D; i++)
-            islice += index[i];
-        
-        assert(islice <= temp.size()); //assert that lexical index generator does not jump
-        
-        if (islice == temp.size()) {
-            temp.push_back( new std::vector< MultiIndex >() );
-        }
-        
-        temp[islice]->push_back(index);
-    } while (it.forward());
-    
-    //all slices are now populated
-    //copy all nodes into the same vector and store offsets
-    slices_ = std::vector<Slice>(temp.size());
-    for (std::size_t i = 0; i < temp.size(); i++) {
-        slices_[i].enumeration_ = this;
-        
-        slices_[i].start_ = table_.size();
-        table_.insert(table_.end(), temp[i]->begin(), temp[i]->end());
-        slices_[i].end_ = table_.size();
-        
-        //create dictionary
-        if (use_dict_) {
-            std::size_t ordinal = 0;
-            for (auto index : slices_[i]) {
-                slices_[i].dict_[index] = ordinal++;
-            }
-        }
-        
-        delete temp[i];
-        temp[i] = nullptr;
-    }
-}
 
 }
 

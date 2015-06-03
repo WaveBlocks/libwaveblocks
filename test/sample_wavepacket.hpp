@@ -39,29 +39,31 @@ std::vector<complex_t> createSampleCoefficients(const std::shared_ptr< const Sha
     real_t norm = 0.0;
 
     std::size_t ordinal = 0;
-    for (auto index : *enumeration) {
-        real_t falloff = 0.1;
-        
-        real_t x = 0.0;
-        real_t y = 0.0;
-        
-        int sum = 0;
-        for (dim_t d = 0; d < D; d++) {
-            x += std::sin(index[d] + 1.0*(d+1)/real_t(D));
-            y += std::cos(index[d] + 1.5*(d+1)/real_t(D));
-            sum += index[d];
+    for (std::size_t islice = 0; islice < enumeration->n_slices(); islice++) {
+        for (auto index : enumeration->slice(islice)) {
+            real_t falloff = 0.1;
+            
+            real_t x = 0.0;
+            real_t y = 0.0;
+            
+            int sum = 0;
+            for (dim_t d = 0; d < D; d++) {
+                x += std::sin(index[d] + 1.0*(d+1)/real_t(D));
+                y += std::cos(index[d] + 1.5*(d+1)/real_t(D));
+                sum += index[d];
+            }
+
+            x *= std::exp(-falloff*sum);
+            y *= std::exp(-falloff*sum);
+
+            coeffs[ordinal] = complex_t(x,y);
+
+            //std::cout << index << ": " << coeffs[ordinal] << std::endl;
+
+            norm += x*x + y*y;
+
+            ordinal++;
         }
-
-        x *= std::exp(-falloff*sum);
-        y *= std::exp(-falloff*sum);
-
-        coeffs[ordinal] = complex_t(x,y);
-
-        //std::cout << index << ": " << coeffs[ordinal] << std::endl;
-
-        norm += x*x + y*y;
-
-        ordinal++;
     }
     
     //normalize wavepacket

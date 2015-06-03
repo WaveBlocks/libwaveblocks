@@ -66,6 +66,9 @@ public:
         return limits_[axis]-1;
     }
     
+    /**
+     * \return bbox inclusive
+     */
     int bbox(dim_t axis) const
     {
         return limits_[axis]-1;

@@ -13,7 +13,7 @@
 #include "math_util.hpp"
 #include "hagedorn_parameter_set.hpp"
 #include "hagedorn_basis_evaluator.hpp"
-#include "shape_slice_base.hpp"
+#include "shape_enumeration_base.hpp"
 
 #include "kahan_sum.hpp"
 
@@ -42,10 +42,11 @@ public:
     
 private:
     real_t eps_;
-    std::shared_ptr< HagedornParameterSet<D> > parameters_;
     
-    std::vector< ShapeSlice > enumeration_;
-    std::vector< std::vector<complex_t> > coefficients_;
+    std::shared_ptr< HagedornParameterSet<D> > parameters_;
+    std::shared_ptr< ShapeEnumeration<D> > enumeration_;
+    
+    std::vector<complex_t> coefficients_;
     
 public:
     /**
@@ -151,29 +152,23 @@ public:
         
         Evaluator<D,1,N> evaluator(eps_, parameters_, enumeration_, x);
         
-        Eigen::Array<complex_t,Eigen::Dynamic,N> prev_slice_values(0,npts);
-        Eigen::Array<complex_t,Eigen::Dynamic,N> curr_slice_values(0,npts);
-        Eigen::Array<complex_t,Eigen::Dynamic,N> next_slice_values(1,npts);
+        Eigen::Array<complex_t,Eigen::Dynamic,N> prev_basis(0,npts);
+        Eigen::Array<complex_t,Eigen::Dynamic,N> curr_basis(0,npts);
+        Eigen::Array<complex_t,Eigen::Dynamic,N> next_basis(1,npts);
         
-        evaluator.do_recursion(0, prev_slice_values, curr_slice_values, next_slice_values);
+        next_basis = evaluator.seed();
         
-        psi += coefficients_[0]*next_slice_values.row(0).matrix();
+        psi += coefficients_[0]*next_basis.row(0).matrix();
         
-        for (auto & slice_enum : enumeration_) {
-            evaluator.do_recusion();
-        }
-        
-        for (std::size_t islice = 1; islice < enumeration_->count_slices(); islice++) {
-            //exchange slices
-            std::swap(prev_slice_values, curr_slice_values);
-            std::swap(curr_slice_values, next_slice_values);
-            next_slice_values = Eigen::Array<complex_t,Eigen::Dynamic,N>( enumeration_->slice(islice).size(), npts );
-
-            evaluator.do_recursion(islice, prev_slice_values, curr_slice_values, next_slice_values);
-
-            for (long j = 0; j < next_slice_values.rows(); j++) {
+        for (std::size_t islice = 0; islice < enumeration_->n_slices(); islice++) {
+            prev_basis = std::move(curr_basis);
+            curr_basis = std::move(next_basis);
+            
+            next_basis = evaluator.step(islice, prev_basis, curr_basis);
+            
+            for (long j = 0; j < next_basis.rows(); j++) {
                 complex_t cj = coefficients_[enumeration_->slice(islice).offset() + j];
-                psi += cj*next_slice_values.row(j).matrix();
+                psi += cj*next_basis.row(j).matrix();
             }
         }
         

@@ -1,224 +1,131 @@
-#ifndef WAVEBLOCKS_SHAPE_ENUMERATION_BASE
-#define WAVEBLOCKS_SHAPE_ENUMERATION_BASE
+#ifndef WAVEBLOCKS_SHAPE_ENUMERATION_HPP
+#define WAVEBLOCKS_SHAPE_ENUMERATION_HPP
 
+#include <iterator>
 #include <array>
-#include <string>
+#include <vector>
 
 #include "basic_types.hpp"
 
 namespace waveblocks {
 
-/**
- * \brief Base class for all shape enumeration implementations.
- * 
- * The purpose of this class is to unify access to all implementations by hiding the
- * real implementation details behind virtual functions.
- * 
- * Since translating multi-indices to ordinals is quite tricky if not impossible,
- * implementations will use a dictionary or lookup-table to perform this conversions.
- * If a shape contains several million nodes, such data structures consume quite a lot of memory, 
- * so implementations will somehow compress multi-indices to save memory. All multi-indices 
- * are passed as as a tuple of integers (std::array<int,D>). Implementations will transform it
- * into the internal format.
- * 
- * Instantiation
- * -------------
- * \code{.cpp}
- * const dim_t D = 4;
- * TinyMultiIndex<std::size_t,D> MultiIndex;
- * typedef HyperbolicCutShape<D> S;
- * 
- * S shape(7.0);
- * 
- * ShapeEnumeration<D> *enumeration = new SlicedShapeEnumeration< D, MultiIndex, S >(shape);
- * \endcode
- * 
- * \tparam D number of multi-index dimensions
- * 
- * \see TinyMultiIndex A compressed multi-index type that represents all multi-indices using a single integer.
- */
 template<dim_t D>
-class ShapeEnumeration
+class ShapeSlice
 {
 public:
+    virtual ~ShapeSlice() { }
+    
     /**
-     * \brief A slice contains all 
-     * 
-     * The <b>s</b>-th slice contains all nodes <b>k</b> with the property: \f$ \sum_{i=1}^{D} k_i = s \f$
+     * \return number of nodes in all previous slices
      */
-    class Slice
-    {
-    public:
-        virtual ~Slice() { }
-        
-        /**
-         * \return number of nodes in all previous slices
-         */
-        virtual std::size_t offset() const = 0;
-        
-        /**
-         * \return number of nodes in this slice
-         */
-        virtual std::size_t size() const = 0;
-        
-        /**
-         * \brief Returns the multi-index of the node at position <i>ordinal</i>.
-         * 
-         * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
-         * 
-         * Portable programs should never call this function with an argument that is <i>out-of-range</i>,
-         * since this causes <i>undefined behaviour</i>.
-         * 
-         * <b>complexity: </b>logarithmic in the number of slice-nodes
-         * 
-         * \param[in] ordinal position of a node in this slice
-         * \return multi-index of the specified node
-         */
-        virtual std::array<int,D> operator[](std::size_t ordinal) const = 0;
-        
-        /**
-         * \brief Returns the position of the node with multi-index <i>index</i>.
-         * 
-         * Notice that the first node in the slice has position 0 (not 1 or offset()).
-         * 
-         * Portable programs should never call this function with an argument 
-         * that is inexistant in this slice since this causes <i>undefined behaviour</i>.
-         * 
-         * Use contains(index) to check whether this slice contains this node.
-         * 
-         * <b>complexity: </b>logarithmic in the number of slice-nodes
-         * 
-         * \param[in] index multi-index of a node in this slice
-         * \return position of the specified node
-         */
-        virtual std::size_t find(const std::array<int,D> &index) const = 0;
-        
-        /**
-         * \brief const_iterator over a slice to support foreach statements
-         */
-        class Iterator
-        {
-        private:
-            const Slice *ref_;
-            std::size_t ientry_;
-            
-        public:
-            Iterator(const Slice *ref, std::size_t ientry)
-            : ref_(ref)
-            , ientry_(ientry)
-            { }
-            
-            Iterator(const Iterator &other)
-                : ref_(other.ref_)
-                , ientry_(other.ientry_)
-            { }
-            
-            Iterator &operator=(const Iterator &other)
-            {
-                ref_ = other.ref_;
-                ientry_ = other.ientry_;
-                return *this;
-            }
-            
-            Iterator &operator++()
-            {
-                ++ientry_;
-                return *this;
-            }
-            
-            std::array<int,D> operator*() const
-            {
-                return (*ref_)[ientry_];
-            }
-            
-            bool operator==(const Iterator &other) const
-            {
-                return ientry_ == other.ientry_ && ref_ == other.ref_;
-            }
-            
-            bool operator!=(const Iterator &other) const
-            {
-                return !operator==(other);
-            }
-        };
-        
-        Iterator begin() const
-        {
-            return Iterator(this, 0);
-        }
-        
-        Iterator end() const
-        {
-            return Iterator(this, size());
-        }
-    };
-    
-    virtual ~ShapeEnumeration() { }
+    virtual std::size_t offset() const = 0;
     
     /**
-     * \return number of nodes
+     * \return 
+     */
+    virtual std::size_t slice_index() const = 0;
+    
+    /**
+     * \return number of nodes in this slice
      */
     virtual std::size_t size() const = 0;
     
+    /**
+     * \brief Returns the multi-index of the node at position <i>ordinal</i>.
+     * 
+     * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
+     * 
+     * Portable programs should never call this function with an argument that is <i>out-of-range</i>,
+     * since this causes <i>undefined behaviour</i>.
+     * 
+     * <b>complexity: </b>logarithmic in the number of slice-nodes
+     * 
+     * \param[in] ordinal position of a node in this slice
+     * \return multi-index of the specified node
+     */
     virtual std::array<int,D> operator[](std::size_t ordinal) const = 0;
     
+    /**
+     * \brief Returns the position of the node with multi-index <i>index</i>.
+     * 
+     * Notice that the first node in the slice has position 0 (not 1 or offset()).
+     * 
+     * Portable programs should never call this function with an argument 
+     * that is inexistant in this slice since this causes <i>undefined behaviour</i>.
+     * 
+     * Use contains(index) to check whether this slice contains this node.
+     * 
+     * <b>complexity: </b>logarithmic in the number of slice-nodes
+     * 
+     * \param[in] index multi-index of a node in this slice
+     * \return position of the specified node
+     */
     virtual std::size_t find(const std::array<int,D> &index) const = 0;
     
     /**
-     * \param[in] islice slice-index (first slice has index 0)
-     * \return reference to a slice
+     * \brief Retrieves ordinals of all backward neighbours of a given node.
+     * 
+     * Notice that this method assumes that the given node <b>is part of the shape</b>.
+     * Therefore this method does not need to perform any contains()-checks since it 
+     * knows that all backward neighbours exist, except when the given node contains
+     * some zero entries. In the latter case, this method returns an undefined
+     * ordinal.
+     * 
+     * If the given node is not part of the shape, then the behaviour is undefined.
+     * 
+     * \param[in] index node that <b>is part of the shape</b>
+     * \return For each backward neighbour its ordinal. The ordinal is undefined if that neighbour does not exist.
      */
-    virtual const Slice &slice(std::size_t islice) const = 0;
-    
-    virtual std::size_t count_slices() const = 0;
+    virtual std::array<std::size_t,D> findBackwardNeighbours(const std::array<int,D> &index) const = 0;
     
     /**
-     * \brief Checks whether this slice contains a node with multi-index <i>index</i>.
-     * 
-     * To proof that a shape contains a specific node, it is sufficient to consult 
-     * the shape's member function limit(axis, index). However querying the ordinal of a 
-     * node however is expensive since it usually requires a dictionary lookup.
-     * Therefore contains(<i>index</i>) is very cheap compared to find(<i>index</i>).
-     * 
-     * <b>complexity: </b> constant-time
-     * 
-     * \param index multi-index of the node
-     * \return true if the shape contains the node; false otherwise
+     * \brief const_iterator over a slice to support foreach statements
      */
-    virtual bool contains(const std::array<int,D> &index) const = 0;
-    
-    virtual std::string description() const = 0;
-    
-    /**
-     * \return smallest tuple L s.t for every k element of K: k_d <= L_d
-     */
-    virtual int bbox(dim_t axis) const = 0;
-    
-    /**
-     * \brief const_iterator over the whole shape to support foreach statements
-     */
-    class Iterator
+    class Iterator : public std::iterator<std::random_access_iterator_tag, std::array<int,D>>
     {
     private:
-        const ShapeEnumeration *ref_;
+        const ShapeSlice *slice_;
         std::size_t ientry_;
         
     public:
-        Iterator(const ShapeEnumeration *ref, std::size_t ientry)
-            : ref_(ref)
-            , ientry_(ientry)
+        Iterator(const ShapeSlice *slice, std::size_t ientry)
+        : slice_(slice)
+        , ientry_(ientry)
         { }
         
+        // --- Iterator ---
+        
+        Iterator() = default;
+        
         Iterator(const Iterator &other)
-            : ref_(other.ref_)
+            : slice_(other.slice_)
             , ientry_(other.ientry_)
         { }
         
-        Iterator &operator=(const Iterator &other)
+        Iterator &operator=(const Iterator &other) const
         {
-            ref_ = other.ref_;
+            slice_ = other.slice_;
             ientry_ = other.ientry_;
             return *this;
+        }
+        
+        ~Iterator() = default;
+        
+        // --- Forward Iterator ---
+        
+        bool operator!=(const Iterator &other) const
+        {
+            return ientry_ != other.ientry_;
+        }
+        
+        bool operator==(const Iterator &other) const
+        {
+            return ientry_ == other.ientry_;
+        }
+        
+        std::array<int,D> operator*() const
+        {
+            return (*slice_)[ientry_];
         }
         
         Iterator &operator++()
@@ -227,37 +134,116 @@ public:
             return *this;
         }
         
-        std::array<int,D> operator*() const
+        Iterator &operator++(int)
         {
-            return (*ref_)[ientry_];
+            ++ientry_;
+            return *this;
         }
         
-        bool operator==(const Iterator &other) const
+        // --- Bidirectional Iterator ---
+        
+        Iterator &operator--()
         {
-            return ientry_ == other.ientry_ && ref_ == other.ref_;
+            --ientry_;
+            return *this;
         }
         
-        bool operator!=(const Iterator &other) const
+        Iterator &operator--(int)
         {
-            return !operator==(other);
+            --ientry_;
+            return *this;
+        }
+        
+        
+        // --- Random Access Iterator ---
+        
+        Iterator &operator+=(std::ptrdiff_t n)
+        {
+            ientry_ += n;
+            return *this;
+        }
+        
+        Iterator &operator-=(std::ptrdiff_t n)
+        {
+            ientry_ -= n;
+            return *this;
+        }
+        
+        Iterator operator+(std::ptrdiff_t n) const
+        {
+            return Iterator(slice_, ientry_+n);
+        }
+        
+        Iterator operator-(std::ptrdiff_t n) const
+        {
+            return Iterator(slice_, ientry_-n);
+        }
+        
+        std::array<int,D> operator[](std::ptrdiff_t n) const
+        {
+            return (*slice_)[ientry_+n];
+        }
+        
+        bool operator<(const Iterator &that) const
+        {
+            return ientry_ < that.ientry_;
+        }
+        
+        bool operator>(const Iterator &that) const
+        {
+            return ientry_ > that.ientry_;
+        }
+        
+        bool operator<=(const Iterator &that) const
+        {
+            return ientry_ <= that.ientry_;
+        }
+        
+        bool operator>=(const Iterator &that) const
+        {
+            return ientry_ >= that.ientry_;
         }
     };
     
-    /**
-     * \brief 
-     */
     Iterator begin() const
     {
         return Iterator(this, 0);
     }
     
-    /**
-     * \brief
-     */
     Iterator end() const
     {
         return Iterator(this, size());
     }
+};
+
+template<dim_t D>
+class ShapeEnumeration
+{
+public:
+    /**
+     * \return number of slices
+     */
+    virtual std::size_t n_slices() const = 0;
+    
+    /**
+     * \param[in] islice index of requested slice
+     * \return requested slice or empty slice if (islice >= #slices)
+     */
+    virtual const ShapeSlice<D>& slice(std::size_t islice) const = 0;
+    
+    /**
+     * \return forwards
+     */
+    virtual bool contains(const std::array<int,D> &index) const = 0;
+    
+    virtual std::size_t size() const = 0;
+    
+    /**
+     * \brief retrieves the index of the outmost node in a given axis
+     * 
+     * \return 
+     */
+    virtual int bbox(dim_t axis) const = 0;
 };
 
 }

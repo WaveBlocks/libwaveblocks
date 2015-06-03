@@ -13,7 +13,7 @@ void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration, std::string t
 {
     std::cout << "check " << tag << " {" << std::endl;
 
-    {
+    /*{
         std::size_t ordinal = 0;
         for (auto index : enumeration) {
             auto ifound = enumeration.find(index);
@@ -30,15 +30,15 @@ void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration, std::string t
         if (ordinal != enumeration.size()) {
             std::cout << "   [FAILURE] size() != "<<ordinal << std::endl;
         }
-    }
+    }*/
 
     {
         std::size_t ordinal = 0;
-        for (std::size_t islice = 0; islice < enumeration.count_slices(); islice++) {
+        for (std::size_t islice = 0; islice < enumeration.n_slices(); islice++) {
             auto & slice = enumeration.slice(islice);
 
             if (ordinal != slice.offset()) {
-                std::cout << "   [FAILURE] slice_"<<islice<<".offset() != "<< ordinal << std::endl;
+                std::cout << "   [FAILURE] slice_"<<islice<<".offset() = " << slice.offset() << " != "<< ordinal << std::endl;
             }
 
             std::size_t ientry = 0;
@@ -47,14 +47,15 @@ void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration, std::string t
                 if (ientry != ifound) {
                     std::cout << "   [FAILURE] slice_"<<islice<<".find("<<index<< ") = "<<ifound<<" != "<<ientry << std::endl;
                 }
-
+                
                 if (index != slice[ientry]) {
                     std::cout << "   [FAILURE] slice_"<<islice<<".at("<<ientry<< ") != "<<index << std::endl;
                 }
 
+                /*
                 if (index != enumeration[ordinal]) {
                     std::cout << "   [FAILURE] order of slice_"<<islice<<" iteration != order of full iteration" << std::endl;
-                }
+                }*/
 
                 ++ientry;
                 ++ordinal;
