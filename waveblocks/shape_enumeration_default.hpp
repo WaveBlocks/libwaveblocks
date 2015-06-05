@@ -5,6 +5,8 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <vector>
+#include <unordered_map>
 
 namespace waveblocks {
 
@@ -26,7 +28,7 @@ class DefaultShapeEnumeration;
  * However it turned out that binary search is slightly faster than 
  * a hashmap regardless of the hash-function.
  * 
- * \tparam D number of multi-index dimensions
+ * \tparam D number of multi-index dimensions 
  * \tparam MultiIndex 
  * \parblock
  * Type to internally represent a multi-index. <br>
@@ -119,7 +121,7 @@ public:
         }
     }
     
-    virtual std::array<std::size_t,D> findBackwardNeighbours(const std::array<int,D> &_index) const override
+    virtual std::array<std::size_t,D> find_backward_neighbours(const std::array<int,D> &_index) const override
     {
         std::array<std::size_t,D> ordinals{}; //zero initialize
         

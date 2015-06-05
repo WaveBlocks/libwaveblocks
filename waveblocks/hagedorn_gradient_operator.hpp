@@ -33,8 +33,8 @@ private:
     std::array< std::vector<complex_t>, D > apply_(const HagedornWavepacket<D>& wavepacket) const
     {
         const auto eps = wavepacket.eps();
-        const auto & p = wavepacket.parameters().p;
-        const auto & P = wavepacket.parameters().P;
+        const auto & p = wavepacket.parameters()->p;
+        const auto & P = wavepacket.parameters()->P;
         const auto base_enum = wavepacket.enumeration();
         const auto & base_coeffs = wavepacket.coefficients();
         
@@ -42,11 +42,11 @@ private:
         
         std::array< std::vector<complex_t>, D > grad_coeffs;
         for (dim_t d = 0; d < D; d++) {
-            grad_coeffs[d] = std::vector<complex_t>(grad_enum_.size());
+            grad_coeffs[d] = std::vector<complex_t>(grad_enum_->size());
         }
         
         //iterate over each slice [i = index of current slice]
-        for (std::size_t i = 0; i < grad_enum_->count_slices(); i++) {
+        for (std::size_t i = 0; i < grad_enum_->n_slices(); i++) {
             //loop over all multi-indices within current slice [j = position of multi-index within current slice]
             for (std::size_t j = 0; j < grad_enum_->slice(i).size(); j++) {
                 std::array<int,D> curr_index = grad_enum_->slice(i)[j];
@@ -82,7 +82,7 @@ private:
                 
                 //forward neighbours
                 Eigen::Matrix<complex_t,D,1> cf;
-                if (i+1 < base_enum->count_slices() && base_enum->contains(curr_index)) {
+                if (i+1 < base_enum->n_slices() && base_enum->contains(curr_index)) {
                     for (dim_t d = 0; d < D; d++) {
                         std::array<int,D> next_index = curr_index; next_index[d] += 1;
                         

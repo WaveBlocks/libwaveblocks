@@ -191,27 +191,23 @@ public:
             std::array<int,D> curr_index = next_index;
             curr_index[axis] -= 1; //get backward neighbour
             std::size_t curr_ordinal = curr_enum.find(curr_index);
-
+            
             assert(curr_ordinal < curr_enum.size()); //assert that multi-index has been found within current slice
-
+            
             //retrieve the basis values within previous slice
-            std::array< CArray1N, D > prev_bases;
+            std::array< CArray1N, D > precursors;
+            
+            std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
+            
             for (dim_t d = 0; d < D; d++) {
-                if (curr_index[d] == 0) {
-                    //precursor is out of shape therefore set this precursor value to zero
-                    prev_bases[d] = CArray1N::Zero(1,npts_);
-                }
-                else {
-                    std::array<int,D> prev_index = curr_index;
-                    prev_index[d] -= 1; //get backward neighbour
-                    std::size_t prev_ordinal = prev_enum.find(prev_index);
-                    assert (prev_ordinal < prev_enum.size()); //assert that multi-index has been found within previous slice
-                    prev_bases[d] = prev_basis.row(prev_ordinal);
-                }
+                if (curr_index[d] == 0)
+                    precursors[d] = CArray1N::Zero(1,npts_);
+                else
+                    precursors[d] = prev_basis.row(prev_ordinals[d]);
             }
-
+            
             //compute basis value within next slice
-            next_basis.row(j) = evaluateBasis(axis, curr_index, curr_basis.row(curr_ordinal), prev_bases);
+            next_basis.row(j) = evaluateBasis(axis, curr_index, curr_basis.row(curr_ordinal), precursors);
         }
         
         return next_basis;

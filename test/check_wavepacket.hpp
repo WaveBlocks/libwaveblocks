@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <array>
 
 #include "waveblocks/basic_types.hpp"
 #include "waveblocks/hagedorn_wavepacket.hpp"
@@ -31,14 +32,14 @@ void compareWavepacketToReferenceFile(const HagedornWavepacket<D> &wavepacket, c
         Eigen::Matrix<real_t,D,1> x;
         for (dim_t d = 0; d < D; d++)
             in >> x(d,0);
-
+        
         //read reference values
         real_t ref_real, ref_imag;
         in >> ref_real;
         in >> ref_imag;
-
+        
         complex_t ref = complex_t(ref_real, ref_imag);
-
+        
         //compute wavepacket value
         if (in.good()) {
             ++lines;
@@ -52,7 +53,7 @@ void compareWavepacketToReferenceFile(const HagedornWavepacket<D> &wavepacket, c
             }
         }
     }
-
+    
     std::cout << "      [INFO] processed " << lines << " lines" << std::endl;
     std::cout << "}" << std::endl;
 }

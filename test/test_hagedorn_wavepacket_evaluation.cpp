@@ -30,9 +30,7 @@ int main(int argc, char *argv[])
 
     std::shared_ptr< ShapeEnumeration<D> > enumeration( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
     
-    checkShapeEnumeration(*enumeration, "wavepacket enumeration");
-    
-    return 0;
+    checkShapeEnumeration(*enumeration, "wavepacket shape enumeration");
     
     HagedornWavepacket<D> wavepacket(0.9, parameters, enumeration, createSampleCoefficients<D>(enumeration));
     
