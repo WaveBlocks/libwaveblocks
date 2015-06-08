@@ -5,6 +5,7 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <string>
 #include <initializer_list>
 
 #include "basic_types.hpp"

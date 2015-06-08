@@ -1,6 +1,8 @@
 #ifndef WAVEBLOCKS_HAGEDORN_BASIS_EVALUATOR
 #define WAVEBLOCKS_HAGEDORN_BASIS_EVALUATOR
 
+#include <functional>
+
 #include <Eigen/Core>
 
 #include "hagedorn_parameter_set.hpp"
@@ -14,7 +16,7 @@ namespace waveblocks {
  * 
  * \tparam N number of quadrature points (if unknown: use Eigen::Dynamic)
  */
-template<dim_t D, dim_t C, int N>
+template<dim_t D, int N>
 class Evaluator
 {
 public:
@@ -39,11 +41,6 @@ public:
      * matrix size: (/unspecified/, #quadrature points)
      */
     typedef Eigen::Array<complex_t,Eigen::Dynamic,N> CArrayXN;
-
-    /**
-     * matrix size: (#components, #quadrature points)
-     */
-    typedef Eigen::Matrix<complex_t,C,N> CMatrixCN;
 
 private:
     real_t eps_;
@@ -79,42 +76,6 @@ private:
      * lookup-table for sqrt
      */
     std::vector<real_t> sqrt_;
-
-    /**
-     * Complexity: theta(N*D)
-     */
-    CArray1N evaluateGroundState() const
-    {
-        auto & P = parameters_->P;
-        auto & p = parameters_->p;
-
-        CMatrixDN P_Qinv_dx = P*Qinv_dx_;
-
-        CArray1N pr1 = ( dx_.array() * P_Qinv_dx.array() ).colwise().sum();
-        CArray1N pr2 = ( p.transpose()*dx_ ).array();
-
-        CArray1N e = complex_t(0.0, 1.0)/(eps_*eps_) * (0.5*pr1 + pr2);
-
-        return e.exp() / std::pow(pi<real_t>()*eps_*eps_, D/4.0);
-    }
-
-    /**
-     * Complexity: theta(N*D)
-     */
-    CArray1N evaluateBasis(dim_t axis,
-                           const std::array<int,D> &k,
-                           const CArray1N &curr_basis,
-                           const std::array< CArray1N, D > &prev_bases) const
-    {
-        CArray1N pr1 = curr_basis * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
-
-        CArray1N pr2 = CArray1N::Zero(1,npts_);
-        for (dim_t d = 0; d < D; d++) {
-            pr2 += prev_bases[d] * Qh_Qinvt_(axis,d) * sqrt_[ k[d] ];
-        }
-
-        return (pr1 - pr2) / sqrt_[ 1+k[axis] ];
-    }
     
 public:
     Evaluator(real_t eps, 
@@ -154,7 +115,17 @@ public:
      */
     CArray1N seed() const
     {
-        return evaluateGroundState();
+        auto & P = parameters_->P;
+        auto & p = parameters_->p;
+
+        CMatrixDN P_Qinv_dx = P*Qinv_dx_;
+
+        CArray1N pr1 = ( dx_.array() * P_Qinv_dx.array() ).colwise().sum();
+        CArray1N pr2 = ( p.transpose()*dx_ ).array();
+
+        CArray1N e = complex_t(0.0, 1.0)/(eps_*eps_) * (0.5*pr1 + pr2);
+
+        return e.exp() / std::pow(pi<real_t>()*eps_*eps_, D/4.0);
     }
     
     /**
@@ -187,27 +158,31 @@ public:
             
             assert(axis != D); //assert that multi-index contains some non-zero entries
             
-            //retrieve the basis value within current slice
+            
+            // compute contribution of current slice
             std::array<int,D> curr_index = next_index;
             curr_index[axis] -= 1; //get backward neighbour
             std::size_t curr_ordinal = curr_enum.find(curr_index);
             
             assert(curr_ordinal < curr_enum.size()); //assert that multi-index has been found within current slice
             
-            //retrieve the basis values within previous slice
-            std::array< CArray1N, D > precursors;
+            CArray1N pr1 = curr_basis.row(curr_ordinal) * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
             
+            
+            // compute contribution of previous slice
             std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
             
+            CArray1N pr2{1,npts_};
+            
             for (dim_t d = 0; d < D; d++) {
-                if (curr_index[d] == 0)
-                    precursors[d] = CArray1N::Zero(1,npts_);
-                else
-                    precursors[d] = prev_basis.row(prev_ordinals[d]);
+                if (curr_index[d] != 0) {
+                    pr2 += prev_basis.row(prev_ordinals[d]) * Qh_Qinvt_(axis,d) * sqrt_[ curr_index[d] ];
+                }
             }
             
-            //compute basis value within next slice
-            next_basis.row(j) = evaluateBasis(axis, curr_index, curr_basis.row(curr_ordinal), precursors);
+            
+            // compute basis value within next slice
+            next_basis.row(j) = (pr1 - pr2) / sqrt_[ 1+curr_index[axis] ];
         }
         
         return next_basis;

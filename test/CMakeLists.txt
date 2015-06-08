@@ -16,6 +16,11 @@ add_executable(test_hagedorn_gradient_operator
     util/time.cpp
 )
 
+add_executable(test_homogeneous_wavepacket
+    test_homogeneous_wavepacket.cpp
+    util/time.cpp
+)
+
 add_executable(test_shape_extension
     test_shape_extension.cpp
 )

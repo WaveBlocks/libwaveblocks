@@ -162,7 +162,7 @@ private:
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         KahanSum< Eigen::Array<complex_t,1,N> > psi( Eigen::Matrix<complex_t,1,N>::Zero(1,npts) );
         
-        Evaluator<D,1,N> evaluator(eps_, parameters_, enumeration_, x);
+        Evaluator<D,N> evaluator(eps_, parameters_, enumeration_, x);
         
         Eigen::Array<complex_t,Eigen::Dynamic,N> prev_basis(0,npts);
         Eigen::Array<complex_t,Eigen::Dynamic,N> curr_basis(0,npts);

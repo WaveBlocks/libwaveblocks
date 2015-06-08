@@ -13,36 +13,37 @@ template<dim_t D>
 class HyperbolicCutShape
 {
 private:
-    double K_;
+    double S_;
     
 public:
-    HyperbolicCutShape(double K) : K_(K) {}
+    HyperbolicCutShape(double K) : S_(K) {}
     
-    HyperbolicCutShape(const HyperbolicCutShape &that) : K_(that.K_) {}
+    HyperbolicCutShape(const HyperbolicCutShape &that) : S_(that.S_) {}
     
     HyperbolicCutShape &operator=(const HyperbolicCutShape &that)
     {
-        K_ = that.K_;
+        S_ = that.S_;
         return *this;
     }
     
     int bbox(dim_t axis) const
     {
         (void)(axis); //suppress -Wunused-parameter
-        return std::floor(K_-1.0);
+        return std::floor(S_-1.0);
     }
     
     template<class MultiIndex>
     int limit(const MultiIndex &coordinate, dim_t axis) const
     {
-        //choose large enough integer type to prevent overflow
-        long long product = 1;
-        for (dim_t i = 0; i < D; i++)
-            if (i != axis)
-                product *= (1 + coordinate[i]);
+        double s = S_;
         
-        //std::floor is necessary since C++ rounds negative numbers up (so -0.8 becomes 0)
-        return (int)std::floor(K_/product - 1);
+        for (dim_t i = 0; i < D; i++) {
+            if (i != axis) {
+                s /= 1 + coordinate[i];
+            }
+        }
+        
+        return (int)s - 1;
     }
     
     std::string description() const
@@ -50,33 +51,53 @@ public:
         std::stringstream out;
         out << "HyperbolicCutShape{";
         out << "dimension: " << D << ", ";
-        out << "sparsity: " << K_ << "}";
+        out << "sparsity: " << S_ << "}";
         return out.str();
     }
 };
 
+/**
+ * \f[
+ * \mathfrak{K}(D,S,K) := {(k_1,\dots,k_D) | 
+ *      0 \leq k_d < K_d \forall d \in [1,\dots,D] \land
+ *      \displaystyle\prod_{d=1}^{D} (1+k_d) \leq S}
+ * \f]
+ * \tparam D number of multi-index dimensions
+ */
 template<dim_t D>
 class LimitedHyperbolicCutShape
 {
 private:
-    double K_;
+    double S_;
     std::array<int,D> limits_;
     
 public:
-    LimitedHyperbolicCutShape(double K, const std::array<int,D> &limits)
-        : K_(K)
+    /**
+     * \param S sparsity parameter S
+     * \param limits list of all limits
+     */
+    LimitedHyperbolicCutShape(double S, const std::array<int,D> &limits)
+        : S_(S)
         , limits_(limits) 
     { }
     
-    LimitedHyperbolicCutShape(double K, int size)
-        : K_(K)
+    /**
+     * \brief S sparsity parameter S
+     * \brief 
+     */
+    LimitedHyperbolicCutShape(double S, int size)
+        : S_(S)
     {
         for (std::size_t d = 0; d < D; d++)
             limits_[d] = size;
     }
     
-    LimitedHyperbolicCutShape(double K, std::initializer_list<int> list)
-        : K_(K)
+    /**
+     * \brief S sparsity parame S
+     * \brief list of all limits
+     */
+    LimitedHyperbolicCutShape(double S, std::initializer_list<int> list)
+        : S_(S)
     {
         int deflt = 0;
         std::size_t i = 0;
@@ -89,33 +110,32 @@ public:
         }
     }
     
-    LimitedHyperbolicCutShape(const LimitedHyperbolicCutShape &that) : K_(that.K_), limits_(that.limits_) {}
-    
-    LimitedHyperbolicCutShape &operator=(const LimitedHyperbolicCutShape &that)
-    {
-        K_ = that.K_;
-        limits_ = that.limits_;
-        return *this;
-    }
-    
+    /**
+     * 
+     */
     int bbox(dim_t axis) const
     {
-        return std::min( limits_[axis]-1, (int)std::floor(K_-1.0));
+        return std::min( limits_[axis]-1, (int)S_ - 1);
     }
     
+    /**
+     * 
+     */
     template<class MultiIndex>
     int limit(const MultiIndex &coordinate, dim_t axis) const
     {
-        //choose large enough integer type to prevent overflow bugs
-        long long product = 1;
+        double s = S_;
+        
         for (dim_t i = 0; i < D; i++) {
             if (i != axis) {
-                product *= (1 + coordinate[i]);
+                if (coordinate[i] >= limits_[i])
+                    return -1;
+                else
+                    s /= 1 + coordinate[i];
             }
         }
         
-        //std::floor is necessary since C++ rounds negative numbers up (so -0.5 becomes 0)
-        return std::min((int)limits_[axis]-1, (int)std::floor(K_/product - 1));
+        return std::min((int)limits_[axis]-1, (int)s - 1);
     }
     
     std::string description() const
@@ -123,7 +143,7 @@ public:
         std::stringstream out;
         out << "LimitedHyperbolicCutShape{";
         out << "dimension: " << D << ", ";
-        out << "sparsity: " << K_ << ", ";
+        out << "sparsity: " << S_ << ", ";
         out << "limits (exclusive): " << limits_ << "}";
         return out.str();
     }

@@ -11,9 +11,9 @@
 namespace waveblocks {
 
 template<dim_t D>
-void compareCoefficientsToReferenceFile(const std::array< HagedornWavepacket<D>, D> &tuple, const char *filename)
+void compareCoefficientsToReferenceFile(const std::array< HagedornWavepacket<D>, D> &gradient, const char *filename)
 {
-    auto enumeration = tuple[0].enumeration();
+    auto enumeration = gradient[0].enumeration();
     
     std::cout << "compare wavepacket coefficients to reference file {" << std::endl;
     std::ifstream csv(filename);
@@ -26,7 +26,7 @@ void compareCoefficientsToReferenceFile(const std::array< HagedornWavepacket<D>,
         
         Eigen::Matrix<complex_t,D,1> ref;
         
-        //read index
+        // read multi-index
         std::array<int,D> index;
         for (dim_t d = 0; d < D; d++) {
             int entry;
@@ -34,42 +34,46 @@ void compareCoefficientsToReferenceFile(const std::array< HagedornWavepacket<D>,
             index[d] = entry;
         }
         
-        //read real gradient part
-        real_t temp[D];
+        // read real part of coefficients
+        real_t coeffs_real[D];
         for (dim_t d = 0; d < D; d++) {
-            real_t value;
-            csv >> value;
-            temp[d] = value;
+            real_t coeff_real;
+            csv >> coeff_real;
+            coeffs_real[d] = coeff_real;
         }
         
-        //read imaginary gradient part
+        // read imaginary part of coefficients
         for (dim_t d = 0; d < D; d++) {
-            real_t value;
-            csv >> value;
-            ref(d,0) = complex_t(temp[d],value);
+            real_t coeff_imag;
+            csv >> coeff_imag;
+            ref(d,0) = complex_t(coeffs_real[d],coeff_imag);
         }
         
         if (csv.good()) {
             ++lines;
-
-            if (!enumeration->contains(index) && ref.norm() > tol) {
-                std::cout << "   [FAILURE] missing a node in our shape enumeration: " << index << std::endl;
-                continue;
-            }
-
-            Eigen::Matrix<complex_t,D,1> coeff;
-            for (int d = 0; d < D; d++) {
-                coeff(d,0) = tuple[d].coefficient( enumeration->find(index) );
-            }
             
+            int islice = std::accumulate(index.begin(), index.end(), int(0));
             
-
-            real_t error = (coeff - ref).norm()/ref.norm();
-
-            if ( error > tol) {
-                std::cout << "   [FAILURE] coefficient at node " << index << " does not match entry in csv file. error = " << error << std::endl;
-                std::cout << "     computed value: " << coeff.transpose() << std::endl;
-                std::cout << "     reference value: " << ref.transpose() << std::endl;
+            if (enumeration->contains(index)) {
+                Eigen::Matrix<complex_t,D,1> coeff;
+                for (int d = 0; d < D; d++) {
+                    coeff(d,0) = gradient[d].coefficients()[ enumeration->slice(islice).offset() + enumeration->slice(islice).find(index) ];
+                }
+                
+                real_t error = (coeff - ref).norm()/ref.norm();
+                
+                if ( error > tol) {
+                    std::cout << "   [FAILURE] at line " << lines << ": coefficient at node " << 
+                            index << " does not match entry in csv file. error = " << error << std::endl;
+                    std::cout << "     computed value: " << coeff.transpose() << std::endl;
+                    std::cout << "     reference value: " << ref.transpose() << std::endl;
+                }
+            }
+            else {
+                if (ref.norm() > tol) {
+                    std::cout << "   [FAILURE] at line " << lines << ": reference file contains unexpected node: " << index << std::endl;
+                    continue;
+                }
             }
         }
     }

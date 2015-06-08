@@ -25,15 +25,15 @@ using namespace waveblocks;
 
 int main(int argc, char* argv[])
 {
-    double start;
+    double start, stop;
 
-    const dim_t D = 4;
+    const dim_t D = 5;
 
     typedef TinyMultiIndex<std::size_t,D> MultiIndex;
-    typedef HyperbolicCutShape<D> S;
+    typedef LimitedHyperbolicCutShape<D> S;
     
-    S shape(7.0);
-
+    S shape(9,{4,4,4,4,4});
+    
     auto parameters = createSampleParameters<D>();
 
     std::shared_ptr< ShapeEnumeration<D> > wave_enum( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
@@ -51,27 +51,28 @@ int main(int argc, char* argv[])
     
     start = getRealTime();
     std::array< HagedornWavepacket<D>, D> gradient = nabla(wavepacket);
-    std::cout << "[TIME] apply gradient: " << (getRealTime() - start) << std::endl;
+    stop = getRealTime();
+    std::cout << "[TIME] apply gradient: " << (stop - start) << std::endl;
     
     // evaluate wavepacket at a chosen location
     {
-        std::cout << "chosen evaluation {" << std::endl;
-
+        std::cout << "evaluate gradient {" << std::endl;
+        
         Eigen::Matrix<real_t,D,1> x;
         for (dim_t d = 0; d < D; d++)
             x(d,0) = (d+1)/real_t(2*D);
         
-        double start = getRealTime();
+        start = getRealTime();
         for (auto & dir : gradient)
             std::cout << "   " << dir(x) << std::endl;
-        double stop = getRealTime();
+        stop = getRealTime();
         std::cout << "   time: " << (stop - start) << '\n';
         std::cout << "}" << std::endl;
     }
-
+    
     //compare coefficients to csv file
     if (argc == 3) {
-        //compareCoefficientsToReferenceFile(gradient, argv[1]);
+        compareCoefficientsToReferenceFile(gradient, argv[1]);
         //compareWavepacketToReferenceFile(gradient, argv[2]);
     }
 
