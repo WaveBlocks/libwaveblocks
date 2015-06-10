@@ -1,0 +1,63 @@
+\hypertarget{classwaveblocks_1_1_continuous_sqrt}{}\section{waveblocks\+:\+:Continuous\+Sqrt$<$ T $>$ Class Template Reference}
+\label{classwaveblocks_1_1_continuous_sqrt}\index{waveblocks\+::\+Continuous\+Sqrt$<$ T $>$@{waveblocks\+::\+Continuous\+Sqrt$<$ T $>$}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classwaveblocks_1_1_continuous_sqrt_ad08b58c3346e975e01b4390e94927b55}{}{\bfseries Continuous\+Sqrt} (std\+::complex$<$ T $>$ sqrt)\label{classwaveblocks_1_1_continuous_sqrt_ad08b58c3346e975e01b4390e94927b55}
+
+\item 
+\hypertarget{classwaveblocks_1_1_continuous_sqrt_a79180940f9256e0945da44a073fde5a1}{}{\bfseries Continuous\+Sqrt} (const \hyperlink{classwaveblocks_1_1_continuous_sqrt}{Continuous\+Sqrt} \&that)\label{classwaveblocks_1_1_continuous_sqrt_a79180940f9256e0945da44a073fde5a1}
+
+\item 
+\hypertarget{classwaveblocks_1_1_continuous_sqrt_acdea6c831155f2b39e80f6e97d9f7ff7}{}\hyperlink{classwaveblocks_1_1_continuous_sqrt}{Continuous\+Sqrt} \& {\bfseries operator=} (const \hyperlink{classwaveblocks_1_1_continuous_sqrt}{Continuous\+Sqrt} \&that)\label{classwaveblocks_1_1_continuous_sqrt_acdea6c831155f2b39e80f6e97d9f7ff7}
+
+\item 
+std\+::complex$<$ T $>$ \hyperlink{classwaveblocks_1_1_continuous_sqrt_a808fbb17ee6e12a9e8d622e32317b751}{operator()} (std\+::complex$<$ T $>$ input)
+\item 
+std\+::complex$<$ T $>$ \hyperlink{classwaveblocks_1_1_continuous_sqrt_a7b5e8a8ce0b658928d6b4fcc57b483b3}{operator()} () const 
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static T \hyperlink{classwaveblocks_1_1_continuous_sqrt_a403d3bc15b436cee0dc977a61603c1de}{continuate} (T ref, T arg)
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classwaveblocks_1_1_continuous_sqrt_a403d3bc15b436cee0dc977a61603c1de}{}\index{waveblocks\+::\+Continuous\+Sqrt@{waveblocks\+::\+Continuous\+Sqrt}!continuate@{continuate}}
+\index{continuate@{continuate}!waveblocks\+::\+Continuous\+Sqrt@{waveblocks\+::\+Continuous\+Sqrt}}
+\subsubsection[{continuate}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ static T {\bf waveblocks\+::\+Continuous\+Sqrt}$<$ T $>$\+::continuate (
+\begin{DoxyParamCaption}
+\item[{T}]{ref, }
+\item[{T}]{arg}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}\label{classwaveblocks_1_1_continuous_sqrt_a403d3bc15b436cee0dc977a61603c1de}
+Chooses the square root angle (aka argument) that continuates the reference angle the best. Throws an exception if the deviation above an accepted value (by default $>$45°) as this strongly indicates a problem in higher level code (for example a too large timestep). 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em ref} & angle of reference root. domain = \mbox{[}-\/pi;pi\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em arg} & angle of root. domain = \mbox{[}-\/pi;pi\mbox{]} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+angle of continuating root. domain = \mbox{[}-\/pi;pi\mbox{]} 
+\end{DoxyReturn}
+\hypertarget{classwaveblocks_1_1_continuous_sqrt_a808fbb17ee6e12a9e8d622e32317b751}{}\index{waveblocks\+::\+Continuous\+Sqrt@{waveblocks\+::\+Continuous\+Sqrt}!operator()@{operator()}}
+\index{operator()@{operator()}!waveblocks\+::\+Continuous\+Sqrt@{waveblocks\+::\+Continuous\+Sqrt}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ std\+::complex$<$T$>$ {\bf waveblocks\+::\+Continuous\+Sqrt}$<$ T $>$\+::operator() (
+\begin{DoxyParamCaption}
+\item[{std\+::complex$<$ T $>$}]{input}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_continuous_sqrt_a808fbb17ee6e12a9e8d622e32317b751}
+update stored square root \hypertarget{classwaveblocks_1_1_continuous_sqrt_a7b5e8a8ce0b658928d6b4fcc57b483b3}{}\index{waveblocks\+::\+Continuous\+Sqrt@{waveblocks\+::\+Continuous\+Sqrt}!operator()@{operator()}}
+\index{operator()@{operator()}!waveblocks\+::\+Continuous\+Sqrt@{waveblocks\+::\+Continuous\+Sqrt}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ std\+::complex$<$T$>$ {\bf waveblocks\+::\+Continuous\+Sqrt}$<$ T $>$\+::operator() (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_continuous_sqrt_a7b5e8a8ce0b658928d6b4fcc57b483b3}
+retrieve stored square root 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/michaja/\+Documents/eth/libwaveblocks/waveblocks/continuous\+\_\+sqrt.\+hpp\end{DoxyCompactItemize}

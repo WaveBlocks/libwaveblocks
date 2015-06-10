@@ -4,12 +4,12 @@
 #include <iostream>
 #include <string>
 
-#include "waveblocks/shape_enumeration_base.hpp"
+#include "waveblocks/shape_enum.hpp"
 
 namespace waveblocks {
 
-template<dim_t D>
-void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration, std::string tag)
+template<dim_t D, class MultiIndex>
+void checkShapeEnumeration(const ShapeEnum<D,MultiIndex>& enumeration, std::string tag)
 {
     std::cout << "check " << tag << " {" << std::endl;
 
@@ -34,7 +34,7 @@ void checkShapeEnumeration(const ShapeEnumeration<D> &enumeration, std::string t
 
     {
         std::size_t ordinal = 0;
-        for (std::size_t islice = 0; islice < enumeration.n_slices(); islice++) {
+        for (int islice = 0; islice < enumeration.n_slices(); islice++) {
             auto & slice = enumeration.slice(islice);
 
             if (ordinal != slice.offset()) {

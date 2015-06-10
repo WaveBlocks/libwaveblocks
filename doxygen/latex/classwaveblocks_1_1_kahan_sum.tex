@@ -1,0 +1,123 @@
+\hypertarget{classwaveblocks_1_1_kahan_sum}{}\section{waveblocks\+:\+:Kahan\+Sum$<$ T $>$ Class Template Reference}
+\label{classwaveblocks_1_1_kahan_sum}\index{waveblocks\+::\+Kahan\+Sum$<$ T $>$@{waveblocks\+::\+Kahan\+Sum$<$ T $>$}}
+
+
+The Kahan\textquotesingle{}s algorithm achieves O(1) error growth for summing N numbers.  
+
+
+
+
+{\ttfamily \#include $<$kahan\+\_\+sum.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classwaveblocks_1_1_kahan_sum_a14f2375af4f7a2d537a93a4e385a1da1}{Kahan\+Sum} ()=default
+\begin{DoxyCompactList}\small\item\em compiler-\/generated default constructor \end{DoxyCompactList}\item 
+\hyperlink{classwaveblocks_1_1_kahan_sum_ae81c0305e5c2f1188154e3265b33aed7}{Kahan\+Sum} (const T \&zero)
+\begin{DoxyCompactList}\small\item\em A zero initializing constructor for types that cannot provide a default constructor. \end{DoxyCompactList}\item 
+\hypertarget{classwaveblocks_1_1_kahan_sum_ab28e3b57ca3643290bcf245c478e1480}{}\hyperlink{classwaveblocks_1_1_kahan_sum_ab28e3b57ca3643290bcf245c478e1480}{Kahan\+Sum} (const \hyperlink{classwaveblocks_1_1_kahan_sum}{Kahan\+Sum}$<$ T $>$ \&that)=default\label{classwaveblocks_1_1_kahan_sum_ab28e3b57ca3643290bcf245c478e1480}
+
+\begin{DoxyCompactList}\small\item\em compiler-\/generated copy constructor \end{DoxyCompactList}\item 
+\hypertarget{classwaveblocks_1_1_kahan_sum_a45d992bd8ec6c417495c4df510c087aa}{}\hyperlink{classwaveblocks_1_1_kahan_sum}{Kahan\+Sum} \& \hyperlink{classwaveblocks_1_1_kahan_sum_a45d992bd8ec6c417495c4df510c087aa}{operator=} (const \hyperlink{classwaveblocks_1_1_kahan_sum}{Kahan\+Sum}$<$ T $>$ \&that)=default\label{classwaveblocks_1_1_kahan_sum_a45d992bd8ec6c417495c4df510c087aa}
+
+\begin{DoxyCompactList}\small\item\em compiler-\/generated copy assignment operator \end{DoxyCompactList}\item 
+\hyperlink{classwaveblocks_1_1_kahan_sum}{Kahan\+Sum} \& \hyperlink{classwaveblocks_1_1_kahan_sum_aee0ad6881394b6205e51bfb653f7bba0}{operator+=} (const T \&summand)
+\begin{DoxyCompactList}\small\item\em adds a number \end{DoxyCompactList}\item 
+const T \& \hyperlink{classwaveblocks_1_1_kahan_sum_ae737808fa3da9f853cfa9a2af06a2444}{operator()} () const 
+\begin{DoxyCompactList}\small\item\em retrieves accumulated sum. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class T$>$class waveblocks\+::\+Kahan\+Sum$<$ T $>$}
+
+The Kahan\textquotesingle{}s algorithm achieves O(1) error growth for summing N numbers. 
+
+This implementation works for every type that satisfies following requirements\+:
+\begin{DoxyItemize}
+\item copy constructor
+\item copy assignment operator
+\item binary plus operator that performs element-\/wise addition
+\item binary minus operator that performs element-\/wise subtraction
+\end{DoxyItemize}
+
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em T} & type of summands \\
+\hline
+\end{DoxyTemplParams}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classwaveblocks_1_1_kahan_sum_a14f2375af4f7a2d537a93a4e385a1da1}{}\index{waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}!Kahan\+Sum@{Kahan\+Sum}}
+\index{Kahan\+Sum@{Kahan\+Sum}!waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}}
+\subsubsection[{Kahan\+Sum}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf waveblocks\+::\+Kahan\+Sum}$<$ T $>$\+::{\bf Kahan\+Sum} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [default]}}\label{classwaveblocks_1_1_kahan_sum_a14f2375af4f7a2d537a93a4e385a1da1}
+
+
+compiler-\/generated default constructor 
+
+Be aware that this constructor fails on summand types that cannot provide a default constructor like dynamically sized arrays/matrices.
+
+\begin{DoxySeeAlso}{See also}
+\hyperlink{classwaveblocks_1_1_kahan_sum_ae81c0305e5c2f1188154e3265b33aed7}{Kahan\+Sum\+::\+Kahan\+Sum(const T\&)} 
+\end{DoxySeeAlso}
+\hypertarget{classwaveblocks_1_1_kahan_sum_ae81c0305e5c2f1188154e3265b33aed7}{}\index{waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}!Kahan\+Sum@{Kahan\+Sum}}
+\index{Kahan\+Sum@{Kahan\+Sum}!waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}}
+\subsubsection[{Kahan\+Sum}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf waveblocks\+::\+Kahan\+Sum}$<$ T $>$\+::{\bf Kahan\+Sum} (
+\begin{DoxyParamCaption}
+\item[{const T \&}]{zero}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_kahan_sum_ae81c0305e5c2f1188154e3265b33aed7}
+
+
+A zero initializing constructor for types that cannot provide a default constructor. 
+
+A noteable example is a dynamically sized matrix.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em zero} & initialized zero value as a template \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classwaveblocks_1_1_kahan_sum_ae737808fa3da9f853cfa9a2af06a2444}{}\index{waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}!operator()@{operator()}}
+\index{operator()@{operator()}!waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ const T\& {\bf waveblocks\+::\+Kahan\+Sum}$<$ T $>$\+::operator() (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_kahan_sum_ae737808fa3da9f853cfa9a2af06a2444}
+
+
+retrieves accumulated sum. 
+
+\begin{DoxyReturn}{Returns}
+accumulated sum 
+\end{DoxyReturn}
+\hypertarget{classwaveblocks_1_1_kahan_sum_aee0ad6881394b6205e51bfb653f7bba0}{}\index{waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}!operator+=@{operator+=}}
+\index{operator+=@{operator+=}!waveblocks\+::\+Kahan\+Sum@{waveblocks\+::\+Kahan\+Sum}}
+\subsubsection[{operator+=}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf Kahan\+Sum}\& {\bf waveblocks\+::\+Kahan\+Sum}$<$ T $>$\+::operator+= (
+\begin{DoxyParamCaption}
+\item[{const T \&}]{summand}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_kahan_sum_aee0ad6881394b6205e51bfb653f7bba0}
+
+
+adds a number 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em summand} & summand \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/michaja/\+Documents/eth/libwaveblocks/waveblocks/kahan\+\_\+sum.\+hpp\end{DoxyCompactItemize}

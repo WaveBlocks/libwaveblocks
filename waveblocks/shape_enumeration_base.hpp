@@ -9,6 +9,12 @@
 
 namespace waveblocks {
 
+/**
+ * The \f$ s \f$-th slice of an enumeration contains all multi-indices 
+ * \f$ \boldsymbol{k} \in \mathfrak{K} \f$ 
+ * that satisfy \f$ \displaystyle\sum_{d=1}^{D} k_d = s \f$.
+ * 
+ */
 template<dim_t D>
 class ShapeSlice
 {
@@ -36,7 +42,7 @@ public:
      * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
      * 
      * Portable programs should never call this function with an argument that is <i>out-of-range</i>,
-     * since this causes <i>undefined behaviour</i>.
+     * since this causes \e undefined \e behaviour.
      * 
      * <b>complexity: </b>logarithmic in the number of slice-nodes
      * 
@@ -46,12 +52,12 @@ public:
     virtual std::array<int,D> operator[](std::size_t ordinal) const = 0;
     
     /**
-     * \brief Returns the position of the node with multi-index <i>index</i>.
+     * \brief Returns the position of the node with multi-index \p index.
      * 
      * Notice that the first node in the slice has position 0 (not 1 or offset()).
      * 
      * Portable programs should never call this function with an node that is not part 
-     * of this slice since this causes <i>undefined behaviour</i>.
+     * of this slice since this causes \e undefined \e behaviour.
      * 
      * Use ShapeEnumeration<D>::contains(index) to check whether this slice contains the given node.
      * 
@@ -216,12 +222,29 @@ public:
     }
 };
 
+
+/**
+ * \brief A shape enumeration is a complete, ordered listing of all 
+ * nodes that are part of the shape.
+ * 
+ * Since many algorithms operating on wavepackets use recursive formulas, 
+ * shape enumerations are divided into a set of \e slices to simplify data structures.
+ * 
+ * The \f$ s \f$-th slice contains all multi-indices \f$ \boldsymbol{k} \in \mathfrak{K} \f$ 
+ * that satisfy \f$ \displaystyle\sum_{d=1}^{D} k_d = s \f$.
+ * 
+ * To determine, to which slice a multi-index belongs, use:
+ * \code{.cpp}
+ * #include <numeric>
+ * int islice = std::accumulate(index.begin(), index.end(), int(0));
+ * \endcode
+ */
 template<dim_t D>
 class ShapeEnumeration
 {
 public:
     /**
-     * \return number of (ideally non-empty) slices
+     * \return number of (preferably non-empty) slices
      */
     virtual std::size_t n_slices() const = 0;
     

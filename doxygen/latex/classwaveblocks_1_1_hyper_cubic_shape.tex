@@ -1,0 +1,96 @@
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape}{}\section{waveblocks\+:\+:Hyper\+Cubic\+Shape$<$ D $>$ Class Template Reference}
+\label{classwaveblocks_1_1_hyper_cubic_shape}\index{waveblocks\+::\+Hyper\+Cubic\+Shape$<$ D $>$@{waveblocks\+::\+Hyper\+Cubic\+Shape$<$ D $>$}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classwaveblocks_1_1_hyper_cubic_shape_a9ed1b8425e675e49c646fa7c0dfbd3b6}{Hyper\+Cubic\+Shape} (const std\+::array$<$ int, D $>$ \&limits)
+\item 
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_a2c8bdf97b9adf7913f12a93567633245}{}{\bfseries Hyper\+Cubic\+Shape} (int size)\label{classwaveblocks_1_1_hyper_cubic_shape_a2c8bdf97b9adf7913f12a93567633245}
+
+\item 
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_a834332a9f37fbe24f900e02369f5bba3}{}{\bfseries Hyper\+Cubic\+Shape} (std\+::initializer\+\_\+list$<$ int $>$ list)\label{classwaveblocks_1_1_hyper_cubic_shape_a834332a9f37fbe24f900e02369f5bba3}
+
+\item 
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_aaf457cae4d450c3bb59e5e9f7c73388c}{}{\bfseries Hyper\+Cubic\+Shape} (const \hyperlink{classwaveblocks_1_1_hyper_cubic_shape}{Hyper\+Cubic\+Shape} \&that)\label{classwaveblocks_1_1_hyper_cubic_shape_aaf457cae4d450c3bb59e5e9f7c73388c}
+
+\item 
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_aba44b2a553b84c130549cf84dc9afc47}{}\hyperlink{classwaveblocks_1_1_hyper_cubic_shape}{Hyper\+Cubic\+Shape} \& {\bfseries operator=} (const \hyperlink{classwaveblocks_1_1_hyper_cubic_shape}{Hyper\+Cubic\+Shape} \&that)\label{classwaveblocks_1_1_hyper_cubic_shape_aba44b2a553b84c130549cf84dc9afc47}
+
+\item 
+{\footnotesize template$<$class Multi\+Index $>$ }\\int \hyperlink{classwaveblocks_1_1_hyper_cubic_shape_a9b11ef910f9f914149a35e2f6ccc52e3}{limit} (Multi\+Index position, dim\+\_\+t axis) const 
+\begin{DoxyCompactList}\small\item\em Returns shape limit in one direction starting from a base node. \end{DoxyCompactList}\item 
+int \hyperlink{classwaveblocks_1_1_hyper_cubic_shape_a5e23e83ffa06b5486b5c7fd033dadbfa}{bbox} (dim\+\_\+t axis) const 
+\begin{DoxyCompactList}\small\item\em Returns upper shape limit in one direction. \end{DoxyCompactList}\item 
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_a9683cd7acf5fa7d4344555e28ea95666}{}std\+::string {\bfseries description} () const \label{classwaveblocks_1_1_hyper_cubic_shape_a9683cd7acf5fa7d4344555e28ea95666}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_a9ed1b8425e675e49c646fa7c0dfbd3b6}{}\index{waveblocks\+::\+Hyper\+Cubic\+Shape@{waveblocks\+::\+Hyper\+Cubic\+Shape}!Hyper\+Cubic\+Shape@{Hyper\+Cubic\+Shape}}
+\index{Hyper\+Cubic\+Shape@{Hyper\+Cubic\+Shape}!waveblocks\+::\+Hyper\+Cubic\+Shape@{waveblocks\+::\+Hyper\+Cubic\+Shape}}
+\subsubsection[{Hyper\+Cubic\+Shape}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D$>$ {\bf waveblocks\+::\+Hyper\+Cubic\+Shape}$<$ D $>$\+::{\bf Hyper\+Cubic\+Shape} (
+\begin{DoxyParamCaption}
+\item[{const std\+::array$<$ int, D $>$ \&}]{limits}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_hyper_cubic_shape_a9ed1b8425e675e49c646fa7c0dfbd3b6}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em limits} & (exclusive) \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_a5e23e83ffa06b5486b5c7fd033dadbfa}{}\index{waveblocks\+::\+Hyper\+Cubic\+Shape@{waveblocks\+::\+Hyper\+Cubic\+Shape}!bbox@{bbox}}
+\index{bbox@{bbox}!waveblocks\+::\+Hyper\+Cubic\+Shape@{waveblocks\+::\+Hyper\+Cubic\+Shape}}
+\subsubsection[{bbox}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D$>$ int {\bf waveblocks\+::\+Hyper\+Cubic\+Shape}$<$ D $>$\+::bbox (
+\begin{DoxyParamCaption}
+\item[{dim\+\_\+t}]{axis}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_hyper_cubic_shape_a5e23e83ffa06b5486b5c7fd033dadbfa}
+
+
+Returns upper shape limit in one direction. 
+
+Returns for a given {\itshape axis} $ j $ a (preferably) as small as possible {\itshape limit} $ L_j $ such that\+: \[ \forall \boldsymbol{k} \in \mathfrak{K} \,\colon\; k_j \leq L_j \] 
+\begin{DoxyParams}{Parameters}
+{\em axis} & $ j $ \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+$ L_j $ 
+\end{DoxyReturn}
+\hypertarget{classwaveblocks_1_1_hyper_cubic_shape_a9b11ef910f9f914149a35e2f6ccc52e3}{}\index{waveblocks\+::\+Hyper\+Cubic\+Shape@{waveblocks\+::\+Hyper\+Cubic\+Shape}!limit@{limit}}
+\index{limit@{limit}!waveblocks\+::\+Hyper\+Cubic\+Shape@{waveblocks\+::\+Hyper\+Cubic\+Shape}}
+\subsubsection[{limit}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D$>$ template$<$class Multi\+Index $>$ int {\bf waveblocks\+::\+Hyper\+Cubic\+Shape}$<$ D $>$\+::limit (
+\begin{DoxyParamCaption}
+\item[{Multi\+Index}]{position, }
+\item[{dim\+\_\+t}]{axis}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_hyper_cubic_shape_a9b11ef910f9f914149a35e2f6ccc52e3}
+
+
+Returns shape limit in one direction starting from a base node. 
+
+Returns for a given {\itshape axis} $ j $ and a given {\itshape base} {\itshape node} $ \boldsymbol{n} $ the largest element $ k^\star $ that satisfies\+: \[ \boldsymbol{k} \in \mathfrak{K}, \; k_i = \begin{cases} n_i,& i \neq j\\ k^\star, & i = j \end{cases} \]
+
+A {\itshape base} {\itshape node} is a node whose $ j $ -\/th entry is zero.
+
+Notice that $ n_j $ does not influence return value $ k^\star $. Therefore $ n_j $ can be any value since it is simply ignored.
+
+
+\begin{DoxyParams}{Parameters}
+{\em base\+\_\+node} & base point $ \boldsymbol{n} $. $ n_j $ can be arbitrary. \\
+\hline
+{\em axis} & $ j $ \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+$ k^\star $ 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/michaja/\+Documents/eth/libwaveblocks/waveblocks/shape\+\_\+hypercubic.\+hpp\end{DoxyCompactItemize}

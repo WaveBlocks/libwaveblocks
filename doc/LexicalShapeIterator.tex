@@ -1,46 +1,81 @@
 \documentclass{article}
-\usepackage{minted}
+\usepackage{mathtools}
+\usepackage{kpfonts}
+\usepackage{listings}
 \begin{document}
 
 \section{Shape}
 
+A \(D\)-dimensional shape \(\mathfrak{K}\) is a set of ordered D-dimensional integer-tuples.
+A shape is suitable for our needs if it satisfies:
+\[k \in \mathfrak{K} \Rightarrow \forall k^\star \preceq k \colon k^\star \in \mathfrak{K}\]
+That means, if an arbitrary node is part of the shape, then all nodes in the backward cone are part of the shape too.
 
+\section{Shape Enumeration}
 
-\section{Lexical Shape Iterator}
+A shape enumeration orders all nodes of a and assigns the \(i\)-th node the \emph{ordinal} \(i-1\).
+Since many algorithm operating on wavepackets use a recursive formula, a shape enumeration is organized into \emph{slices}. The \(s\)-th slice of a shape \(\mathfrak{K}\) contains all nodes \(\boldsymbol{k} \in \mathfrak{K} \) that satisfy \(\sum_{d=1}^{D} k_D = s\).
+\\ \\
+Although no algorithm so far relies on a particular ordering of nodes inside a slice, it is probably wise to use lexical ordering by comparing element indices from left (first entry) to right (last entry).
 
-\begin{listing}[h!]
-\begin{minted}{c}
-LexicalShapeIterator<D,S> it(shape);
-do {
-    std::cout << it.getMultiIndex() << std::endl;
-} while (it.advance());
-\end{minted}
-\end{listing}
-this is equivalent to:
-\begin{listing}[h!]
-\begin{minted}{c}
-for (int x = 0; x <= shape.getSurface(0, MultiIndex<3>{{0,0,0}}); x++) {
-    for (int y = 0; y <= shape.getSurface(1, MultiIndex<3>{{x,0,0}}); y++) {
-        for (int z = 0; z <= shape.getSurface(2, MultiIndex<3>{{x,y,0}}); z++) {
-            std::cout << MultiIndex<3>{{x,y,z}} << std::endl;
-        }
-    }
-}
-\end{minted}
-\end{listing}
+\subsection{Abstract Shape Enumeration}
 
+The file \emph{waveblocks/shape\_enumeration\_base.hpp} provides a interface that is meant to be overridden by different implementations. To represent a multi-index, this interface uses the greatest common denominator \emph{std::array\textless int,D\textgreater}. 
 
-\section{Lexical Shape Enumeration}
+\subsection{Default Shape Enumeration}
 
-The default implementation provides for general shape a efficient implementation of an enumeration. For more specialized shapes there may exists a better way to map a multi-indices to ordinals. In this case you use template specialization to override the default implementation. Take a look to the specialized enumeration for the HyperCubicShape.
+The file \emph{waveblocks/shape\_enumeration\_default.hpp} provides a default implementation of a shape enumeration.
 
-\begin{minted}{c}
-template<std::size_t D>
-class LexicalShapeEnumeration<D,MyOwnShape<D>>
-{
-    // your more efficient implementation...
-};
-\end{minted}
+\begin{lstlisting}[language=C++, caption={}]
+template<dim_t D, class MultiIndex, class S>
+class DefaultShapeEnumeration;
+\end{lstlisting}
 
+\begin{description}
+\item[D] number of dimensions
+\item[MultiIndex] type to internally represent multi-indices
+\item[S] shape description
+\end{description}
+
+\subsubsection{Internal multi-index representation}
+The default shape enumeration stores all nodes in a vector. Since using \emph{std::array\textless int,D\textgreater} would use a lot of memory, the default enumeration exposes a template parameter to define a better type. \\ \\ A suitable type must \dots
+\begin{itemize}
+\item provide the same semantics as \emph{std::array\textless int,D\textgreater}
+\item specialize \emph{std::less} to perform lexical comparison
+\item specialize \emph{std::equal\_to}
+\item specialize \emph{std::hash}
+\end{itemize}
+
+\subsubsection{Shape definition}
+A shape definition class provides two member functions:
+
+\begin{itemize}
+\item
+\begin{lstlisting}[language=C++, caption={}]
+int limit(dim_t axis) const;
+\end{lstlisting}
+This member function returns for a given axis \( j \) an as small as possible limit \( L_j \) such that:
+\[ \forall \boldsymbol{k} \in \mathfrak{K} \,\colon\; k_j \leq L_j \]
+
+\item
+\begin{lstlisting}[language=C++, caption={}]
+template<class MultiIndex>
+int limit(const MultiIndex &base_node, dim_t axis) const;
+\end{lstlisting}
+This member function for a given axis \( j \) and a given base node \( \boldsymbol{n} \) (whose \( j \)-th entry is zero)
+the largest element \( k^\star \) that satisfies: 
+\[ \boldsymbol{k} \in \mathfrak{K}, \;
+k_i =
+   \begin{cases}
+      n_i,& i \neq j\\
+      k^\star, & i = j
+   \end{cases}
+\]
+
+\end{itemize}
+
+\subsubsection{Queries}
+The default shape enumeration stores all multi-indices in a vector using lexical ordering. The query \emph{ordinal} \(\rightarrow\) \emph{multi-index} is therefore trivial. The query \emph{multi-index} \(\rightarrow\) \emph{ordinal} is done using binary search. Alternatively this implementation can be forced to use \emph{std::unordered\_map} but performance tests revealed that a dictionary is slightly slower than binary seach.
 
 \end{document}
+

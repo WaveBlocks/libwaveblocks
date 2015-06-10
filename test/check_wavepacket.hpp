@@ -6,7 +6,7 @@
 #include <array>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/hagedorn_wavepacket.hpp"
+#include "waveblocks/hawp.hpp"
 
 namespace waveblocks {
 
@@ -16,8 +16,12 @@ namespace waveblocks {
  * \param wavepacket
  * \param filename
  */
-template<dim_t D>
-void compareWavepacketToReferenceFile(const HagedornWavepacket<D> &wavepacket, const char *filename)
+template<dim_t D, class MultiIndex>
+void compareWavepacketToReferenceFile(double eps,
+                                      const HagedornParameterSet<D>& parameters,
+                                      const ShapeEnum<D,MultiIndex>& enumeration,
+                                      const std::vector<complex_t>& coefficients,
+                                      const char *filename)
 {
     std::cout << "compare wavepacket to reference files {" << std::endl;
     std::cout << "   [FILE] " << filename << std::endl;
@@ -43,9 +47,9 @@ void compareWavepacketToReferenceFile(const HagedornWavepacket<D> &wavepacket, c
         //compute wavepacket value
         if (in.good()) {
             ++lines;
-
-            complex_t psi = wavepacket(x)(0,0);
-
+            
+            complex_t psi = hawp::basis(eps,parameters,enumeration).at(x).reduce(coefficients)(0,0);
+            
             auto error = std::norm(psi - ref)/std::norm(ref);
             
             if (error > 10e-10) {

@@ -11,12 +11,12 @@
 
 
 #include "waveblocks/tiny_multi_index.hpp"
-#include "waveblocks/shape_enumeration_base.hpp"
-#include "waveblocks/shape_enumeration_default.hpp"
 #include "waveblocks/shape_enumeration_subset.hpp"
+#include "waveblocks/shape_enumeration_operations.hpp"
+#include "waveblocks/shape_enum.hpp"
+#include "waveblocks/shape_enumerator.hpp"
 
-#include "waveblocks/hagedorn_wavepacket.hpp"
-#include "waveblocks/hagedorn_basis_evaluator.hpp"
+#include "waveblocks/hawp_evaluator.hpp"
 
 #include "sample_wavepacket.hpp"
 
@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
     
     typedef HyperbolicCutShape<D> S1;
     typedef HyperCubicShape<D> S2;
+    typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     S1 shape1(7.0);
     S2 shape2(3);
@@ -36,21 +37,20 @@ int main(int argc, char* argv[])
     
     SS superset(shape1, shape2);
     
-    std::shared_ptr< ShapeEnumeration<D> > superset_enum(new DefaultShapeEnumeration<D, TinyMultiIndex<std::size_t, D>, SS>(superset));
+    ShapeEnumerator<D,MultiIndex> enumerator;
     
-    std::array< std::shared_ptr< ShapeEnumeration<D> >, 2> subset_enum_list{
-        std::shared_ptr< ShapeEnumeration<D> >{new DefaultShapeEnumeration<D, TinyMultiIndex<std::size_t, D>, S1>(shape1)},
-        std::shared_ptr< ShapeEnumeration<D> >{new DefaultShapeEnumeration<D, TinyMultiIndex<std::size_t, D>, S2>(shape2)}
-    };
+    ShapeEnum<D,MultiIndex> enum1 = enumerator.generate(shape1);
+    ShapeEnum<D,MultiIndex> enum2 = enumerator.generate(shape2);
     
-    for (auto & slice : superset_enum->slices()) {
+    ShapeEnum<D,MultiIndex> enum_union = enumerator.generate(superset);
+    
+    for (auto & slice : enum_union.slices()) {
         for (auto index : slice) {
             std::cout << index << std::endl;
         }
     }
     
-    
-    HagedornWavepacket<D> wavepacket{0.9, createSampleParameters<D>(), superset_enum, createSampleCoefficients<D>(superset_enum)};
+    double eps = 0.9;
     
     Eigen::Matrix<complex_t,D,1> x;
     for (dim_t d = 0; d < D; d++) {
@@ -59,22 +59,19 @@ int main(int argc, char* argv[])
     
     const int N = 1;
     
-    Evaluator<D,N> evaluator{wavepacket.eps(), wavepacket.parameters(), wavepacket.enumeration(), x};
+    HaWpEvaluator<D,MultiIndex,N> evaluator{eps, createSampleParameters<D>(), enum_union, x};
     
-    Evaluator<D,N>::CArrayXN prev_slice(0,N);
-    Evaluator<D,N>::CArrayXN curr_slice(0,N);
-    Evaluator<D,N>::CArrayXN next_slice = evaluator.seed();
+    HaWpEvaluator<D,MultiIndex,N>::CArrayXN prev_slice(0,N);
+    HaWpEvaluator<D,MultiIndex,N>::CArrayXN curr_slice(0,N);
+    HaWpEvaluator<D,MultiIndex,N>::CArrayXN next_slice = evaluator.seed();
     
-    for (std::size_t islice = 0; islice < superset_enum->n_slices()-1; islice++) {
+    for (int islice = 0; islice < enum_union.n_slices()-1; islice++) {
         prev_slice = std::move(curr_slice);
         curr_slice = std::move(next_slice);
         
         next_slice = evaluator.step(islice, prev_slice, curr_slice);
         
-        for (std::size_t c = 0; c < subset_enum_list.size(); c++) {
-            Evaluator<D,N>::CArrayXN subset = copy_subset<D,complex_t,N>(next_slice, superset_enum->slice(islice+1), subset_enum_list[c]->slice(islice+1));
-            //std::cout << subset << std::endl;
-        }
+        HaWpEvaluator<D,MultiIndex,N>::CArrayXN subset = copy_subset(next_slice, enum_union.slice(islice+1), enum1.slice(islice+1));
     }
     
     return 0;

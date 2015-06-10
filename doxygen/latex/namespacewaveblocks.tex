@@ -1,0 +1,121 @@
+\hypertarget{namespacewaveblocks}{}\section{waveblocks Namespace Reference}
+\label{namespacewaveblocks}\index{waveblocks@{waveblocks}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classwaveblocks_1_1_continuous_sqrt}{Continuous\+Sqrt}
+\item 
+class \hyperlink{classwaveblocks_1_1_default_shape_enumeration}{Default\+Shape\+Enumeration}
+\item 
+class \hyperlink{classwaveblocks_1_1_default_shape_slice}{Default\+Shape\+Slice}
+\begin{DoxyCompactList}\small\item\em Default implementation of a shape enumeration. \end{DoxyCompactList}\item 
+class \hyperlink{classwaveblocks_1_1_evaluator}{Evaluator}
+\item 
+class \hyperlink{classwaveblocks_1_1_extended_shape}{Extended\+Shape}
+\item 
+class \hyperlink{classwaveblocks_1_1_extended_shape_3_01_d_00_01_hyper_cubic_shape_3_01_d_01_4_01_4}{Extended\+Shape$<$ D, Hyper\+Cubic\+Shape$<$ D $>$ $>$}
+\item 
+class \hyperlink{classwaveblocks_1_1_gradient_operator}{Gradient\+Operator}
+\item 
+class \hyperlink{classwaveblocks_1_1_hagedorn_basis_vector}{Hagedorn\+Basis\+Vector}
+\item 
+struct \hyperlink{structwaveblocks_1_1_hagedorn_parameter_set}{Hagedorn\+Parameter\+Set}
+\item 
+class \hyperlink{classwaveblocks_1_1_hagedorn_wavepacket}{Hagedorn\+Wavepacket}
+\item 
+class \hyperlink{classwaveblocks_1_1_hyperbolic_cut_shape}{Hyperbolic\+Cut\+Shape}
+\item 
+class \hyperlink{classwaveblocks_1_1_hyper_cubic_shape}{Hyper\+Cubic\+Shape}
+\item 
+class \hyperlink{classwaveblocks_1_1_kahan_sum}{Kahan\+Sum}
+\begin{DoxyCompactList}\small\item\em The Kahan\textquotesingle{}s algorithm achieves O(1) error growth for summing N numbers. \end{DoxyCompactList}\item 
+class \hyperlink{classwaveblocks_1_1_lexical_index_generator}{Lexical\+Index\+Generator}
+\item 
+class \hyperlink{classwaveblocks_1_1_limited_hyperbolic_cut_shape}{Limited\+Hyperbolic\+Cut\+Shape}
+\item 
+class \hyperlink{classwaveblocks_1_1_shape_enumeration}{Shape\+Enumeration}
+\item 
+class \hyperlink{classwaveblocks_1_1_shape_extension_enumeration}{Shape\+Extension\+Enumeration}
+\item 
+class \hyperlink{classwaveblocks_1_1_shape_slice}{Shape\+Slice}
+\item 
+class \hyperlink{classwaveblocks_1_1_superset_shape}{Superset\+Shape}
+\item 
+class \hyperlink{classwaveblocks_1_1_superset_shape_3_01_d_00_01_s_01_4}{Superset\+Shape$<$ D, S $>$}
+\item 
+class \hyperlink{classwaveblocks_1_1_tiny_multi_index}{Tiny\+Multi\+Index}
+\begin{DoxyCompactList}\small\item\em Represents the whole multi-\/index using a single integer. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{namespacewaveblocks_aef2771725ef8eef26de30f1cacbf51f0}{}typedef double {\bfseries real\+\_\+t}\label{namespacewaveblocks_aef2771725ef8eef26de30f1cacbf51f0}
+
+\item 
+\hypertarget{namespacewaveblocks_ad0bf8f32f6795baf7563bec7b8884220}{}typedef std\+::complex$<$ real\+\_\+t $>$ {\bfseries complex\+\_\+t}\label{namespacewaveblocks_ad0bf8f32f6795baf7563bec7b8884220}
+
+\item 
+\hypertarget{namespacewaveblocks_a7f1215e373913b42cf1cdd01c1da2bb1}{}typedef int {\bfseries dim\+\_\+t}\label{namespacewaveblocks_a7f1215e373913b42cf1cdd01c1da2bb1}
+
+\item 
+\hypertarget{namespacewaveblocks_ab1651e881bd9d580e00f828bfbcf6f14}{}{\footnotesize template$<$int R, int C$>$ }\\using {\bfseries C\+Matrix} = Eigen\+::\+Matrix$<$ complex\+\_\+t, R, C $>$\label{namespacewaveblocks_ab1651e881bd9d580e00f828bfbcf6f14}
+
+\item 
+\hypertarget{namespacewaveblocks_a3d4572be26f753e308fac1b66c107dd6}{}{\footnotesize template$<$int R, int C$>$ }\\using {\bfseries R\+Matrix} = Eigen\+::\+Matrix$<$ real\+\_\+t, R, C $>$\label{namespacewaveblocks_a3d4572be26f753e308fac1b66c107dd6}
+
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{namespacewaveblocks_a7e17c5457572b438bdb7aca00d5c1e6f}{}{\footnotesize template$<$dim\+\_\+t D$>$ }\\std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{structwaveblocks_1_1_hagedorn_parameter_set}{Hagedorn\+Parameter\+Set}$<$ D $>$ \&parameters)\label{namespacewaveblocks_a7e17c5457572b438bdb7aca00d5c1e6f}
+
+\item 
+\hypertarget{namespacewaveblocks_a05beea1751120610e36d66dfd3f0c47d}{}{\footnotesize template$<$class T $>$ }\\constexpr T {\bfseries pi} ()\label{namespacewaveblocks_a05beea1751120610e36d66dfd3f0c47d}
+
+\item 
+\hypertarget{namespacewaveblocks_a6d2a51e600e4e3e6566382f02ad2949a}{}{\footnotesize template$<$dim\+\_\+t D$>$ }\\bool {\bfseries \+\_\+copy\+\_\+subset\+\_\+\+\_\+fast\+\_\+equals} (const std\+::array$<$ int, D $>$ \&a, const std\+::array$<$ int, D $>$ \&b)\label{namespacewaveblocks_a6d2a51e600e4e3e6566382f02ad2949a}
+
+\item 
+{\footnotesize template$<$dim\+\_\+t D, class T , int N$>$ }\\Eigen\+::\+Matrix$<$ T, Eigen\+::\+Dynamic, N $>$ \hyperlink{namespacewaveblocks_a1995ca9846205100bf0aa16545d106d8}{copy\+\_\+subset} (const Eigen\+::\+Matrix$<$ T, Eigen\+::\+Dynamic, N $>$ \&superset\+\_\+data, const \hyperlink{classwaveblocks_1_1_shape_slice}{Shape\+Slice}$<$ D $>$ \&superset\+\_\+enum, const \hyperlink{classwaveblocks_1_1_shape_slice}{Shape\+Slice}$<$ D $>$ \&subset\+\_\+enum)
+\item 
+\hypertarget{namespacewaveblocks_a806045a4272184169ceb86f34e9120bc}{}{\footnotesize template$<$class U\+I\+N\+T , dim\+\_\+t D$>$ }\\std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{classwaveblocks_1_1_tiny_multi_index}{Tiny\+Multi\+Index}$<$ U\+I\+N\+T, D $>$ \&index)\label{namespacewaveblocks_a806045a4272184169ceb86f34e9120bc}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+! \mbox{[}S\+N\+I\+P\+P\+L\+E\+T\mbox{]} Michaja Bösch 
+
+\subsection{Function Documentation}
+\hypertarget{namespacewaveblocks_a1995ca9846205100bf0aa16545d106d8}{}\index{waveblocks@{waveblocks}!copy\+\_\+subset@{copy\+\_\+subset}}
+\index{copy\+\_\+subset@{copy\+\_\+subset}!waveblocks@{waveblocks}}
+\subsubsection[{copy\+\_\+subset}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, class T , int N$>$ Eigen\+::\+Matrix$<$T, Eigen\+::\+Dynamic,N$>$ waveblocks\+::copy\+\_\+subset (
+\begin{DoxyParamCaption}
+\item[{const Eigen\+::\+Matrix$<$ T, Eigen\+::\+Dynamic, N $>$ \&}]{superset\+\_\+data, }
+\item[{const {\bf Shape\+Slice}$<$ D $>$ \&}]{superset\+\_\+enum, }
+\item[{const {\bf Shape\+Slice}$<$ D $>$ \&}]{subset\+\_\+enum}
+\end{DoxyParamCaption}
+)}\label{namespacewaveblocks_a1995ca9846205100bf0aa16545d106d8}
+\begin{DoxyAttention}{Attention}
+This function shows {\itshape undefined} {\itshape behaviour} if {\ttfamily subset\+\_\+enum} is not a subset of {\ttfamily superset\+\_\+enum}.
+\end{DoxyAttention}
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em D} & dimension of multi-\/index \\
+\hline
+{\em T} & component data type of {\ttfamily superset\+\_\+data} and return value \\
+\hline
+{\em N} & number of quadrature points or {\itshape Eigen\+::\+Dynamic} \\
+\hline
+\end{DoxyTemplParams}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em superset\+\_\+data} & (\#nodes in superset, \#quadrature points)-\/matrix \\
+\hline
+\mbox{\tt in}  & {\em superset\+\_\+enum} & nodes within superset slice \\
+\hline
+\mbox{\tt in}  & {\em subset\+\_\+enum} & nodes within subset slice \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+(\#nodes in subset, \#quadrature points)-\/matrix 
+\end{DoxyReturn}

@@ -7,12 +7,12 @@
 #include <Eigen/Core>
 
 #include "basic_types.hpp"
-#include "shape_enumeration_base.hpp"
+#include "shape_enum.hpp"
 
 namespace waveblocks {
 
-template<dim_t D>
-bool _copy_subset__fast_equals(const std::array<int,D>& a, const std::array<int,D>& b)
+template<dim_t D, class MultiIndex>
+bool _copy_subset__fast_equals(const MultiIndex& a, const MultiIndex& b)
 {
     // since multi-indices are lexically sorted, first entries will almost always be equals
     // therefore this function compares entries beginning on last entries
@@ -35,15 +35,15 @@ bool _copy_subset__fast_equals(const std::array<int,D>& a, const std::array<int,
  * \param[in] subset_enum nodes within subset slice
  * \return (#nodes in subset, #quadrature points)-matrix
  */
-template<dim_t D, class T, int N>
-Eigen::Matrix<T, Eigen::Dynamic,N> copy_subset(const Eigen::Matrix<T, Eigen::Dynamic,N>& superset_data, 
-                                               const ShapeSlice<D>& superset_enum, 
-                                               const ShapeSlice<D>& subset_enum)
+template<dim_t D, class MultiIndex, class T, int N>
+Eigen::Array<T, Eigen::Dynamic,N> copy_subset(const Eigen::Array<T, Eigen::Dynamic,N>& superset_data, 
+                                               const ShapeSlice<D,MultiIndex>& superset_enum, 
+                                               const ShapeSlice<D,MultiIndex>& subset_enum)
 {
     if (&superset_enum == &subset_enum)
         return superset_data;
     
-    Eigen::Matrix<T, Eigen::Dynamic,N> subset_data{subset_enum.size(), superset_data.cols()};
+    Eigen::Array<T, Eigen::Dynamic,N> subset_data{subset_enum.size(), superset_data.cols()};
     
     auto superset_it = superset_enum.begin();
     auto subset_it = subset_enum.begin();
@@ -53,7 +53,7 @@ Eigen::Matrix<T, Eigen::Dynamic,N> copy_subset(const Eigen::Matrix<T, Eigen::Dyn
     
     while (superset_it != superset_enum.end() && subset_it != subset_enum.end()) {
         
-        while ( !_copy_subset__fast_equals<D>(*superset_it, *subset_it) ) {
+        while ( !_copy_subset__fast_equals<D,MultiIndex>(*superset_it, *subset_it) ) {
             ++superset_it;
             ++superset_ord;
         }

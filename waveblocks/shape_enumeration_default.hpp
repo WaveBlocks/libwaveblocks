@@ -153,7 +153,7 @@ public:
     }
 };
 
-template<dim_t D, class MultiIndex, class S>
+template<dim_t D, class S, class MultiIndex>
 class DefaultShapeEnumeration : public ShapeEnumeration<D>
 {
 private:
@@ -163,6 +163,18 @@ private:
     std::vector< DefaultShapeSlice<D, MultiIndex> > slices_;
     
 public:
+    DefaultShapeEnumeration(DefaultShapeEnumeration&& that) = default;
+    
+    DefaultShapeEnumeration(const S& shape, 
+                            std::size_t size,
+                            std::size_t n_slices,
+                            std::vector< DefaultShapeSlice<D, MultiIndex> >&& slices)
+        : size_(size)
+        , n_slices_(n_slices)
+        , shape_(shape)
+        , slices_(std::move(slices))
+    { }
+    
     DefaultShapeEnumeration(const S& shape, bool use_dict_ = false)
         : shape_(shape)
         , slices_()

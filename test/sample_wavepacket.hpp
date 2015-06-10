@@ -1,16 +1,16 @@
 #ifndef SAMPLE_WAVEFUNC_HPP
 #define SAMPLE_WAVEFUNC_HPP
 
-#include <memory>
-#include <valarray>
+#include <vector>
+#include <complex>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/shape_enumeration_default.hpp"
+#include "waveblocks/shape_enum.hpp"
 #include "waveblocks/hagedorn_parameter_set.hpp"
 
 namespace waveblocks {
 template<dim_t D>
-std::shared_ptr< HagedornParameterSet<D> > createSampleParameters()
+HagedornParameterSet<D> createSampleParameters()
 {
     Eigen::Matrix<real_t,D,1> q,p;
     Eigen::Matrix<complex_t,D,D> Q,P;
@@ -28,19 +28,19 @@ std::shared_ptr< HagedornParameterSet<D> > createSampleParameters()
         P(i,i) += complex_t(0.0,1.0);
     }
     
-    return std::shared_ptr< HagedornParameterSet<D> >( new HagedornParameterSet<D>(q,p,Q,P) );
+    return {q,p,Q,P};
 }
 
-template<dim_t D>
-std::vector<complex_t> createSampleCoefficients(const std::shared_ptr< const ShapeEnumeration<D> > &enumeration)
+template<dim_t D, class MultiIndex>
+std::vector<complex_t> createSampleCoefficients(const ShapeEnum<D,MultiIndex>& enumeration)
 {
-    std::vector<complex_t> coeffs(enumeration->size());
-
+    std::vector<complex_t> coeffs(enumeration.n_entries());
+    
     real_t norm = 0.0;
-
+    
     std::size_t ordinal = 0;
-    for (std::size_t islice = 0; islice < enumeration->n_slices(); islice++) {
-        for (auto index : enumeration->slice(islice)) {
+    for (int islice = 0; islice < enumeration.n_slices(); islice++) {
+        for (auto index : enumeration.slice(islice)) {
             real_t falloff = 0.1;
             
             real_t x = 0.0;

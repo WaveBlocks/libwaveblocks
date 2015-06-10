@@ -1,0 +1,115 @@
+\hypertarget{classwaveblocks_1_1_default_shape_enumeration}{}\section{waveblocks\+:\+:Default\+Shape\+Enumeration$<$ D, Multi\+Index, S $>$ Class Template Reference}
+\label{classwaveblocks_1_1_default_shape_enumeration}\index{waveblocks\+::\+Default\+Shape\+Enumeration$<$ D, Multi\+Index, S $>$@{waveblocks\+::\+Default\+Shape\+Enumeration$<$ D, Multi\+Index, S $>$}}
+Inheritance diagram for waveblocks\+:\+:Default\+Shape\+Enumeration$<$ D, Multi\+Index, S $>$\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classwaveblocks_1_1_default_shape_enumeration}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classwaveblocks_1_1_default_shape_enumeration_ae1e8c2f51bcd7cf13e39f892e95eddc9}{}{\bfseries Default\+Shape\+Enumeration} (const S \&shape, bool use\+\_\+dict\+\_\+=false)\label{classwaveblocks_1_1_default_shape_enumeration_ae1e8c2f51bcd7cf13e39f892e95eddc9}
+
+\item 
+std\+::size\+\_\+t \hyperlink{classwaveblocks_1_1_default_shape_enumeration_aab6571cd94ba28768c569626af5a66a3}{n\+\_\+slices} () const override
+\item 
+std\+::size\+\_\+t \hyperlink{classwaveblocks_1_1_default_shape_enumeration_a5fc46846d7763190f1911b542bfec103}{size} () const override
+\begin{DoxyCompactList}\small\item\em returns number of nodes that are part of the shape \end{DoxyCompactList}\item 
+const \hyperlink{classwaveblocks_1_1_shape_slice}{Shape\+Slice}$<$ D $>$ \& \hyperlink{classwaveblocks_1_1_default_shape_enumeration_a323986feed57994f2049627e67cda2cc}{slice} (std\+::size\+\_\+t islice) const override
+\item 
+bool \hyperlink{classwaveblocks_1_1_default_shape_enumeration_a766b764e141186034ed942b25248f31a}{contains} (const std\+::array$<$ int, D $>$ \&index) const override
+\item 
+int \hyperlink{classwaveblocks_1_1_default_shape_enumeration_a6b6991c193523c2b66870c65c837b9e6}{bbox} (dim\+\_\+t axis) const override
+\begin{DoxyCompactList}\small\item\em retrieves the index of the outmost node in a given axis \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classwaveblocks_1_1_default_shape_enumeration_a6b6991c193523c2b66870c65c837b9e6}{}\index{waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}!bbox@{bbox}}
+\index{bbox@{bbox}!waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}}
+\subsubsection[{bbox}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, class Multi\+Index , class S $>$ int {\bf waveblocks\+::\+Default\+Shape\+Enumeration}$<$ D, Multi\+Index, S $>$\+::bbox (
+\begin{DoxyParamCaption}
+\item[{dim\+\_\+t}]{axis}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}\label{classwaveblocks_1_1_default_shape_enumeration_a6b6991c193523c2b66870c65c837b9e6}
+
+
+retrieves the index of the outmost node in a given axis 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classwaveblocks_1_1_shape_enumeration_a35eb99f86fca58c2983cf8b00432e8c2}{waveblocks\+::\+Shape\+Enumeration$<$ D $>$}.
+
+\hypertarget{classwaveblocks_1_1_default_shape_enumeration_a766b764e141186034ed942b25248f31a}{}\index{waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}!contains@{contains}}
+\index{contains@{contains}!waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}}
+\subsubsection[{contains}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, class Multi\+Index , class S $>$ bool {\bf waveblocks\+::\+Default\+Shape\+Enumeration}$<$ D, Multi\+Index, S $>$\+::contains (
+\begin{DoxyParamCaption}
+\item[{const std\+::array$<$ int, D $>$ \&}]{index}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}\label{classwaveblocks_1_1_default_shape_enumeration_a766b764e141186034ed942b25248f31a}
+\begin{DoxyReturn}{Returns}
+forwards 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classwaveblocks_1_1_shape_enumeration_af34f5d866923c3f4efc16dec49b4748d}{waveblocks\+::\+Shape\+Enumeration$<$ D $>$}.
+
+\hypertarget{classwaveblocks_1_1_default_shape_enumeration_aab6571cd94ba28768c569626af5a66a3}{}\index{waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}!n\+\_\+slices@{n\+\_\+slices}}
+\index{n\+\_\+slices@{n\+\_\+slices}!waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}}
+\subsubsection[{n\+\_\+slices}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, class Multi\+Index , class S $>$ std\+::size\+\_\+t {\bf waveblocks\+::\+Default\+Shape\+Enumeration}$<$ D, Multi\+Index, S $>$\+::n\+\_\+slices (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}\label{classwaveblocks_1_1_default_shape_enumeration_aab6571cd94ba28768c569626af5a66a3}
+\begin{DoxyReturn}{Returns}
+number of (ideally non-\/empty) slices 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classwaveblocks_1_1_shape_enumeration_a6400c5e4f36b8077b253a18e91d07fb4}{waveblocks\+::\+Shape\+Enumeration$<$ D $>$}.
+
+\hypertarget{classwaveblocks_1_1_default_shape_enumeration_a5fc46846d7763190f1911b542bfec103}{}\index{waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}!size@{size}}
+\index{size@{size}!waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}}
+\subsubsection[{size}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, class Multi\+Index , class S $>$ std\+::size\+\_\+t {\bf waveblocks\+::\+Default\+Shape\+Enumeration}$<$ D, Multi\+Index, S $>$\+::size (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}\label{classwaveblocks_1_1_default_shape_enumeration_a5fc46846d7763190f1911b542bfec103}
+
+
+returns number of nodes that are part of the shape 
+
+\begin{DoxyReturn}{Returns}
+number of nodes 
+\end{DoxyReturn}
+
+
+Reimplemented from \hyperlink{classwaveblocks_1_1_shape_enumeration_aa40d5659e3c109d8c77144208a9e1c2c}{waveblocks\+::\+Shape\+Enumeration$<$ D $>$}.
+
+\hypertarget{classwaveblocks_1_1_default_shape_enumeration_a323986feed57994f2049627e67cda2cc}{}\index{waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}!slice@{slice}}
+\index{slice@{slice}!waveblocks\+::\+Default\+Shape\+Enumeration@{waveblocks\+::\+Default\+Shape\+Enumeration}}
+\subsubsection[{slice}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, class Multi\+Index , class S $>$ const {\bf Shape\+Slice}$<$D$>$\& {\bf waveblocks\+::\+Default\+Shape\+Enumeration}$<$ D, Multi\+Index, S $>$\+::slice (
+\begin{DoxyParamCaption}
+\item[{std\+::size\+\_\+t}]{islice}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}\label{classwaveblocks_1_1_default_shape_enumeration_a323986feed57994f2049627e67cda2cc}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em islice} & index of requested slice \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+requested slice or empty slice if (islice $>$= \#slices) 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classwaveblocks_1_1_shape_enumeration_abb6ab9207b189e4e7b5e67345c4f2ea9}{waveblocks\+::\+Shape\+Enumeration$<$ D $>$}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/michaja/\+Documents/eth/libwaveblocks/waveblocks/shape\+\_\+enumeration\+\_\+default.\+hpp\end{DoxyCompactItemize}

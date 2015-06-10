@@ -1,0 +1,98 @@
+\hypertarget{classwaveblocks_1_1_evaluator}{}\section{waveblocks\+:\+:Evaluator$<$ D, N $>$ Class Template Reference}
+\label{classwaveblocks_1_1_evaluator}\index{waveblocks\+::\+Evaluator$<$ D, N $>$@{waveblocks\+::\+Evaluator$<$ D, N $>$}}
+
+
+{\ttfamily \#include $<$hagedorn\+\_\+basis\+\_\+evaluator.\+hpp$>$}
+
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+typedef Eigen\+::\+Matrix$<$ complex\+\_\+t, D, D $>$ \hyperlink{classwaveblocks_1_1_evaluator_a09bb8abec377b4651699c52d02447ad5}{C\+Matrix\+D\+D}
+\item 
+typedef Eigen\+::\+Array$<$ complex\+\_\+t, 1, N $>$ \hyperlink{classwaveblocks_1_1_evaluator_a49231d0afba65ca701dfdfb9f3c44c14}{C\+Array1\+N}
+\item 
+typedef Eigen\+::\+Matrix$<$ complex\+\_\+t, D, N $>$ \hyperlink{classwaveblocks_1_1_evaluator_ac9f759ecd07665903ed76d82ac68dc9a}{C\+Matrix\+D\+N}
+\item 
+\hypertarget{classwaveblocks_1_1_evaluator_aca0e8511e161fc288509f5cf7eeab0af}{}typedef Eigen\+::\+Matrix$<$ real\+\_\+t, D, N $>$ {\bfseries R\+Matrix\+D\+N}\label{classwaveblocks_1_1_evaluator_aca0e8511e161fc288509f5cf7eeab0af}
+
+\item 
+typedef Eigen\+::\+Array$<$ complex\+\_\+t, Eigen\+::\+Dynamic, N $>$ \hyperlink{classwaveblocks_1_1_evaluator_ae67334d6256ba6054f452a15d36c4941}{C\+Array\+X\+N}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classwaveblocks_1_1_evaluator_a2995a06e1a3e9ee459f2ed2186044933}{}{\bfseries Evaluator} (real\+\_\+t eps, std\+::shared\+\_\+ptr$<$ \hyperlink{structwaveblocks_1_1_hagedorn_parameter_set}{Hagedorn\+Parameter\+Set}$<$ D $>$ $>$ parameters, std\+::shared\+\_\+ptr$<$ \hyperlink{classwaveblocks_1_1_shape_enumeration}{Shape\+Enumeration}$<$ D $>$ $>$ enumeration, const \hyperlink{classwaveblocks_1_1_evaluator_ac9f759ecd07665903ed76d82ac68dc9a}{C\+Matrix\+D\+N} \&x)\label{classwaveblocks_1_1_evaluator_a2995a06e1a3e9ee459f2ed2186044933}
+
+\item 
+\hyperlink{classwaveblocks_1_1_evaluator_a49231d0afba65ca701dfdfb9f3c44c14}{C\+Array1\+N} \hyperlink{classwaveblocks_1_1_evaluator_a54a68a67c04f3c30e41687572e73998b}{seed} () const 
+\begin{DoxyCompactList}\small\item\em Evaluates value of the basis function with multi-\/index (0,0,...,0) \end{DoxyCompactList}\item 
+\hyperlink{classwaveblocks_1_1_evaluator_ae67334d6256ba6054f452a15d36c4941}{C\+Array\+X\+N} \hyperlink{classwaveblocks_1_1_evaluator_ae5070ca7d51cc6a28d8e3eeba3d6ddaf}{step} (std\+::size\+\_\+t islice, const \hyperlink{classwaveblocks_1_1_evaluator_ae67334d6256ba6054f452a15d36c4941}{C\+Array\+X\+N} \&prev\+\_\+basis, const \hyperlink{classwaveblocks_1_1_evaluator_ae67334d6256ba6054f452a15d36c4941}{C\+Array\+X\+N} \&curr\+\_\+basis) const 
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$dim\+\_\+t D, int N$>$class waveblocks\+::\+Evaluator$<$ D, N $>$}
+
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em N} & number of quadrature points (if unknown\+: use Eigen\+::\+Dynamic) \\
+\hline
+\end{DoxyTemplParams}
+
+
+\subsection{Member Typedef Documentation}
+\hypertarget{classwaveblocks_1_1_evaluator_a49231d0afba65ca701dfdfb9f3c44c14}{}\index{waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}!C\+Array1\+N@{C\+Array1\+N}}
+\index{C\+Array1\+N@{C\+Array1\+N}!waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}}
+\subsubsection[{C\+Array1\+N}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, int N$>$ typedef Eigen\+::\+Array$<$complex\+\_\+t,1,N$>$ {\bf waveblocks\+::\+Evaluator}$<$ D, N $>$\+::{\bf C\+Array1\+N}}\label{classwaveblocks_1_1_evaluator_a49231d0afba65ca701dfdfb9f3c44c14}
+array size\+: (1, \#quadrature points) \hypertarget{classwaveblocks_1_1_evaluator_ae67334d6256ba6054f452a15d36c4941}{}\index{waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}!C\+Array\+X\+N@{C\+Array\+X\+N}}
+\index{C\+Array\+X\+N@{C\+Array\+X\+N}!waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}}
+\subsubsection[{C\+Array\+X\+N}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, int N$>$ typedef Eigen\+::\+Array$<$complex\+\_\+t,Eigen\+::\+Dynamic,N$>$ {\bf waveblocks\+::\+Evaluator}$<$ D, N $>$\+::{\bf C\+Array\+X\+N}}\label{classwaveblocks_1_1_evaluator_ae67334d6256ba6054f452a15d36c4941}
+matrix size\+: (/unspecified/, \#quadrature points) \hypertarget{classwaveblocks_1_1_evaluator_a09bb8abec377b4651699c52d02447ad5}{}\index{waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}!C\+Matrix\+D\+D@{C\+Matrix\+D\+D}}
+\index{C\+Matrix\+D\+D@{C\+Matrix\+D\+D}!waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}}
+\subsubsection[{C\+Matrix\+D\+D}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, int N$>$ typedef Eigen\+::\+Matrix$<$complex\+\_\+t,D,D$>$ {\bf waveblocks\+::\+Evaluator}$<$ D, N $>$\+::{\bf C\+Matrix\+D\+D}}\label{classwaveblocks_1_1_evaluator_a09bb8abec377b4651699c52d02447ad5}
+complex square matrix size\+: (\#dimensions) \hypertarget{classwaveblocks_1_1_evaluator_ac9f759ecd07665903ed76d82ac68dc9a}{}\index{waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}!C\+Matrix\+D\+N@{C\+Matrix\+D\+N}}
+\index{C\+Matrix\+D\+N@{C\+Matrix\+D\+N}!waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}}
+\subsubsection[{C\+Matrix\+D\+N}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, int N$>$ typedef Eigen\+::\+Matrix$<$complex\+\_\+t,D,N$>$ {\bf waveblocks\+::\+Evaluator}$<$ D, N $>$\+::{\bf C\+Matrix\+D\+N}}\label{classwaveblocks_1_1_evaluator_ac9f759ecd07665903ed76d82ac68dc9a}
+matrix size\+: (\#dimensions, \#quadrature points) 
+
+\subsection{Member Function Documentation}
+\hypertarget{classwaveblocks_1_1_evaluator_a54a68a67c04f3c30e41687572e73998b}{}\index{waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}!seed@{seed}}
+\index{seed@{seed}!waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}}
+\subsubsection[{seed}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, int N$>$ {\bf C\+Array1\+N} {\bf waveblocks\+::\+Evaluator}$<$ D, N $>$\+::seed (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_evaluator_a54a68a67c04f3c30e41687572e73998b}
+
+
+Evaluates value of the basis function with multi-\/index (0,0,...,0) 
+
+\begin{DoxyReturn}{Returns}
+(1,N)-\/\+Matrix 
+\end{DoxyReturn}
+\hypertarget{classwaveblocks_1_1_evaluator_ae5070ca7d51cc6a28d8e3eeba3d6ddaf}{}\index{waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}!step@{step}}
+\index{step@{step}!waveblocks\+::\+Evaluator@{waveblocks\+::\+Evaluator}}
+\subsubsection[{step}]{\setlength{\rightskip}{0pt plus 5cm}template$<$dim\+\_\+t D, int N$>$ {\bf C\+Array\+X\+N} {\bf waveblocks\+::\+Evaluator}$<$ D, N $>$\+::step (
+\begin{DoxyParamCaption}
+\item[{std\+::size\+\_\+t}]{islice, }
+\item[{const {\bf C\+Array\+X\+N} \&}]{prev\+\_\+basis, }
+\item[{const {\bf C\+Array\+X\+N} \&}]{curr\+\_\+basis}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\label{classwaveblocks_1_1_evaluator_ae5070ca7d51cc6a28d8e3eeba3d6ddaf}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em islice} & ordinal of current slice \\
+\hline
+\mbox{\tt in}  & {\em prev\+\_\+basis} & basis values of previous slice \\
+\hline
+\mbox{\tt in}  & {\em curr\+\_\+basis} & basis values of current slice \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+computed basis values of next slice 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/michaja/\+Documents/eth/libwaveblocks/waveblocks/hagedorn\+\_\+basis\+\_\+evaluator.\+hpp\end{DoxyCompactItemize}

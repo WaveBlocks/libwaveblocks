@@ -7,7 +7,8 @@
 
 #include "hagedorn_parameter_set.hpp"
 
-#include "shape_enumeration_base.hpp"
+#include "shape_enum.hpp"
+#include "kahan_sum.hpp"
 
 namespace waveblocks {
 
@@ -16,8 +17,8 @@ namespace waveblocks {
  * 
  * \tparam N number of quadrature points (if unknown: use Eigen::Dynamic)
  */
-template<dim_t D, int N>
-class Evaluator
+template<dim_t D, class MultiIndex, int N>
+class HaWpEvaluator
 {
 public:
     /**
@@ -44,9 +45,9 @@ public:
 
 private:
     real_t eps_;
-    std::shared_ptr< HagedornParameterSet<D> > parameters_;
-    std::shared_ptr< ShapeEnumeration<D> > enumeration_;
-
+    const HagedornParameterSet<D>& parameters_;
+    const ShapeEnum<D,MultiIndex>& enumeration_;
+    
     /**
      * number of quadrature points
      */
@@ -78,9 +79,9 @@ private:
     std::vector<real_t> sqrt_;
     
 public:
-    Evaluator(real_t eps, 
-              std::shared_ptr< HagedornParameterSet<D> > parameters, 
-              std::shared_ptr< ShapeEnumeration<D> > enumeration,
+    HaWpEvaluator(real_t eps, 
+              const HagedornParameterSet<D>& parameters, 
+              const ShapeEnum<D,MultiIndex>& enumeration,
               const CMatrixDN &x)
         : eps_(eps)
         , parameters_(parameters)
@@ -88,8 +89,8 @@ public:
         , npts_(x.cols())
         , sqrt_()
     {
-        auto & q = parameters_->q;
-        auto & Q = parameters_->Q;
+        auto & q = parameters_.q;
+        auto & Q = parameters_.Q;
 
         // precompute ...
         dx_ = x.colwise() - q.template cast<complex_t>();
@@ -101,10 +102,12 @@ public:
         {
             int limit = 0;
             for (dim_t d = 0; d < D; d++)
-                limit = std::max(limit, enumeration_->bbox(d));
-
+                limit = std::max(limit, enumeration_.limit(d) );
+            
+            sqrt_.resize(limit+2);
+            
             for (int i = 0; i <= limit+1; i++)
-                sqrt_.push_back( std::sqrt( real_t(i) ) );
+                sqrt_[i] = std::sqrt( real_t(i) );
         }
     }
     
@@ -115,8 +118,8 @@ public:
      */
     CArray1N seed() const
     {
-        auto & P = parameters_->P;
-        auto & p = parameters_->p;
+        auto & P = parameters_.P;
+        auto & p = parameters_.p;
 
         CMatrixDN P_Qinv_dx = P*Qinv_dx_;
 
@@ -138,9 +141,9 @@ public:
                   const CArrayXN& prev_basis,
                   const CArrayXN& curr_basis) const
     {
-        const ShapeSlice<D>& prev_enum = enumeration_->slice(islice-1);
-        const ShapeSlice<D>& curr_enum = enumeration_->slice(islice);
-        const ShapeSlice<D>& next_enum = enumeration_->slice(islice+1);
+        auto & prev_enum = enumeration_.slice(islice-1);
+        auto & curr_enum = enumeration_.slice(islice);
+        auto & next_enum = enumeration_.slice(islice+1);
         
         CArrayXN next_basis = CArrayXN::Zero(next_enum.size(), npts_);
         
@@ -186,6 +189,43 @@ public:
         }
         
         return next_basis;
+    }
+    
+    /**
+     * \brief evaluates wavepacket in a memory efficient manner
+     */
+    Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients)
+    {
+        // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
+        KahanSum< Eigen::Array<complex_t,1,N> > psi( Eigen::Matrix<complex_t,1,N>::Zero(1,npts_) );
+        
+        Eigen::Array<complex_t,Eigen::Dynamic,N> prev_basis(0,npts_);
+        Eigen::Array<complex_t,Eigen::Dynamic,N> curr_basis(0,npts_);
+        Eigen::Array<complex_t,Eigen::Dynamic,N> next_basis(1,npts_);
+        
+        next_basis = seed();
+        
+        psi += coefficients[0]*next_basis.row(0).matrix();
+        
+        for (int islice = 0; islice < enumeration_.n_slices(); islice++) {
+            prev_basis = std::move(curr_basis);
+            curr_basis = std::move(next_basis);
+            
+            next_basis = step(islice, prev_basis, curr_basis);
+            
+            std::size_t offset = enumeration_.slice(islice+1).offset();
+            
+            for (long j = 0; j < next_basis.rows(); j++) {
+                complex_t cj = coefficients[offset + j];
+                
+                //prints: multi-index -> basis -> coefficient
+                //std::cout << enumeration->slice(islice+1)[j] << " -> " << next_basis.row(j).matrix() << " * " << cj << std::endl;
+                
+                psi += cj*next_basis.row(j).matrix();
+            }
+        }
+        
+        return psi();
     }
 };
 

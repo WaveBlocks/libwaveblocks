@@ -9,37 +9,56 @@
 
 namespace waveblocks {
 
+/**
+ * This class implements the hyperbolic cut basis shape which is a special 
+ * type of sparse basis set. A basis shape is essentially all information 
+ * and operations related to the set \f$ \mathfrak{K} \f$ of multi-indices \f$ \boldsymbol{k} \f$. 
+ * The hyperbolic cut shape in \f$ D \f$ dimensions with \e sparsity \f$S\f$ and 
+ * \e limits \f$ \boldsymbol{K} = (K_1,\ldots,K_D) \f$ is defined as the set
+ * 
+ * \f[
+ * \mathfrak{K}(D,S,\boldsymbol{K}) := \left\{(k_1,\dots,k_D) \mid 
+ *      \displaystyle\prod_{d=1}^{D} (1+k_d) \leq S \right\}
+ * \f]
+ * 
+ * \tparam D number of dimensions
+ */
 template<dim_t D>
 class HyperbolicCutShape
 {
 private:
-    double S_;
+    int S_;
     
 public:
-    HyperbolicCutShape(double K) : S_(K) {}
+    /**
+     * \brief General constructor to set sparsity parameter \f$ S \f$
+     * 
+     * \param S sparsity parameter \f$ S \f$
+     */
+    HyperbolicCutShape(int S) : S_(S) {}
     
-    HyperbolicCutShape(const HyperbolicCutShape &that) : S_(that.S_) {}
-    
-    HyperbolicCutShape &operator=(const HyperbolicCutShape &that)
-    {
-        S_ = that.S_;
-        return *this;
-    }
-    
+    /**
+     * \sa HyperCubicShape#bbox
+     */
     int bbox(dim_t axis) const
     {
         (void)(axis); //suppress -Wunused-parameter
-        return std::floor(S_-1.0);
+        return S_ - 1;
     }
     
+    
+    
+    /**
+     * \sa HyperCubicShape#limit
+     */
     template<class MultiIndex>
-    int limit(const MultiIndex &coordinate, dim_t axis) const
+    int limit(const MultiIndex &base_node, dim_t axis) const
     {
         double s = S_;
         
         for (dim_t i = 0; i < D; i++) {
             if (i != axis) {
-                s /= 1 + coordinate[i];
+                s /= 1 + base_node[i];
             }
         }
         
@@ -57,35 +76,46 @@ public:
 };
 
 /**
+ * This class implements the hyperbolic cut basis shape which is a special 
+ * type of sparse basis set. A basis shape is essentially all information 
+ * and operations related to the set \f$ \mathfrak{K} \f$ of multi-indices \f$ \boldsymbol{k} \f$. 
+ * The limited hyperbolic cut shape in \f$ D \f$ dimensions with \e sparsity \f$S\f$ and 
+ * \e limits \f$ \boldsymbol{K} = (K_1,\ldots,K_D) \f$ is defined as the set
+ * 
  * \f[
- * \mathfrak{K}(D,S,K) := {(k_1,\dots,k_D) | 
- *      0 \leq k_d < K_d \forall d \in [1,\dots,D] \land
- *      \displaystyle\prod_{d=1}^{D} (1+k_d) \leq S}
+ * \mathfrak{K}(D,S,\boldsymbol{K}) := \left\{(k_1,\dots,k_D) \mid 
+ *      0 \leq k_d < K_d \; \forall d \in \{ 1,\ldots,D \} \land
+ *      \displaystyle\prod_{d=1}^{D} (1+k_d) \leq S \right\}
  * \f]
- * \tparam D number of multi-index dimensions
+ * 
+ * \tparam D number of dimensions
  */
 template<dim_t D>
 class LimitedHyperbolicCutShape
 {
 private:
-    double S_;
+    int S_;
     std::array<int,D> limits_;
     
 public:
     /**
-     * \param S sparsity parameter S
-     * \param limits list of all limits
+     * \brief General constructor to define sparsity parameter and limits.
+     * 
+     * \param S sparsity parameter \f$ S \f$ 
+     * \param limits tuple of all limits \f$ \boldsymbol{K} \f$ 
      */
-    LimitedHyperbolicCutShape(double S, const std::array<int,D> &limits)
+    LimitedHyperbolicCutShape(int S, const std::array<int,D> &limits)
         : S_(S)
         , limits_(limits) 
     { }
     
     /**
-     * \brief S sparsity parameter S
-     * \brief 
+     * \brief Specialized constructor to set all limits \f$ K_d \f$ to the same value \f$ K^\star \f$.
+     * 
+     * \param S sparsity parameter \f$ S \f$ 
+     * \param size \f$ K^\star \f$
      */
-    LimitedHyperbolicCutShape(double S, int size)
+    LimitedHyperbolicCutShape(int S, int size)
         : S_(S)
     {
         for (std::size_t d = 0; d < D; d++)
@@ -93,10 +123,12 @@ public:
     }
     
     /**
-     * \brief S sparsity parame S
-     * \brief list of all limits
+     * \brief General constructor to define sparsity parameter and limits.
+     * 
+     * \param S sparsity parameter \f$ S \f$ 
+     * \param list list of all limits \f$ \boldsymbol{K} \f$ 
      */
-    LimitedHyperbolicCutShape(double S, std::initializer_list<int> list)
+    LimitedHyperbolicCutShape(int S, std::initializer_list<int> list)
         : S_(S)
     {
         int deflt = 0;
@@ -111,27 +143,27 @@ public:
     }
     
     /**
-     * 
+     * \sa HyperCubicShape#bbox
      */
     int bbox(dim_t axis) const
     {
-        return std::min( limits_[axis]-1, (int)S_ - 1);
+        return std::min( limits_[axis]-1, S_ - 1);
     }
     
     /**
-     * 
+     * \sa HyperCubicShape#limit
      */
     template<class MultiIndex>
-    int limit(const MultiIndex &coordinate, dim_t axis) const
+    int limit(const MultiIndex &base_node, dim_t axis) const
     {
         double s = S_;
         
         for (dim_t i = 0; i < D; i++) {
             if (i != axis) {
-                if (coordinate[i] >= limits_[i])
+                if (base_node[i] >= limits_[i])
                     return -1;
                 else
-                    s /= 1 + coordinate[i];
+                    s /= 1 + base_node[i];
             }
         }
         

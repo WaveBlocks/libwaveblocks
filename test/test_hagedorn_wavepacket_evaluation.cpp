@@ -7,8 +7,13 @@
 
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/shape_hyperbolic.hpp"
-#include "waveblocks/hagedorn_wavepacket.hpp"
+
 #include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/shape_enum.hpp"
+#include "waveblocks/shape_enumerator.hpp"
+
+#include "waveblocks/hawp.hpp"
+
 #include "sample_wavepacket.hpp"
 
 #include "check_shape_enumeration.hpp"
@@ -24,15 +29,16 @@ int main(int argc, char *argv[])
     
     S shape(7.0, {5});
     
-    std::shared_ptr< HagedornParameterSet<D> > parameters = createSampleParameters<D>();
+    ShapeEnumerator<D, MultiIndex> enumerator;
+    ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(shape);
     
-    //std::cout << *parameters << std::endl;
-
-    std::shared_ptr< ShapeEnumeration<D> > enumeration( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
+    HagedornParameterSet<D> parameters = createSampleParameters<D>();
     
-    checkShapeEnumeration(*enumeration, "wavepacket shape enumeration");
+    std::vector<complex_t> coefficients = createSampleCoefficients(shape_enum);
     
-    HagedornWavepacket<D> wavepacket(0.9, parameters, enumeration, createSampleCoefficients<D>(enumeration));
+    double eps = 0.9;
+    
+    checkShapeEnumeration(shape_enum, "wavepacket shape enumeration");
     
     // evaluate wavepacket at a chosen location
     {
@@ -44,18 +50,20 @@ int main(int argc, char *argv[])
         }
         
         double start = getRealTime();
-        auto psi = wavepacket(x);
+        
+        auto psi = hawp::basis(eps, parameters, shape_enum).at(x).reduce(coefficients);
+        
         double stop = getRealTime();
         
         std::cout << "   x: " << x.transpose() << '\n';
         std::cout << "   psi: " << psi.transpose() << '\n';
-        std::cout << "   psi (with prefactor): " << psi.transpose()*wavepacket.prefactor() << std::endl;
+        std::cout << "   psi (with prefactor): " << psi.transpose()*hawp::prefactor(parameters) << std::endl;
         std::cout << "   time: " << (stop - start) << '\n';
         std::cout << "}" << std::endl; //10.4
     }
     
     if (argc == 2)
-        compareWavepacketToReferenceFile(wavepacket, argv[1]);
+        compareWavepacketToReferenceFile(eps, parameters, shape_enum, coefficients, argv[1]);
 
     return 0;
 }
