@@ -45,8 +45,8 @@ public:
 
 private:
     real_t eps_;
-    const HagedornParameterSet<D>& parameters_;
-    const ShapeEnum<D,MultiIndex>& enumeration_;
+    const HagedornParameterSet<D>* parameters_;
+    const ShapeEnum<D,MultiIndex>* enumeration_;
     
     /**
      * number of quadrature points
@@ -80,8 +80,8 @@ private:
     
 public:
     HaWpEvaluator(real_t eps, 
-              const HagedornParameterSet<D>& parameters, 
-              const ShapeEnum<D,MultiIndex>& enumeration,
+              const HagedornParameterSet<D>* parameters, 
+              const ShapeEnum<D,MultiIndex>* enumeration,
               const CMatrixDN &x)
         : eps_(eps)
         , parameters_(parameters)
@@ -89,8 +89,8 @@ public:
         , npts_(x.cols())
         , sqrt_()
     {
-        auto & q = parameters_.q;
-        auto & Q = parameters_.Q;
+        auto & q = parameters_->q;
+        auto & Q = parameters_->Q;
 
         // precompute ...
         dx_ = x.colwise() - q.template cast<complex_t>();
@@ -102,7 +102,7 @@ public:
         {
             int limit = 0;
             for (dim_t d = 0; d < D; d++)
-                limit = std::max(limit, enumeration_.limit(d) );
+                limit = std::max(limit, enumeration_->limit(d) );
             
             sqrt_.resize(limit+2);
             
@@ -118,8 +118,8 @@ public:
      */
     CArray1N seed() const
     {
-        auto & P = parameters_.P;
-        auto & p = parameters_.p;
+        auto & P = parameters_->P;
+        auto & p = parameters_->p;
 
         CMatrixDN P_Qinv_dx = P*Qinv_dx_;
 
@@ -141,9 +141,9 @@ public:
                   const CArrayXN& prev_basis,
                   const CArrayXN& curr_basis) const
     {
-        auto & prev_enum = enumeration_.slice(islice-1);
-        auto & curr_enum = enumeration_.slice(islice);
-        auto & next_enum = enumeration_.slice(islice+1);
+        auto & prev_enum = enumeration_->slice(islice-1);
+        auto & curr_enum = enumeration_->slice(islice);
+        auto & next_enum = enumeration_->slice(islice+1);
         
         CArrayXN next_basis = CArrayXN::Zero(next_enum.size(), npts_);
         
@@ -207,13 +207,13 @@ public:
         
         psi += coefficients[0]*next_basis.row(0).matrix();
         
-        for (int islice = 0; islice < enumeration_.n_slices(); islice++) {
+        for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
             curr_basis = std::move(next_basis);
             
             next_basis = step(islice, prev_basis, curr_basis);
             
-            std::size_t offset = enumeration_.slice(islice+1).offset();
+            std::size_t offset = enumeration_->slice(islice+1).offset();
             
             for (long j = 0; j < next_basis.rows(); j++) {
                 complex_t cj = coefficients[offset + j];

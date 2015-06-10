@@ -8,17 +8,17 @@
 #include "waveblocks/shape_hyperbolic.hpp"
 #include "waveblocks/shape_extended.hpp"
 
-#include "waveblocks/shape_enumeration_default.hpp"
+#include "waveblocks/shape_enum.hpp"
+#include "waveblocks/shape_enumerator.hpp"
 
-#include "waveblocks/hagedorn_wavepacket.hpp"
-#include "waveblocks/hagedorn_gradient_operator.hpp"
+#include "waveblocks/hawp.hpp"
 
 #include "waveblocks/tiny_multi_index.hpp"
 
 #include "sample_wavepacket.hpp"
 
 #include "check_shape_enumeration.hpp"
-#include "check_wavepacket.hpp"
+//#include "check_wavepacket.hpp"
 #include "check_coefficients.hpp"
 
 using namespace waveblocks;
@@ -34,23 +34,24 @@ int main(int argc, char* argv[])
     
     S shape(9,{4,4,4,4,4});
     
-    auto parameters = createSampleParameters<D>();
-
-    std::shared_ptr< ShapeEnumeration<D> > wave_enum( new DefaultShapeEnumeration<D,MultiIndex,S>(shape) );
+    HagedornParameterSet<D> parameters = createSampleParameters<D>();
     
-    std::shared_ptr< ShapeEnumeration<D> > grad_enum( new DefaultShapeEnumeration<D,MultiIndex,ExtendedShape<D,S> >( ExtendedShape<D,S> {shape} ));
+    ShapeEnumerator<D,MultiIndex> enumerator;
     
-    checkShapeEnumeration(*wave_enum, "wavepacket enumeration");
-    checkShapeEnumeration(*grad_enum, "gradient enumeration");
+    ShapeEnum<D,MultiIndex> wave_enum = enumerator.generate(shape);
+    ShapeEnum<D,MultiIndex> grad_enum = enumerator.generate( ExtendedShape<D,S>{shape} );
     
-    auto wave_coeffs = createSampleCoefficients<D>(wave_enum);
+    checkShapeEnumeration(wave_enum, "wavepacket enumeration");
+    checkShapeEnumeration(grad_enum, "gradient enumeration");
     
-    HagedornWavepacket<D> wavepacket(0.9, parameters, wave_enum, {{wave_coeffs}});
+    std::vector<complex_t> wave_coeffs = createSampleCoefficients<D>(wave_enum);
     
-    GradientOperator<D> nabla(grad_enum);
+    double eps = 0.9;
+    
+    auto basis = hawp::basis(eps, &parameters, &wave_enum);
     
     start = getRealTime();
-    std::array< HagedornWavepacket<D>, D> gradient = nabla(wavepacket);
+    std::array< std::vector<complex_t>, D> grad_coeffs = hawp::nabla(basis, &grad_enum).apply(wave_coeffs);
     stop = getRealTime();
     std::cout << "[TIME] apply gradient: " << (stop - start) << std::endl;
     
@@ -63,8 +64,12 @@ int main(int argc, char* argv[])
             x(d,0) = (d+1)/real_t(2*D);
         
         start = getRealTime();
-        for (auto & dir : gradient)
-            std::cout << "   " << dir(x) << std::endl;
+        
+        auto evaluator = basis.at(x);
+        
+        for (auto & dir : grad_coeffs)
+            std::cout << "   " << evaluator.reduce(dir) << std::endl;
+        
         stop = getRealTime();
         std::cout << "   time: " << (stop - start) << '\n';
         std::cout << "}" << std::endl;
@@ -72,7 +77,7 @@ int main(int argc, char* argv[])
     
     //compare coefficients to csv file
     if (argc == 3) {
-        compareCoefficientsToReferenceFile(gradient, argv[1]);
+        compareCoefficientsToReferenceFile(argv[1], &grad_enum, grad_coeffs);
         //compareWavepacketToReferenceFile(gradient, argv[2]);
     }
 

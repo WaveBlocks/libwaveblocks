@@ -94,38 +94,39 @@ public:
         return table_.cend();
     }
     
-    std::array<int,D> operator[](std::size_t ordinal) const
+    MultiIndex operator[](std::size_t ordinal) const
     {
         assert(ordinal < size());
         
-        return static_cast< std::array<int,D> >( table_[ordinal] );
+        return table_[ordinal];
     }
     
-    std::size_t find(const std::array<int,D> &_index) const
+    bool try_find(const MultiIndex& index, std::size_t& ordinal) const
     {
-        MultiIndex index(_index);
-        
         std::less< MultiIndex > comp;
         
         auto it = std::lower_bound(table_.begin(), table_.end(), index, comp);
         
-        if (*it == index)
-            return it - table_.begin();
-        else
-            throw std::invalid_argument("slice does not contain multi-index");
-        
-//         if (use_dict_) {
-//             
-//             auto it = dict_.find(index);
-//             if (it == dict_.end())
-//                 throw std::invalid_argument("slice does not contain multi-index");
-//             else
-//                 return it->second;
-//             
-//         }
+        if (it != table_.end() && *it == index) {
+            ordinal = it - table_.begin();
+            return true;
+        }
+        else {
+            return false;
+        }
     }
     
-    std::array<std::size_t,D> find_backward_neighbours(const std::array<int,D> &_index) const
+    std::size_t find(const MultiIndex& index) const
+    {
+        std::size_t ordinal;
+        
+        if (!try_find(index, ordinal))
+            throw std::invalid_argument("slice does not contain multi-index");
+        
+        return ordinal;
+    }
+    
+    std::array<std::size_t,D> find_backward_neighbours(const MultiIndex& _index) const
     {
         std::array<std::size_t,D> ordinals{}; //zero initialize
         

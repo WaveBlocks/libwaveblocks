@@ -6,15 +6,15 @@
 #include <fstream>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/hagedorn_wavepacket.hpp"
+#include "waveblocks/shape_enum.hpp"
 
 namespace waveblocks {
 
-template<dim_t D>
-void compareCoefficientsToReferenceFile(const std::array< HagedornWavepacket<D>, D> &gradient, const char *filename)
+template<dim_t D, class MultiIndex>
+void compareCoefficientsToReferenceFile(const char *filename, 
+                                        const ShapeEnum<D, MultiIndex>* enumeration, 
+                                        const std::array< std::vector<complex_t>, std::size_t(D)> &coeffs)
 {
-    auto enumeration = gradient[0].enumeration();
-    
     std::cout << "compare wavepacket coefficients to reference file {" << std::endl;
     std::ifstream csv(filename);
     if (csv.fail())
@@ -54,10 +54,11 @@ void compareCoefficientsToReferenceFile(const std::array< HagedornWavepacket<D>,
             
             int islice = std::accumulate(index.begin(), index.end(), int(0));
             
-            if (enumeration->contains(index)) {
+            std::size_t ordinal;
+            if (enumeration->slice(islice).try_find( MultiIndex{index}, ordinal )) {
                 Eigen::Matrix<complex_t,D,1> coeff;
                 for (int d = 0; d < D; d++) {
-                    coeff(d,0) = gradient[d].coefficients()[ enumeration->slice(islice).offset() + enumeration->slice(islice).find(index) ];
+                    coeff(d,0) = coeffs[d][ enumeration->slice(islice).offset() + enumeration->slice(islice).find(index) ];
                 }
                 
                 real_t error = (coeff - ref).norm()/ref.norm();

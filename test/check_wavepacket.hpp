@@ -48,7 +48,7 @@ void compareWavepacketToReferenceFile(double eps,
         if (in.good()) {
             ++lines;
             
-            complex_t psi = hawp::basis(eps,parameters,enumeration).at(x).reduce(coefficients)(0,0);
+            complex_t psi = hawp::basis(eps,&parameters,&enumeration).at(x).reduce(coefficients)(0,0);
             
             auto error = std::norm(psi - ref)/std::norm(ref);
             

@@ -12,24 +12,33 @@
 #include "basic_types.hpp"
 #include "math_util.hpp"
 #include "hagedorn_parameter_set.hpp"
-#include "hawp_evaluator.hpp"
 #include "shape_enum.hpp"
+
+#include "hawp_evaluator.hpp"
+#include "hawp_gradient.hpp"
 
 #include "kahan_sum.hpp"
 
 namespace waveblocks {
 
 template<dim_t D, class MultiIndex>
-class HaWpBasis
+struct HaWpBasis
 {
 public:
     double eps;
-    const HagedornParameterSet<D>& parameters;
-    const ShapeEnum<D,MultiIndex>& enumeration;
+    const HagedornParameterSet<D>* parameters;
+    const ShapeEnum<D,MultiIndex>* enumeration;
+    
+    HaWpBasis() = default;
+    HaWpBasis(const HaWpBasis& that) = default;
+    HaWpBasis(HaWpBasis&& that) = default;
+    
+    HaWpBasis &operator=(const HaWpBasis& that) = default;
+    HaWpBasis &operator=(HaWpBasis&& that) = default;
     
     HaWpBasis(double eps, 
-              const HagedornParameterSet<D>& parameters,
-              const ShapeEnum<D,MultiIndex>& enumeration)
+              const HagedornParameterSet<D>* parameters,
+              const ShapeEnum<D,MultiIndex>* enumeration)
         : eps(eps)
         , parameters(parameters)
         , enumeration(enumeration)
@@ -53,8 +62,8 @@ namespace hawp {
 
 template<dim_t D, class MultiIndex>
 HaWpBasis<D,MultiIndex> basis(double eps, 
-                              const HagedornParameterSet<D>& parameters,
-                              const ShapeEnum<D,MultiIndex>& enumeration)
+                              const HagedornParameterSet<D>* parameters,
+                              const ShapeEnum<D,MultiIndex>* enumeration)
 {
     return {eps, parameters, enumeration};
 }
@@ -65,7 +74,23 @@ complex_t prefactor(const HagedornParameterSet<D>& paramaters)
     return real_t(1)/paramaters.sqrt_detQ();;
 }
 
+template<dim_t D, class MultiIndex>
+GradientOperator<D,MultiIndex> nabla(double eps, 
+                                     const HagedornParameterSet<D>* parameters,
+                                     const ShapeEnum<D,MultiIndex>* base_enum,
+                                     const ShapeEnum<D,MultiIndex>* grad_enum)
+{
+    return {eps, parameters, base_enum, grad_enum};
 }
+
+template<dim_t D, class MultiIndex>
+GradientOperator<D,MultiIndex> nabla(const HaWpBasis<D,MultiIndex>& basis,
+                                     const ShapeEnum<D,MultiIndex>* grad_enum)
+{
+    return {basis.eps, basis.parameters, basis.enumeration, grad_enum};
+}
+
+} // namespace hawp
 
 }
 

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         
         double start = getRealTime();
         
-        auto psi = hawp::basis(eps, parameters, shape_enum).at(x).reduce(coefficients);
+        auto psi = hawp::basis(eps, &parameters, &shape_enum).at(x).reduce(coefficients);
         
         double stop = getRealTime();
         
