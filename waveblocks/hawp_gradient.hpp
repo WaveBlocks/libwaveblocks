@@ -6,7 +6,7 @@
 
 #include <Eigen/Core>
 
-#include "hagedorn_parameter_set.hpp"
+#include "hawp_paramset.hpp"
 #include "shape_enum.hpp"
 
 namespace waveblocks {
@@ -17,7 +17,7 @@ class GradientOperator
 private:
     double eps_;
     
-    const HagedornParameterSet<D>* parameters_;
+    const HaWpParamSet<D>* parameters_;
     
     /**
      * \brief enumeration of basic shape
@@ -38,7 +38,7 @@ public:
     GradientOperator &operator=(GradientOperator&& that) = default;
     
     GradientOperator(double eps,
-                     const HagedornParameterSet<D>* parameters,
+                     const HaWpParamSet<D>* parameters,
                      const ShapeEnum<D,MultiIndex>* base_enum,
                      const ShapeEnum<D,MultiIndex>* grad_enum)
         : eps_(eps)

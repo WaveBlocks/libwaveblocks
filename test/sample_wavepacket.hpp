@@ -6,11 +6,11 @@
 
 #include "waveblocks/basic_types.hpp"
 #include "waveblocks/shape_enum.hpp"
-#include "waveblocks/hagedorn_parameter_set.hpp"
+#include "waveblocks/hawp_paramset.hpp"
 
 namespace waveblocks {
 template<dim_t D>
-HagedornParameterSet<D> createSampleParameters()
+HaWpParamSet<D> createSampleParameters()
 {
     Eigen::Matrix<real_t,D,1> q,p;
     Eigen::Matrix<complex_t,D,D> Q,P;

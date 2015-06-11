@@ -15,13 +15,13 @@
 namespace waveblocks {
 
 template<dim_t D>
-struct HagedornParameterSet
+struct HaWpParamSet
 {
     RMatrix<D,1> q, p;
     CMatrix<D,D> Q, P;
     ContinuousSqrt<real_t> sqrt_detQ;
     
-    HagedornParameterSet()
+    HaWpParamSet()
         : q(RMatrix<D,1>::Zero())
         , p(RMatrix<D,1>::Zero())
         , Q(CMatrix<D,D>::Identity())
@@ -29,7 +29,7 @@ struct HagedornParameterSet
         , sqrt_detQ() //detQ = 1.0 => sqrt(detQ) = 1.0
     { }
     
-    HagedornParameterSet(const HagedornParameterSet &that)
+    HaWpParamSet(const HaWpParamSet &that)
         : q(that.q)
         , p(that.p)
         , Q(that.Q)
@@ -37,7 +37,7 @@ struct HagedornParameterSet
         , sqrt_detQ(that.sqrt_detQ)
     { }
     
-    HagedornParameterSet(const RMatrix<D,1> &q, const RMatrix<D,1> &p, const CMatrix<D,D> &Q, const CMatrix<D,D> &P)
+    HaWpParamSet(const RMatrix<D,1> &q, const RMatrix<D,1> &p, const CMatrix<D,D> &Q, const CMatrix<D,D> &P)
         : q(q)
         , p(p)
         , Q(Q)
@@ -45,7 +45,7 @@ struct HagedornParameterSet
         , sqrt_detQ( std::sqrt(Q.determinant()) ) //choose 1st root
     { }
     
-    HagedornParameterSet(const RMatrix<D,1> &q, const RMatrix<D,1> &p, const CMatrix<D,D> &Q, const CMatrix<D,D> &P, ContinuousSqrt<real_t> sqrt_detQ)
+    HaWpParamSet(const RMatrix<D,1> &q, const RMatrix<D,1> &p, const CMatrix<D,D> &Q, const CMatrix<D,D> &P, ContinuousSqrt<real_t> sqrt_detQ)
         : q(q)
         , p(p)
         , Q(Q)
@@ -53,7 +53,7 @@ struct HagedornParameterSet
         , sqrt_detQ(sqrt_detQ)
     { }
     
-    HagedornParameterSet &operator=(const HagedornParameterSet &that)
+    HaWpParamSet &operator=(const HaWpParamSet &that)
     {
         q = that.q;
         p = that.p;
@@ -80,7 +80,7 @@ struct HagedornParameterSet
     /**
      * 
      */
-    std::pair< RMatrix<D,1>, RMatrix<D,D> > mix(const HagedornParameterSet<D>& other) const
+    std::pair< RMatrix<D,1>, RMatrix<D,D> > mix(const HaWpParamSet<D>& other) const
     {
         // Mix the parameters
         CMatrix<D,D> Gr = P * Q.inverse();
@@ -100,12 +100,12 @@ struct HagedornParameterSet
 };
 
 template<dim_t D>
-std::ostream &operator<<(std::ostream &out, const HagedornParameterSet<D> &parameters)
+std::ostream &operator<<(std::ostream &out, const HaWpParamSet<D> &parameters)
 {
     Eigen::IOFormat matrix_format(Eigen::StreamPrecision, 0, ", ", ",\n", "[", "]", "[", "]");
     
     out << "--------------------\n";
-    out << "HagedornParameterSet\n";
+    out << "HaWpParamSet\n";
     out << "#q: \n" << parameters.q.format(matrix_format) << '\n';
     out << "#p: \n" << parameters.p.format(matrix_format) << '\n';
     out << "#Q: \n" << parameters.Q.format(matrix_format) << '\n';

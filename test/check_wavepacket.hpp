@@ -18,7 +18,7 @@ namespace waveblocks {
  */
 template<dim_t D, class MultiIndex>
 void compareWavepacketToReferenceFile(double eps,
-                                      const HagedornParameterSet<D>& parameters,
+                                      const HaWpParamSet<D>& parameters,
                                       const ShapeEnum<D,MultiIndex>& enumeration,
                                       const std::vector<complex_t>& coefficients,
                                       const char *filename)

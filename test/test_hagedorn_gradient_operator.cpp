@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     
     S shape(9,{4,4,4,4,4});
     
-    HagedornParameterSet<D> parameters = createSampleParameters<D>();
+    HaWpParamSet<D> parameters = createSampleParameters<D>();
     
     ShapeEnumerator<D,MultiIndex> enumerator;
     

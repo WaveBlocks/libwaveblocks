@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(shape);
     
-    HagedornParameterSet<D> parameters = createSampleParameters<D>();
+    HaWpParamSet<D> parameters = createSampleParameters<D>();
     
     std::vector<complex_t> coefficients = createSampleCoefficients(shape_enum);
     

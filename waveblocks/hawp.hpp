@@ -11,7 +11,7 @@
 
 #include "basic_types.hpp"
 #include "math_util.hpp"
-#include "hagedorn_parameter_set.hpp"
+#include "hawp_paramset.hpp"
 #include "shape_enum.hpp"
 
 #include "hawp_evaluator.hpp"
@@ -26,7 +26,7 @@ struct HaWpBasis
 {
 public:
     double eps;
-    const HagedornParameterSet<D>* parameters;
+    const HaWpParamSet<D>* parameters;
     const ShapeEnum<D,MultiIndex>* enumeration;
     
     HaWpBasis() = default;
@@ -37,7 +37,7 @@ public:
     HaWpBasis &operator=(HaWpBasis&& that) = default;
     
     HaWpBasis(double eps, 
-              const HagedornParameterSet<D>* parameters,
+              const HaWpParamSet<D>* parameters,
               const ShapeEnum<D,MultiIndex>* enumeration)
         : eps(eps)
         , parameters(parameters)
@@ -62,21 +62,21 @@ namespace hawp {
 
 template<dim_t D, class MultiIndex>
 HaWpBasis<D,MultiIndex> basis(double eps, 
-                              const HagedornParameterSet<D>* parameters,
+                              const HaWpParamSet<D>* parameters,
                               const ShapeEnum<D,MultiIndex>* enumeration)
 {
     return {eps, parameters, enumeration};
 }
 
 template<dim_t D>
-complex_t prefactor(const HagedornParameterSet<D>& paramaters)
+complex_t prefactor(const HaWpParamSet<D>& paramaters)
 {
     return real_t(1)/paramaters.sqrt_detQ();;
 }
 
 template<dim_t D, class MultiIndex>
 GradientOperator<D,MultiIndex> nabla(double eps, 
-                                     const HagedornParameterSet<D>* parameters,
+                                     const HaWpParamSet<D>* parameters,
                                      const ShapeEnum<D,MultiIndex>* base_enum,
                                      const ShapeEnum<D,MultiIndex>* grad_enum)
 {

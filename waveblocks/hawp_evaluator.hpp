@@ -5,7 +5,7 @@
 
 #include <Eigen/Core>
 
-#include "hagedorn_parameter_set.hpp"
+#include "hawp_paramset.hpp"
 
 #include "shape_enum.hpp"
 #include "kahan_sum.hpp"
@@ -45,7 +45,7 @@ public:
 
 private:
     real_t eps_;
-    const HagedornParameterSet<D>* parameters_;
+    const HaWpParamSet<D>* parameters_;
     const ShapeEnum<D,MultiIndex>* enumeration_;
     
     /**
@@ -80,7 +80,7 @@ private:
     
 public:
     HaWpEvaluator(real_t eps, 
-              const HagedornParameterSet<D>* parameters, 
+              const HaWpParamSet<D>* parameters, 
               const ShapeEnum<D,MultiIndex>* enumeration,
               const CMatrixDN &x)
         : eps_(eps)
