@@ -11,8 +11,8 @@ add_executable(test_hawp_gradient
     util/time.cpp
 )
 
-add_executable(test_hawp_homo
-    test_hawp_homo.cpp
+add_executable(test_shape_union
+    test_shape_union.cpp
     util/time.cpp
 )
 

@@ -156,6 +156,16 @@ public:
         
         return ordinals;
     }
+    
+    bool operator==(const ShapeSlice& that) const
+    {
+        return table_ == that.table_;
+    }
+    
+    bool operator!=(const ShapeSlice& that) const
+    {
+        return table_ != that.table_;
+    }
 };
 
 template<dim_t D, class MultiIndex>
@@ -249,6 +259,24 @@ public:
     int limit(dim_t axis) const
     {
         return limits_[axis];
+    }
+    
+    bool operator==(const ShapeEnum &that) const
+    {
+        if (n_entries_ != that.n_entries_)
+            return false;
+        
+        for (int islice = n_entries_-1; islice >= 0; islice--) {
+            if (slice(islice) != that.slice(islice))
+                return false;
+        }
+        
+        return true;
+    }
+    
+    bool operator!=(const ShapeEnum &that) const
+    {
+        return !operator==(that);
     }
 };
 
