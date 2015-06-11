@@ -12,7 +12,7 @@
 namespace waveblocks {
 
 template<dim_t D, class MultiIndex>
-class GradientOperator
+class HaWpGradientOperator
 {
 private:
     double eps_;
@@ -30,14 +30,14 @@ private:
     const ShapeEnum<D,MultiIndex>* grad_enum_;
     
 public:
-    GradientOperator() = default;
-    GradientOperator(const GradientOperator& that) = default;
-    GradientOperator(GradientOperator&& that) = default;
+    HaWpGradientOperator() = default;
+    HaWpGradientOperator(const HaWpGradientOperator& that) = default;
+    HaWpGradientOperator(HaWpGradientOperator&& that) = default;
     
-    GradientOperator &operator=(const GradientOperator& that) = default;
-    GradientOperator &operator=(GradientOperator&& that) = default;
+    HaWpGradientOperator &operator=(const HaWpGradientOperator& that) = default;
+    HaWpGradientOperator &operator=(HaWpGradientOperator&& that) = default;
     
-    GradientOperator(double eps,
+    HaWpGradientOperator(double eps,
                      const HaWpParamSet<D>* parameters,
                      const ShapeEnum<D,MultiIndex>* base_enum,
                      const ShapeEnum<D,MultiIndex>* grad_enum)

@@ -75,7 +75,7 @@ complex_t prefactor(const HaWpParamSet<D>& paramaters)
 }
 
 template<dim_t D, class MultiIndex>
-GradientOperator<D,MultiIndex> nabla(double eps, 
+HaWpGradientOperator<D,MultiIndex> nabla(double eps, 
                                      const HaWpParamSet<D>* parameters,
                                      const ShapeEnum<D,MultiIndex>* base_enum,
                                      const ShapeEnum<D,MultiIndex>* grad_enum)
@@ -84,7 +84,7 @@ GradientOperator<D,MultiIndex> nabla(double eps,
 }
 
 template<dim_t D, class MultiIndex>
-GradientOperator<D,MultiIndex> nabla(const HaWpBasis<D,MultiIndex>& basis,
+HaWpGradientOperator<D,MultiIndex> nabla(const HaWpBasis<D,MultiIndex>& basis,
                                      const ShapeEnum<D,MultiIndex>* grad_enum)
 {
     return {basis.eps, basis.parameters, basis.enumeration, grad_enum};
