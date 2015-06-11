@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     
     double eps = 0.9;
     
-    auto basis = hawp::basis(eps, &parameters, &wave_enum);
+    HaWpBasis<D,MultiIndex> basis = hawp::basis(eps, &parameters, &wave_enum);
     
     start = getRealTime();
     std::array< std::vector<complex_t>, D> grad_coeffs = hawp::nabla(basis, &grad_enum).apply(wave_coeffs);
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
         
         start = getRealTime();
         
-        auto evaluator = basis.at(x);
+        HaWpEvaluator<D,MultiIndex,1> evaluator = basis.at(x);
         
         for (auto & dir : grad_coeffs)
             std::cout << "   " << evaluator.reduce(dir) << std::endl;

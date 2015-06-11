@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         
         double start = getRealTime();
         
-        auto psi = hawp::basis(eps, &parameters, &shape_enum).at(x).reduce(coefficients);
+        Eigen::Array<complex_t,1,1> psi = hawp::basis(eps, &parameters, &shape_enum).at(x).reduce(coefficients);
         
         double stop = getRealTime();
         
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         std::cout << "   psi: " << psi.transpose() << '\n';
         std::cout << "   psi (with prefactor): " << psi.transpose()*hawp::prefactor(parameters) << std::endl;
         std::cout << "   time: " << (stop - start) << '\n';
-        std::cout << "}" << std::endl; //10.4
+        std::cout << "}" << std::endl;
     }
     
     if (argc == 2)
