@@ -12,6 +12,9 @@
 
 namespace waveblocks {
 
+template<int N>
+using HaWpBasisVector = Eigen::Array<complex_t, Eigen::Dynamic, N>;
+
 /**
  * 
  * 
@@ -37,11 +40,6 @@ public:
      */
     typedef Eigen::Matrix<complex_t,D,N> CMatrixDN;
     typedef Eigen::Matrix<real_t,D,N> RMatrixDN;
-
-    /**
-     * matrix size: (/unspecified/, #quadrature points)
-     */
-    typedef Eigen::Array<complex_t,Eigen::Dynamic,N> CArrayXN;
 
 private:
     real_t eps_;
@@ -137,15 +135,18 @@ public:
      * \param[in] curr_basis basis values of current slice
      * \return computed basis values of next slice
      */
-    CArrayXN step(std::size_t islice,
-                  const CArrayXN& prev_basis,
-                  const CArrayXN& curr_basis) const
+    HaWpBasisVector<N> step(std::size_t islice,
+                  const HaWpBasisVector<N>& prev_basis,
+                  const HaWpBasisVector<N>& curr_basis) const
     {
         auto & prev_enum = enumeration_->slice(islice-1);
         auto & curr_enum = enumeration_->slice(islice);
         auto & next_enum = enumeration_->slice(islice+1);
         
-        CArrayXN next_basis = CArrayXN::Zero(next_enum.size(), npts_);
+        assert ((int)prev_enum.size() == prev_basis.rows());
+        assert ((int)curr_enum.size() == curr_basis.rows());
+        
+        HaWpBasisVector<N> next_basis(next_enum.size(), npts_);
         
         //loop over all multi-indices within next slice [j = position of multi-index within next slice]
         for (std::size_t j = 0; j < next_enum.size(); j++) {
@@ -192,16 +193,112 @@ public:
     }
     
     /**
+     * \brief evaluates complete basis
+     */
+    HaWpBasisVector<N> all() const
+    {
+        HaWpBasisVector<N> complete_basis(enumeration_->n_entries(), npts_);
+        
+        HaWpBasisVector<N> prev_basis(0,npts_);
+        HaWpBasisVector<N> curr_basis(0,npts_);
+        HaWpBasisVector<N> next_basis(1,npts_);
+        
+        next_basis = seed();
+        
+        for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
+            prev_basis = std::move(curr_basis);
+            curr_basis = std::move(next_basis);
+            
+            next_basis = step(islice, prev_basis, curr_basis);
+            
+            std::size_t offset = enumeration_->slice(islice+1).offset();
+            
+            complete_basis.block(offset, 0, offset+next_basis.rows(), npts_) = next_basis;
+        }
+        
+        return complete_basis;
+    }
+    
+    class const_iterator : public std::iterator<std::forward_iterator_tag, HaWpBasisVector<N> >
+    {
+    private:
+        const HaWpEvaluator* evaluator_;
+        int islice_;
+        HaWpBasisVector<N> prev_basis_;
+        HaWpBasisVector<N> curr_basis_;
+        
+    public:
+        const_iterator(const HaWpEvaluator* evaluator, int islice)
+            : evaluator_(evaluator)
+            , islice_(islice)
+            , prev_basis_(0, evaluator_->npts_)
+            , curr_basis_(0, evaluator_->npts_)
+        {
+            if (islice == 0) {
+                curr_basis_ = evaluator_->seed();
+            }
+        }
+        
+        // delete violates copy-constructible requirement of an iterator
+        const_iterator(const const_iterator& that) = delete; 
+        
+        // delete violates copy-assignable requirement of an iterator
+        const_iterator& operator=(const const_iterator& that) = delete;
+        
+        const_iterator& operator++()
+        {
+            HaWpBasisVector<N> next_basis = evaluator_->step(islice_, prev_basis_, curr_basis_);
+            
+            prev_basis_ = std::move(curr_basis_);
+            curr_basis_ = std::move(next_basis);
+            
+            ++islice_;
+            
+            return *this;
+        }
+        
+        bool operator==(const const_iterator& other) const
+        {
+            return islice_ == other.islice_;
+        }
+        
+        bool operator!=(const const_iterator& other) const
+        {
+            return islice_ != other.islice_;
+        }
+        
+        const HaWpBasisVector<N>& operator*() const
+        {
+            return curr_basis_;
+        }
+        
+        const HaWpBasisVector<N>* operator->() const
+        {
+            return &curr_basis_;
+        }
+    };
+    
+    const_iterator begin() const
+    {
+        return {this, 0};
+    }
+    
+    const_iterator end() const
+    {
+        return {this, enumeration_.n_slices()};
+    }
+    
+    /**
      * \brief evaluates wavepacket in a memory efficient manner
      */
-    Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients)
+    Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients) const
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         KahanSum< Eigen::Array<complex_t,1,N> > psi( Eigen::Matrix<complex_t,1,N>::Zero(1,npts_) );
         
-        Eigen::Array<complex_t,Eigen::Dynamic,N> prev_basis(0,npts_);
-        Eigen::Array<complex_t,Eigen::Dynamic,N> curr_basis(0,npts_);
-        Eigen::Array<complex_t,Eigen::Dynamic,N> next_basis(1,npts_);
+        HaWpBasisVector<N> prev_basis(0,npts_);
+        HaWpBasisVector<N> curr_basis(0,npts_);
+        HaWpBasisVector<N> next_basis(1,npts_);
         
         next_basis = seed();
         

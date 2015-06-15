@@ -180,6 +180,8 @@ private:
     MultiIndex limits_;
     
 public:
+    ShapeEnum() = default;
+    
     ShapeEnum(std::vector< ShapeSlice<D, MultiIndex> >&& slices,
               std::size_t n_entries,
               MultiIndex limits)

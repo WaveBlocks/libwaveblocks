@@ -174,6 +174,31 @@ ShapeEnum<D, MultiIndex> strict_union(const std::vector< const ShapeEnum<D, Mult
     return {std::move(superset), offset, limits};
 }
 
+/**
+ * \brief constructs union of two slices
+ * 
+ * The \e union \f$ \mathfrak{K}_{union} = union(\mathfrak{K}_1, \mathfrak{K}_2, \ldots, \mathfrak{K}_C) \f$ is defined as:
+ * 
+ * \f[ k \in \mathfrak{K}_{union} \iff \exists c s.t. k \in \mathfrak{K}_c \f]
+ * 
+ * \param slice1 first slice
+ * \param slice2 second slice
+ * \return union of both slices
+ */
+template<dim_t D, class MultiIndex, std::size_t N>
+ShapeEnum<D, MultiIndex> strict_union(const std::array< ShapeEnum<D, MultiIndex>*, N >& enum_list)
+{
+    std::vector< const ShapeEnum<D, MultiIndex>* > enum_vec(enum_list.cbegin(), enum_list.cend());
+    return strict_union<D,MultiIndex>(enum_vec);
+}
+
+template<dim_t D, class MultiIndex, std::size_t N>
+ShapeEnum<D, MultiIndex> strict_union(const std::array< const ShapeEnum<D, MultiIndex>*, N >& enum_list)
+{
+    std::vector< const ShapeEnum<D, MultiIndex>* > enum_vec(enum_list.cbegin(), enum_list.cend());
+    return strict_union<D,MultiIndex>(enum_vec);
+}
+
 template<dim_t D, class MultiIndex>
 ShapeEnum<D, MultiIndex> strict_union(std::initializer_list< const ShapeEnum<D, MultiIndex>* > enum_list)
 {

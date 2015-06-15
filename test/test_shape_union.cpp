@@ -21,23 +21,29 @@ int main(int argc, char* argv[])
     
     typedef HyperbolicCutShape<D> S1;
     typedef HyperCubicShape<D> S2;
+    typedef LimitedHyperbolicCutShape<D> S3;
+    typedef HyperCubicShape<D> S4;
     typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     S1 shape1(7.0);
     S2 shape2(3);
+    S3 shape3(15.0, {3,3,3,3,3});
+    S4 shape4({2,2,4,4,4});
     
-    typedef SupersetShape<D,S1,S2> SS;
+    typedef SupersetShape<D,S1,S2,S3,S4> SS;
     
-    SS superset(shape1, shape2);
+    SS superset(shape1, shape2, shape3, shape4);
     
     ShapeEnumerator<D,MultiIndex> enumerator;
     
     ShapeEnum<D,MultiIndex> enum1 = enumerator.generate(shape1);
     ShapeEnum<D,MultiIndex> enum2 = enumerator.generate(shape2);
+    ShapeEnum<D,MultiIndex> enum3 = enumerator.generate(shape3);
+    ShapeEnum<D,MultiIndex> enum4 = enumerator.generate(shape4);
     
     ShapeEnum<D,MultiIndex> enum_static_union = enumerator.generate(superset);
     
-    ShapeEnum<D,MultiIndex> enum_dynamic_union = shape_enum::strict_union({&enum1, &enum2});
+    ShapeEnum<D,MultiIndex> enum_dynamic_union = shape_enum::strict_union({&enum1, &enum2, &enum3, &enum4});
     
     if (enum_static_union.n_entries() != enum_dynamic_union.n_entries()) {
         std::cout << "[FAIL] size of static union != dynamic union" << std::endl;
