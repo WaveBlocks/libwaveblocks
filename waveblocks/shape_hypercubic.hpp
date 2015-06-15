@@ -12,7 +12,7 @@
 namespace waveblocks {
 
 /**
- * \ingroup Shape
+ * \ingroup BasicShape
  */
 template<dim_t D>
 class HyperCubicShape

@@ -39,6 +39,21 @@ if(PKG_CONFIG_FOUND)
     endif()
 endif()
 
+
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    # Copy Doxyfile into build folder
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    
+    # Add custom make target 'doc'
+    # Execute 'make doc' to generate documentation
+    add_custom_target(doc
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY 
+        COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
+endif(DOXYGEN_FOUND)
+
 add_subdirectory(test)
 add_subdirectory(examples)
 add_subdirectory(waveblocks/misc)
