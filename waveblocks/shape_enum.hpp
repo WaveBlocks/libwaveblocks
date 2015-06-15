@@ -8,6 +8,12 @@
 
 namespace waveblocks {
 
+/**
+ * The \f$ s \f$-th slice of an enumeration contains all multi-indices 
+ * \f$ \boldsymbol{k} \in \mathfrak{K} \f$ 
+ * that satisfy \f$ \displaystyle\sum_{d=1}^{D} k_d = s \f$.
+ * 
+ */
 template<dim_t D, class MultiIndex>
 class ShapeSlice
 {
@@ -64,15 +70,22 @@ public:
         , table_(std::move(table))
     { }
     
+    /**
+     * \return number of nodes in all previous slices
+     */
     std::size_t offset() const
     {
         return offset_;
     }
     
+    /**
+     * \return number of nodes in this slice
+     */
     std::size_t size() const
     {
         return table_.size();
     }
+    
     
     const_iterator begin() const
     {
@@ -94,6 +107,19 @@ public:
         return table_.cend();
     }
     
+    /**
+     * \brief Returns the multi-index of the node at position <i>ordinal</i>.
+     * 
+     * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
+     * 
+     * Portable programs should never call this function with an argument that is <i>out-of-range</i>,
+     * since this causes \e undefined \e behaviour.
+     * 
+     * <b>complexity: </b>logarithmic in the number of slice-nodes
+     * 
+     * \param[in] ordinal position of a node in this slice
+     * \return multi-index of the specified node
+     */
     MultiIndex operator[](std::size_t ordinal) const
     {
         assert(ordinal < size());
@@ -116,6 +142,21 @@ public:
         }
     }
     
+    /**
+     * \brief Returns the position of the node with multi-index \p index.
+     * 
+     * Notice that the first node in the slice has position 0 (not 1 or offset()).
+     * 
+     * Portable programs should never call this function with an node that is not part 
+     * of this slice since this causes \e undefined \e behaviour.
+     * 
+     * Use ShapeEnumeration<D>::contains(index) to check whether this slice contains the given node.
+     * 
+     * <b>complexity: </b>logarithmic in the number of slice-nodes
+     * 
+     * \param[in] index multi-index of a node in this slice
+     * \return position of the specified node
+     */
     std::size_t find(const MultiIndex& index) const
     {
         std::size_t ordinal;
@@ -168,6 +209,22 @@ public:
     }
 };
 
+/**
+ * \brief A shape enumeration is a complete, ordered listing of all 
+ * nodes that are part of the shape.
+ * 
+ * Since many algorithms operating on wavepackets use recursive formulas, 
+ * shape enumerations are divided into a set of \e slices to simplify data structures.
+ * 
+ * The \f$ s \f$-th slice contains all multi-indices \f$ \boldsymbol{k} \in \mathfrak{K} \f$ 
+ * that satisfy \f$ \displaystyle\sum_{d=1}^{D} k_d = s \f$.
+ * 
+ * To determine, to which slice a multi-index belongs, use:
+ * \code{.cpp}
+ * #include <numeric>
+ * int islice = std::accumulate(index.begin(), index.end(), int(0));
+ * \endcode
+ */
 template<dim_t D, class MultiIndex>
 class ShapeEnum
 {
@@ -246,7 +303,7 @@ public:
     }
     
     /**
-     * \brief number of non-empty (probably) slices
+     * \return number of non-empty (probably) slices
      */
     int n_slices() const
     {
