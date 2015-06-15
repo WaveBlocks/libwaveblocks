@@ -10,6 +10,8 @@
 namespace waveblocks {
 
 /**
+ * \ingroup BasicShape
+ * 
  * This class implements the hyperbolic cut basis shape which is a special 
  * type of sparse basis set. A basis shape is essentially all information 
  * and operations related to the set \f$ \mathfrak{K} \f$ of multi-indices \f$ \boldsymbol{k} \f$. 
@@ -76,6 +78,8 @@ public:
 };
 
 /**
+ * \ingroup BasicShape
+ * 
  * This class implements the hyperbolic cut basis shape which is a special 
  * type of sparse basis set. A basis shape is essentially all information 
  * and operations related to the set \f$ \mathfrak{K} \f$ of multi-indices \f$ \boldsymbol{k} \f$. 

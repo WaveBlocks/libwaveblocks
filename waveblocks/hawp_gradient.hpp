@@ -47,13 +47,6 @@ public:
         , grad_enum_(grad_enum)
     { }
     
-    /**
-     * \param[in] wavepacket a hagedorn wavepacket
-     * \return
-     * \parblock
-     * A tuple that contains for each dimension of the gradient its coefficient vector.
-     * \endparblock
-     */
     std::array< std::vector<complex_t>, std::size_t(D) > apply(const std::vector<complex_t>& base_coeffs) const
     {
         const auto & p = parameters_->p;

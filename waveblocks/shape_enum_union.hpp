@@ -15,12 +15,22 @@ namespace shape_enum
 {
 
 /**
- * \brief constructs union of two slices
+ * \ingroup ShapeEnum
  * 
- * \f[ \forall k \colon k \in union(\mathfrak{K}_1,\mathfrak{K}_2) \iff k \in \mathfrak{K}_1 \land k \in \mathfrak{K}_2 \f]
+ * \brief Creates union of two shape slices.
  * 
- * \param slice1 first slice
- * \param slice2 second slice
+ * \f[ \forall k \colon k \in union(\mathfrak{K}_1,\mathfrak{K}_2) \iff k \in \mathfrak{K}_1 \lor k \in \mathfrak{K}_2 \f]
+ * 
+ * \param[in] begin1 input iterator to begin of lattice point vector of first slice
+ * \param[in] end1 input iterator to end of lattice point vector of first slice
+ * \param[in] begin2 input iterator to begin of lattice point vector of second slice
+ * \param[in] end2 input iterator to end of lattice point vector of second slice
+ * \param[out] sink output iterator to store united slice
+ * \param[in] less function object that implements \e less operation on multi-indices
+ * \tparam Input1 type of first input iterator
+ * \tparam Input2 type of second input iterator
+ * \tparam Output type of output iterator
+ * \tparam Compare type of function object that implements \e less operation on multi-indices
  * \return union of both slices
  */
 template<class Input1, class Input2, class Output, class Compare>
@@ -175,15 +185,9 @@ ShapeEnum<D, MultiIndex> strict_union(const std::vector< const ShapeEnum<D, Mult
 }
 
 /**
- * \brief constructs union of two slices
+ * \ingroup ShapeUnion
  * 
- * The \e union \f$ \mathfrak{K}_{union} = union(\mathfrak{K}_1, \mathfrak{K}_2, \ldots, \mathfrak{K}_C) \f$ is defined as:
- * 
- * \f[ k \in \mathfrak{K}_{union} \iff \exists c s.t. k \in \mathfrak{K}_c \f]
- * 
- * \param slice1 first slice
- * \param slice2 second slice
- * \return union of both slices
+ * \param enum_list
  */
 template<dim_t D, class MultiIndex, std::size_t N>
 ShapeEnum<D, MultiIndex> strict_union(const std::array< ShapeEnum<D, MultiIndex>*, N >& enum_list)
@@ -192,6 +196,10 @@ ShapeEnum<D, MultiIndex> strict_union(const std::array< ShapeEnum<D, MultiIndex>
     return strict_union<D,MultiIndex>(enum_vec);
 }
 
+/**
+ * \ingroup ShapeUnion
+ * \param enum_list
+ */
 template<dim_t D, class MultiIndex, std::size_t N>
 ShapeEnum<D, MultiIndex> strict_union(const std::array< const ShapeEnum<D, MultiIndex>*, N >& enum_list)
 {
@@ -199,6 +207,10 @@ ShapeEnum<D, MultiIndex> strict_union(const std::array< const ShapeEnum<D, Multi
     return strict_union<D,MultiIndex>(enum_vec);
 }
 
+/**
+ * \ingroup ShapeUnion
+ * \param enum_list
+ */
 template<dim_t D, class MultiIndex>
 ShapeEnum<D, MultiIndex> strict_union(std::initializer_list< const ShapeEnum<D, MultiIndex>* > enum_list)
 {

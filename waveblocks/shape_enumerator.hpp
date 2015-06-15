@@ -12,6 +12,16 @@ template<dim_t D, class MultiIndex>
 class ShapeEnumerator
 {
 public:
+    /**
+     * \brief Enumerates all nodes contained in a shape.
+     * 
+     * \param[in] shape description of a shape
+     * \return shape enumeration
+     * 
+     * \see HyperCubicShape
+     * \see HyperbolicCutShape
+     * \see LimitedHyperbolicCutShape
+     */
     template<class Shape>
     ShapeEnum<D,MultiIndex> generate(const Shape& shape) const
     {

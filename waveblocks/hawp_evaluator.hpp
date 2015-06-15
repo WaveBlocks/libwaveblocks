@@ -24,20 +24,8 @@ template<dim_t D, class MultiIndex, int N>
 class HaWpEvaluator
 {
 public:
-    /**
-     * complex square matrix
-     * size: (#dimensions)
-     */
     typedef Eigen::Matrix<complex_t,D,D> CMatrixDD;
-
-    /**
-     * array size: (1, #quadrature points)
-     */
     typedef Eigen::Array<complex_t,1,N> CArray1N;
-
-    /**
-     * matrix size: (#dimensions, #quadrature points)
-     */
     typedef Eigen::Matrix<complex_t,D,N> CMatrixDN;
     typedef Eigen::Matrix<real_t,D,N> RMatrixDN;
 

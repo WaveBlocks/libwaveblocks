@@ -9,7 +9,9 @@
 namespace waveblocks {
 
 /**
- * The \f$ s \f$-th slice of an enumeration contains all multi-indices 
+ * \ingroup ShapeEnum
+ * 
+ * The \f$ s \f$-th slice of a shape enumeration contains all multi-indices 
  * \f$ \boldsymbol{k} \in \mathfrak{K} \f$ 
  * that satisfy \f$ \displaystyle\sum_{d=1}^{D} k_d = s \f$.
  * 
@@ -210,6 +212,8 @@ public:
 };
 
 /**
+ * \ingroup ShapeEnum
+ * 
  * \brief A shape enumeration is a complete, ordered listing of all 
  * nodes that are part of the shape.
  * 

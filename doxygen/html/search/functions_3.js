@@ -1,6 +1,0 @@
-var searchData=
-[
-  ['hagedornwavepacket',['HagedornWavepacket',['../classwaveblocks_1_1_hagedorn_wavepacket.html#ab69d08d3db692dcd5fc347edcb0d27f6',1,'waveblocks::HagedornWavepacket::HagedornWavepacket(real_t eps, std::shared_ptr&lt; HagedornParameterSet&lt; D &gt; &gt; parameters, std::shared_ptr&lt; ShapeEnumeration&lt; D &gt; &gt; enumeration, std::vector&lt; complex_t &gt; &amp;&amp;coefficients)'],['../classwaveblocks_1_1_hagedorn_wavepacket.html#a098e87526ad724933ebcaab127b14348',1,'waveblocks::HagedornWavepacket::HagedornWavepacket(real_t eps, std::shared_ptr&lt; HagedornParameterSet&lt; D &gt; &gt; parameters, std::shared_ptr&lt; ShapeEnumeration&lt; D &gt; &gt; enumeration)'],['../classwaveblocks_1_1_hagedorn_wavepacket.html#aeb68bad722260c34b3a8c24f19025d36',1,'waveblocks::HagedornWavepacket::HagedornWavepacket(HagedornWavepacket &amp;&amp;other)']]],
-  ['hyperboliccutshape',['HyperbolicCutShape',['../classwaveblocks_1_1_hyperbolic_cut_shape.html#a1fb07940123e66e7476af9dccf0f19ff',1,'waveblocks::HyperbolicCutShape']]],
-  ['hypercubicshape',['HyperCubicShape',['../classwaveblocks_1_1_hyper_cubic_shape.html#a9ed1b8425e675e49c646fa7c0dfbd3b6',1,'waveblocks::HyperCubicShape']]]
-];

@@ -12,7 +12,7 @@
 namespace waveblocks {
 
 /**
- * 
+ * \ingroup Shape
  */
 template<dim_t D>
 class HyperCubicShape
@@ -80,12 +80,12 @@ public:
      * \return \f$ k^\star \f$
      */
     template<class MultiIndex>
-    int limit(MultiIndex position, dim_t axis) const
+    int limit(MultiIndex base_node, dim_t axis) const
     {
-        { (void)(position); } //disable unused-parameter warning
+        { (void)(base_node); } //disable unused-parameter warning
         
         for (dim_t d = 0; d < D; d++) {
-            if (d != axis && position[d] >= limits_[d])
+            if (d != axis && base_node[d] >= limits_[d])
                 return -1;
         }
         return limits_[axis]-1;

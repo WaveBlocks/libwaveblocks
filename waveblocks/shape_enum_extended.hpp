@@ -42,6 +42,14 @@ ShapeSlice<D, MultiIndex> _extend(const ShapeSlice<D, MultiIndex>& slice, std::s
     return {std::move(result), offset};
 }
 
+/**
+ * \ingroup ShapeExtension
+ * 
+ * \brief For a given enumerated shape, enumerate its extension.
+ * 
+ * \param source pointer to basic shape enumeration
+ * \return enumerated shape extension
+ */
 template<dim_t D, class MultiIndex>
 ShapeEnum<D, MultiIndex> extend(const ShapeEnum<D, MultiIndex>* source)
 {

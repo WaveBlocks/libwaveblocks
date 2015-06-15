@@ -7,6 +7,15 @@
 
 namespace waveblocks {
 
+/**
+ * \ingroup BasicShape
+ * \ingroup ShapeExtension
+ * 
+ * \brief Defines the extension of a shape: For each lattice point add all its neighbours.
+ * 
+ * \tparam D dimension of nodes
+ * \tparam S type of nested shape
+ */
 template<dim_t D, class S>
 class ExtendedShape
 {

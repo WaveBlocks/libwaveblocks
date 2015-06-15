@@ -8,6 +8,15 @@
 
 namespace waveblocks {
 
+/**
+ * \ingroup BasicShape
+ * \ingroup ShapeUnion
+ * 
+ * \brief Defines the union of several shapes.
+ * 
+ * \tparam S1 type of first nested shape
+ * \tparam SS type of other nested shapes
+ */
 template<dim_t D, class S1, class... SS>
 class SupersetShape
 {
