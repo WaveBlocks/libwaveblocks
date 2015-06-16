@@ -38,7 +38,7 @@ class DefaultShapeEnumeration;
 \end{description}
 
 \subsubsection{Internal multi-index representation}
-The default shape enumeration stores all nodes in a vector. Since using \emph{std::array\textless int,D\textgreater} would use a lot of memory, the default enumeration exposes a template parameter to use a better type. \\ \\ A suitable type must \dots
+The default shape enumeration stores all nodes in a vector. Since using \emph{std::array\textless int,D\textgreater} would use a lot of memory, the default enumeration exposes a template parameter to define a better type. \\ \\ A suitable type must \dots
 \begin{itemize}
 \item provide the same semantics as \emph{std::array\textless int,D\textgreater}
 \item specialize \emph{std::less} to perform lexical comparison
@@ -76,6 +76,9 @@ k_i =
 
 \subsubsection{Queries}
 The default shape enumeration stores all multi-indices in a vector using lexical ordering. The query \emph{ordinal} \(\rightarrow\) \emph{multi-index} is therefore trivial. The query \emph{multi-index} \(\rightarrow\) \emph{ordinal} is done using binary search. Alternatively this implementation can be forced to use \emph{std::unordered\_map} but performance tests revealed that a dictionary is slightly slower than binary seach.
+
+\section{Homogeneous Wavepackets}
+
 
 \end{document}
 

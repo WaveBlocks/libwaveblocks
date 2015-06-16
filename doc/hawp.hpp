@@ -8,4 +8,13 @@ namespace waveblocks {
  * \brief 
  */
 
+/**
+ * \defgroup HaWpGradient Gradient
+ * \ingroup HaWp
+ * 
+ * \brief
+ * 
+ * 
+ */
+
 }

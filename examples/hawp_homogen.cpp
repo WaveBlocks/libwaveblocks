@@ -2,15 +2,15 @@
 
 #include <iostream>
 
+#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/shape_hyperbolic.hpp"
+
 #include "waveblocks/shape_enum.hpp"
 #include "waveblocks/shape_enum_union.hpp"
 #include "waveblocks/shape_enum_subset.hpp"
 #include "waveblocks/shape_enumerator.hpp"
 
-#include "waveblocks/tiny_multi_index.hpp"
-
 #include "waveblocks/shape_hypercubic.hpp"
-#include "waveblocks/shape_hyperbolic.hpp"
 #include "waveblocks/shape_superset.hpp"
 
 #include "waveblocks/hawp.hpp"

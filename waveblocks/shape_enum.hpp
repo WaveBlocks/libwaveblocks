@@ -296,6 +296,16 @@ public:
             return slices_[islice];
     }
     
+    ShapeSlice<D, MultiIndex>& slice(int islice)
+    {
+        if (islice < 0)
+            return lower_;
+        else if (islice >= (int)slices_.size())
+            return upper_;
+        else
+            return slices_[islice];
+    }
+    
     const std::vector< ShapeSlice<D, MultiIndex> >& slices() const
     {
         return slices_;
