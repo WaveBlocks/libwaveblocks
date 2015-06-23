@@ -30,6 +30,7 @@ profiling/
 *.aux
 *.lopytx
 *.pdf
+*.pdf_tex
 
 # Output files
 *.png

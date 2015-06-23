@@ -6,7 +6,12 @@
 \usepackage{listings}
 \usepackage{svg}
 \usepackage{floatrow}
+\usepackage{wrapfig}
+\usepackage{framed}
 \usepackage[english]{babel}
+
+\input{./header_math.tex}
+\input{./header_code.tex}
 
 \def\code#1{\texttt{#1}}
 \newtheorem{definition}{Definition}
@@ -74,9 +79,9 @@ The \( s \)-th slice of a shape \( \mathfrak{K} \) contains all nodes \(
 \underline{k} \in \mathfrak{K} \) that satisfy \( \sum_{d=1}^{D} k_d = s \) (Manhattan distance).
 
 \begin{figure}[ht]
-	\centering
-	\includesvg[]{shape_slicing}
-	\caption{basic shape (filled bullets) and the slicing (rounded rectangles)}
+    \centering
+    \includesvg[]{shape_slicing}
+    \caption{basic shape (filled bullets) and the slicing (rounded rectangles)}
 \end{figure}
 
 The implementation maintains for each slice an array containing all nodes that are part of the slice. The user can decide at compile-time which multi-index type to use:
@@ -89,30 +94,39 @@ The implementation maintains for each slice an array containing all nodes that a
 All nodes inside a slice are ordered according to \code{std::less} of used multi-index type. Be aware that the implemented shape enumerator currently assumes that \code{std::less} performes lexical comparison. Other than that there is nothing inherent that obligates lexical comparison.
 
 \subsection{Enumerator}
-A shape enumerator takes a shape object that describes which nodes it contains. The enumerator converts that shape into a shape enumeration. 
-The current shape enumerator expects shape descriptions of the following form:
+A shape enumerator takes a shape object that describes which nodes it contains. The enumerator converts that shape into a shape enumeration.
+
+\subsubsection{Shape Description}
+There exists many ways to describe a shape.
+The current implementation expects that a shape descriptions exposes two member functions:
 \begin{description}
-\item [Surface] Returns for a given \emph{axis} \(j\) and a given \emph{base node} \( \underline{n} \) the largest element \( k^\star \) that satisfies \( \underline{k}(k^\star) \in \mathfrak{K} \): 
+\item [surface description] This member function takes a \emph{base node} \( \underline{n} \) and an \emph{axis} \(j\) and returns the largest element \( k^\star \) that satisfies \( \underline{k}(k^\star) \in \mathfrak{K} \): 
 \[ k_i(k^\star) =
 \begin{cases}
 	n_i,& i \neq j\\
 	k^\star, & i = j
 	\end{cases}
 \]
-\item [Bounding Volume] Returns for a given axis \(j\) a (preferably) as small as possible \emph{limit} \( L_j \) such that:
+\item [bounding volume] This member function takes an axis \(j\) and returns an as small as possible \emph{limit} \( L_j \) such that:
 \[ \forall \underline{k} \in \mathfrak{K} \,\colon\; k_j \leq L_j \]
 \end{description}
 
-\begin{figure}[!h]
-\begin{floatrow}
-\ffigbox{
-	\includesvg[]{shape_enumerator}
-}{\caption{enumerator pass}}
-\ffigbox{
-	\begin{tabular}{|| c | c || c | c ||}
-	\multicolumn{2}{|| c ||}{limit( \( \underline{k}_{base} \) , axis \( k_1 \) ) } &
-	\multicolumn{2}{c ||}{limit( \( \underline{k}_{base} \) , axis \( k_2 \) ) } \\
-	base node & limit & base node & limit \\
+
+Notice that you can describe a shape in another way, but you will need to implement an other shape enumerator.
+
+\begin{figure}[htbp]
+	\centering
+	\includesvg[]{shape_example}
+	\caption{arbitrary shape as an example}
+	\label{fig:shape_example}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{|| c | c || c | c ||}
+	\multicolumn{2}{|| c ||}{\( k_1 \) (first axis) } &
+	\multicolumn{2}{c ||}{\( k_2 \) (second axis) } \\
+	base node & surface & base node & surface \\
 	(?, 0) & 7 & (0, ?) & 7 \\
 	(?, 1) & 5 & (1, ?) & 7 \\
 	(?, 2) & 4 & (2, ?) & 6 \\
@@ -122,34 +136,37 @@ The current shape enumerator expects shape descriptions of the following form:
 	(?, 6) & 2 & (6, ?) & 0 \\
 	(?, 7) & 1 & (7, ?) & 0 \\
 	(?, 8) & -1 & (8, ?) & -1 \\
-	\end{tabular}
-}{\caption{enumerator pass}}
-\end{floatrow}
+\end{tabular}
+\caption{surface description of the example for both axes}
 \end{figure}
 
-\begin{figure}[ht]
+\subsubsection{Algorithm}
+Knowing the \emph{surface} and  \emph{bounding volume} of a shape, the enumerator lexically enumerates all nodes inside the shape. All nodes are subsequently put into the corresponding shape.
+
+\begin{figure}[htbp]
 	\centering
 	\includesvg[]{shape_enumerator}
-	\caption{enumerator pass}
+	\caption{passage of enumerator through the shape}
+	\label{fig:shape_example}
 \end{figure}
 
-\begin{tabular}{|| c | c || c | c ||}
-\multicolumn{2}{|| c ||}{limit( \( \underline{k}_{base} \) , axis \( k_1 \) ) } &
-\multicolumn{2}{c ||}{limit( \( \underline{k}_{base} \) , axis \( k_2 \) ) } \\
-base node & limit & base node & limit \\
-(?, 0) & 7 & (0, ?) & 7 \\
-(?, 1) & 5 & (1, ?) & 7 \\
-(?, 2) & 4 & (2, ?) & 6 \\
-(?, 3) & 4 & (3, ?) & 5 \\
-(?, 4) & 3 & (4, ?) & 3 \\
-(?, 5) & 3 & (5, ?) & 1 \\
-(?, 6) & 2 & (6, ?) & 0 \\
-(?, 7) & 1 & (7, ?) & 0 \\
-(?, 8) & -1 & (8, ?) & -1 \\
-\end{tabular}
-
-
-Notice that you can describe a shape in another way, but you will need to implement an other shape enumerator.
+Enumeration algorithm for a 3-dimensional shape:
+\begin{verbatim}
+MultiIndex node = {0,0,0};
+for(int x = 0; x <= shape.surface(node, 0); x++) {
+    node[0] = x;
+    for (int y = 0; y <= shape.surface(node, 1); y++) {
+        node[1] = y;
+        for (int z = 0; z <= shape.surface(node, 2); z++) {
+            node[2] = z;
+            slice[x+y+z].push_back(node);
+        }
+        node[2] = 0;
+    }
+    node[1] = 0;
+}
+node[0] = 0;
+\end{verbatim}
 
 \subsection{Abstract Shape Enumeration}
 
@@ -210,8 +227,121 @@ k_i =
 \subsubsection{Queries}
 The default shape enumeration stores all multi-indices in a vector using lexical ordering. The query \emph{ordinal} \(\rightarrow\) \emph{multi-index} is therefore trivial. The query \emph{multi-index} \(\rightarrow\) \emph{ordinal} is done using binary search. Alternatively this implementation can be forced to use \emph{std::unordered\_map} but performance tests revealed that a dictionary is slightly slower than binary seach.
 
-\section{Homogeneous Wavepackets}
+\section{Hagedorn Wavepacket}
+A hagedorn wavepacket
+\[
+\Phi_{\varepsilon}[\Pi] \approx e^{iS\pi} \sum_{\underline{k} \in \mathfrak{K}}^{} c_{\underline{k}} \phi_{\underline{k}} \]
+is represented by a tuple
+\[ \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c}, S \right) \]
+\[ \Pi = \left( \vec{p}, \vec{q}, \mat{P}, \mat{Q} \right) \]
 
+\subsection{Basis Evaluation}
+
+All basis values are evaluated recursively by
+
+\begin{equation}
+\label{eq:phi0_Dd}
+  \phi_{\mindex{0}}[\Pi]\left(\vec{x}\right)
+  \assign
+  (\pi\varepsilon^2)^{-\frac{D}{4}} (\det\mat{Q})^{-\frac{1}{2}}
+  \exp \left( \frac{i}{2\varepsilon^2}
+  \dotp{(\vec{x}-\vec{q})}{\mat{P}\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})}
+  + \frac{i}{\varepsilon^2} \dotp{\vec{p}}{(\vec{x}-\vec{q})}
+ \right)
+\end{equation}
+
+Having the basis value at a node $\mindex{k}$ we can compute all forward
+neighbours by
+
+\begin{equation}
+  \begin{pmatrix}
+    \phi_{\mindex{k}+\mindex{e}^1} \\
+    \vdots \\
+    \phi_{\mindex{k}+\mindex{e}^D}
+  \end{pmatrix}
+  = \left(
+  \sqrt{\frac{2}{\varepsilon^2}} \mat{Q}^\mathrm{-1} (\vec{x}-\vec{q}) \phi_{\mindex{k}}
+  - \mat{Q}^\mathrm{H} \mat{Q}^\mathrm{-T}
+  \begin{pmatrix}
+    \sqrt{k_1} \phi_{\mindex{k}-\mindex{e}^1} \\
+    \vdots \\
+    \sqrt{k_D} \phi_{\mindex{k}-\mindex{e}^D}
+  \end{pmatrix}
+  \right)
+  \oslash
+  \begin{pmatrix}
+    \sqrt{k_1+1}\\
+    \vdots \\
+    \sqrt{k_D+1}
+  \end{pmatrix}
+\end{equation}
+
+where the operator $\oslash$ denotes component-wise division. In a next step
+we use this formula for evaluation of all $\phi_{\vec{k}}$ basis functions
+of $D$ dimensional semi-classical wavepackets. This last formula is so important
+that it should carry a box too but it seems there is no space left.
+
+\begin{figure}[htbp]
+    \centering
+    \includesvg[]{basis_eval_stencil}
+    \caption{stencil}
+\end{figure}
+
+\begin{algorithm}[H]
+ \KwData{this text}
+ \KwResult{how to write algorithm with \LaTeX2e }
+ \DontPrintSemicolon
+ \SetKwInOut{Input}{Input}
+ \SetKwInOut{Output}{Output}
+ \Input{number of slices $S$}
+ \Input{shape enumeration (slices) $\mathfrak{K} = \left(\mathfrak{K}^0, \ldots, \mathfrak{K}^{S-1}\right)$}
+ \Output{basis values on each slice $\phi = \left(\phi^0, \ldots, \phi^{S-1}\right)$}
+ initialization\;
+ $\phi^-, \phi, \phi^+ \gets \emptyset $\;
+ 
+ \emph{Compute ground state}\;
+ 
+ $ \gets \left\{ \phi_{\mindex{0}}[\Pi](\vec{x}) \right\} $\;
+ \emph{Loop over all slices}\;
+ \ForEach{$\mathfrak{K}^s \in \mathfrak{K}$}{
+  \emph{Loop over all nodes of next slice}\;
+  \For{$\mindex{k}^{s+1} \in \mathfrak{K}^{s+1}$}{
+    \emph{find suitable anchor node (in current slice)}\;
+    $a \gets undef $\\
+    \For{$d \in {1,\ldots,D}$}{
+        \If{$k^{s+1}_{d} > 0$}{
+            $a \gets d$\;
+        }
+    }
+    \emph{here is our anchor node $\mindex{k}^{s}$}\;
+    $\mindex{k}^{s} \gets \mindex{k}^{s+1} - \mindex{e}^a$\;
+    
+    \emph{compute contribution of anchor node}\;
+    $a \gets \frac{\sqrt{2}}{\varepsilon}\left(\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})\right)_a\phi^{s}_{\mindex{k}}$
+    
+    \emph{compute contribution of anchor node's precursors}\;
+    $b \gets 0$\;
+    \For{$d \in {1,\ldots,D}$}{
+        \If{$k^{s}_{d} > 0$}{
+            $b \gets b + \sqrt{k^{s}_d} 
+                \left(\mat{Q}^{\mathrm{H}}\mat{Q}^{\mathrm{-T}}\right)_{ad}
+                \phi^{s-1}_{\mindex{k}^{s}-\mindex{e}^d}$\;
+        }
+    }
+    
+    \emph{compute value of basis at $\mindex{k}^{s+1}$}\;
+    $\phi^{s+1}_{\mindex{k}^{s+1}} \gets \frac{a-b}{\sqrt{1+k^{s}_a}} $
+  }
+ }
+ \caption{Recursive basis evaluation of hagedorn wavepacket}
+\end{algorithm}
+
+\subsection{Applying the Gradient Operator}
+For a given wavepacket \( \left(  \right) \)
+
+\[ 
+\nabla \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c} \right) \rightarrow
+\left( \varepsilon, \Pi, \mathfrak{K}_{ext}, \boldsymbol{c_\nabla}, \right)
+\]
 
 \end{document}
-

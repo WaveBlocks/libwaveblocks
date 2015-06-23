@@ -21,6 +21,10 @@
 
 namespace waveblocks {
 
+/**
+ * \brief represents a hagedorn wavepacket basis
+ * 
+ */
 template<dim_t D, class MultiIndex>
 struct HaWpBasis
 {
@@ -28,13 +32,6 @@ public:
     double eps;
     const HaWpParamSet<D>* parameters;
     const ShapeEnum<D,MultiIndex>* enumeration;
-    
-    HaWpBasis() = default;
-    HaWpBasis(const HaWpBasis& that) = default;
-    HaWpBasis(HaWpBasis&& that) = default;
-    
-    HaWpBasis &operator=(const HaWpBasis& that) = default;
-    HaWpBasis &operator=(HaWpBasis&& that) = default;
     
     HaWpBasis(double eps, 
               const HaWpParamSet<D>* parameters,
@@ -53,9 +50,35 @@ public:
     template<int N>
     HaWpEvaluator<D, MultiIndex,N> at(const Eigen::Matrix<real_t,D,N> &x) const
     {
-        Eigen::Matrix<complex_t,D,N> x_complex = x.template cast<complex_t>();
-        return {eps, parameters, enumeration, x_complex};
+        Eigen::Matrix<complex_t,D,N> xtmp = x.template cast<complex_t>();
+        return {eps, parameters, enumeration, xtmp};
     }
+};
+
+/**
+ * \brief represents a hagedorn wavepacket
+ * 
+ */
+template<dim_t D, class MultiIndex>
+struct HaWp
+{
+public:
+    HaWpBasis<D, MultiIndex> basis;
+    const std::vector<complex_t>* coefficients;
+    
+    HaWp(double eps, 
+         const HaWpParamSet<D>* parameters,
+         const ShapeEnum<D,MultiIndex>* enumeration,
+         const std::vector<complex_t>* coefficients)
+        : basis(eps, parameters, enumeration)
+        , coefficients(coefficients)
+    { }
+    
+    HaWp(const HaWpBasis<D,MultiIndex>& basis,
+         const std::vector<complex_t>* coefficients)
+        : basis(basis)
+        , coefficients(coefficients)
+    { }
 };
 
 namespace hawp {
