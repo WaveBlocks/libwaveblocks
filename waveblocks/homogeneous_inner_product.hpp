@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -10,7 +11,7 @@
 
 namespace waveblocks {
 
-template<dim_t D, class MultiIndex>
+template<dim_t D, class MultiIndex, class QR>
 class HomogeneousInnerProduct
 {
 public:
@@ -20,12 +21,12 @@ public:
     {
     }
 
-    CMatrixDD
-        build_matrix(const HaWp<D, MultiIndex>& packet, int order)
+    CMatrixDD build_matrix(const HaWp<D, MultiIndex>& packet, const QR& qr)
+        const
     {
         // Placeholder
         std::cout << (*packet.coefficients)[0] << std::endl;
-        return CMatrixDD::Ones(order, order);
+        return CMatrixDD::Ones(qr.order, qr.order);
     }
 };
 
