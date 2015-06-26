@@ -1,6 +1,10 @@
 include_directories("../")
 
 
+add_executable(test_innerproduct
+    test_innerproduct.cpp
+)
+
 add_executable(test_hawp_evaluator 
     test_hawp_evaluator.cpp 
     util/time.cpp
