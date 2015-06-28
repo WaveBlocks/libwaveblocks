@@ -44,6 +44,7 @@ test/.ipynb_checkpoints/
 scratch/
 .kdev4/
 *.kdev4
+Session.vim
 
 # 
 main.cpp
