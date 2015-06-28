@@ -8,6 +8,7 @@
 
 #include "basic_types.hpp"
 #include "hawp.hpp"
+#include "basic_types.hpp"
 
 namespace waveblocks {
 

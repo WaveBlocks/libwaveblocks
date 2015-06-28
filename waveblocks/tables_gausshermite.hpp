@@ -4,25 +4,25 @@
 
 #include <vector>
 
-#include "basic_types.hpp"
+#include "quadrature_rule.hpp"
 
 namespace waveblocks {
 
 // Gauss-Hermite quadrature nodes and weights for different orders.
 const std::vector<QuadratureRule> gauss_hermite_rules{
-    QuadratureRule<1>({
+    QuadratureRule(1, {
         0.0
     }, {
         1.77245385091
     }),
-    QuadratureRule<2>({
+    QuadratureRule(2, {
         -0.707106781187,
         0.707106781187
     }, {
         1.46114118266,
         1.46114118266
     }),
-    QuadratureRule<3>({
+    QuadratureRule(3, {
         -1.22474487139,
         0.0,
         1.22474487139
@@ -31,7 +31,7 @@ const std::vector<QuadratureRule> gauss_hermite_rules{
         1.1816359006,
         1.32393117521
     }),
-    QuadratureRule<4>({
+    QuadratureRule(4, {
         -1.65068012389,
         -0.524647623275,
         0.524647623275,
@@ -42,7 +42,7 @@ const std::vector<QuadratureRule> gauss_hermite_rules{
         1.05996448289,
         1.2402258177
     }),
-    QuadratureRule<5>({
+    QuadratureRule(5, {
         -2.02018287046,
         -0.958572464614,
         0.0,
@@ -55,7 +55,7 @@ const std::vector<QuadratureRule> gauss_hermite_rules{
         0.986580996751,
         1.18148862554
     }),
-    QuadratureRule<6>({
+    QuadratureRule(6, {
         -2.35060497367,
         -1.33584907401,
         -0.436077411928,
@@ -70,7 +70,7 @@ const std::vector<QuadratureRule> gauss_hermite_rules{
         0.935580557631,
         1.13690833267
     }),
-    QuadratureRule<7>({
+    QuadratureRule(7, {
         -2.65196135684,
         -1.67355162877,
         -0.816287882859,
@@ -87,7 +87,7 @@ const std::vector<QuadratureRule> gauss_hermite_rules{
         0.897184600225,
         1.10133072961
     }),
-    QuadratureRule<8>({
+    QuadratureRule(8, {
         -2.93063742026,
         -1.9816567567,
         -1.15719371245,
@@ -106,7 +106,7 @@ const std::vector<QuadratureRule> gauss_hermite_rules{
         0.866752606563,
         1.07193014425
     }),
-    QuadratureRule<9>({
+    QuadratureRule(9, {
         -3.19099320178,
         -2.26658058453,
         -1.46855328922,
@@ -127,6 +127,6 @@ const std::vector<QuadratureRule> gauss_hermite_rules{
         0.841752701479,
         1.04700358098
     })
-}
+};
 
 }
