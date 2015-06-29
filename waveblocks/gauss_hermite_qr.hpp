@@ -7,33 +7,20 @@
 #include <Eigen/Dense>
 
 #include "basic_types.hpp"
+#include "tables_gausshermite.hpp"
 
 namespace waveblocks {
 
+template <dim_t ORDER>
 struct GaussHermiteQR
 {
-public:
-    const dim_t order;
+    static const dim_t order = ORDER;
     const std::vector<real_t> nodes, weights;
 
-    GaussHermiteQR(dim_t order)
-        : order(order)
-        , nodes(calculate_nodes())
-        , weights(calculate_weights())
+    GaussHermiteQR()
+        : nodes(gauss_hermite_rules[ORDER-1].nodes)
+        , weights(gauss_hermite_rules[ORDER-1].weights)
     {
-    }
-
-private:
-    std::vector<real_t> calculate_nodes() const
-    {
-        // Placeholder
-        return std::vector<real_t>(order, 0);
-    }
-
-    std::vector<real_t> calculate_weights() const
-    {
-        // Placeholder
-        return std::vector<real_t>(order, 0);
     }
 };
 
