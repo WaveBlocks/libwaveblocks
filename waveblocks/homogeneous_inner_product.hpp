@@ -5,6 +5,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
 
 #include "basic_types.hpp"
 #include "hawp.hpp"
@@ -25,8 +26,17 @@ public:
     CMatrixDD build_matrix(const HaWp<D, MultiIndex>& packet, const QR& qr)
         const
     {
+        const RMatrix<D,1>& q = packet.basis.parameters->q;
+        const CMatrix<D,D>& Q = packet.basis.parameters->Q;
+
+        // Transform nodes.
+        std::cout << "Q: " << Q << std::endl;
+        auto Q0 = (Q * Q.adjoint()).inverse();
+        std::cout << "Q0: " << Q0 << std::endl;
+        auto Qs = Q0.sqrt().inverse();
+        std::cout << "Qs: " << Qs << std::endl;
+
         // Placeholder
-        std::cout << (*packet.coefficients)[0] << std::endl;
         return CMatrixDD::Ones(qr.order, qr.order);
     }
 };
