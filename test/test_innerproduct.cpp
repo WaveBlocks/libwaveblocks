@@ -11,7 +11,6 @@
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/stdarray2stream.hpp"
-#include "waveblocks/tables_gausshermite.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
 
 using namespace waveblocks;
@@ -30,23 +29,21 @@ int main()
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     std::vector<complex_t> coeffs(N, 0);
-    GaussHermiteQR qr(order);
+    GaussHermiteQR<order> qr;
 
     // Print QR nodes and weights.
     std::cout << "nodes: {";
-    //for (auto x : qr.nodes) std::cout << " " << x;
-    for (auto x : gauss_hermite_rules[order].nodes) std::cout << " " << x;
+    for (auto x : qr.nodes) std::cout << " " << x;
     std::cout << " }\n";
 
     std::cout << "weights: {";
-    //for (auto x : qr.weights) std::cout << " " << x;
-    for (auto x : gauss_hermite_rules[order].weights) std::cout << " " << x;
+    for (auto x : qr.weights) std::cout << " " << x;
     std::cout << " }\n";
 
     HaWp<D, MultiIndex> packet(0.6, &param_set, &shape_enum, &coeffs);
 
     // Calculate inner product matrix, print it.
-    HomogeneousInnerProduct<D, MultiIndex, GaussHermiteQR> ip;
+    HomogeneousInnerProduct<D, MultiIndex, GaussHermiteQR<order>> ip;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
         ip.build_matrix(packet, qr);
 
