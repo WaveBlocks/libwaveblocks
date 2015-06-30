@@ -17,6 +17,7 @@ using namespace waveblocks;
 
 int main()
 {
+    const real_t eps = 0.2;
     const dim_t D = 1;
     const dim_t N = 10;
     const dim_t order = 8;
@@ -40,7 +41,7 @@ int main()
     for (auto x : qr.weights) std::cout << " " << x;
     std::cout << " }\n";
 
-    HaWp<D, MultiIndex> packet(0.6, &param_set, &shape_enum, &coeffs);
+    HaWp<D, MultiIndex> packet(eps, &param_set, &shape_enum, &coeffs);
 
     // Calculate inner product matrix, print it.
     HomogeneousInnerProduct<D, MultiIndex, GaussHermiteQR<order>> ip;
