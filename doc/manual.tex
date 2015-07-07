@@ -1,13 +1,19 @@
 \documentclass{article}
+
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{mathtools}
-\usepackage{kpfonts}
-\usepackage{listings}
-\usepackage{svg}
-\usepackage{floatrow}
+
+%%%%%
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% lock figure into place (H option of \begin{figure})
+\usepackage{float}
+  
+% wrapping text around figures
 \usepackage{wrapfig}
-\usepackage{framed}
+
 \usepackage[english]{babel}
 
 \input{./header_math.tex}
@@ -40,10 +46,11 @@ Given a basis shape \( \mathfrak{K} \), the shape extension
 where \( \underline{e}^d \) is the unit vector in direction \( d \).
 \end{definition}
 
-\begin{figure}[ht]
-	\centering
-	\includesvg[]{shape_extension}
-	\caption{basic shape (filled bullets) and its extension (empty bullets)}
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.5\linewidth]{shape_extension}
+  \end{center}
+  \caption{basic shape (filled bullets) and its extension (empty bullets)}
 \end{figure}
 
 \subsection{Shape Union}
@@ -78,9 +85,9 @@ To simplify such algorithms, the class ShapeEnum organizes a shape into \emph{sl
 The \( s \)-th slice of a shape \( \mathfrak{K} \) contains all nodes \(
 \underline{k} \in \mathfrak{K} \) that satisfy \( \sum_{d=1}^{D} k_d = s \) (Manhattan distance).
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
-    \includesvg[]{shape_slicing}
+    \includegraphics[]{shape_slicing}
     \caption{basic shape (filled bullets) and the slicing (rounded rectangles)}
 \end{figure}
 
@@ -114,59 +121,58 @@ The current implementation expects that a shape descriptions exposes two member 
 
 Notice that you can describe a shape in another way, but you will need to implement an other shape enumerator.
 
-\begin{figure}[htbp]
-	\centering
-	\includesvg[]{shape_example}
-	\caption{arbitrary shape as an example}
-	\label{fig:shape_example}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[]{0.4\textwidth}
+    \includegraphics[width=1.0\textwidth]{shape_example}
+    \label{fig:shape_example}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[]{0.5\textwidth}
+    \begin{tabular}{|| c | c || c | c ||}
+      \multicolumn{2}{|| c ||}{\( k_1 \) (first axis) } &
+      \multicolumn{2}{c ||}{\( k_2 \) (second axis) } \\
+      base node & surface & base node & surface \\
+      (?, 0) & 7 & (0, ?) & 7 \\
+      (?, 1) & 5 & (1, ?) & 7 \\
+      (?, 2) & 4 & (2, ?) & 6 \\
+      (?, 3) & 4 & (3, ?) & 5 \\
+      (?, 4) & 3 & (4, ?) & 3 \\
+      (?, 5) & 3 & (5, ?) & 1 \\
+      (?, 6) & 2 & (6, ?) & 0 \\
+      (?, 7) & 1 & (7, ?) & 0 \\
+      (?, 8) & -1 & (8, ?) & -1 \\
+    \end{tabular}
+  \end{subfigure}
+  \caption{surface description for both axes of a shape example}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\begin{tabular}{|| c | c || c | c ||}
-	\multicolumn{2}{|| c ||}{\( k_1 \) (first axis) } &
-	\multicolumn{2}{c ||}{\( k_2 \) (second axis) } \\
-	base node & surface & base node & surface \\
-	(?, 0) & 7 & (0, ?) & 7 \\
-	(?, 1) & 5 & (1, ?) & 7 \\
-	(?, 2) & 4 & (2, ?) & 6 \\
-	(?, 3) & 4 & (3, ?) & 5 \\
-	(?, 4) & 3 & (4, ?) & 3 \\
-	(?, 5) & 3 & (5, ?) & 1 \\
-	(?, 6) & 2 & (6, ?) & 0 \\
-	(?, 7) & 1 & (7, ?) & 0 \\
-	(?, 8) & -1 & (8, ?) & -1 \\
-\end{tabular}
-\caption{surface description of the example for both axes}
+
+
 \end{figure}
 
-\subsubsection{Algorithm}
+\subsubsection{Enumeration algorithm}
 Knowing the \emph{surface} and  \emph{bounding volume} of a shape, the enumerator lexically enumerates all nodes inside the shape. All nodes are subsequently put into the corresponding shape.
 
-\begin{figure}[htbp]
+\begin{algorithm}[H]
+  \For{$x \leftarrow 0$ \KwTo shape.surface($\{0,0,0\}$,$0$)}{
+    \For{$y \leftarrow 0$ \KwTo shape.surface($\{x,0,0\}$,$1$)}{
+      \For{$z \leftarrow 0$ \KwTo shape.surface($\{x,y,0\}$,$2$)}{
+        slice[x+y+z].pushback($\{x,y,z\}$);
+      }
+    }
+  }
+  \caption{enumerator passage through a description of a 3D-shape}
+\end{algorithm}
+
+\begin{figure}[H]
 	\centering
-	\includesvg[]{shape_enumerator}
-	\caption{passage of enumerator through the shape}
+	\includegraphics[]{shape_enumerator}
+	\caption{enumerator passage through a description of a 2D-shape}
 	\label{fig:shape_example}
 \end{figure}
-
-Enumeration algorithm for a 3-dimensional shape:
-\begin{verbatim}
-MultiIndex node = {0,0,0};
-for(int x = 0; x <= shape.surface(node, 0); x++) {
-    node[0] = x;
-    for (int y = 0; y <= shape.surface(node, 1); y++) {
-        node[1] = y;
-        for (int z = 0; z <= shape.surface(node, 2); z++) {
-            node[2] = z;
-            slice[x+y+z].push_back(node);
-        }
-        node[2] = 0;
-    }
-    node[1] = 0;
-}
-node[0] = 0;
-\end{verbatim}
 
 \subsection{Abstract Shape Enumeration}
 
@@ -176,10 +182,10 @@ The file \emph{waveblocks/shape\_enumeration\_base.hpp} provides a interface tha
 
 The file \emph{waveblocks/shape\_enumeration\_default.hpp} provides a default implementation of a shape enumeration.
 
-\begin{lstlisting}[language=C++, caption={}]
+\begin{verbatim}
 template<dim_t D, class MultiIndex, class S>
 class DefaultShapeEnumeration;
-\end{lstlisting}
+\end{verbatim}
 
 \begin{description}
 \item[D] number of dimensions
@@ -201,17 +207,17 @@ A shape definition class provides two member functions:
 
 \begin{itemize}
 \item
-\begin{lstlisting}[language=C++, caption={}]
+\begin{verbatim}
 int limit(dim_t axis) const;
-\end{lstlisting}
+\end{verbatim}
 This member function returns for a given axis \( j \) an as small as possible limit \( L_j \) such that:
 \[ \forall \boldsymbol{k} \in \mathfrak{K} \,\colon\; k_j \leq L_j \]
 
 \item
-\begin{lstlisting}[language=C++, caption={}]
+\begin{verbatim}
 template<class MultiIndex>
 int limit(const MultiIndex &base_node, dim_t axis) const;
-\end{lstlisting}
+\end{verbatim}
 This member function for a given axis \( j \) and a given base node \( \boldsymbol{n} \) (whose \( j \)-th entry is zero)
 the largest element \( k^\star \) that satisfies: 
 \[ \boldsymbol{k} \in \mathfrak{K}, \;
@@ -281,9 +287,9 @@ we use this formula for evaluation of all $\phi_{\vec{k}}$ basis functions
 of $D$ dimensional semi-classical wavepackets. This last formula is so important
 that it should carry a box too but it seems there is no space left.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
-    \includesvg[]{basis_eval_stencil}
+    \includegraphics[]{basis_eval_stencil}
     \caption{stencil}
 \end{figure}
 
