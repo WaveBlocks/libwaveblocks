@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
+
 %%%%%
 \usepackage{graphicx}
 \usepackage{caption}
@@ -243,21 +244,9 @@ is represented by a tuple
 
 \subsection{Basis Evaluation}
 
-All basis values are evaluated recursively by
-
-\begin{equation}
-\label{eq:phi0_Dd}
-  \phi_{\mindex{0}}[\Pi]\left(\vec{x}\right)
-  \assign
-  (\pi\varepsilon^2)^{-\frac{D}{4}} (\det\mat{Q})^{-\frac{1}{2}}
-  \exp \left( \frac{i}{2\varepsilon^2}
-  \dotp{(\vec{x}-\vec{q})}{\mat{P}\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})}
-  + \frac{i}{\varepsilon^2} \dotp{\vec{p}}{(\vec{x}-\vec{q})}
- \right)
-\end{equation}
-
-Having the basis value at a node $\mindex{k}$ we can compute all forward
-neighbours by
+All basis values are evaluated recursively. Once we have the basis value at an anchor node $\mindex{k}$
+and the basis values of all backward neighbours $\mindex{k}-\mindex{e}^d$, we can compute
+all forward neighbours by
 
 \begin{equation}
   \begin{pmatrix}
@@ -282,10 +271,7 @@ neighbours by
   \end{pmatrix}
 \end{equation}
 
-where the operator $\oslash$ denotes component-wise division. In a next step
-we use this formula for evaluation of all $\phi_{\vec{k}}$ basis functions
-of $D$ dimensional semi-classical wavepackets. This last formula is so important
-that it should carry a box too but it seems there is no space left.
+where the operator $\oslash$ denotes component-wise division.
 
 \begin{figure}[H]
     \centering
@@ -293,9 +279,80 @@ that it should carry a box too but it seems there is no space left.
     \caption{stencil}
 \end{figure}
 
+The root node $\mindex{0}$ is evaluated by
+
+\begin{equation}
+\label{eq:phi0_Dd}
+  \phi_{\mindex{0}}[\Pi]\left(\vec{x}\right)
+  \assign
+  (\pi\varepsilon^2)^{-\frac{D}{4}} (\det\mat{Q})^{-\frac{1}{2}}
+  \exp \left( \frac{i}{2\varepsilon^2}
+  \dotp{(\vec{x}-\vec{q})}{\mat{P}\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})}
+  + \frac{i}{\varepsilon^2} \dotp{\vec{p}}{(\vec{x}-\vec{q})}
+ \right)
+\end{equation}
+
+Basis values of nodes with some negative indices are zero.
+
+\subsubsection{Implementation}
+There are many possibilities to implement this recursion scheme. One
+possibility is.
+\begin{description}
+\item[Scatter Type Strategy]
+  We maintains a queue of already computed anchor nodes $\mindex{k}$. 
+  We subsequently remove one feasible(!) entry of this queue, compute the basis values of
+  all forward neighbours $\mindex{k}-\mindex{e}^d$ and put those nodes into the queue.
+  To eliminate multiple evaluation of some basis nodes, we need to check whether
+  a forward neighbour already has been computed using a set.
+  Therefore the scatter type strategy is very bad suited for multi-threading
+  since threads need to synchronize access to this set.
+\item[Gather Type Strategy]
+  We maintain a queue of not yet computed forward neighbours $\mindex{k}-\mindex{e}^d$. Entries of this
+  queue have at least one backward neighbour (called \emph{anchor node}) that already has been computed.
+  We subsequently remove one entry of the queue (called \emph{child node}) and compute its basis value.
+  Then we check, whether \emph{all} backward neighbours of the child node are computed. If this is the case
+  put all forward neighbours of the child node into he queue.
+\end{description}
+
+A straight-forward implementation has at least one of following difficulties that require
+complex data structures such as dictionaries or would require excessive thread synchroniztation
+if we want parallelisation:
+\begin{description}
+\item[A]
+  We need to ensure that an already computed node is a valid anchor node
+  (all backward neighbours has been computed too) so that we can compute its forward neighbours.
+\item[B]
+  We need to avoid multiple evaluation of the same node.
+\end{description}
+
+My rather simple solution is to split the shape into splices.
+The $s$-th slice contains all nodes $\mindex{k}$ that fulfill $ \sum_{d=1}^{D} k_d = s $.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics{shape_slicing}
+  \end{center}
+\end{figure}
+
+Using an \emph{adequate} \footnote{See section \emph{Basic Shape}} shape,
+the recusion scheme implies that if we had computed all basis values of
+the parent slice $ \mathfrak{K}^{s-1} $ and of the current slice $ \mathfrak{K}^{s} $, then we
+can compute all basis values of the child slice $ \mathfrak{K}^{s+1} $ without having difficulty \textbf{A}.
+Furthermore if we use the gather type strategy where we iterate through the child slice
+and compute its basis values, we automatically avoid difficulty \textbf{B}.
+
+My solution has two compelling advantages:
+\begin{description}
+\item[Simple data structures]
+  We can keep our computed basis value in an array separated slice by slice. We need a
+  \emph{shape enumeration} that maps shape nodes to ordinals used as array offsets.
+\item[Easy parallelisation]
+  I implemented the gather type strategy therefore one could simply split the iteration over the child slice
+  using \code{pragma omp parallel for}. All previous slices has been completely computed therefore
+  the only synchronisation mechanism needed is a barrier at the end of the child slice.
+\end{description}
+
 \begin{algorithm}[H]
- \KwData{this text}
- \KwResult{how to write algorithm with \LaTeX2e }
  \DontPrintSemicolon
  \SetKwInOut{Input}{Input}
  \SetKwInOut{Output}{Output}
@@ -313,30 +370,30 @@ that it should carry a box too but it seems there is no space left.
   \emph{Loop over all nodes of next slice}\;
   \For{$\mindex{k}^{s+1} \in \mathfrak{K}^{s+1}$}{
     \emph{find suitable anchor node (in current slice)}\;
-    $a \gets undef $\\
+    $\alpha \gets undef $\\
     \For{$d \in {1,\ldots,D}$}{
         \If{$k^{s+1}_{d} > 0$}{
-            $a \gets d$\;
+            $\alpha \gets d$\;
         }
     }
     \emph{here is our anchor node $\mindex{k}^{s}$}\;
-    $\mindex{k}^{s} \gets \mindex{k}^{s+1} - \mindex{e}^a$\;
+    $\mindex{k}^{s} \gets \mindex{k}^{s+1} - \mindex{e}^\alpha$\;
     
     \emph{compute contribution of anchor node}\;
-    $a \gets \frac{\sqrt{2}}{\varepsilon}\left(\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})\right)_a\phi^{s}_{\mindex{k}}$
+    $a \gets \frac{\sqrt{2}}{\varepsilon}\left(\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})\right)_\alpha\phi^{s}_{\mindex{k}}$
     
-    \emph{compute contribution of anchor node's precursors}\;
+    \emph{compute contribution of anchor node's backward neighbours}\;
     $b \gets 0$\;
     \For{$d \in {1,\ldots,D}$}{
         \If{$k^{s}_{d} > 0$}{
             $b \gets b + \sqrt{k^{s}_d} 
-                \left(\mat{Q}^{\mathrm{H}}\mat{Q}^{\mathrm{-T}}\right)_{ad}
+                \left(\mat{Q}^{\mathrm{H}}\mat{Q}^{\mathrm{-T}}\right)_{\alpha d}
                 \phi^{s-1}_{\mindex{k}^{s}-\mindex{e}^d}$\;
         }
     }
     
     \emph{compute value of basis at $\mindex{k}^{s+1}$}\;
-    $\phi^{s+1}_{\mindex{k}^{s+1}} \gets \frac{a-b}{\sqrt{1+k^{s}_a}} $
+    $\phi^{s+1}_{\mindex{k}^{s+1}} \gets \frac{a-b}{\sqrt{1+k^{s}_\alpha}} $
   }
  }
  \caption{Recursive basis evaluation of hagedorn wavepacket}
