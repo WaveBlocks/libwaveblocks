@@ -5,7 +5,8 @@
 svgfiles: $(patsubst %.svg,%.svg.pdf~,$(wildcard *.svg))
 
 manual.pdf: manual.tex svgfiles
-	pdflatex --shell-escape manual.tex	
+	pdflatex manual.tex
+#	pdflatex --shell-escape manual.tex	
 
 pdf: manual.pdf
 
