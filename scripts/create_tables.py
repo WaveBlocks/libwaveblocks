@@ -17,6 +17,7 @@ def generate_gausshermite(filename, maxorder=10):
 
     f.write("// Gauss-Hermite quadrature nodes and weights for different " +
             "orders.\n")
+    # Maybe a tuple instead of vector for different order template arguments?
     f.write("const std::vector<QuadratureRule>" +
             " gauss_hermite_rules{")
     for order in xrange(1, maxorder):
