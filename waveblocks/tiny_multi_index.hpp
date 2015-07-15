@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <initializer_list>
+#include <limits>
 
 #include "basic_types.hpp"
 #include "stdarray2stream.hpp"
@@ -33,20 +34,24 @@ class TinyMultiIndex
     
 private:
     
-    
-public:
-    UINT values_ = 0;
-    
-    const static std::size_t BITS_PER_ENTRY = (8*sizeof(UINT))/D;
-    
     /**
      * for a given axis: returns the largest value that this implementation is able to store
      */
     static int limit(dim_t axis)
     {
         (void) axis; //supress -Wunused-parameter
-        return (UINT(1)<<BITS_PER_ENTRY)-1;
+        
+        UINT l = (UINT(1)<<BITS_PER_ENTRY)-1;
+        if (l > std::numeric_limits<int>::max())
+            return std::numeric_limits<int>::max();
+        else
+            return (int)l;
     }
+    
+public:
+    UINT values_ = 0;
+    
+    const static std::size_t BITS_PER_ENTRY = (8*sizeof(UINT))/D;
     
     
     

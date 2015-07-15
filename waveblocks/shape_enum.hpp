@@ -72,6 +72,16 @@ public:
         , table_(std::move(table))
     { }
     
+    std::vector< MultiIndex > & _table()
+    {
+        return table_;
+    }
+    
+    std::vector< MultiIndex > const& _table() const
+    {
+        return table_;
+    }
+    
     /**
      * \return number of nodes in all previous slices
      */

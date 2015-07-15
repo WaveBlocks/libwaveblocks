@@ -29,9 +29,12 @@ public:
         
         // check multi-index type for compatibility
         {
+            MultiIndex test;
             for (dim_t d = 0; d < D; d++) {
-                if (shape.bbox(d) > MultiIndex::limit(d))
+                test[d] = shape.bbox(d);
+                if (test[d] != shape.bbox(d)) {
                     throw std::runtime_error("multi-index type is not suitable. reason: overflow");
+                }
             }
         }
         
