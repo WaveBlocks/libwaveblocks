@@ -66,9 +66,9 @@ public:
                 MultiIndex curr_index = grad_enum_->slice(i)[j];
                 
                 //central node
-                complex_t cc;
-                std::size_t curr_ordinal;
-                bool central_node_exists;
+                complex_t cc(0,0);
+                std::size_t curr_ordinal = 0;
+                bool central_node_exists = false;
                 
                 if ( (central_node_exists = base_enum_->slice(i).try_find(curr_index, curr_ordinal)) ) {
                     
@@ -83,7 +83,7 @@ public:
                     if (curr_index[d] != 0) {
                         MultiIndex prev_index = curr_index; prev_index[d] -= 1;
                         
-                        std::size_t prev_ordinal;
+                        std::size_t prev_ordinal = 0;
                         
                         if (base_enum_->slice(i-1).try_find(prev_index, prev_ordinal)) {
                             
@@ -100,7 +100,7 @@ public:
                     for (dim_t d = 0; d < D; d++) {
                         MultiIndex next_index = curr_index; next_index[d] += 1;
                         
-                        std::size_t next_ordinal;
+                        std::size_t next_ordinal = 0;
                         
                         if (base_enum_->slice(i+1).try_find(next_index, next_ordinal)) {
                             

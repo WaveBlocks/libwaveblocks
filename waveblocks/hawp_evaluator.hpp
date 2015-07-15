@@ -182,7 +182,7 @@ public:
             // compute contribution of previous slice
             std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
             
-            CArray1N pr2{1,npts_};
+            CArray1N pr2 = CArray1N::Zero(1,npts_);
             
             for (dim_t d = 0; d < D; d++) {
                 if (curr_index[d] != 0) {
@@ -211,7 +211,7 @@ public:
         HaWpBasisVector<N> curr_basis(0,npts_);
         HaWpBasisVector<N> next_basis(1,npts_);
         
-        next_basis = seed();
+        complete_basis.block(0, 0, 1, npts_) = next_basis = seed();
         
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
@@ -325,7 +325,7 @@ public:
             curr_basis = std::move(next_basis);
             
             next_basis = step(islice, prev_basis, curr_basis);
-            
+
             std::size_t offset = enumeration_->slice(islice+1).offset();
             
             for (long j = 0; j < next_basis.rows(); j++) {
