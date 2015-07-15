@@ -482,18 +482,16 @@ For a given wavepacket \( \left( \right) \)
 
     \emph{compute contribution of forward neighbours}\;
     \(\vec{f} \leftarrow 0\)\;
-    \If{\(\mindex{k} \in \mathfrak{K}\)}{
       \For{\(d \in \{1,\ldots,D\}\)}{
         \If{\(\mindex{k}+\mindex{e}^d \in \mathfrak{K}\)}{
           \(f_d \leftarrow \sqrt{k_d+1}c_{\mindex{k}+\mindex{e}^d}\)\;
         }
       }
-    }
 
     \emph{merge contributions of every node to get the coefficients of the gradient}\;
     \(\vec{c_{\nabla,\mindex{k}}} \leftarrow m\vec{p}+\frac{\varepsilon}{\sqrt{2}}(\mat{\overline{P}}\vec{f}+\mat{P}\vec{b})\)
   }
-  \caption{Computes coefficient vectors after the gradient operator has been applied to the hagedorn wavepacket}
+  \caption{Computes coefficients after the gradient operator has been applied to the hagedorn wavepacket}
 \end{algorithm}
 
 \end{document}

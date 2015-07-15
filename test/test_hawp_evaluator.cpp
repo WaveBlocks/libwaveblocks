@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     typedef TinyMultiIndex<std::size_t,D> MultiIndex;
     typedef LimitedHyperbolicCutShape<D> S;
     
-    S shape(7.0, {5});
+    S shape(7.0, {5,5,5});
     
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(shape);

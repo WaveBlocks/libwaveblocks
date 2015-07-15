@@ -65,6 +65,12 @@ private:
     std::vector<real_t> sqrt_;
     
 public:
+    /**
+     * \param[in] eps
+     * \param[in] parameters
+     * \param[in] enumeration
+     * \param[in] x Matrix containing quadrature points as column vectors.
+     */
     HaWpEvaluator(real_t eps, 
               const HaWpParamSet<D>* parameters, 
               const ShapeEnum<D,MultiIndex>* enumeration,
@@ -98,9 +104,9 @@ public:
     }
     
     /**
-     * \brief Evaluates value of the basis function with multi-index (0,0,...,0)
+     * \brief Evaluates basis on node \f$ \underline{0} \f$ (aka ground-state).
      * 
-     * \return (1,N)-Matrix
+     * \return Complex 2D-Array of shape (1, #quadrature points)
      */
     CArray1N seed() const
     {
@@ -118,10 +124,22 @@ public:
     }
     
     /**
-     * \param[in] islice ordinal of current slice
-     * \param[in] prev_basis basis values of previous slice
-     * \param[in] curr_basis basis values of current slice
-     * \return computed basis values of next slice
+     * \brief Having basis values on previous and current slice, computes basis values
+     * on next slice (using recursive evaluation formula).
+     * 
+     * Hint: Use function seed() to bootstrap recursion.
+     * 
+     * \param[in] islice Ordinal of current slice.
+     * \param[in] prev_basis 
+     * Basis values on previous slice.
+     * Type: Complex 2D-array of shape (number of nodes in previous slice, #quadrature points)
+     * \param[in] curr_basis B
+     * Basis values on current slice.
+     * Type: Complex 2D-array of shape (number of nodes in current slice, #quadrature points)
+     * 
+     * \return
+     * Computed basis values on next slice.
+     * Type: Complex 2D-array of shape (number of nodes in next slice, #quadrature points).
      */
     HaWpBasisVector<N> step(std::size_t islice,
                   const HaWpBasisVector<N>& prev_basis,
@@ -182,6 +200,8 @@ public:
     
     /**
      * \brief evaluates complete basis
+     * 
+     * \return complex 2D-array of shape (#shape-nodes, #quadrature points)
      */
     HaWpBasisVector<N> all() const
     {
@@ -201,7 +221,7 @@ public:
             
             std::size_t offset = enumeration_->slice(islice+1).offset();
             
-            complete_basis.block(offset, 0, offset+next_basis.rows(), npts_) = next_basis;
+            complete_basis.block(offset, 0, next_basis.rows(), npts_) = next_basis;
         }
         
         return complete_basis;
@@ -277,7 +297,15 @@ public:
     }
     
     /**
-     * \brief evaluates wavepacket in a memory efficient manner
+     * \brief Evaluates wavepacket in a memory efficient manner.
+     * 
+     * This function computes the dot product (thus the name 'reduce') of the wavepacket coefficients 
+     * and the wavepacket basis. This is done by evaluating the wavepacket slice by slice
+     * and multiplying the basis values with the coefficients on the fly. Computed
+     * basis values are discarded once they are not needed any more.
+     * 
+     * \param[in] coefficients Vector of wavepacket coefficients. Length = Number of shape nodes.
+     * \return complex 2D-array of shape (1, #quadrature points)
      */
     Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients) const
     {
