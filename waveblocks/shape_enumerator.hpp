@@ -76,6 +76,7 @@ public:
                     islice += 1;
                     index[j] += 1;
                 }
+                else break;
             }
 enumeration_complete:
             (void)0;
