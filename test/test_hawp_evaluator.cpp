@@ -21,13 +21,60 @@
 
 using namespace waveblocks;
 
+template<dim_t D, class MultiIndex>
+struct Test
+{
+    double eps;
+    HaWpParamSet<D> const& parameters;
+    ShapeEnum<D, MultiIndex> const& shape_enum;
+    std::vector<complex_t> const& coefficients;
+    
+    template<int N>
+    void run(int npts)
+    {
+        Eigen::Matrix<complex_t,D,N> x(D,npts);
+        for (dim_t d = 0; d < D; d++) {
+            complex_t xd = { (d+1)/real_t(2*D), (D-d)/real_t(2*D) };
+            
+            for (int i = 0; i < npts; i++)
+                x(d,i) = xd;
+        }
+        
+        // (1) Evaluate wavepacket using reduce()
+        
+        Eigen::Array<complex_t,1,N> psi1 = hawp::basis(eps, &parameters, &shape_enum).at(x).reduce(coefficients);
+        
+        // (2) Evaluate wavepacket using all()
+        
+        {
+            HaWpBasisVector<N> basis_vector = hawp::basis(eps, &parameters, &shape_enum).at(x).all();
+            
+            Eigen::Array<complex_t,1,N> psi2(1,npts);
+            psi2.setZero();
+            
+            std::size_t j = 0;
+            for (auto cj : coefficients) {
+                psi2 += cj*basis_vector.row(j++);
+            }
+            
+            std::cout << "(1)\n" << psi1 << std::endl;
+            std::cout << "(2)\n" << psi2 << std::endl;
+        }
+        
+        //     std::cout << "   x: " << x.transpose() << '\n';
+        //     std::cout << "   psi: " << psi1.transpose() << '\n';
+        //     std::cout << "   psi (with prefactor): " << psi1.transpose()*hawp::prefactor(parameters) << std::endl;
+        //     std::cout << "}" << std::endl;
+    }
+};
+
 int main(int argc, char *argv[])
 {
     const dim_t D = 3;
     typedef TinyMultiIndex<std::size_t,D> MultiIndex;
     typedef LimitedHyperbolicCutShape<D> S;
     
-    S shape(7.0, {5});
+    S shape(7.0, {5,5,5});
     
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(shape);
@@ -44,22 +91,21 @@ int main(int argc, char *argv[])
     {
         std::cout << "chosen evaluation {" << std::endl;
         
-        Eigen::Matrix<complex_t,D,1> x;
-        for (dim_t d = 0; d < D; d++) {
-            x(d,0) = complex_t( (d+1)/real_t(2*D), (D-d)/real_t(2*D) );
-        }
+        // Number of quadrature points can be set either at compile time or at runtime
+        // One should get the same result either way!
+        Test<D,MultiIndex> test = {eps, parameters, shape_enum, coefficients};
+        std::cout << "\n# ---- static $N (number of quadrature points) ---- \n";
+        std::cout << "\n#  $N = 1 \n";
+        test.run<1>(1);
+        std::cout << "\n#  $N = 5 \n";
+        test.run<5>(5);
+        std::cout << "\n# ---- dynamic $N (number of quadrature points) ---- \n";
+        std::cout << "\n#  $N = 1 \n";
+        test.run<Eigen::Dynamic>(1);
+        std::cout << "\n#  $N = 5 \n";
+        test.run<Eigen::Dynamic>(5);
         
-        double start = getRealTime();
-        
-        Eigen::Array<complex_t,1,1> psi = hawp::basis(eps, &parameters, &shape_enum).at(x).reduce(coefficients);
-        
-        double stop = getRealTime();
-        
-        std::cout << "   x: " << x.transpose() << '\n';
-        std::cout << "   psi: " << psi.transpose() << '\n';
-        std::cout << "   psi (with prefactor): " << psi.transpose()*hawp::prefactor(parameters) << std::endl;
-        std::cout << "   time: " << (stop - start) << '\n';
-        std::cout << "}" << std::endl;
+        std::cout << "}\n\n" << std::endl;
     }
     
     if (argc == 2)

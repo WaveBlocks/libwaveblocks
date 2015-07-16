@@ -37,7 +37,7 @@ std::vector<MultiIndex> _extend(const std::vector<MultiIndex>& source, dim_t sta
 template<dim_t D, class MultiIndex>
 ShapeSlice<D, MultiIndex> _extend(const ShapeSlice<D, MultiIndex>& slice, std::size_t offset)
 {
-    std::vector<MultiIndex> result = _extend(slice._raw(), 0, D);
+    std::vector<MultiIndex> result = _extend(slice._table(), 0, D);
     
     return {std::move(result), offset};
 }

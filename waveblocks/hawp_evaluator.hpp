@@ -65,6 +65,12 @@ private:
     std::vector<real_t> sqrt_;
     
 public:
+    /**
+     * \param[in] eps
+     * \param[in] parameters
+     * \param[in] enumeration
+     * \param[in] x Matrix containing quadrature points as column vectors.
+     */
     HaWpEvaluator(real_t eps, 
               const HaWpParamSet<D>* parameters, 
               const ShapeEnum<D,MultiIndex>* enumeration,
@@ -98,9 +104,9 @@ public:
     }
     
     /**
-     * \brief Evaluates value of the basis function with multi-index (0,0,...,0)
+     * \brief Evaluates basis on node \f$ \underline{0} \f$ (aka ground-state).
      * 
-     * \return (1,N)-Matrix
+     * \return Complex 2D-Array of shape (1, #quadrature points)
      */
     CArray1N seed() const
     {
@@ -118,10 +124,22 @@ public:
     }
     
     /**
-     * \param[in] islice ordinal of current slice
-     * \param[in] prev_basis basis values of previous slice
-     * \param[in] curr_basis basis values of current slice
-     * \return computed basis values of next slice
+     * \brief Having basis values on previous and current slice, computes basis values
+     * on next slice (using recursive evaluation formula).
+     * 
+     * Hint: Use function seed() to bootstrap recursion.
+     * 
+     * \param[in] islice Ordinal of current slice.
+     * \param[in] prev_basis 
+     * Basis values on previous slice.
+     * Type: Complex 2D-array of shape (number of nodes in previous slice, #quadrature points)
+     * \param[in] curr_basis B
+     * Basis values on current slice.
+     * Type: Complex 2D-array of shape (number of nodes in current slice, #quadrature points)
+     * 
+     * \return
+     * Computed basis values on next slice.
+     * Type: Complex 2D-array of shape (number of nodes in next slice, #quadrature points).
      */
     HaWpBasisVector<N> step(std::size_t islice,
                   const HaWpBasisVector<N>& prev_basis,
@@ -164,7 +182,7 @@ public:
             // compute contribution of previous slice
             std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
             
-            CArray1N pr2{1,npts_};
+            CArray1N pr2 = CArray1N::Zero(1,npts_);
             
             for (dim_t d = 0; d < D; d++) {
                 if (curr_index[d] != 0) {
@@ -182,19 +200,18 @@ public:
     
     /**
      * \brief evaluates complete basis
+     * 
+     * \return complex 2D-array of shape (#shape-nodes, #quadrature points)
      */
     HaWpBasisVector<N> all() const
     {
         HaWpBasisVector<N> complete_basis(enumeration_->n_entries(), npts_);
-        //HaWpBasisVector<N> complete_basis = HaWpBasisVector<N>::Zero(enumeration_->n_entries(), npts_);
-        std::cout << "complete_basis (init):\n" << complete_basis << "\n";
-        std::cout << "complete_basis.shape: " << complete_basis.rows() << ", " << complete_basis.cols() << "\n";
         
         HaWpBasisVector<N> prev_basis(0,npts_);
         HaWpBasisVector<N> curr_basis(0,npts_);
         HaWpBasisVector<N> next_basis(1,npts_);
         
-        next_basis = seed();
+        complete_basis.block(0, 0, 1, npts_) = next_basis = seed();
         
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
@@ -203,87 +220,23 @@ public:
             next_basis = step(islice, prev_basis, curr_basis);
             
             std::size_t offset = enumeration_->slice(islice+1).offset();
-
-            std::cout << "offset: " << offset << ", next_basis.rows: " << next_basis.rows() << "\n";
             
-            //complete_basis.block(offset, 0, offset+next_basis.rows(), npts_) = next_basis;
             complete_basis.block(offset, 0, next_basis.rows(), npts_) = next_basis;
         }
         
         return complete_basis;
     }
     
-    class const_iterator : public std::iterator<std::forward_iterator_tag, HaWpBasisVector<N> >
-    {
-    private:
-        const HaWpEvaluator* evaluator_;
-        int islice_;
-        HaWpBasisVector<N> prev_basis_;
-        HaWpBasisVector<N> curr_basis_;
-        
-    public:
-        const_iterator(const HaWpEvaluator* evaluator, int islice)
-            : evaluator_(evaluator)
-            , islice_(islice)
-            , prev_basis_(0, evaluator_->npts_)
-            , curr_basis_(0, evaluator_->npts_)
-        {
-            if (islice == 0) {
-                curr_basis_ = evaluator_->seed();
-            }
-        }
-        
-        // delete violates copy-constructible requirement of an iterator
-        const_iterator(const const_iterator& that) = delete; 
-        
-        // delete violates copy-assignable requirement of an iterator
-        const_iterator& operator=(const const_iterator& that) = delete;
-        
-        const_iterator& operator++()
-        {
-            HaWpBasisVector<N> next_basis = evaluator_->step(islice_, prev_basis_, curr_basis_);
-            
-            prev_basis_ = std::move(curr_basis_);
-            curr_basis_ = std::move(next_basis);
-            
-            ++islice_;
-            
-            return *this;
-        }
-        
-        bool operator==(const const_iterator& other) const
-        {
-            return islice_ == other.islice_;
-        }
-        
-        bool operator!=(const const_iterator& other) const
-        {
-            return islice_ != other.islice_;
-        }
-        
-        const HaWpBasisVector<N>& operator*() const
-        {
-            return curr_basis_;
-        }
-        
-        const HaWpBasisVector<N>* operator->() const
-        {
-            return &curr_basis_;
-        }
-    };
-    
-    const_iterator begin() const
-    {
-        return {this, 0};
-    }
-    
-    const_iterator end() const
-    {
-        return {this, enumeration_.n_slices()};
-    }
-    
     /**
-     * \brief evaluates wavepacket in a memory efficient manner
+     * \brief Evaluates wavepacket in a memory efficient manner.
+     * 
+     * This function computes the dot product (thus the name 'reduce') of the wavepacket coefficients 
+     * and the wavepacket basis. This is done by evaluating the wavepacket slice by slice
+     * and multiplying the basis values with the coefficients on the fly. Computed
+     * basis values are discarded once they are not needed any more.
+     * 
+     * \param[in] coefficients Vector of wavepacket coefficients. Length = Number of shape nodes.
+     * \return complex 2D-array of shape (1, #quadrature points)
      */
     Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients) const
     {
@@ -303,7 +256,7 @@ public:
             curr_basis = std::move(next_basis);
             
             next_basis = step(islice, prev_basis, curr_basis);
-            
+
             std::size_t offset = enumeration_->slice(islice+1).offset();
             
             for (long j = 0; j < next_basis.rows(); j++) {
