@@ -55,13 +55,23 @@ public:
 
         HaWpBasisVector<Eigen::Dynamic> bases = packet.basis.
             at(transformed_nodes).all();
-        //auto bases = packet.basis.
-        //    at(transformed_nodes).reduce(
-        //            std::vector<complex_t>(order, 0));
         std::cout << "bases:\n" << bases << std::endl;
 
-        // TODO: Placeholder
-        return CMatrixDD::Ones(order, order);
+        // Build matrix.
+        const dim_t N = bases.rows();
+        CMatrixDD result = CMatrixDD::Zero(N, N);
+        for(dim_t i = 0; i < N; ++i)
+        {
+            for(dim_t j = 0; j < N; ++j)
+            {
+                for (size_t k = 0; k < order; ++k)
+                {
+                    result(i, j) += factor(k) * conj(bases(i, k)) * bases(j, k);
+                }
+            }
+        }
+
+        return result;
     }
 };
 
