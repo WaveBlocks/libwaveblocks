@@ -8,6 +8,7 @@
 #include <array>
 #include <memory>
 #include <initializer_list>
+#include <memory>
 
 #include "basic_types.hpp"
 #include "math_util.hpp"
@@ -79,6 +80,367 @@ public:
         : basis(basis)
         , coefficients(coefficients)
     { }
+};
+
+template<dim_t D, class MultiIndex>
+using ShapeEnumPtr = std::shared_ptr< ShapeEnum<D, MultiIndex> >;
+
+template<dim_t D>
+class AbstractScalarWavepacket
+{
+public:
+    virtual Eigen::Array<complex_t,1,Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const = 0;
+    virtual HaWpBasisVector<Eigen::Dynamic> evaluate_basis(ComplexGrid<D,Eigen::Dynamic> const& grid) const = 0;
+};
+
+template<dim_t D, class MultiIndex>
+class AbstractScalarHaWp : public AbstractScalarWavepacket<D>
+{
+public:
+    virtual double eps() const = 0;
+    virtual HaWpBasis<D, MultiIndex> const& paramaters() const = 0;
+    virtual ShapeEnumPtr<D, MultiIndex> shape() const = 0;
+    virtual std::vector<complex_t> const& coefficients() const = 0;
+    
+    template<int N>
+    HaWpEvaluator<D,MultiIndex,N> create_evaluator(ComplexGrid<D,N> const& grid) const
+    {
+        return {eps(), &paramaters(), shape().get(), grid};
+    }
+    
+//     template<int N>
+//     Eigen::Array<complex_t,1,N> evaluate(ComplexGrid<D,N> const& grid) const
+//     {
+//         return create_evaluator<N>(grid).reduce(coefficients());
+//     }
+    
+    virtual HaWpBasisVector<Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const
+    {
+        return create_evaluator<Eigen::Dynamic>().reduce(coefficients());
+    }
+    
+//     template<int N>
+//     HaWpBasisVector<N> evaluate_basis(ComplexGrid<D,N> const& grid) const
+//     {
+//         return create_evaluator(grid).all();
+//     }
+    
+    virtual HaWpBasisVector<Eigen::Dynamic> evaluate_basis(ComplexGrid<D,Eigen::Dynamic> const& grid) const
+    {
+        return create_evaluator<Eigen::Dynamic>(grid).all();
+    }
+};
+
+template<dim_t D, class MultiIndex>
+class ScalarHaWp : public AbstractScalarHaWp<D, MultiIndex>
+{
+public:
+    double & eps()
+    {
+        return eps_;
+    }
+    
+    double eps() const override
+    {
+        return eps_;
+    }
+    
+    HaWpBasis<D, MultiIndex> & paramaters()
+    {
+        return parameters_;
+    }
+    
+    HaWpBasis<D, MultiIndex> const& paramaters() const override
+    {
+        return parameters_;
+    }
+    
+    ShapeEnumPtr<D, MultiIndex> & shape()
+    {
+        return shape_;
+    }
+    
+    ShapeEnumPtr<D, MultiIndex> shape() const override
+    {
+        return shape_;
+    }
+    
+    std::vector<complex_t> & coefficients()
+    {
+        return coefficients_;
+    }
+    
+    std::vector<complex_t> const& coefficients() const override
+    {
+        return coefficients_;
+    }
+    
+private:
+    double eps_;
+    HaWpBasis<D, MultiIndex> parameters_;
+    ShapeEnumPtr<D, MultiIndex> shape_;
+    std::vector<complex_t> coefficients_;
+};
+
+template<dim_t D, class MultiIndex>
+class HomogeneousHaWp
+{
+public:
+    class Component : public AbstractScalarHaWp<D,MultiIndex>
+    {
+    public:
+        Component(HomogeneousHaWp const* const owner)
+            : owner_(owner)
+            , coefficients_()
+        { }
+        
+        Component(Component&& that)
+            : shape_(that.shape_)
+            , coefficients_(std::move(that.coefficients_))
+        { }
+        
+        Component(Component const& that)
+            : shape_(that.shape_)
+            , coefficients_(that.coefficients_)
+        { }
+        
+        Component & operator=(Component&& that)
+        {
+            shape_ = that.shape_;
+            coefficients_ = std::move(that.coefficients_);
+            return *this;
+        }
+        
+        Component & operator=(Component const& that)
+        {
+            shape_ = that.shape_;
+            coefficients_ = that.coefficients_;
+            return *this;
+        }
+        
+        double eps() const override
+        {
+            return owner_->eps();
+        }
+        
+        HaWpBasis<D, MultiIndex> const& paramaters() const override
+        {
+            return owner_->paramaters();
+        }
+        
+        
+        
+        ShapeEnumPtr<D, MultiIndex> & shape()
+        {
+            return shape_;
+        }
+        
+        ShapeEnumPtr<D, MultiIndex> shape() const override
+        {
+            return shape_;
+        }
+        
+        std::vector<complex_t> & coefficients()
+        {
+            return coefficients_;
+        }
+        
+        std::vector<complex_t> const& coefficients() const override
+        {
+            return coefficients_;
+        }
+        
+    private:
+        HomogeneousHaWp const* const owner_;
+        
+        ShapeEnumPtr<D, MultiIndex> shape_;
+        std::vector<complex_t> coefficients_;
+    };
+    
+    HomogeneousHaWp(std::size_t n)
+        : components_(n, Component(this))
+    { }
+    
+    double & eps()
+    {
+        return eps_;
+    }
+    
+    double eps() const
+    {
+        return eps_;
+    }
+    
+    HaWpBasis<D, MultiIndex> & paramaters()
+    {
+        return parameters_;
+    }
+    
+    HaWpBasis<D, MultiIndex> const& paramaters() const
+    {
+        return parameters_;
+    }
+    
+    std::vector<Component> & components()
+    {
+        return components_;
+    }
+    
+    std::vector<Component> const& components() const
+    {
+        return components_;
+    }
+    
+    Component & operator[](std::size_t n)
+    {
+        return components_[n];
+    }
+    
+    Component const& operator[](std::size_t n) const
+    {
+        return components_[n];
+    }
+    
+    std::size_t n_components() const
+    {
+        return components_.size();
+    }
+    
+private:
+    double eps_;
+    HaWpBasis<D, MultiIndex> parameters_;
+    std::vector<Component> components_;
+};
+
+template<dim_t D, class MultiIndex>
+class InhomogeneousHaWp
+{
+public:
+    class Component : public AbstractScalarHaWp<D,MultiIndex>
+    {
+    public:
+        Component(InhomogeneousHaWp const* const owner)
+            : owner_(owner)
+            , shape_()
+            , coefficients_()
+        { }
+        
+        Component(Component&& that)
+            : parameters_(std::move(that.paramaters_))
+            , shape_(that.shape_)
+            , coefficients_(std::move(that.coefficients_))
+        { }
+        
+        Component(Component const& that)
+            : parameters_(that.paramaters_)
+            , shape_(that.shape_)
+            , coefficients_(that.coefficients_)
+        { }
+        
+        Component & operator=(Component&& that)
+        {
+            parameters_ = std::move(that.paramaters_);
+            shape_ = that.shape_;
+            coefficients_ = std::move(that.coefficients_);
+            return *this;
+        }
+        
+        Component & operator=(Component const& that)
+        {
+            parameters_ = that.parameters_;
+            shape_ = that.shape_;
+            coefficients_ = that.coefficients_;
+            return *this;
+        }
+        
+        double eps() const override
+        {
+            return owner_->eps();
+        }
+        
+        
+        
+        HaWpBasis<D, MultiIndex> & paramaters()
+        {
+            return parameters_;
+        }
+        
+        HaWpBasis<D, MultiIndex> const& paramaters() const override
+        {
+            return parameters_;
+        }
+        
+        ShapeEnumPtr<D, MultiIndex> & shape()
+        {
+            return shape_;
+        }
+        
+        ShapeEnumPtr<D, MultiIndex> shape() const override
+        {
+            return shape_;
+        }
+        
+        std::vector<complex_t> & coefficients()
+        {
+            return coefficients_;
+        }
+        
+        std::vector<complex_t> const& coefficients() const override
+        {
+            return coefficients_;
+        }
+        
+    private:
+        InhomogeneousHaWp const* const owner_;
+        
+        HaWpBasis<D, MultiIndex> parameters_;
+        ShapeEnumPtr<D, MultiIndex> shape_;
+        std::vector<complex_t> coefficients_;
+    };
+    
+    InhomogeneousHaWp(std::size_t n)
+        : eps_()
+        , components_(n, Component(this))
+    { }
+    
+    double & eps()
+    {
+        return eps_;
+    }
+    
+    double eps() const
+    {
+        return eps_;
+    }
+    
+    std::vector<Component> & components()
+    {
+        return components_;
+    }
+    
+    std::vector<Component> const& components() const
+    {
+        return components_;
+    }
+    
+    Component & operator[](std::size_t n)
+    {
+        return components_[n];
+    }
+    
+    Component const& operator[](std::size_t n) const
+    {
+        return components_[n];
+    }
+    
+    std::size_t n_components() const
+    {
+        return components_.size();
+    }
+    
+private:
+    double eps_;
+    std::vector<Component> components_;
 };
 
 namespace hawp {

@@ -14,21 +14,6 @@ namespace waveblocks {
 template<dim_t D, class MultiIndex>
 class HaWpGradientOperator
 {
-private:
-    double eps_;
-    
-    const HaWpParamSet<D>* parameters_;
-    
-    /**
-     * \brief enumeration of basic shape
-     */
-    const ShapeEnum<D,MultiIndex>* base_enum_;
-    
-    /**
-     * \brief enumeration of extended shape
-     */
-    const ShapeEnum<D,MultiIndex>* grad_enum_;
-    
 public:
     HaWpGradientOperator() = default;
     HaWpGradientOperator(const HaWpGradientOperator& that) = default;
@@ -125,6 +110,21 @@ public:
         
         return grad_coeffs;
     }
+    
+private:
+    double eps_;
+    
+    const HaWpParamSet<D>* parameters_;
+    
+    /**
+     * \brief enumeration of basic shape
+     */
+    const ShapeEnum<D,MultiIndex>* base_enum_;
+    
+    /**
+     * \brief enumeration of extended shape
+     */
+    const ShapeEnum<D,MultiIndex>* grad_enum_;
 };
 
 } // namespace waveblocks

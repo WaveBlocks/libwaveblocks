@@ -15,6 +15,9 @@ namespace waveblocks {
 template<int N>
 using HaWpBasisVector = Eigen::Array<complex_t, Eigen::Dynamic, N>;
 
+template<dim_t D, int N>
+using ComplexGrid = Eigen::Matrix<complex_t,D,N>;
+
 /**
  * 
  * 
@@ -48,7 +51,7 @@ private:
      * precomputed expression: Q^{-1}
      */
     CMatrixDD Qinv_;
-
+    
     /**
      * precomputed expression: Q^H * Q^{-T}
      */
