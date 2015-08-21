@@ -26,17 +26,17 @@ public:
     {
     }
 
-    CMatrixDD build_matrix(const HaWp<D, MultiIndex>& packet, const QR& qr)
+    CMatrixDD build_matrix(const HaWp<D, MultiIndex>& packet)
         const
     {
-        const size_t order = qr.order;
+        const size_t order = QR::order;
         const real_t eps = packet.basis.eps;
         const CMatrix<D,1>& q = complex_t(1, 0) * packet.basis.parameters->q;
         const CMatrix<D,D>& Q = packet.basis.parameters->Q;
         const CMatrix1D nodes = complex_t(1, 0) *
-            RMatrix1D::Map(qr.nodes.data(), qr.nodes.size());
+            RMatrix1D::Map(QR::nodes().data(), QR::nodes().size());
         const CMatrix1D weights = complex_t(1, 0) *
-            RMatrix1D::Map(qr.weights.data(), qr.weights.size());
+            RMatrix1D::Map(QR::weights().data(), QR::weights().size());
 
         // Compute affine transformation.
         auto Qs = (Q * Q.adjoint()).inverse().sqrt().inverse();
