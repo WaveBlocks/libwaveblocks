@@ -57,8 +57,9 @@ struct Test
                 psi2 += cj*basis_vector.row(j++);
             }
             
-            std::cout << "(1)\n" << psi1 << std::endl;
-            std::cout << "(2)\n" << psi2 << std::endl;
+            std::cout << "   both lines should be identical" << std::endl;
+            std::cout << "1. " << psi1 << std::endl;
+            std::cout << "2. " << psi2 << std::endl;
         }
         
         //     std::cout << "   x: " << x.transpose() << '\n';
@@ -94,11 +95,13 @@ int main(int argc, char *argv[])
         // Number of quadrature points can be set either at compile time or at runtime
         // One should get the same result either way!
         Test<D,MultiIndex> test = {eps, parameters, shape_enum, coefficients};
+        
         std::cout << "\n# ---- static $N (number of quadrature points) ---- \n";
         std::cout << "\n#  $N = 1 \n";
         test.run<1>(1);
         std::cout << "\n#  $N = 5 \n";
         test.run<5>(5);
+        
         std::cout << "\n# ---- dynamic $N (number of quadrature points) ---- \n";
         std::cout << "\n#  $N = 1 \n";
         test.run<Eigen::Dynamic>(1);

@@ -38,6 +38,8 @@ int main(int argc, char* argv[])
     wavepacket.eps() = 0.9;
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
         wavepacket[c].shape() = shape_enums[c];
+        
+        wavepacket[c].coefficients().resize(shape_enums[c]->n_entries());
     }
     
     // (4) Define quadrature points
@@ -52,7 +54,13 @@ int main(int argc, char* argv[])
     
     // (5) Evaluate wavepacket-components
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
-        wavepacket[c].evaluate(grid);
+        Eigen::Matrix<complex_t, 1, N> value = wavepacket[c].evaluate(grid);
+        
+        std::cout << "component [" << c << "]: ";
+        for (int n = 0; n < npts; n++) {
+            std::cout << value(0,n) << " ";
+        }
+        std::cout << std::endl;
     }
     
     return 0;

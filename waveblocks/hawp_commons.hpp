@@ -6,6 +6,8 @@
 #include "shape_enum_union.hpp"
 #include "shape_enum_extended.hpp"
 
+#include <stdexcept>
+
 namespace waveblocks
 {
 
@@ -30,12 +32,8 @@ public:
      */
     void get_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape) const
     {
-        // This assertion checks whether the cached shape extension is up-to-date
-        // If it fails, you forgot to call update_extended_shape() beforehand
-        assert(shape().get() == cached_extended_shape_source_);
-        
-        if (shape().get() == cached_extended_shape_source_)
-            update_extended_shape(); // this function is not thread-safe -> hope for the best in a threaded environment
+        if (shape.get() != cached_extended_shape_source_)
+            update_extended_shape(); // this function is not thread-safe
         
         return cached_extended_shape_;
     }
@@ -90,37 +88,42 @@ public:
     virtual std::vector<complex_t> const& coefficients() const = 0;
     
     /**
-     * \brief Returns a shared pointer to the extended shape.
+     * \brief Computes the extended shape if necessary (caching!) and returns it.
      * 
      * Computing an extended shape is expensive. Therefore this function
      * manually managed cache.
      * 
      * Thus you need to call update_extended_shape() if you change
      * the shape of this wavepacket.
+     * 
+     * \e Thread-Safety: The stored pointer to the cached shape extension is not guarded by a mutex.
+     * Therefore race conditions may occur when calling this function concurrently.
+     * 
+     * \return shared pointer to extended shape
      */
     ShapeEnumSharedPtr<D,MultiIndex> extended_shape() const
     {
-        return shape_extension_cache_.get_extended_shape();
+        return shape_extension_cache_.get_extended_shape( shape() );
     }
     
     /**
-     * \brief Updates the stored shape extension if necessary.
+     * \brief Manually updates the stored shape extension if necessary.
      * 
      * Be aware that this operation is EXPENSIVE.
      * Currently, generating a share extension scales O(D*log(D)*N) 
      * where D is the wavepacket dimensionality and N is the number of shape lattice points.
-     * 
-     * Thread-Safety: The stored pointer to the cached shape extension is not guarded by a mutex.
-     * Therefore race conditions may occur when calling this function concurrently.
      */
     void update_extended_shape()
     {
-        shape_extension_cache_.update_extended_shape();
+        shape_extension_cache_.update_extended_shape( shape() );
     };
     
     template<int N>
     HaWpEvaluator<D,MultiIndex,N> create_evaluator(ComplexGrid<D,N> const& grid) const
     {
+        if (shape()->n_entries() != coefficients().size())
+            throw std::runtime_error("shape.size() != coefficients.size()");
+        
         return {eps(), &paramaters(), shape().get(), grid};
     }
     
@@ -289,7 +292,9 @@ public:
     };
     
     HomogeneousHaWp(std::size_t n)
-    : components_(n, Component(this))
+        : eps_(0.0)
+        , parameters_()
+        , components_(n, Component(this))
     { }
     
     double & eps()
@@ -380,21 +385,21 @@ public:
     {
     public:
         Component(InhomogeneousHaWp const* const owner)
-        : owner_(owner)
-        , shape_()
-        , coefficients_()
+            : owner_(owner)
+            , shape_()
+            , coefficients_()
         { }
         
         Component(Component&& that)
-        : parameters_(std::move(that.paramaters_))
-        , shape_(that.shape_)
-        , coefficients_(std::move(that.coefficients_))
+            : parameters_(std::move(that.paramaters_))
+            , shape_(that.shape_)
+            , coefficients_(std::move(that.coefficients_))
         { }
         
         Component(Component const& that)
-        : parameters_(that.paramaters_)
-        , shape_(that.shape_)
-        , coefficients_(that.coefficients_)
+            : parameters_(that.paramaters_)
+            , shape_(that.shape_)
+            , coefficients_(that.coefficients_)
         { }
         
         Component & operator=(Component&& that)
@@ -459,8 +464,8 @@ public:
     };
     
     InhomogeneousHaWp(std::size_t n)
-    : eps_()
-    , components_(n, Component(this))
+        : eps_()
+        , components_(n, Component(this))
     { }
     
     double & eps()

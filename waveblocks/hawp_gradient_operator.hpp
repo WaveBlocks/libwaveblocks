@@ -153,10 +153,20 @@ template<dim_t D, class MultiIndex>
 class HaWpGradientOperator
 {
 public:
+    /**
+     * \e Thread-Safety: Computing the gradient involves creating a shape extension.
+     * Since computing a shape extension is very expensive, shape extensions are cached.
+     * Concurrently applying any gradient operator to the same wavepacket is unsafe (and is pointless anyway)
+     * since cached shape extensions are stored inside the wavepacket objects without mutex guard.
+     * Till now applying the same gradient operator to different wavepacket objects in parallel
+     * is completely safe. But to ensure future compatibility, each thread should use its 
+     * own gradient operator instance.
+     * 
+     * \param wp scalar wavepacket
+     * \return D-dimensional wavepacket
+     */
     HaWpGradient<D,MultiIndex> operator()(AbstractScalarHaWp<D,MultiIndex> const& wp) const
     {
-        wp.compute_extended_shape();
-        
         HaWpGradient<D,MultiIndex> gradwp;
         gradwp.eps() = wp.eps();
         gradwp.parameters() = wp.parameters();
