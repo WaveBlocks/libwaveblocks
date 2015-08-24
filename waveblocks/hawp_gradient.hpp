@@ -1,5 +1,5 @@
-#ifndef WAVEBLOCKS_HAGEDORN_GRADIENT_OPERATOR_HPP
-#define WAVEBLOCKS_HAGEDORN_GRADIENT_OPERATOR_HPP
+#ifndef WAVEBLOCKS_HAGEDORN_GRADIENT_EVALUATOR_HPP
+#define WAVEBLOCKS_HAGEDORN_GRADIENT_EVALUATOR_HPP
 
 #include <vector>
 #include <array>
@@ -12,17 +12,10 @@
 namespace waveblocks {
 
 template<dim_t D, class MultiIndex>
-class HaWpGradientOperator
+class HaWpGradientEvaluator
 {
 public:
-    HaWpGradientOperator() = default;
-    HaWpGradientOperator(const HaWpGradientOperator& that) = default;
-    HaWpGradientOperator(HaWpGradientOperator&& that) = default;
-    
-    HaWpGradientOperator &operator=(const HaWpGradientOperator& that) = default;
-    HaWpGradientOperator &operator=(HaWpGradientOperator&& that) = default;
-    
-    HaWpGradientOperator(double eps,
+    HaWpGradientEvaluator(double eps,
                      const HaWpParamSet<D>* parameters,
                      const ShapeEnum<D,MultiIndex>* base_enum,
                      const ShapeEnum<D,MultiIndex>* grad_enum)

@@ -107,6 +107,12 @@ enumeration_complete:
         
         return {std::move(slices), size, limits};
     }
+    
+    template<class Shape>
+    ShapeEnum<D,MultiIndex> enumerate(const Shape& shape) const
+    {
+        return generate<Shape>(shape);
+    }
 };
 
 }
