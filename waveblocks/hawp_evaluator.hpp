@@ -19,8 +19,21 @@ template<dim_t D, int N>
 using ComplexGrid = Eigen::Matrix<complex_t,D,N>;
 
 /**
+ * \brief Evaluates a wavepacket slice by slice.
  * 
+ * This class is low-level. You should not use it directly.
+ * You should program against the high-level member functions 
+ * evaluate()/evaluate_basis() of the class AbstractScalarHaWp in "hawp_commons.hpp".
  * 
+ * The only reason you may want to use HaWpEvaluator directly is when 
+ * you gain an advantage by evaluating a wavepacket slice by slice. 
+ * The slice-by-slice wvaluation reduces memory since you
+ * don't have to store all basis function values but only the 'active' ones.
+ * Take a look at the implementation of the member functions all() or reduce()
+ * to learn how to evaluate a wave packet slice by slice.
+ * 
+ * \tparam D dimensionality of wavepacket
+ * \tparam MulitIndex
  * \tparam N number of quadrature points (if unknown: use Eigen::Dynamic)
  */
 template<dim_t D, class MultiIndex, int N>

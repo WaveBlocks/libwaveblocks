@@ -11,6 +11,12 @@
 
 namespace waveblocks {
 
+/**
+ * \brief This class evaluates the coefficients of the gradient wavepacket.
+ * 
+ * This class is low-level. You should not use it directly.
+ * Use the high-level HaWpGradientOperator in file "hawp_gradient_operator.hpp".
+ */
 template<dim_t D, class MultiIndex>
 class HaWpGradientEvaluator
 {

@@ -322,14 +322,24 @@ public:
         return components_;
     }
     
-    Component & operator[](std::size_t n)
+    Component & component(std::size_t n)
     {
         return components_[n];
     }
     
-    Component const& operator[](std::size_t n) const
+    Component const& component(std::size_t n) const
     {
         return components_[n];
+    }
+    
+    Component & operator[](std::size_t n)
+    {
+        return component(n);
+    }
+    
+    Component const& operator[](std::size_t n) const
+    {
+        return component(n);
     }
     
     std::size_t n_components() const
@@ -473,14 +483,24 @@ public:
         return components_;
     }
     
-    Component & operator[](std::size_t n)
+    Component & component(std::size_t n)
     {
         return components_[n];
     }
     
-    Component const& operator[](std::size_t n) const
+    Component const& component(std::size_t n) const
     {
         return components_[n];
+    }
+    
+    Component & operator[](std::size_t n)
+    {
+        return component(n);
+    }
+    
+    Component const& operator[](std::size_t n) const
+    {
+        return component(n);
     }
     
     std::size_t n_components() const
