@@ -1,0 +1,12 @@
+ -  type: "hyperbolic"
+    sparsity: 7
+    dimensionality: 3
+    limits: [5,6,7]
+    
+ -  type: "hyperbolic"
+    sparsity: 8
+    dimensionality: 3
+    
+ -  type: "hypercubic"
+    limits: [2,3,4]
+    dimensionality: 3

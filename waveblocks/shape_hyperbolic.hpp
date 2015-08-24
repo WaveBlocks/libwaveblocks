@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "basic_types.hpp"
+#include "shape_base.hpp"
 
 namespace waveblocks {
 
@@ -26,7 +27,7 @@ namespace waveblocks {
  * \tparam D number of dimensions
  */
 template<dim_t D>
-class HyperbolicCutShape
+class HyperbolicCutShape : public AbstractShape<D>
 {
 private:
     int S_;
@@ -42,7 +43,7 @@ public:
     /**
      * \sa HyperCubicShape#bbox
      */
-    int bbox(dim_t axis) const
+    virtual int bbox(dim_t axis) const override
     {
         (void)(axis); //suppress -Wunused-parameter
         return S_ - 1;
@@ -53,8 +54,7 @@ public:
     /**
      * \sa HyperCubicShape#limit
      */
-    template<class MultiIndex>
-    int limit(const MultiIndex &base_node, dim_t axis) const
+    virtual int limit(int const* base_node, dim_t axis) const override
     {
         double s = S_;
         
@@ -67,13 +67,9 @@ public:
         return (int)s - 1;
     }
     
-    std::string description() const
+    virtual void print(std::ostream & out) const override
     {
-        std::stringstream out;
-        out << "HyperbolicCutShape{";
-        out << "dimension: " << D << ", ";
-        out << "sparsity: " << S_ << "}";
-        return out.str();
+        out << "HyperbolicCutShape{sparsity: " << S_ << "}";
     }
 };
 
@@ -95,7 +91,7 @@ public:
  * \tparam D number of dimensions
  */
 template<dim_t D>
-class LimitedHyperbolicCutShape
+class LimitedHyperbolicCutShape : public AbstractShape<D>
 {
 private:
     int S_;
@@ -149,7 +145,7 @@ public:
     /**
      * \sa HyperCubicShape#bbox
      */
-    int bbox(dim_t axis) const
+    virtual int bbox(dim_t axis) const override
     {
         return std::min( limits_[axis]-1, S_ - 1);
     }
@@ -157,8 +153,7 @@ public:
     /**
      * \sa HyperCubicShape#limit
      */
-    template<class MultiIndex>
-    int limit(const MultiIndex &base_node, dim_t axis) const
+    virtual int limit(int const* base_node, dim_t axis) const override
     {
         double s = S_;
         
@@ -174,14 +169,14 @@ public:
         return std::min((int)limits_[axis]-1, (int)s - 1);
     }
     
-    std::string description() const
+    virtual void print(std::ostream & out) const override
     {
-        std::stringstream out;
-        out << "LimitedHyperbolicCutShape{";
-        out << "dimension: " << D << ", ";
-        out << "sparsity: " << S_ << ", ";
-        out << "limits (exclusive): " << limits_ << "}";
-        return out.str();
+        out << "LimitedHyperbolicCutShape{ sparsity: " << S_ << ", limits (exclusive): [";
+        for (dim_t i = 0; i < D-1; i++) {
+            out << limits_[i] << ",";
+        }
+        out << limits_[D-1] << "]";
+        out << "}";
     }
 };
 
