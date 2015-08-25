@@ -16,7 +16,7 @@
 #include "shape_enum.hpp"
 
 #include "hawp_evaluator.hpp"
-#include "hawp_gradient.hpp"
+#include "hawp_gradient_evaluator.hpp"
 
 namespace waveblocks {
 

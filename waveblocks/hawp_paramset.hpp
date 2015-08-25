@@ -102,18 +102,16 @@ struct HaWpParamSet
 template<dim_t D>
 std::ostream &operator<<(std::ostream &out, const HaWpParamSet<D> &parameters)
 {
-    Eigen::IOFormat matrix_format(Eigen::StreamPrecision, 0, ", ", ",\n", "[", "]", "[", "]");
+    Eigen::IOFormat CleanFmt(4, 0, ", ", "\n     ", "[", "]");
     
-    out << "--------------------\n";
-    out << "HaWpParamSet\n";
-    out << "#q: \n" << parameters.q.format(matrix_format) << '\n';
-    out << "#p: \n" << parameters.p.format(matrix_format) << '\n';
-    out << "#Q: \n" << parameters.Q.format(matrix_format) << '\n';
-    out << "#P: \n" << parameters.P.format(matrix_format) << '\n';
-    out << "#sqrt(detQ): " << std::abs(parameters.sqrt_detQ()) << "*exp(" << std::arg(parameters.sqrt_detQ()) << "*i)" << '\n';
-    out << "#compatible?: " << (parameters.compatible() ? "yes" : "no") << '\n';
-    out << "--------------------\n";
-    out << std::endl; //flush
+    out << "HaWpParamSet {\n";
+    out << "  q: " << parameters.q.format(CleanFmt) << '\n';
+    out << "  p: " << parameters.p.format(CleanFmt) << '\n';
+    out << "  Q: " << parameters.Q.format(CleanFmt) << '\n';
+    out << "  P: " << parameters.P.format(CleanFmt) << '\n';
+    out << "  sqrt(detQ): " << std::abs(parameters.sqrt_detQ()) << "*exp(" << std::arg(parameters.sqrt_detQ()) << "*i)" << '\n';
+    out << "  compatible(): " << (parameters.compatible() ? "yes" : "no") << '\n';
+    out << "}" << std::endl; //flush
     return out;
 }
 

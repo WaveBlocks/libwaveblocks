@@ -2,9 +2,11 @@
 #define WAVEBLOCKS_SHAPE_ENUMERATOR_HPP
 
 #include <vector>
+#include <memory>
 
 #include "basic_types.hpp"
 #include "shape_enum.hpp"
+#include "shape_base.hpp"
 
 namespace waveblocks {
 
@@ -108,10 +110,14 @@ enumeration_complete:
         return {std::move(slices), size, limits};
     }
     
-    template<class Shape>
-    ShapeEnum<D,MultiIndex> enumerate(const Shape& shape) const
+    ShapeEnum<D,MultiIndex> enumerate(AbstractShape<D> const& shape) const
     {
-        return generate<Shape>(shape);
+        return generate<AbstractShape<D> >(shape);
+    }
+    
+    std::shared_ptr<ShapeEnum<D,MultiIndex>> enumerate(AbstractShape<D> const* shape) const
+    {
+        return std::make_shared<ShapeEnum<D,MultiIndex> >(generate<AbstractShape<D> >(*shape));
     }
 };
 

@@ -15,9 +15,6 @@ namespace waveblocks {
 template<int N>
 using HaWpBasisVector = Eigen::Array<complex_t, Eigen::Dynamic, N>;
 
-template<dim_t D, int N>
-using ComplexGrid = Eigen::Matrix<complex_t,D,N>;
-
 /**
  * \brief Evaluates a wavepacket slice by slice.
  * 

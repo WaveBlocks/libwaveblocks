@@ -2,7 +2,7 @@
 #define WAVEBLOCKS_GRADIENT_OPERATOR_HPP
 
 #include "hawp_commons.hpp"
-#include "hawp_gradient.hpp"
+#include "hawp_gradient_evaluator.hpp"
 
 namespace waveblocks
 {
@@ -19,6 +19,7 @@ class HaWpGradient
 public:
     class Component : public AbstractScalarHaWp<D,MultiIndex>
     {
+    public:
         Component(HaWpGradient const * const owner)
             : owner_(owner)
         { }
@@ -33,7 +34,7 @@ public:
             return owner_->parameters();
         }
         
-        ShapeEnumSharedPtr<D,MultiIndex> const& shape() const override
+        ShapeEnumSharedPtr<D,MultiIndex> shape() const override
         {
             return owner_->shape();
         }
@@ -55,7 +56,7 @@ public:
     };
     
     HaWpGradient()
-        : components_(Component(this))
+        : components_(D, Component(this))
     { }
     
     double & eps()
@@ -118,7 +119,7 @@ private:
     double eps_;
     HaWpParamSet<D> parameters_;
     ShapeEnumSharedPtr<D,MultiIndex> shape_;
-    std::array<Component,D> components_;
+    std::vector<Component> components_;
     
 }; // class HaWpGradient
 
@@ -172,7 +173,7 @@ public:
         gradwp.parameters() = wp.parameters();
         gradwp.shape() = wp.extended_shape();
         
-        HaWpGradientEvaluator<D,MultiIndex> evaluator(wp.eps(), wp.parameters().get(), wp.shape().get(), gradwp.shape().get());
+        HaWpGradientEvaluator<D,MultiIndex> evaluator(wp.eps(), &wp.parameters(), wp.shape().get(), gradwp.shape().get());
         std::array< std::vector<complex_t>, std::size_t(D) > coeffs_result = evaluator.apply(wp.coefficients());
         
         for (dim_t c = 0; c < D; c++) {

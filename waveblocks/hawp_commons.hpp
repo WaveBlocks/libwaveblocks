@@ -30,10 +30,10 @@ public:
      * \brief shape reference to shape to check actuality of cache
      * \return 
      */
-    void get_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape) const
+    ShapeEnumSharedPtr<D,MultiIndex> get_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape) const
     {
         if (shape.get() != cached_extended_shape_source_)
-            update_extended_shape(); // this function is not thread-safe
+            update_extended_shape(shape); // this function is not thread-safe
         
         return cached_extended_shape_;
     }
@@ -56,7 +56,7 @@ public:
      * 
      * \param shape new source shape
      */
-    void update_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape)
+    void update_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape) const
     {
         if (shape.get() != cached_extended_shape_source_) {
             cached_extended_shape_source_ = shape.get();
@@ -83,7 +83,7 @@ class AbstractScalarHaWp
 {
 public:
     virtual double eps() const = 0;
-    virtual HaWpParamSet<D> const& paramaters() const = 0;
+    virtual HaWpParamSet<D> const& parameters() const = 0;
     virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
     virtual std::vector<complex_t> const& coefficients() const = 0;
     
@@ -119,18 +119,25 @@ public:
     };
     
     template<int N>
-    HaWpEvaluator<D,MultiIndex,N> create_evaluator(ComplexGrid<D,N> const& grid) const
+    HaWpEvaluator<D,MultiIndex,N> create_evaluator(CMatrix<D,N> const& grid) const
     {
         if (shape()->n_entries() != coefficients().size())
             throw std::runtime_error("shape.size() != coefficients.size()");
         
-        return {eps(), &paramaters(), shape().get(), grid};
+        return {eps(), &parameters(), shape().get(), grid};
     }
     
     template<int N>
-    Eigen::Array<complex_t,1,N> evaluate(ComplexGrid<D,N> const& grid) const
+    CMatrix<1,N> evaluate(CMatrix<D,N> const& grid) const
     {
         return create_evaluator<N>(grid).reduce( coefficients() );
+    }
+    
+    template<int N>
+    CMatrix<1,N> evaluate(RMatrix<D,N> const& rgrid) const
+    {
+        CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
+        return evaluate(cgrid);
     }
     
 //     virtual HaWpBasisVector<Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const
@@ -139,9 +146,16 @@ public:
 //     }
     
     template<int N>
-    HaWpBasisVector<N> evaluate_basis(ComplexGrid<D,N> const& grid) const
+    HaWpBasisVector<N> evaluate_basis(CMatrix<D,N> const& grid) const
     {
         return create_evaluator(grid).all();
+    }
+    
+    template<int N>
+    HaWpBasisVector<N> evaluate_basis(RMatrix<D,N> const& rgrid) const
+    {
+        CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
+        return evaluate_basis(cgrid);
     }
     
 //     virtual HaWpBasisVector<Eigen::Dynamic> evaluate_basis(ComplexGrid<D,Eigen::Dynamic> const& grid) const
@@ -167,12 +181,12 @@ public:
         return eps_;
     }
     
-    HaWpParamSet<D> & paramaters()
+    HaWpParamSet<D> & parameters()
     {
         return parameters_;
     }
     
-    HaWpParamSet<D> const& paramaters() const override
+    HaWpParamSet<D> const& parameters() const override
     {
         return parameters_;
     }
@@ -257,9 +271,9 @@ public:
             return owner_->eps();
         }
         
-        HaWpParamSet<D> const& paramaters() const override
+        HaWpParamSet<D> const& parameters() const override
         {
-            return owner_->paramaters();
+            return owner_->parameters();
         }
         
         
@@ -307,12 +321,12 @@ public:
         return eps_;
     }
     
-    HaWpParamSet<D> & paramaters()
+    HaWpParamSet<D> & parameters()
     {
         return parameters_;
     }
     
-    HaWpParamSet<D> const& paramaters() const
+    HaWpParamSet<D> const& parameters() const
     {
         return parameters_;
     }
@@ -425,12 +439,12 @@ public:
         
         
         
-        HaWpParamSet<D> & paramaters()
+        HaWpParamSet<D> & parameters()
         {
             return parameters_;
         }
         
-        HaWpParamSet<D> const& paramaters() const override
+        HaWpParamSet<D> const& parameters() const override
         {
             return parameters_;
         }

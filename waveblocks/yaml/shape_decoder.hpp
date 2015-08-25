@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <cmath>
 
 #include <yaml-cpp/yaml.h>
 
@@ -27,7 +28,7 @@ namespace yaml
             std::string type = config["type"].as<std::string>();
             
             if (type == "hyperbolic") {
-                int sparsity = config["sparsity"].as<int>();
+                int sparsity = int(config["sparsity"].as<double>()+0.5);
                 
                 if (config["limits"]) {
                     return new LimitedHyperbolicCutShape<D>(sparsity, decode_limits(config["limits"]));

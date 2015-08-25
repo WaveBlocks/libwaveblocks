@@ -5,7 +5,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "../../test/complexnumber_parser.hpp"
+#include "../util/complexnumber_parser.hpp"
 
 namespace YAML {
     template<>

@@ -321,6 +321,15 @@ public:
         return slices_;
     }
     
+    MultiIndex at(std::size_t ordinal) const
+    {
+        for (auto & slice : slices_) {
+            if (slice.offset() + slice.size() > ordinal)
+                return slice[ordinal - slice.offset()];
+        }
+        throw std::runtime_error("ordinal >= shape.n_entries()");
+    }
+    
     std::size_t n_entries() const
     {
         return n_entries_;

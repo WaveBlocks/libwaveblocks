@@ -1,0 +1,22 @@
+coefficients: [packet_homogen_coefficients_0.csv, packet_homogen_coefficients_1.csv]
+eps: 0.9
+n_components: 2
+n_dimensions: 3
+parameters:
+- P:
+  - [1j, 0j, 0j]
+  - [0j, 1j, 0j]
+  - [0j, 0j, 1j]
+  Q:
+  - [(1+0j), 0j, 0j]
+  - [0j, (1+0j), 0j]
+  - [0j, 0j, (1+0j)]
+  p: [0.0, 0.0, 0.0]
+  q: [0.0, 0.0, 0.0]
+shapes:
+- dimensionality: 3
+  limits: [1, 1, 1]
+  type: hypercubic
+- dimensionality: 3
+  limits: [1, 1, 1]
+  type: hypercubic

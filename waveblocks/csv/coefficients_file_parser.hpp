@@ -8,6 +8,8 @@
 namespace waveblocks
 {
 
+namespace csv
+{
 class CoefficientsFileParser
 {
 public:
@@ -18,11 +20,18 @@ public:
     
     bool next();
     
+    std::size_t line_number() const
+    {
+        return line_number_;
+    }
+    
 private:
     std::fstream in_;
     int wp_dimensions_;
     int wp_components_;
+    std::size_t line_number_;
 };
+}
 
 }
 

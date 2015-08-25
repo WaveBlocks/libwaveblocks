@@ -10,7 +10,10 @@ add_definitions(
     -pedantic
 )
 
-
+add_library(waveblocks-static STATIC 
+    waveblocks/csv/coefficients_file_parser.cpp
+    waveblocks/util/complexnumber_parser.cpp
+)
 
 # needs pkg-config
 include(FindPkgConfig)
