@@ -113,10 +113,22 @@ int main(int argc, char* argv[])
         HaWpGradientOperator<D,MultiIndex> nabla;
         HaWpGradient<D,MultiIndex> gradwp = nabla(wp);
         
+        std::cout << "   Evaluate each component one by one ... " << std::endl;
         for (std::size_t c = 0; c < gradwp.n_components(); c++) {
-            CMatrix<1,Eigen::Dynamic> result = gradwp[c].evaluate(grid);
+            CMatrix<1, Eigen::Dynamic> result = gradwp[c].evaluate(grid);
+            
             std::cout << "   " << result.format(CleanFmt) << std::endl;
         }
+        std::cout << std::endl;
+        
+        std::cout << "   Evaluate all components at once ... " << std::endl;
+        CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = gradwp.evaluate(grid);
+        std::cout << "   " << result.format(CleanFmt) << std::endl;
+        
+//         for (std::size_t c = 0; c < gradwp.n_components(); c++) {
+//             CMatrix<1,Eigen::Dynamic> result = gradwp[c].evaluate(grid);
+//             std::cout << "   " << result.format(CleanFmt) << std::endl;
+//         }
     }
     std::cout << std::endl;
 }

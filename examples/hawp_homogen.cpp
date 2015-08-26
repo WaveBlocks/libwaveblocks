@@ -50,17 +50,24 @@ int main(int argc, char* argv[])
     }
     
     // (4) Define quadrature points
-    CMatrix<D, Eigen::Dynamic> grid(D,1);
+    RMatrix<D, Eigen::Dynamic> grid(D,1);
     for (int i = 0; i < 1; i++) {
         grid(i,0) = -1.0 + 2.0*(i-1)/D;
     }
     
     // (5) Evaluate wavepacket-components
+    
+    std::cout << "Evaluate each component one by one ... " << std::endl;
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
         CMatrix<1, Eigen::Dynamic> result = wavepacket[c].evaluate(grid);
         
         std::cout << "   " << result.format(CleanFmt) << std::endl;
     }
+    std::cout << std::endl;
+    
+    std::cout << "Evaluate all components at once ... " << std::endl;
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = wavepacket.evaluate(grid);
+    std::cout << "   " << result.format(CleanFmt) << std::endl;
     
     return 0;
 }

@@ -384,6 +384,25 @@ public:
         return std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enum::strict_union(list));
     }
     
+    template<int N>
+    CMatrix<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
+    {
+        CMatrix<Eigen::Dynamic,N> result(n_components(),grid.cols());
+        
+        for (std::size_t c = 0; c < n_components(); c++) {
+            result.row(c) = component(c).evaluate(grid);
+        }
+        
+        return result;
+    }
+    
+    template<int N>
+    CMatrix<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
+    {
+        CMatrix<D,N> cgrid = rgrid.template cast<complex_t>();
+        return evaluate(cgrid);
+    }
+    
 private:
     double eps_;
     HaWpParamSet<D> parameters_;
@@ -534,6 +553,25 @@ public:
     std::size_t n_components() const
     {
         return components_.size();
+    }
+    
+    template<int N>
+    CMatrix<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
+    {
+        CMatrix<Eigen::Dynamic,N> result(n_components(),grid.cols());
+        
+        for (std::size_t c = 0; c < n_components(); c++) {
+            result.row(c) = component(c).evaluate(grid);
+        }
+        
+        return result;
+    }
+    
+    template<int N>
+    CMatrix<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
+    {
+        CMatrix<D,N> cgrid = rgrid.template cast<complex_t>();
+        return evaluate(cgrid);
     }
     
     ShapeEnumSharedPtr<D,MultiIndex> compute_union_shape() const
