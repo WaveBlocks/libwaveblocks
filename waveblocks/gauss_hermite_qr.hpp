@@ -1,10 +1,6 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
-
-#include <Eigen/Core>
-#include <Eigen/Dense>
 
 #include "basic_types.hpp"
 #include "tables_gausshermite.hpp"
