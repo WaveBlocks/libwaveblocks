@@ -58,10 +58,15 @@ int main(int argc, char* argv[])
     std::cout << "shape: " << wp.shape()->n_entries() << " entries, " << wp.shape()->n_slices() << " slices" << std::endl;
     std::cout << wp.parameters() << std::endl;
     
-    std::cout << "coefficients: " << std::endl;
-    for (std::size_t i = 0; i < wp.coefficients().size(); i++) {
-        std::cout << "   " << wp.shape()->at(i) << ": " << wp.coefficients()[i] << std::endl;
+    std::cout << "coefficients {" << std::endl;
+    for (int i = 0; i < wp.shape()->n_slices(); i++) {
+        auto const& slice = wp.shape()->slice(i);
+        
+        for (std::size_t j = 0; j < slice.size(); j++) {
+            std::cout << "   " << slice[j] << ": " << wp.coefficients()[slice.offset() + j] << std::endl;
+        }
     }
+    std::cout << "}" << std::endl;
     
     std::cout << "--------------------------------------------------------------------------------" << std::endl;
     std::cout << "     EVALUATE WAVEPACKET & GRADIENT" << std::endl;
@@ -78,15 +83,40 @@ int main(int argc, char* argv[])
     std::cout << "   " << grid.format(CleanFmt) << std::endl;
     std::cout << std::endl;
     
+    std::cout << boost::format("Evaluate basis functions on %i quadrature points") % grid.cols() << std::endl;
+    {
+        CMatrix<Eigen::Dynamic, Eigen::Dynamic> result; // size = ( number of basis functions X number of quadrature points)
+        
+        result = wp.evaluate_basis(grid);
+        
+        for (int i = 0; i < wp.shape()->n_slices(); i++) {
+            auto const& slice = wp.shape()->slice(i);
+            
+            for (std::size_t j = 0; j < slice.size(); j++) {
+                std::cout << "   " << slice[j] << ": " << result.row(slice.offset() + j) << std::endl;
+            }
+        }
+    }
+    std::cout << std::endl;
+    
     std::cout << boost::format("Evaluate wavepacket on %i quadrature points") % grid.cols() << std::endl;
-    std::cout << "   " << wp.evaluate(grid).format(CleanFmt) << std::endl;
+    {
+        CMatrix<1,Eigen::Dynamic> result;
+        
+        result = wp.evaluate(grid);
+        std::cout << "   " << result.format(CleanFmt) << std::endl;
+    }
     std::cout << std::endl;
     
     std::cout << boost::format("Evaluate gradient (%i components) on %i quadrature points") % D % grid.cols() << std::endl;
-    HaWpGradientOperator<D,MultiIndex> nabla;
-    HaWpGradient<D,MultiIndex> gradwp = nabla(wp);
-    
-    for (std::size_t c = 0; c < gradwp.n_components(); c++) {
-        std::cout << "   " << gradwp[c].evaluate(grid).format(CleanFmt) << std::endl;
+    {
+        HaWpGradientOperator<D,MultiIndex> nabla;
+        HaWpGradient<D,MultiIndex> gradwp = nabla(wp);
+        
+        for (std::size_t c = 0; c < gradwp.n_components(); c++) {
+            CMatrix<1,Eigen::Dynamic> result = gradwp[c].evaluate(grid);
+            std::cout << "   " << result.format(CleanFmt) << std::endl;
+        }
     }
+    std::cout << std::endl;
 }

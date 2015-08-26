@@ -69,23 +69,37 @@ private:
     mutable ShapeEnum<D,MultiIndex> * cached_extended_shape_source_; // source of the cached extended shape
 };
 
-/**
- * \brief Abstract basis class that represents a scalar (1-component) hagedorn wavepacket.
- * 
- * It provides read-only access to epsilon, shape, parameters and coefficients.
- * Furthermore it is able to evaluate itself on quadrature points.
- * 
- * \tparam D wavepacket dimensionality
- * \tparam MultiIndex
- */
 template<dim_t D, class MultiIndex>
-class AbstractScalarHaWp
+class AbstractScalarHaWpBasis
 {
 public:
     virtual double eps() const = 0;
     virtual HaWpParamSet<D> const& parameters() const = 0;
     virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
-    virtual std::vector<complex_t> const& coefficients() const = 0;
+    
+    template<int N>
+    HaWpEvaluator<D,MultiIndex,N> create_evaluator(CMatrix<D,N> const& grid) const
+    {
+        return {eps(), &parameters(), shape().get(), grid};
+    }
+    
+    template<int N>
+    HaWpBasisVector<N> evaluate_basis(CMatrix<D,N> const& grid) const
+    {
+        return create_evaluator(grid).all();
+    }
+    
+    template<int N>
+    HaWpBasisVector<N> evaluate_basis(RMatrix<D,N> const& rgrid) const
+    {
+        CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
+        return evaluate_basis(cgrid);
+    }
+    
+    //     virtual HaWpBasisVector<Eigen::Dynamic> evaluate_basis(ComplexGrid<D,Eigen::Dynamic> const& grid) const
+    //     {
+    //         return create_evaluator<Eigen::Dynamic>(grid).all();
+    //     }
     
     /**
      * \brief Computes the extended shape if necessary (caching!) and returns it.
@@ -103,7 +117,7 @@ public:
      */
     ShapeEnumSharedPtr<D,MultiIndex> extended_shape() const
     {
-        return shape_extension_cache_.get_extended_shape( shape() );
+        return shape_extension_cache_.get_extended_shape( this->shape() );
     }
     
     /**
@@ -115,22 +129,38 @@ public:
      */
     void update_extended_shape()
     {
-        shape_extension_cache_.update_extended_shape( shape() );
+        shape_extension_cache_.update_extended_shape( this->shape() );
     };
     
-    template<int N>
-    HaWpEvaluator<D,MultiIndex,N> create_evaluator(CMatrix<D,N> const& grid) const
-    {
-        if (shape()->n_entries() != coefficients().size())
-            throw std::runtime_error("shape.size() != coefficients.size()");
-        
-        return {eps(), &parameters(), shape().get(), grid};
-    }
+private:
+    ShapeExtensionCache<D,MultiIndex> shape_extension_cache_;
+};
+
+/**
+ * \brief Abstract basis class that represents a scalar (1-component) hagedorn wavepacket.
+ * 
+ * It provides read-only access to epsilon, shape, parameters and coefficients.
+ * Furthermore it is able to evaluate itself on quadrature points.
+ * 
+ * \tparam D wavepacket dimensionality
+ * \tparam MultiIndex
+ */
+template<dim_t D, class MultiIndex>
+class AbstractScalarHaWp : public AbstractScalarHaWpBasis<D,MultiIndex>
+{
+public:
+    virtual double eps() const = 0;
+    virtual HaWpParamSet<D> const& parameters() const = 0;
+    virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
+    virtual std::vector<complex_t> const& coefficients() const = 0;
     
     template<int N>
     CMatrix<1,N> evaluate(CMatrix<D,N> const& grid) const
     {
-        return create_evaluator<N>(grid).reduce( coefficients() );
+        if (this->shape()->n_entries() != coefficients().size())
+            throw std::runtime_error("shape.size() != coefficients.size()");
+        
+        return this->template create_evaluator<N>(grid).reduce( coefficients() );
     }
     
     template<int N>
@@ -144,27 +174,6 @@ public:
 //     {
 //         return create_evaluator<Eigen::Dynamic>().reduce(coefficients());
 //     }
-    
-    template<int N>
-    HaWpBasisVector<N> evaluate_basis(CMatrix<D,N> const& grid) const
-    {
-        return create_evaluator(grid).all();
-    }
-    
-    template<int N>
-    HaWpBasisVector<N> evaluate_basis(RMatrix<D,N> const& rgrid) const
-    {
-        CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
-        return evaluate_basis(cgrid);
-    }
-    
-//     virtual HaWpBasisVector<Eigen::Dynamic> evaluate_basis(ComplexGrid<D,Eigen::Dynamic> const& grid) const
-//     {
-//         return create_evaluator<Eigen::Dynamic>(grid).all();
-//     }
-    
-private:
-    ShapeExtensionCache<D,MultiIndex> shape_extension_cache_;
 };
 
 template<dim_t D, class MultiIndex>

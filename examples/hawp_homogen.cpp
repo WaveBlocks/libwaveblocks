@@ -18,49 +18,48 @@ int main(int argc, char* argv[])
     (void) argc;
     (void) argv;
     
+    Eigen::IOFormat CleanFmt(4, 0, ", ", "\n   ", "[", "]");
+    
     const dim_t D = 5;
     typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     // (1) Define shapes
-    HyperCubicShape<D> shape1({4,4,4,2,2});
-    HyperCubicShape<D> shape2({2,2,4,4,4});
-    LimitedHyperbolicCutShape<D> shape3(9.0, {4,4,4,4,4});
+    HyperCubicShape<D> shape1({2,2,4,4,4});
+    LimitedHyperbolicCutShape<D> shape23(9.0, {4,4,4,4,4});
     
     // (2) Enumerate shapes
     ShapeEnumerator<D,MultiIndex> shape_enumerator;
+    
     std::vector< ShapeEnumSharedPtr<D,MultiIndex> > shape_enums;
-    shape_enums.push_back( std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enumerator.enumerate(shape1)) );
-    shape_enums.push_back( std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enumerator.enumerate(shape2)) );
-    shape_enums.push_back( std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enumerator.enumerate(shape3)) );
+    shape_enums.push_back( shape_enumerator.enumerate(shape1) );
+    shape_enums.push_back( shape_enumerator.enumerate(shape23) );
+    shape_enums.push_back( shape_enumerator.enumerate(shape23) );
     
     // (3) Initialize wavepacket-components
     HomogeneousHaWp<D,MultiIndex> wavepacket(3); // 3 = number of components
     wavepacket.eps() = 0.9;
+    wavepacket.parameters() = HaWpParamSet<D>{};
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
         wavepacket[c].shape() = shape_enums[c];
         
-        wavepacket[c].coefficients().resize(shape_enums[c]->n_entries());
+        std::size_t n_basis_shapes = shape_enums[c]->n_entries();
+        
+        // initialize wavepacket coefficients (with some bogus-values)
+        wavepacket[c].coefficients() = std::vector<complex_t>(n_basis_shapes, 
+                                                              complex_t(1.0/n_basis_shapes,1.0/n_basis_shapes));
     }
     
     // (4) Define quadrature points
-    int npts = 5; // number of quadrature points
-    const int N = Eigen::Dynamic; // number of quadrature points (template parameter)
-    
-    Eigen::Matrix<complex_t, D, N> grid(D,npts);
-    
-    for (int n = 0; n < npts; n++) {
-        
+    CMatrix<D, Eigen::Dynamic> grid(D,1);
+    for (int i = 0; i < 1; i++) {
+        grid(i,0) = -1.0 + 2.0*(i-1)/D;
     }
     
     // (5) Evaluate wavepacket-components
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
-        Eigen::Matrix<complex_t, 1, N> value = wavepacket[c].evaluate(grid);
+        CMatrix<1, Eigen::Dynamic> result = wavepacket[c].evaluate(grid);
         
-        std::cout << "component [" << c << "]: ";
-        for (int n = 0; n < npts; n++) {
-            std::cout << value(0,n) << " ";
-        }
-        std::cout << std::endl;
+        std::cout << "   " << result.format(CleanFmt) << std::endl;
     }
     
     return 0;

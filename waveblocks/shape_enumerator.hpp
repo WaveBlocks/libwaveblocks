@@ -110,12 +110,12 @@ enumeration_complete:
         return {std::move(slices), size, limits};
     }
     
-    ShapeEnum<D,MultiIndex> enumerate(AbstractShape<D> const& shape) const
+    std::shared_ptr<ShapeEnum<D,MultiIndex> > enumerate(AbstractShape<D> const& shape) const
     {
-        return generate<AbstractShape<D> >(shape);
+        return std::make_shared<ShapeEnum<D,MultiIndex> >(generate<AbstractShape<D> >(shape));
     }
     
-    std::shared_ptr<ShapeEnum<D,MultiIndex>> enumerate(AbstractShape<D> const* shape) const
+    std::shared_ptr<ShapeEnum<D,MultiIndex> > enumerate(AbstractShape<D> const* shape) const
     {
         return std::make_shared<ShapeEnum<D,MultiIndex> >(generate<AbstractShape<D> >(*shape));
     }

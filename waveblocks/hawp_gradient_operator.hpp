@@ -14,7 +14,7 @@ namespace waveblocks
  * \tparam MultiIndex
  */
 template<dim_t D, class MultiIndex>
-class HaWpGradient
+class HaWpGradient : public AbstractScalarHaWpBasis<D,MultiIndex>
 {
 public:
     class Component : public AbstractScalarHaWp<D,MultiIndex>
@@ -64,7 +64,7 @@ public:
         return eps_;
     }
     
-    double const& eps() const
+    double eps() const override
     {
         return eps_;
     }
@@ -74,7 +74,7 @@ public:
         return parameters_;
     }
     
-    HaWpParamSet<D> const& parameters() const
+    HaWpParamSet<D> const& parameters() const override
     {
         return parameters_;
     }
@@ -84,7 +84,7 @@ public:
         return shape_;
     }
     
-    ShapeEnumSharedPtr<D,MultiIndex> const& shape() const
+    ShapeEnumSharedPtr<D,MultiIndex> shape() const override
     {
         return shape_;
     }

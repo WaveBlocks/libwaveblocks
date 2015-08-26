@@ -1,7 +1,10 @@
 include_directories("../")
 
-add_executable(hawp_homogen_hard hawp_homogen_hard.cpp)
-add_executable(hawp_homogen_easy hawp_homogen_easy.cpp)
+add_executable(hawp_gradient hawp_gradient.cpp)
+target_link_libraries(hawp_gradient yaml-cpp waveblocks-static)
 
-add_executable(hawp_gradient_easy hawp_gradient_easy.cpp)
-target_link_libraries(hawp_gradient_easy yaml-cpp waveblocks-static)
+add_executable(hawp_homogen hawp_homogen.cpp)
+target_link_libraries(hawp_homogen yaml-cpp waveblocks-static)
+
+add_executable(hawp_inhomogen hawp_homogen.cpp)
+target_link_libraries(hawp_homogen yaml-cpp waveblocks-static)
