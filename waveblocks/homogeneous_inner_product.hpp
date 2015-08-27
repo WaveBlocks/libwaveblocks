@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -29,7 +30,7 @@ public:
     CMatrixDD build_matrix(const HaWp<D, MultiIndex>& packet)
         const
     {
-        const size_t order = QR::order;
+        const dim_t order = QR::order;
         const real_t eps = packet.basis.eps;
         const CMatrix<D,1>& q = complex_t(1, 0) * packet.basis.parameters->q;
         const CMatrix<D,D>& Q = packet.basis.parameters->Q;
@@ -48,9 +49,8 @@ public:
         // TODO: Apply operator.
         CMatrix1D values = CMatrix1D::Ones(1, order);
 
-        // TODO: eps^DIM
         Eigen::Array<complex_t, 1, Eigen::Dynamic>
-            factor = eps * weights.array() * values.array();
+            factor = std::pow(eps, D) * weights.array() * values.array();
         std::cout << "factor: " << factor << std::endl;
 
         HaWpBasisVector<Eigen::Dynamic> bases = packet.basis.
