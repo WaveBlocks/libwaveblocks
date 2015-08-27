@@ -95,9 +95,14 @@ void test3DGaussHermite()
     std::cout << "IP matrix:\n" << mat << std::endl;
 */
 
-    using TQR = TensorProductQR<QR, QR, QR>;
-    TQR::NodeMatrix nodes = TQR::nodes();
+    //using TQR = TensorProductQR<QR, QR, QR>;
+    using TQR = TensorProductQR<GaussHermiteQR<3>, GaussHermiteQR<4>, GaussHermiteQR<5>>;
+    TQR::NodeMatrix nodes;
+    TQR::WeightVector weights;
+    std::tie(nodes, weights) = TQR::nodes_and_weights();
+    std::cout << "number of nodes: " << TQR::number_nodes() << "\n";
     std::cout << "node matrix:\n" << nodes << "\n";
+    std::cout << "weight vector:\n" << weights << "\n";
 }
 
 int main()
