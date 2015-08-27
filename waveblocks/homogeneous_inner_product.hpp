@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <tuple>
 #include <vector>
 
 #include <Eigen/Core>
@@ -22,6 +23,8 @@ public:
     using CMatrixDD = CMatrix<Eigen::Dynamic, Eigen::Dynamic>;
     using CMatrix1D = CMatrix<1, Eigen::Dynamic>;
     using RMatrix1D = RMatrix<1, Eigen::Dynamic>;
+    using NodeMatrix = typename QR::NodeMatrix;
+    using WeightVector = typename QR::WeightVector;
 
     HomogeneousInnerProduct()
     {
@@ -34,23 +37,24 @@ public:
         const real_t eps = packet.basis.eps;
         const CMatrix<D,1>& q = complex_t(1, 0) * packet.basis.parameters->q;
         const CMatrix<D,D>& Q = packet.basis.parameters->Q;
-        const CMatrix1D nodes = complex_t(1, 0) *
-            RMatrix1D::Map(QR::nodes().data(), QR::nodes().size());
-        const CMatrix1D weights = complex_t(1, 0) *
-            RMatrix1D::Map(QR::weights().data(), QR::weights().size());
+        NodeMatrix nodes;
+        WeightVector weights;
+        std::tie(nodes, weights) = QR::nodes_and_weights();
+        const CMatrix1D cnodes = complex_t(1, 0) * nodes;
+        const CMatrix1D cweights = complex_t(1, 0) * weights;
 
         // Compute affine transformation.
         auto Qs = (Q * Q.adjoint()).inverse().sqrt().inverse();
 
         // Transform nodes.
         CMatrix1D transformed_nodes =
-            q.replicate(1, order) + eps * (Qs * nodes);
+            q.replicate(1, order) + eps * (Qs * cnodes);
 
         // TODO: Apply operator.
         CMatrix1D values = CMatrix1D::Ones(1, order);
 
         Eigen::Array<complex_t, 1, Eigen::Dynamic>
-            factor = std::pow(eps, D) * weights.array() * values.array();
+            factor = std::pow(eps, D) * cweights.array() * values.array();
         std::cout << "factor: " << factor << std::endl;
 
         HaWpBasisVector<Eigen::Dynamic> bases = packet.basis.
