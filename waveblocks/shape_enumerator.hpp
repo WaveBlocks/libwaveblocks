@@ -2,9 +2,11 @@
 #define WAVEBLOCKS_SHAPE_ENUMERATOR_HPP
 
 #include <vector>
+#include <memory>
 
 #include "basic_types.hpp"
 #include "shape_enum.hpp"
+#include "shape_base.hpp"
 
 namespace waveblocks {
 
@@ -55,7 +57,7 @@ public:
             
             while (true) {
                 // iterate over last axis
-                for (dim_t i = 0; i <= shape.template limit<MultiIndex>(index,D-1); i++) {
+                for (dim_t i = 0; i <= shape.limit(static_cast<std::array<int,D> >(index).data(),D-1); i++) {
                     index[D-1] = i;
                     
 //                     if (use_dict)
@@ -68,7 +70,7 @@ public:
                 // iterate over other axes
                 if (D > 1) {
                     dim_t j = D-2;
-                    while ((int)index[j] == shape.template limit<MultiIndex>(index,j)) {
+                    while ((int)index[j] == shape.limit(static_cast<std::array<int,D> >(index).data(),j)) {
                         islice -= index[j];
                         index[j] = 0;
                         if (j == 0)
@@ -106,6 +108,16 @@ enumeration_complete:
             limits[d] = shape.bbox(d);
         
         return {std::move(slices), size, limits};
+    }
+    
+    std::shared_ptr<ShapeEnum<D,MultiIndex> > enumerate(AbstractShape<D> const& shape) const
+    {
+        return std::make_shared<ShapeEnum<D,MultiIndex> >(generate<AbstractShape<D> >(shape));
+    }
+    
+    std::shared_ptr<ShapeEnum<D,MultiIndex> > enumerate(AbstractShape<D> const* shape) const
+    {
+        return std::make_shared<ShapeEnum<D,MultiIndex> >(generate<AbstractShape<D> >(*shape));
     }
 };
 

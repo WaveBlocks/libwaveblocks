@@ -282,12 +282,12 @@ binary seach.
 \section{Hagedorn Wavepacket}
 A hagedorn wavepacket
 \[
-  \Phi_{\varepsilon}[\Pi] \approx e^{iS\pi} \sum_{\underline{k} \in
+  \Phi_{\mathfrak{K}}^{\varepsilon}[\Pi] = e^{iS\pi} \sum_{\underline{k} \in
     \mathfrak{K}}^{} c_{\underline{k}} \phi_{\underline{k}} \]
 is represented by a tuple
-\[ \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c}, S
+\[ \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c}
   \right) \]
-\[ \Pi = \left( \vec{p}, \vec{q}, \mat{P}, \mat{Q} \right) \]
+\[ \Pi = \left( \vec{p}, \vec{q}, \mat{P}, \mat{Q}, S \right) \]
 
 \subsection{Basis Evaluation}
 
@@ -324,7 +324,7 @@ where the operator $\oslash$ denotes component-wise division.
 \begin{figure}[H]
   \centering
   \includegraphics[]{basis_eval_stencil}
-  \caption{stencil}
+  \caption{Stencil of a 2-dimensional wavepacket}
 \end{figure}
 
 The root node $\mindex{0}$ is evaluated by
@@ -340,7 +340,7 @@ The root node $\mindex{0}$ is evaluated by
   \right)
 \end{equation}
 
-Basis values of nodes with some negative indices are zero.
+Basis values of lattice nodes with some negative indices are zero.
 
 \subsubsection{Implementation}
 There are many possibilities to implement this recursion scheme. One
@@ -449,14 +449,86 @@ My solution has two compelling advantages:
   \caption{Recursive basis evaluation of hagedorn wavepacket}
 \end{algorithm}
 
-\subsection{Applying the Gradient Operator}
-For a given wavepacket \( \left( \right) \)
 
-\[ 
-  \nabla \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c} \right)
-  \rightarrow \left( \varepsilon, \Pi, \mathfrak{K}_{ext},
-    \boldsymbol{c_\nabla}, \right)
-\]
+
+\subsection{Gradient Computation}
+Applying the gradient operator to a scalar \(D\)-dimensional Hagedorn Wavepacket 
+\( \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, c \right)\)
+yields a vectorial Hagedorn Wavepacket \(\Psi=\vec{\nabla}\Phi\) with \(D\) components.
+The wavepacket gradient \(\Psi\) has the same parameterset \(\Pi\) as the original wavepacket \(\Phi\),
+but has a new coefficients set \(c'\) given by
+
+\begin{equation}
+  \label{eq:compute_grad_coeff}
+  c'_{\mindex{k}}=c_{\mindex{k}}\vec{p}+\sqrt{\frac{\varepsilon^2}{2}}
+  \left(\mat{\overline{P}}
+    \begin{pmatrix}
+      c_{\mindex{k}+\mindex{e}^1}\sqrt{k_1+1} \\
+      \vdots \\
+      c_{\mindex{k}+\mindex{e}^D}\sqrt{k_D+1} \\
+    \end{pmatrix}
+    +\mat{P}
+    \begin{pmatrix}
+      c_{\mindex{k}-\mindex{e}^1}\sqrt{k_1} \\
+      \vdots \\
+      c_{\mindex{k}-\mindex{e}^D}\sqrt{k_D} \\
+    \end{pmatrix}
+  \right)
+\end{equation}
+
+Some wavepacket gradient coefficients outside of the original basis shape are non-zero.
+Thus the wavepacket gradient needs a new parameter set \(\mathfrak{k}_{ext}\)
+with the following property
+
+\begin{equation}
+  \label{eq:shape_extension_requirement}
+  \mindex{k} \in \mathfrak{K} \Rightarrow
+  \left(
+     \mindex{k} \in \mathfrak{K}_{ext}
+  \right)
+  \wedge
+  \left(
+    \mindex{k}+\mindex{e}^1 \in \mathfrak{K}_{ext}
+    \wedge \dots \wedge
+    \mindex{k}+\mindex{e}^D \in \mathfrak{K}_{ext}
+  \right)
+\end{equation}
+
+\subsubsection{How it was done in Python}
+The original python code uses a \emph{scatter-type strategy}:
+It loops over all \(\mindex{k} \in \mathfrak{K}\) and computes its contribution
+to its neighbours in \(\mathfrak{K}_{ext}\). The reason to use this strategy is,
+how the shape extension \(\mathfrak{K}_{ext}\) is implemented. It contains far more
+entries than required by equation \eqref{eq:shape_extension_requirement}.
+Since the scatter-type strategy loops over \(\mathfrak{K}\) and
+not over the oversized \(\mathfrak{K}_{ext}\), no computation power is wasted.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics{grad_scatter_stencil}
+  \caption{Stencil of scatter-type algorithm}
+  \label{fig:grad_scatter_stencil}
+\end{figure}
+
+\subsubsection{How I have implemented it}
+As my shape extension \(\mathfrak{K}_{ext}\) implementation only contains
+nodes that are really required by equation \eqref{eq:shape_extension_requirement},
+there is no necessity for me to use the scatter type strategy.
+Instead my implementation uses the \emph{gather-type strategy}: It loops over all
+\(\mindex{k} \in \mathfrak{K}_{ext}\), gathers the values of its contributors
+and finally computes the new coefficients \(c'_{\mindex{k}}\) according to equation
+\eqref{eq:compute_grad_coeff}.
+I decided to use this strategy because it is much easier to parallelize.
+For each node, the program just writes to one instead of \(2D\) locations.
+This greatly simplifies parallelization.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics{grad_gather_stencil}
+  \caption{Stencil of gather-type algorithm}
+  \label{fig:grad_gather_stencil}
+\end{figure}
+
 \begin{algorithm}[H]
   \Input{\(\varepsilon\)}
   \Input{wavepacket dimension \(D\)}
@@ -475,23 +547,23 @@ For a given wavepacket \( \left( \right) \)
     \emph{compute contribution of backward neighbours}\;
     \(\vec{b} \leftarrow 0\)\;
     \For{\(d \in \{1,\ldots,D\}\)}{
-      \If{\(k_d > 0\)}{
+      \If{\(\mindex{k}-\mindex{e}^d \in \mathfrak{K}\)}{
         \(b_d \leftarrow \sqrt{k_d}c_{\mindex{k}-\mindex{e}^d}\)\;
       }
     }
 
     \emph{compute contribution of forward neighbours}\;
     \(\vec{f} \leftarrow 0\)\;
-      \For{\(d \in \{1,\ldots,D\}\)}{
-        \If{\(\mindex{k}+\mindex{e}^d \in \mathfrak{K}\)}{
-          \(f_d \leftarrow \sqrt{k_d+1}c_{\mindex{k}+\mindex{e}^d}\)\;
-        }
+    \For{\(d \in \{1,\ldots,D\}\)}{
+      \If{\(\mindex{k}+\mindex{e}^d \in \mathfrak{K}\)}{
+        \(f_d \leftarrow \sqrt{k_d+1}c_{\mindex{k}+\mindex{e}^d}\)\;
       }
+    }
 
     \emph{merge contributions of every node to get the coefficients of the gradient}\;
     \(\vec{c_{\nabla,\mindex{k}}} \leftarrow m\vec{p}+\frac{\varepsilon}{\sqrt{2}}(\mat{\overline{P}}\vec{f}+\mat{P}\vec{b})\)
   }
-  \caption{Computes coefficients after the gradient operator has been applied to the hagedorn wavepacket}
+  \caption{Computes coefficients of the wavepacket gradient \(\vec{\nabla} \Phi\)}
 \end{algorithm}
 
 \end{document}

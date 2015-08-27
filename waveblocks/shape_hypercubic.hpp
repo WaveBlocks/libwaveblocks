@@ -2,12 +2,12 @@
 #define WAVEBLOCKS_HYPERCUBIC_SHAPE
 
 #include <string>
-#include <sstream>
 #include <array>
 #include <stdexcept>
 #include <initializer_list>
 
 #include "basic_types.hpp"
+#include "shape_base.hpp"
 
 namespace waveblocks {
 
@@ -15,7 +15,7 @@ namespace waveblocks {
  * \ingroup BasicShape
  */
 template<dim_t D>
-class HyperCubicShape
+class HyperCubicShape : public AbstractShape<D>
 {
 private:
     std::array<int,D> limits_;
@@ -79,8 +79,7 @@ public:
      * \param axis \f$ j \f$
      * \return \f$ k^\star \f$
      */
-    template<class MultiIndex>
-    int limit(MultiIndex base_node, dim_t axis) const
+    virtual int limit(int const* base_node, dim_t axis) const override
     {
         { (void)(base_node); } //disable unused-parameter warning
         
@@ -102,18 +101,19 @@ public:
      * \param axis \f$ j \f$
      * \return \f$ L_j \f$
      */
-    int bbox(dim_t axis) const
+    virtual int bbox(dim_t axis) const override
     {
         return limits_[axis]-1;
     }
     
-    std::string description() const
+    virtual void print(std::ostream & out) const override
     {
-        std::stringstream out;
-        out << "HyperCubicShape{";
-        out << "dimension: " << D << ", ";
-        out << "limits (exclusive): " << limits_ << "}";
-        return out.str();
+        out << "HyperCubicShape{ limits (exclusive): [";
+        for (dim_t i = 0; i < D-1; i++) {
+            out << limits_[i] << ",";
+        }
+        out << limits_[D-1] << "]";
+        out << "}";
     }
 };
 

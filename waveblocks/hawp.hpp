@@ -8,6 +8,7 @@
 #include <array>
 #include <memory>
 #include <initializer_list>
+#include <memory>
 
 #include "basic_types.hpp"
 #include "math_util.hpp"
@@ -15,9 +16,7 @@
 #include "shape_enum.hpp"
 
 #include "hawp_evaluator.hpp"
-#include "hawp_gradient.hpp"
-
-#include "kahan_sum.hpp"
+#include "hawp_gradient_evaluator.hpp"
 
 namespace waveblocks {
 
@@ -98,7 +97,7 @@ complex_t prefactor(const HaWpParamSet<D>& paramaters)
 }
 
 template<dim_t D, class MultiIndex>
-HaWpGradientOperator<D,MultiIndex> nabla(double eps, 
+HaWpGradientEvaluator<D,MultiIndex> nabla(double eps, 
                                      const HaWpParamSet<D>* parameters,
                                      const ShapeEnum<D,MultiIndex>* base_enum,
                                      const ShapeEnum<D,MultiIndex>* grad_enum)
@@ -107,7 +106,7 @@ HaWpGradientOperator<D,MultiIndex> nabla(double eps,
 }
 
 template<dim_t D, class MultiIndex>
-HaWpGradientOperator<D,MultiIndex> nabla(const HaWpBasis<D,MultiIndex>& basis,
+HaWpGradientEvaluator<D,MultiIndex> nabla(const HaWpBasis<D,MultiIndex>& basis,
                                      const ShapeEnum<D,MultiIndex>* grad_enum)
 {
     return {basis.eps, basis.parameters, basis.enumeration, grad_enum};
@@ -115,6 +114,6 @@ HaWpGradientOperator<D,MultiIndex> nabla(const HaWpBasis<D,MultiIndex>& basis,
 
 } // namespace hawp
 
-}
+} // namespace waveblocks
 
 #endif

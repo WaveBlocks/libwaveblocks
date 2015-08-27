@@ -52,16 +52,16 @@ std::vector<complex_t> createSampleCoefficients(const ShapeEnum<D,MultiIndex>& e
                 y += std::cos(index[d] + 1.5*(d+1)/real_t(D));
                 sum += index[d];
             }
-
+            
             x *= std::exp(-falloff*sum);
             y *= std::exp(-falloff*sum);
-
+            
             coeffs[ordinal] = complex_t(x,y);
-
+            
             //std::cout << index << ": " << coeffs[ordinal] << std::endl;
-
+            
             norm += x*x + y*y;
-
+            
             ordinal++;
         }
     }
