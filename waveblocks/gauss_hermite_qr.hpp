@@ -12,6 +12,13 @@ struct GaussHermiteQR
 {
     static const dim_t order = ORDER;
 
+    // TODO: Use NodeMatrix, WeightVector types
+
+    static const dim_t number_nodes()
+    {
+        return order;
+    }
+
     static const std::vector<real_t>& nodes()
     {
         return gauss_hermite_rules[ORDER-1].nodes;
