@@ -1,14 +1,6 @@
-%.svg.pdf~: %.svg
-	touch $*.svg.pdf~
-	inkscape -z -T -A $*.pdf $*.svg
+SVG2PDF=inkscape -z -T -A
 
-svgfiles: $(patsubst %.svg,%.svg.pdf~,$(wildcard *.svg))
-
-manual.pdf: manual.tex svgfiles
-	pdflatex manual.tex
-#	pdflatex --shell-escape manual.tex	
-
-pdf: manual.pdf
+.PHONY all: manual.pdf
 
 .PHONY clean:
 	rm -f *.pdf
@@ -16,3 +8,37 @@ pdf: manual.pdf
 	rm -f *.pdf_tex
 	rm -f *.aux
 	rm -f *.pdf~
+	rm -f *.tex~
+
+# DOT files (you need graphviz to compile these files)
+
+hawp_inheritance.pdf: hawp_inheritance.dot
+	dot -Tpdf $< -o $@
+
+# SVG Files
+
+shape_slicing.pdf: shape_slicing.svg
+	$(SVG2PDF) $@ $<
+
+shape_extension.pdf: shape_extension.svg
+	$(SVG2PDF) $@ $<
+
+shape_example.pdf: shape_example.svg
+	$(SVG2PDF) $@ $<
+
+shape_enumerator.pdf: shape_enumerator.svg
+	$(SVG2PDF) $@ $<
+
+grad_scatter_stencil.pdf: grad_scatter_stencil.svg
+	$(SVG2PDF) $@ $<
+
+grad_gather_stencil.pdf: grad_gather_stencil.svg
+	$(SVG2PDF) $@ $<
+
+basis_eval_stencil.pdf: basis_eval_stencil.svg
+	$(SVG2PDF) $@ $<
+
+manual.pdf: manual.tex basis_eval_stencil.pdf grad_gather_stencil.pdf grad_scatter_stencil.pdf shape_enumerator.pdf shape_example.pdf shape_extension.pdf shape_slicing.pdf hawp_inheritance.pdf
+	pdflatex manual.tex
+#	pdflatex --shell-escape manual.tex	
+

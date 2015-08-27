@@ -42,7 +42,6 @@ if(PKG_CONFIG_FOUND)
     endif()
 endif()
 
-
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     # Copy Doxyfile into build folder
