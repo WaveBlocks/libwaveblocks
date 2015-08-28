@@ -19,14 +19,17 @@ digraph HaWpInheritance {
         
         AbstractScalarHaWpBasis [
             label = "{AbstractScalarHaWpBasis|+ eps() \l+ parameters() \l+ shape() \l+ extended_shape() \l+ evaluate_basis(grid) \l}"
+            group = groupMain
         ]
         
         AbstractScalarHaWp [
             label = "{AbstractScalarHaWp|+ coefficients() \l+ evaluate(grid) \l}"
+            group = groupMain
         ]
         
         ScalarHaWp [
             label = "{ScalarHaWp|- eps \l- parameters \l- shape \l- coefficients \l}"
+            group = groupMain
         ]
         
         edge [
@@ -57,7 +60,7 @@ digraph HaWpInheritance {
         ]
         
         InhomogeneousHaWp [
-            label = "{HomogeneousHaWp|- components \l}"
+            label = "{InhomogeneousHaWp|- components \l- eps \l}"
             group = groupInhomogeneousHaWp
         ]
         
