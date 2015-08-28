@@ -35,21 +35,34 @@ struct TensorProductQR
         const dim_t dim = D;
         const dim_t n_nodes = number_nodes();
         NodeMatrix nodes(dim, n_nodes);
-        WeightVector weights(1, n_nodes);
+        WeightVector weights = WeightVector::Ones(1, n_nodes);
+
+        const dim_t sizes[D] = { RULES::number_nodes() ...};
+        dim_t cycles[D];
+        cycles[D-1] = 1;
+        for(dim_t d = D-2; d >= 0; --d)
+        {
+            cycles[d] = cycles[d+1] * sizes[d+1];
+        }
+
+        // Fill in nodes and weights.
+        {
+            dim_t d = 0;
+            for(auto nw : { RULES::nodes_and_weights() ... })
+            {
+                for(dim_t n = 0; n < n_nodes; ++n)
+                {
+                    const dim_t base_idx = (n / cycles[d]) % sizes[d];
+                    nodes(d, n) = std::get<0>(nw)(base_idx);
+                    weights(n) *= std::get<1>(nw)(base_idx);
+                }
+
+                ++d;
+            }
+        }
 
         return std::make_tuple(nodes, weights);
     }
-
-private:
-    // returns next node index
-    /*
-    static dim_t fill_nodes(dim_t depth, dim_t idx)
-    {
-        for()
-        {
-        }
-    }
-    */
 };
 
 }
