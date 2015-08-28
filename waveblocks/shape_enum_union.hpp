@@ -123,6 +123,7 @@ std::vector<MultiIndex> strict_union(std::vector< typename std::vector<MultiInde
         if (superset.empty() || entry.value != superset.back()) {
             std::less<MultiIndex> less;
             
+            (void)less;
             assert( superset.empty() || less(superset.back(), entry.value) ); // multi-indices must be sorted in ascending order
             superset.push_back(entry.value);
         }

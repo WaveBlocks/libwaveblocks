@@ -10,7 +10,10 @@ add_definitions(
     -pedantic
 )
 
-
+add_library(waveblocks-static STATIC 
+    waveblocks/csv/coefficients_file_parser.cpp
+    waveblocks/util/complexnumber_parser.cpp
+)
 
 # needs pkg-config
 include(FindPkgConfig)
@@ -38,7 +41,6 @@ if(PKG_CONFIG_FOUND)
         include_directories(${EIGEN_INCLUDE_DIRS})
     endif()
 endif()
-
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

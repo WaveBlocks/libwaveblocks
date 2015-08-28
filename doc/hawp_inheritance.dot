@@ -1,0 +1,94 @@
+digraph HaWpInheritance {
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+
+    node [
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+        shape = "record"
+    ]
+
+    edge [
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+        
+    ]
+    
+    subgraph clusterScalarWavepackets {
+        label = "Scalar Wavepackets"
+        
+        AbstractScalarHaWpBasis [
+            label = "{AbstractScalarHaWpBasis|+ eps() \l+ parameters() \l+ shape() \l}"
+        ]
+        
+        AbstractScalarHaWp [
+            label = "{AbstractScalarHaWp|+ coefficients() \l}"
+        ]
+        
+        ScalarHaWp [
+            label = "{ScalarHaWp|+ eps \l+ parameters \l+ shape \l+ coefficients \l}"
+        ]
+        
+        edge [
+            arrowtail = "empty"
+            style = "dashed"
+        ]
+        
+        AbstractScalarHaWpBasis -> AbstractScalarHaWp [dir="back"]
+        AbstractScalarHaWp -> ScalarHaWp [dir="back"]
+    }
+    
+    subgraph clusterVectorialWavepackets {
+        label = "Vectorial Wavepackets"
+        
+        HomogeneousHaWp__Component [
+            label = "{Component|+ shape \l+ coefficients \l}"
+            group = groupHomogeneousHaWp
+        ]
+        
+        HomogeneousHaWp [
+            label = "{HomogeneousHaWp|+ components \l+ eps \l+ parameters \l}"
+            group = groupHomogeneousHaWp
+        ]
+        
+        
+        InhomogeneousHaWp__Component [
+            label = "{Component|+ parameters \l+ shape\l+ coefficients \l}"
+            group = groupInhomogeneousHaWp
+        ]
+        
+        InhomogeneousHaWp [
+            label = "{HomogeneousHaWp|+ components \l}"
+            group = groupInhomogeneousHaWp
+        ]
+        
+        
+        HaWpGradient__Component [
+            label = "{Component|+ coefficients \l}"
+            group = groupHaWpGradient
+        ]
+        
+        HaWpGradient [
+            label = "{HaWpGradient|+ components \l+ eps \l+ parameters \l+ shape \l}"
+            group = groupHaWpGradient
+        ]
+        
+        edge [
+            arrowtail = "diamond"
+        ]
+        
+        HomogeneousHaWp -> HomogeneousHaWp__Component [dir="back"]
+        InhomogeneousHaWp -> InhomogeneousHaWp__Component [dir="back"]
+        HaWpGradient -> HaWpGradient__Component [dir="back"]
+    }
+    
+    edge [
+        arrowtail = "empty"
+        style = "dashed"
+    ]
+    
+    AbstractScalarHaWpBasis -> HaWpGradient [dir="back"]
+    AbstractScalarHaWp -> HomogeneousHaWp__Component [dir="back"]
+    AbstractScalarHaWp -> InhomogeneousHaWp__Component [dir="back"]
+    AbstractScalarHaWp -> HaWpGradient__Component  [dir="back"]
+}

@@ -1,0 +1,94 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc} \usepackage[T1]{fontenc}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+%% Choose one of the following (if not choosing the default, 
+%% viz., Computer Modern, font family):
+ %\usepackage{lmodern}
+ %\usepackage{mathpazo}
+ %\usepackage{kpfonts}
+ %\usepackage{mathptmx}
+ %\usepackage{times,mtpro2}
+ %\usepackage{stix}
+ %\usepackage{txfonts}
+ %\usepackage{newtxtext,newtxmath}
+ %\usepackage{libertine} \usepackage[libertine]{newtxmath}
+
+\input{./header_math.tex} \input{./header_code.tex}
+
+\begin{document}
+
+\section{Ranks}
+
+\begin{description}
+\item[Basis Functions]
+  \[ \phi(\vec{x}) \]
+\item[Scalar Hagedorn Wavepacket]
+  \[ \Phi^\varepsilon_{(\mathfrak{K},c)}[\Pi](\vec{x}) = \sum_{\mindex{k} \in \mathfrak{K}}
+    c_{\mindex{k}}\phi_{\mindex{k}}(\vec{x}) \]
+\item[Homogeneous Wavepacket]
+  \[
+    \Psi[\Pi](\vec{x}) =
+    \begin{pmatrix}
+      \Phi_1[\Pi](\vec{x}) \\
+      \Phi_2[\Pi](\vec{x}) \\
+    \end{pmatrix}
+  \]
+\item[Inhomogeneous Wavepacket]
+  \[
+    \Psi(\vec{x}) =
+    \begin{pmatrix}
+      \Phi_1[\Pi_1](\vec{x}) \\
+      \Phi_2[\Pi_2](\vec{x}) \\
+    \end{pmatrix}
+  \]
+\item[Linear Combination]
+  \[
+    \Upsilon(\vec{x}) = \alpha \Psi(\vec{x}) + \beta \Psi(\vec{y}) = 
+    \begin{pmatrix}
+      \alpha \Phi_{1,1}(\vec{x}) + \beta \Phi_{2,1}(\vec{x}) \\
+      \alpha \Phi_{1,2}(\vec{x}) + \beta \Phi_{2,2}(\vec{x}) \\
+    \end{pmatrix}
+  \]
+\end{description}
+
+
+\section{Evaluation}
+
+\[
+  \Psi(\vec{x}) =
+  \begin{pmatrix}
+    \Phi_1(\vec{x}) \\
+    \Phi_2(\vec{x}) \\
+  \end{pmatrix}
+\]
+
+\section{Gradient}
+
+\[
+  \nabla \Phi_{\mathfrak{K}, c}^{\varepsilon}[\Pi](\vec{x}) =
+  \begin{pmatrix}
+    \Phi_{(\mathfrak{K}_{ext},\partial_1 c)}^{\varepsilon}[\Pi](\vec{x}) \\
+    \Phi_{(\mathfrak{K}_{ext},\partial_2 c)}^{\varepsilon}[\Pi](\vec{x}) \\
+  \end{pmatrix}
+\]
+
+\[
+  \nabla \Psi =
+  \begin{pmatrix}
+    \nabla \Phi_1 \\
+    \nabla \Phi_2 \\
+  \end{pmatrix}
+\]
+
+\[
+  \nabla \left(\alpha \Phi_1 + \beta \Phi_2 \right) =
+  \alpha  \nabla \Phi_1 + \beta \nabla \Phi_2
+\]
+
+
+\end{document}
