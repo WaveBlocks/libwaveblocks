@@ -28,12 +28,14 @@ def run(D):
     grid = numpy.linspace(-1.0, 1.0,D)
     
     print "Evaluate wavepacket"
-    start = time.clock()
-    result = packet.slim_recursion(grid,0)
-    end = time.clock()
     print "   shape: ", shape
     print "   size of shape: ", shape.get_basis_size()
     print "   value: ", result
+    
+    start = time.clock()
+    result = packet.slim_recursion(grid,0)
+    end = time.clock()
+    
     print "   time:  ", str((end - start)*1000), "[ms]"
     
     #print "Evaluate gradient: "
