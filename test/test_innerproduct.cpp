@@ -22,6 +22,7 @@ int main()
     const dim_t N = 10;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using QR = GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
@@ -30,23 +31,22 @@ int main()
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     std::vector<complex_t> coeffs(N, 0);
-    GaussHermiteQR<order> qr;
 
     // Print QR nodes and weights.
     std::cout << "nodes: {";
-    for (auto x : qr.nodes) std::cout << " " << x;
+    for (auto x : QR::nodes()) std::cout << " " << x;
     std::cout << " }\n";
 
     std::cout << "weights: {";
-    for (auto x : qr.weights) std::cout << " " << x;
+    for (auto x : QR::weights()) std::cout << " " << x;
     std::cout << " }\n";
 
     HaWp<D, MultiIndex> packet(eps, &param_set, &shape_enum, &coeffs);
 
     // Calculate inner product matrix, print it.
-    HomogeneousInnerProduct<D, MultiIndex, GaussHermiteQR<order>> ip;
+    HomogeneousInnerProduct<D, MultiIndex, QR> ip;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        ip.build_matrix(packet, qr);
+        ip.build_matrix(packet);
 
     std::cout << "IP matrix:\n" << mat << std::endl;
 
