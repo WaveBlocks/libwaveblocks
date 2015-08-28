@@ -1,5 +1,5 @@
-#ifndef WAVEBLOCKS_HAGEDORN_GRADIENT_OPERATOR_HPP
-#define WAVEBLOCKS_HAGEDORN_GRADIENT_OPERATOR_HPP
+#ifndef WAVEBLOCKS_HAGEDORN_GRADIENT_EVALUATOR_HPP
+#define WAVEBLOCKS_HAGEDORN_GRADIENT_EVALUATOR_HPP
 
 #include <vector>
 #include <array>
@@ -11,33 +11,17 @@
 
 namespace waveblocks {
 
+/**
+ * \brief This class evaluates the coefficients of the gradient wavepacket.
+ * 
+ * This class is low-level. You should not use it directly.
+ * Use the high-level HaWpGradientOperator in file "hawp_gradient_operator.hpp".
+ */
 template<dim_t D, class MultiIndex>
-class HaWpGradientOperator
+class HaWpGradientEvaluator
 {
-private:
-    double eps_;
-    
-    const HaWpParamSet<D>* parameters_;
-    
-    /**
-     * \brief enumeration of basic shape
-     */
-    const ShapeEnum<D,MultiIndex>* base_enum_;
-    
-    /**
-     * \brief enumeration of extended shape
-     */
-    const ShapeEnum<D,MultiIndex>* grad_enum_;
-    
 public:
-    HaWpGradientOperator() = default;
-    HaWpGradientOperator(const HaWpGradientOperator& that) = default;
-    HaWpGradientOperator(HaWpGradientOperator&& that) = default;
-    
-    HaWpGradientOperator &operator=(const HaWpGradientOperator& that) = default;
-    HaWpGradientOperator &operator=(HaWpGradientOperator&& that) = default;
-    
-    HaWpGradientOperator(double eps,
+    HaWpGradientEvaluator(double eps,
                      const HaWpParamSet<D>* parameters,
                      const ShapeEnum<D,MultiIndex>* base_enum,
                      const ShapeEnum<D,MultiIndex>* grad_enum)
@@ -125,6 +109,21 @@ public:
         
         return grad_coeffs;
     }
+    
+private:
+    double eps_;
+    
+    const HaWpParamSet<D>* parameters_;
+    
+    /**
+     * \brief enumeration of basic shape
+     */
+    const ShapeEnum<D,MultiIndex>* base_enum_;
+    
+    /**
+     * \brief enumeration of extended shape
+     */
+    const ShapeEnum<D,MultiIndex>* grad_enum_;
 };
 
 } // namespace waveblocks

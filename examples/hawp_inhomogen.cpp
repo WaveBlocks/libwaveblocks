@@ -36,11 +36,12 @@ int main(int argc, char* argv[])
     shape_enums.push_back( shape_enumerator.enumerate(shape23) );
     
     // (3) Initialize wavepacket-components
-    HomogeneousHaWp<D,MultiIndex> wavepacket(3); // 3 = number of components
+    InhomogeneousHaWp<D,MultiIndex> wavepacket(3); // 3 = number of components
     wavepacket.eps() = 0.9;
-    wavepacket.parameters() = HaWpParamSet<D>{};
+    
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
         wavepacket[c].shape() = shape_enums[c];
+        wavepacket[c].parameters() = HaWpParamSet<D>{};
         
         std::size_t n_basis_shapes = shape_enums[c]->n_entries();
         
@@ -50,13 +51,12 @@ int main(int argc, char* argv[])
     }
     
     // (4) Define quadrature points
-    RMatrix<D, Eigen::Dynamic> grid(D,1);
+    CMatrix<D, Eigen::Dynamic> grid(D,1);
     for (int i = 0; i < 1; i++) {
         grid(i,0) = -1.0 + 2.0*(i-1)/D;
     }
     
     // (5) Evaluate wavepacket-components
-    
     std::cout << "Evaluate each component one by one ... " << std::endl;
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
         CMatrix<1, Eigen::Dynamic> result = wavepacket[c].evaluate(grid);

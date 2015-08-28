@@ -28,6 +28,12 @@ add_executable(test_cont_sqrt
     test_cont_sqrt.cpp
 )
 
+add_executable(yaml_test
+    yaml_test.cpp
+)
+
+target_link_libraries(yaml_test yaml-cpp waveblocks-static)
+
 # add_executable(spielwiese
 #     spielwiese.cpp util/time.cpp
 # )
