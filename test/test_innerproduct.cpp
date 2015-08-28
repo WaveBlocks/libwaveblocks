@@ -63,46 +63,40 @@ void test3DGaussHermite()
     const real_t eps = 0.2;
     const dim_t D = 3;
     const dim_t N = 5;
-    const dim_t order = 4;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
-    using QR = GaussHermiteQR<order>;
 
-/*
-    // Set up sample 1D wavepacket.
+    // Set up sample 3D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum =
         enumerator.generate(HyperCubicShape<D>(N));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    std::vector<complex_t> coeffs(N, 0);
-
-    // Print QR nodes and weights.
-    std::cout << "nodes: {";
-    for (auto x : QR::nodes()) std::cout << " " << x;
-    std::cout << " }\n";
-
-    std::cout << "weights: {";
-    for (auto x : QR::weights()) std::cout << " " << x;
-    std::cout << " }\n";
-
+    std::vector<complex_t> coeffs(D*N, 0);
     HaWp<D, MultiIndex> packet(eps, &param_set, &shape_enum, &coeffs);
 
-    // Calculate inner product matrix, print it.
-    HomogeneousInnerProduct<D, MultiIndex, QR> ip;
-    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        ip.build_matrix(packet);
-
-    std::cout << "IP matrix:\n" << mat << std::endl;
-*/
-
+    //const dim_t order = 4;
+    //using QR = GaussHermiteQR<order>;
     //using TQR = TensorProductQR<QR, QR, QR>;
     using TQR = TensorProductQR<GaussHermiteQR<3>, GaussHermiteQR<4>, GaussHermiteQR<5>>;
     TQR::NodeMatrix nodes;
     TQR::WeightVector weights;
     std::tie(nodes, weights) = TQR::nodes_and_weights();
     std::cout << "number of nodes: " << TQR::number_nodes() << "\n";
-    std::cout << "node matrix:\n" << nodes << "\n";
-    std::cout << "weight vector:\n" << weights << "\n";
+    //std::cout << "node matrix:\n" << nodes << "\n";
+    //std::cout << "weight vector:\n" << weights << "\n";
+
+    // Calculate inner product matrix, print it.
+    HomogeneousInnerProduct<D, MultiIndex, TQR> ip;
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
+        ip.build_matrix(packet);
+
+    std::cout << "IP matrix diagonal:\n";
+    for(int i = 0; i < mat.rows(); ++i)
+    {
+        std::cout << " " << mat(i, i);
+        if(i%3 == 2) std::cout << "\n";
+    }
+    std::cout << "\n";
 }
 
 int main()
