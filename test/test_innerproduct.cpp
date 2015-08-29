@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <vector>
 
 #include <Eigen/Core>
@@ -6,6 +7,7 @@
 #include "waveblocks/basic_types.hpp"
 #include "waveblocks/gauss_hermite_qr.hpp"
 #include "waveblocks/hawp.hpp"
+#include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/homogeneous_inner_product.hpp"
 #include "waveblocks/shape_enumerator.hpp"
@@ -45,7 +47,11 @@ void test1DGaussHermite()
     for (auto x : QR::weights()) std::cout << " " << x;
     std::cout << " }\n";
 
-    HaWp<D, MultiIndex> packet(eps, &param_set, &shape_enum, &coeffs);
+    ScalarHaWp<D, MultiIndex> packet;
+    packet.eps() = eps;
+    packet.parameters() = param_set;
+    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.coefficients() = coeffs;
 
     // Calculate inner product matrix, print it.
     HomogeneousInnerProduct<D, MultiIndex, QR> ip;
@@ -72,7 +78,11 @@ void test3DGaussHermite()
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     std::vector<complex_t> coeffs(D*N, 0);
-    HaWp<D, MultiIndex> packet(eps, &param_set, &shape_enum, &coeffs);
+    ScalarHaWp<D, MultiIndex> packet;
+    packet.eps() = eps;
+    packet.parameters() = param_set;
+    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.coefficients() = coeffs;
 
     //const dim_t order = 4;
     //using QR = GaussHermiteQR<order>;
@@ -101,7 +111,7 @@ void test3DGaussHermite()
 
 int main()
 {
-    //test1DGaussHermite();
+    test1DGaussHermite();
     test3DGaussHermite();
 
     return 0;
