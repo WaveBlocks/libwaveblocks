@@ -11,7 +11,7 @@
 
 #include "basic_types.hpp"
 #include "hawp.hpp"
-#include "basic_types.hpp"
+#include "hawp_commons.hpp"
 
 namespace waveblocks {
 
@@ -30,13 +30,12 @@ public:
     {
     }
 
-    CMatrixNN build_matrix(const HaWp<D, MultiIndex>& packet)
+    CMatrixNN build_matrix(const AbstractScalarHaWpBasis<D, MultiIndex>& packet)
         const
     {
         const dim_t n_nodes = QR::number_nodes();
-        const real_t eps = packet.basis.eps;
-        const CMatrix<D,1>& q = complex_t(1, 0) * packet.basis.parameters->q;
-        const CMatrix<D,D>& Q = packet.basis.parameters->Q;
+        const CMatrix<D,1>& q = complex_t(1, 0) * packet.parameters().q;
+        const CMatrix<D,D>& Q = packet.parameters().Q;
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
@@ -48,17 +47,17 @@ public:
 
         // Transform nodes.
         CMatrixDN transformed_nodes =
-            q.replicate(1, n_nodes) + eps * (Qs * cnodes);
+            q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
 
         // TODO: Apply operator.
         CMatrix1N values = CMatrix1N::Ones(1, n_nodes);
 
-        Eigen::Array<complex_t, 1, Eigen::Dynamic>
-            factor = std::pow(eps, D) * cweights.array() * values.array();
+        Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
+            std::pow(packet.eps(), D) * cweights.array() * values.array();
         //std::cout << "factor: " << factor << std::endl;
 
-        HaWpBasisVector<Eigen::Dynamic> bases = packet.basis.
-            at(transformed_nodes).all();
+        HaWpBasisVector<Eigen::Dynamic> bases =
+            packet.evaluate_basis(transformed_nodes);
         //std::cout << "bases(:,0):\n" << bases.col(0) << std::endl;
 
         //std::cout << "factor: " << factor.rows() << " x " << factor.cols() << "\n";
