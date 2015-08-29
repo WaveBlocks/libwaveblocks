@@ -281,13 +281,16 @@ performance tests revealed that a dictionary is slightly slower than
 binary seach.
 
 \section{Hagedorn Wavepacket}
-A Hagedorn wavepacket
+\subsection{Scalar Wavepackets}
+A scalar Hagedorn wavepacket
 \[
   \Phi_{\mathfrak{K}}^{\varepsilon}[\Pi] = e^{iS\pi} \sum_{\underline{k} \in
     \mathfrak{K}}^{} c_{\underline{k}} \phi_{\underline{k}} \]
 is represented by a tuple
 \[ \Phi := \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c}
   \right) \]
+where \(\varepsilon\) is the semi-classical scaling parameter.
+\(\Pi\) is the Hagedorn parameter set
 \[ \Pi := \left( \vec{p}, \vec{q}, \mat{P}, \mat{Q}, S \right) \]
 
 \subsection{Vectorial Wavepackets}
@@ -302,24 +305,52 @@ Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\):
   \end{pmatrix}
 \]
 The components \(\Phi_i\) itself are plain scalar wavepackets.
+They have the same scaling parameter \(\varepsilon\) in common but
+the Hagedorn parameter set and the basis shape may differ depending on
+the concrete type. \\
+Common vectorial wavepacket types are:
+\begin{description}
+\item[Inhomogeneous wavepacket]
+  The inhomogeneous wavepacket is the most general case as its components only share
+  the scaling parameter \(\varepsilon\).
+  \[
+    \Phi_i := (\varepsilon, \Pi_i, \mathfrak{K}_i, c_i) \] \[
+    \Psi := \left(\varepsilon, 
+    \begin{pmatrix}
+      (\Pi_1, \mathfrak{K}_1, c_1) \\
+      \vdots \\
+      (\Pi_N, \mathfrak{K}_N, c_N) \\
+    \end{pmatrix}\right)
+  \]
+\item[Homogeneous wavepackets]
+  A homogeneous wavepacket is a special case of the inhomogeneous wavepacket
+  since all components share the same Hagedorn parameter set \(\Pi\).
+  \[
+    \Phi_i := (\varepsilon, \Pi, \mathfrak{K}_i, c_i) \] \[
+    \Psi := \left(\varepsilon, \Pi,
+    \begin{pmatrix}
+      (\mathfrak{K}_1, c_1) \\
+      \vdots \\
+      (\mathfrak{K}_N, c_N) \\
+    \end{pmatrix}\right)
+  \]
+\item[Gradient]
+  The gradient of a scalar Hagedorn wavepacket can be represented using a vectorial Hagedorn
+  wavepacket. All components share the same Hagedorn parameter set and the
+  same basis shape (which is an extension of the original wavepacket's basis shape).
+  \[
+    \frac{\partial \Phi}{\partial x_i} := (\varepsilon, \Pi, \mathfrak{K}_{ext}, c'_i) \] \[
+    \vec{\nabla} \Phi := \left(\varepsilon, \Pi, \mathfrak{K}_{ext},
+    \begin{pmatrix}
+      (c'_1) \\
+      \vdots \\
+      (c'_D) \\
+    \end{pmatrix}\right)
+  \]
+\end{description}
 
 
-Inhomogeneous Hagedorn wavepackets:
-\[
-  \Phi_i := (\varepsilon, \Pi_i, \mathfrak{K}_i, c_i)
-\]
-
-Homogeneous Hagedorn wavepackets:
-\[
-  \Phi_i := (\varepsilon, \Pi, \mathfrak{K}_i, c_i)
-\]
-
-Gradient of a Hagedorn wavepacket:
-\[
-  \frac{\partial \Phi}{\partial x_i} := (\varepsilon, \Pi, \mathfrak{K}_{ext}, c_i)
-\]
-
-\subsection{UML}
+\subsection{Class Diagram}
 
 \begin{figure}[H]
   \centering
@@ -328,29 +359,44 @@ Gradient of a Hagedorn wavepacket:
   \label{fig:hawp_inheritance}
 \end{figure}
 
-Subclasses of the abstract superclass \emph{AbstractScalarHaWpBasis} provide
-read-only access to 
+\subsubsection{Scalar wavepacket classes}
+
+The superclass of all (scalar) Hagedorn wavepackets is \emph{AbstractScalarHaWp}.
+It provides read-only access to its parameters through its (abstract) virtual
+member functions \emph{eps()}, \emph{parameters()}, \emph{shape()} and \emph{coefficients()}.
+
+It provides following functions as a service:
 \begin{description}
-\item[eps] The semi-classical scaling parameter \(\varepsilon\) of the wavepacket.
-\item[parameters] The Hagedorn parameter set \(\Pi\) of the wavepacket.
-\item[shape] The basis shape \(\mathfrak{K}\).
+\item[evaluate(grid)]
+This function gathers the wavepacket parameters \(\varepsilon\), \(\Pi\), \(\mathfrak{K}\) and \(c\) 
+through the mentioned virtual member functions \emph{eps()}, \emph{parameters()},
+\emph{shape()} and \emph{coefficients()}. Using these parameters it evaluates the wavepacket \(\Phi(\vec{x})\)
+on the grid nodes \(\vec{x}\).
+\item[evaluate\_basis(grid)]
+  It evaluates all basis functions \(\phi_{\mindex{k}}(\vec{x})\) on the grid \(\vec{x}\)
+for all \(\mindex{k} \in \mathfrak{K}\). This function is not dependent on the coefficients
+\(c_{\mindex{k}}\), therefore I created a further abstract class \emph{AbstractScalarHaWpBasis} that
+only contains the parameters \(\varepsilon\), \(\Pi\) and \(\mathfrak{K}\). \emph{AbstractScalarHaWp}
+inherits from this base class and extends it with the coefficients \(c_{\mindex{k}}\).
+\item[extended\_shape()]
+  This non-virtual function returns the basis shape extension \(\mathfrak{K}_{ext}\)
+  of the current basis shape \(\mathfrak{K}\). It is used for the gradient computation.
+  Creating a basis shape extension is expensive, therefore \(\mathfrak{K}_{ext}\) is cached.
 \end{description}
 
-Using the information, the class \emph{AbstractScalarHaWpBasis} provides an implementation
-\code{evaluate\_basis()} to evaluate its basis functions \(\phi_{\mindex{k}}\).
-
+\subsubsection{Vectorial wavepacket classes}
+Vectorial wavepacket class are implemented as a composition of scalar wavepackets.
+Common aspects are stored in the composition class while different aspects are
+stored in the component class.
 \par
-Subclasses of the abstract superclass \emph{AbstractScalarHaWp} also provide
-read-only access to the coefficients \(c_{\mindex{k}}\) for all \( \mindex{k} \in \mathfrak{K}\).
+\emph{Example: } All components of a homogeneous wavepacket share the Hagedorn parameter
+set \(\Pi\). Therefore \(\Pi\) is stored inside the composition class \emph{HomogeneousHaWp}.
+The component classes \emph{HomogeneousHaWp::Component} only refer to \(\Pi\) to fulfill the contract
+of the abstract superclass \emph{AbstractScalarHaWp}.
 
-Using the coefficients, the class \emph{AbstractScalarHaWp} provides an implementation
-\code{evaluate()} to evaluate itself
-\( \Phi(\vec{x})=\sum_{\mindex{k} \in \mathfrak{K}} c_{\mindex{k}}\phi_{\mindex{k}}(\vec{x})\).
+\subsubsection{Rationale}
 
-
-\bigskip  
-
-\textbf{Abstract superclasses don't provide writeable access to parameters} \par
+\textbf{Abstract superclasses don't provide writeable access to parameters.} \par
 Editing parameters of a superclass can have unwanted side-effects
 you have no control over since subclasses may share parameters across many wavepackets.
 A nice example is an inhomogeneous wavepacket: All components refer to the same Hagedorn parameter set
@@ -362,16 +408,33 @@ all components. This side-effects are controllable.
 
 \bigskip
 
-\textbf{Scalar and Vectorial wavepackets don't have a common superclass} \par
-The python version actually does that.
+\textbf{Scalar and Vectorial wavepackets don't have a common superclass.} \par
+The python version actually does that. It proved to be a bad choice.
 The problem is that evaluation and parameter access functions would yield
 results with different shapes dependent on the actual wavepacket type.
 As an example, the function \emph{evaluate()} of a scalar wavepacket yields a scalar value, while
 applied on a vectorial wavepacket, this function will yield a vector.
-In python this behaviour is manageable because of python's high flexible type system
+In python this behaviour is halfway manageable because of python's high flexible type system
 and numpy's broadcasting operations.
 However, dealing with such a behaviour is very hard in C++.
 Therefore scalar and vectorial wavepacket don't have a common superclass.
+
+\bigskip
+
+\textbf{There is no dedicated class to represent a gradient of a vectorial wavepacket.} \par
+Applying the gradient operator to a vectorial wavepacket is trivial. Just apply it
+to its components:
+\[\nabla \Psi \equiv
+\begin{pmatrix}
+  \nabla \Phi_1 \\
+  \vdots \\
+  \nabla \Phi_N \\
+\end{pmatrix}
+\]
+It is an overkill to introduce a new class, just to replace a for-loop.
+Furthermore, storing all coefficients of \(\vec{\nabla}\Psi\) occupies \(\mathcal{O}(D \cdot N \cdot M)\) space.
+Using a basis shape of a realistic size \(M=1'000'000\), and wavepacket
+dimensionality \(D=10\), one can easily run out of memory.
 
 \subsection{Basis Evaluation}
 

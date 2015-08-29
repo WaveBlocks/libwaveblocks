@@ -76,7 +76,9 @@ digraph HaWpInheritance {
         ]
         
         edge [
-            arrowtail = "diamond"
+            arrowtail = "none"
+            headlabel = "N"
+            taillabel = "1"
         ]
         
         HomogeneousHaWp -> HomogeneousHaWp__Component [dir="back"]
