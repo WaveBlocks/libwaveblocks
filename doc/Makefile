@@ -12,8 +12,11 @@ SVG2PDF=inkscape -z -T -A
 
 # DOT files (you need graphviz to compile these files)
 
-hawp_inheritance.pdf: hawp_inheritance.dot
-	dot -Tpdf $< -o $@
+hawp_inheritance.svg~: hawp_inheritance.dot
+	dot -Tsvg $< -o $@
+
+hawp_inheritance.pdf: hawp_inheritance.svg~
+	$(SVG2PDF) $@ $<
 
 # SVG Files
 

@@ -12,6 +12,7 @@
 \usepackage{wrapfig}
 
 \usepackage[english]{babel}
+\usepackage{setspace}
 
 \input{./header_math.tex} \input{./header_code.tex}
 
@@ -280,14 +281,97 @@ performance tests revealed that a dictionary is slightly slower than
 binary seach.
 
 \section{Hagedorn Wavepacket}
-A hagedorn wavepacket
+A Hagedorn wavepacket
 \[
   \Phi_{\mathfrak{K}}^{\varepsilon}[\Pi] = e^{iS\pi} \sum_{\underline{k} \in
     \mathfrak{K}}^{} c_{\underline{k}} \phi_{\underline{k}} \]
 is represented by a tuple
-\[ \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c}
+\[ \Phi := \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c}
   \right) \]
-\[ \Pi = \left( \vec{p}, \vec{q}, \mat{P}, \mat{Q}, S \right) \]
+\[ \Pi := \left( \vec{p}, \vec{q}, \mat{P}, \mat{Q}, S \right) \]
+
+\subsection{Vectorial Wavepackets}
+Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\):
+\[
+  \Psi(\vec{x}) :=
+  \begin{pmatrix}
+    \Phi_1(\vec{x}) \\
+    \Phi_2(\vec{x}) \\
+    \vdots \\
+    \Phi_N(\vec{x}) \\
+  \end{pmatrix}
+\]
+The components \(\Phi_i\) itself are plain scalar wavepackets.
+
+
+Inhomogeneous Hagedorn wavepackets:
+\[
+  \Phi_i := (\varepsilon, \Pi_i, \mathfrak{K}_i, c_i)
+\]
+
+Homogeneous Hagedorn wavepackets:
+\[
+  \Phi_i := (\varepsilon, \Pi, \mathfrak{K}_i, c_i)
+\]
+
+Gradient of a Hagedorn wavepacket:
+\[
+  \frac{\partial \Phi}{\partial x_i} := (\varepsilon, \Pi, \mathfrak{K}_{ext}, c_i)
+\]
+
+\subsection{UML}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{hawp_inheritance}
+  \caption{Wavepacket classes and the inheritance hierarchy}
+  \label{fig:hawp_inheritance}
+\end{figure}
+
+Subclasses of the abstract superclass \emph{AbstractScalarHaWpBasis} provide
+read-only access to 
+\begin{description}
+\item[eps] The semi-classical scaling parameter \(\varepsilon\) of the wavepacket.
+\item[parameters] The Hagedorn parameter set \(\Pi\) of the wavepacket.
+\item[shape] The basis shape \(\mathfrak{K}\).
+\end{description}
+
+Using the information, the class \emph{AbstractScalarHaWpBasis} provides an implementation
+\code{evaluate\_basis()} to evaluate its basis functions \(\phi_{\mindex{k}}\).
+
+\par
+Subclasses of the abstract superclass \emph{AbstractScalarHaWp} also provide
+read-only access to the coefficients \(c_{\mindex{k}}\) for all \( \mindex{k} \in \mathfrak{K}\).
+
+Using the coefficients, the class \emph{AbstractScalarHaWp} provides an implementation
+\code{evaluate()} to evaluate itself
+\( \Phi(\vec{x})=\sum_{\mindex{k} \in \mathfrak{K}} c_{\mindex{k}}\phi_{\mindex{k}}(\vec{x})\).
+
+
+\bigskip  
+
+\textbf{Abstract superclasses don't provide writeable access to parameters} \par
+Editing parameters of a superclass can have unwanted side-effects
+you have no control over since subclasses may share parameters across many wavepackets.
+A nice example is an inhomogeneous wavepacket: All components refer to the same Hagedorn parameter set
+and scaling parameter \(\varepsilon\).
+However concrete subclasses like \emph{ScalarHaWp}, \emph{HomogeneousHaWp}, etc. provide writeable
+access to its parameters. This is safe because you know at \emph{compile-time} that you are working with
+an homogeneous wavepacket thus you know that if you change the parameter set of one compile, you change
+all components. This side-effects are controllable.
+
+\bigskip
+
+\textbf{Scalar and Vectorial wavepackets don't have a common superclass} \par
+The python version actually does that.
+The problem is that evaluation and parameter access functions would yield
+results with different shapes dependent on the actual wavepacket type.
+As an example, the function \emph{evaluate()} of a scalar wavepacket yields a scalar value, while
+applied on a vectorial wavepacket, this function will yield a vector.
+In python this behaviour is manageable because of python's high flexible type system
+and numpy's broadcasting operations.
+However, dealing with such a behaviour is very hard in C++.
+Therefore scalar and vectorial wavepacket don't have a common superclass.
 
 \subsection{Basis Evaluation}
 
@@ -327,7 +411,7 @@ where the operator $\oslash$ denotes component-wise division.
   \caption{Stencil of a 2-dimensional wavepacket}
 \end{figure}
 
-The root node $\mindex{0}$ is evaluated by
+The root node \(\mindex{0}\) is evaluated by
 
 \begin{equation}
   \label{eq:phi0_Dd}
