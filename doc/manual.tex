@@ -188,10 +188,10 @@ enumerator lexically enumerates all nodes inside the shape. All nodes
 are subsequently put into the corresponding shape.
 
 \begin{algorithm}[H]
-  \For{$x \leftarrow 0$ \KwTo shape.surface($\{0,0,0\}$,$0$)}{
-    \For{$y \leftarrow 0$ \KwTo shape.surface($\{x,0,0\}$,$1$)}{
-      \For{$z \leftarrow 0$ \KwTo shape.surface($\{x,y,0\}$,$2$)}{
-        slice[x+y+z].pushback($\{x,y,z\}$); } } }
+  \For{\(x \leftarrow 0\) \KwTo shape.surface(\(\{0,0,0\}\),\(0\))}{
+    \For{\(y \leftarrow 0\) \KwTo shape.surface(\(\{x,0,0\}\),\(1\))}{
+      \For{\(z \leftarrow 0\) \KwTo shape.surface(\(\{x,y,0\}\),\(2\))}{
+        slice[x+y+z].pushback(\(\{x,y,z\}\)); } } }
   \caption{enumerator passage through a description of a 3D-shape}
 \end{algorithm}
 
@@ -376,8 +376,8 @@ Therefore scalar and vectorial wavepacket don't have a common superclass.
 \subsection{Basis Evaluation}
 
 All basis values are evaluated recursively. Once we have the basis
-value at an anchor node $\mindex{k}$ and the basis values of all
-backward neighbours $\mindex{k}-\mindex{e}^d$, we can compute all
+value at an anchor node \(\mindex{k}\) and the basis values of all
+backward neighbours \(\mindex{k}-\mindex{e}^d\), we can compute all
 forward neighbours by
 
 \begin{equation}
@@ -403,7 +403,7 @@ forward neighbours by
   \end{pmatrix}
 \end{equation}
 
-where the operator $\oslash$ denotes component-wise division.
+where the operator \(\oslash\) denotes component-wise division.
 
 \begin{figure}[H]
   \centering
@@ -431,16 +431,16 @@ There are many possibilities to implement this recursion scheme. One
 possibility is.
 \begin{description}
 \item[Scatter Type Strategy] We maintains a queue of already computed
-  anchor nodes $\mindex{k}$.  We subsequently remove one feasible(!)
+  anchor nodes \(\mindex{k}\).  We subsequently remove one feasible(!)
   entry of this queue, compute the basis values of all forward
-  neighbours $\mindex{k}-\mindex{e}^d$ and put those nodes into the
+  neighbours \(\mindex{k}-\mindex{e}^d\) and put those nodes into the
   queue.  To eliminate multiple evaluation of some basis nodes, we
   need to check whether a forward neighbour already has been computed
   using a set.  Therefore the scatter type strategy is very bad suited
   for multi-threading since threads need to synchronize access to this
   set.
 \item[Gather Type Strategy] We maintain a queue of not yet computed
-  forward neighbours $\mindex{k}-\mindex{e}^d$. Entries of this queue
+  forward neighbours \(\mindex{k}-\mindex{e}^d\). Entries of this queue
   have at least one backward neighbour (called \emph{anchor node})
   that already has been computed.  We subsequently remove one entry of
   the queue (called \emph{child node}) and compute its basis value.
@@ -461,8 +461,8 @@ parallelisation:
 \end{description}
 
 My rather simple solution is to split the shape into splices.  The
-$s$-th slice contains all nodes $\mindex{k}$ that fulfill
-$ \sum_{d=1}^{D} k_d = s $.
+\(s\)-th slice contains all nodes \(\mindex{k}\) that fulfill
+\( \sum_{d=1}^{D} k_d = s \).
 
 \begin{figure}[H]
   \begin{center}
@@ -472,9 +472,9 @@ $ \sum_{d=1}^{D} k_d = s $.
 
 Using an \emph{adequate} \footnote{See section \emph{Basic Shape}}
 shape, the recusion scheme implies that if we had computed all basis
-values of the parent slice $ \mathfrak{K}^{s-1} $ and of the current
-slice $ \mathfrak{K}^{s} $, then we can compute all basis values of
-the child slice $ \mathfrak{K}^{s+1} $ without having difficulty
+values of the parent slice \( \mathfrak{K}^{s-1} \) and of the current
+slice \( \mathfrak{K}^{s} \), then we can compute all basis values of
+the child slice \( \mathfrak{K}^{s+1} \) without having difficulty
 \textbf{A}.  Furthermore if we use the gather type strategy where we
 iterate through the child slice and compute its basis values, we
 automatically avoid difficulty \textbf{B}.
@@ -493,43 +493,43 @@ My solution has two compelling advantages:
 \end{description}
 
 \begin{algorithm}[H]
-  \Input{number of slices $S$}
+  \Input{number of slices \(S\)}
   \Input{shape enumeration (slices)
-    $\mathfrak{K} = \left(\mathfrak{K}^0, \ldots,
-      \mathfrak{K}^{S-1}\right)$}
+    \(\mathfrak{K} = \left(\mathfrak{K}^0, \ldots,
+      \mathfrak{K}^{S-1}\right)\)}
   \Output{basis values on each slice
-    $\phi = \left(\phi^0, \ldots, \phi^{S-1}\right)$} initialization\;
-  $\phi^-, \phi, \phi^+ \gets \emptyset $\;
+    \(\phi = \left(\phi^0, \ldots, \phi^{S-1}\right)\)} initialization\;
+  \(\phi^-, \phi, \phi^+ \gets \emptyset \)\;
  
   \emph{Compute ground state}\;
  
-  $ \gets \left\{ \phi_{\mindex{0}}[\Pi](\vec{x}) \right\} $\;
+  \( \gets \left\{ \phi_{\mindex{0}}[\Pi](\vec{x}) \right\} \)\;
   \emph{Loop over all slices}\;
-  \ForEach{$\mathfrak{K}^s \in \mathfrak{K}$}{ \emph{Loop over all
+  \ForEach{\(\mathfrak{K}^s \in \mathfrak{K}\)}{ \emph{Loop over all
       nodes of next slice}\;
-    \For{$\mindex{k}^{s+1} \in \mathfrak{K}^{s+1}$}{ \emph{find
+    \For{\(\mindex{k}^{s+1} \in \mathfrak{K}^{s+1}\)}{ \emph{find
         suitable anchor node (in current slice)}\;
-      $\alpha \gets undef $\\
-      \For{$d \in \{1,\ldots,D\}$}{ \If{$k^{s+1}_{d} > 0$}{
-          $\alpha \gets d$\; } } \emph{here is our anchor node
-        $\mindex{k}^{s}$}\;
-      $\mindex{k}^{s} \gets \mindex{k}^{s+1} - \mindex{e}^\alpha$\;
+      \(\alpha \gets undef \)\\
+      \For{\(d \in \{1,\ldots,D\}\)}{ \If{\(k^{s+1}_{d} > 0\)}{
+          \(\alpha \gets d\)\; } } \emph{here is our anchor node
+        \(\mindex{k}^{s}\)}\;
+      \(\mindex{k}^{s} \gets \mindex{k}^{s+1} - \mindex{e}^\alpha\)\;
     
       \emph{compute contribution of anchor node}\;
-      $a \gets
-      \frac{\sqrt{2}}{\varepsilon}\left(\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})\right)_\alpha\phi^{s}_{\mindex{k}}$
+      \(a \gets
+      \frac{\sqrt{2}}{\varepsilon}\left(\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})\right)_\alpha\phi^{s}_{\mindex{k}}\)
     
       \emph{compute contribution of anchor node's backward
-        neighbours}\; $b \gets 0$\;
-      \For{$d \in \{1,\ldots,D\}$}{
-        \If{$k^{s}_{d} > 0$}{
-          $b \gets b + \sqrt{k^{s}_d}
+        neighbours}\; \(b \gets 0\)\;
+      \For{\(d \in \{1,\ldots,D\}\)}{
+        \If{\(k^{s}_{d} > 0\)}{
+          \(b \gets b + \sqrt{k^{s}_d}
           \left(\mat{Q}^{\mathrm{H}}\mat{Q}^{\mathrm{-T}}\right)_{\alpha
-            d} \phi^{s-1}_{\mindex{k}^{s}-\mindex{e}^d}$\; } }
+            d} \phi^{s-1}_{\mindex{k}^{s}-\mindex{e}^d}\)\; } }
     
-      \emph{compute value of basis at $\mindex{k}^{s+1}$}\;
-      $\phi^{s+1}_{\mindex{k}^{s+1}} \gets
-      \frac{a-b}{\sqrt{1+k^{s}_\alpha}} $ } }
+      \emph{compute value of basis at \(\mindex{k}^{s+1}\)}\;
+      \(\phi^{s+1}_{\mindex{k}^{s+1}} \gets
+      \frac{a-b}{\sqrt{1+k^{s}_\alpha}} \) } }
   \caption{Recursive basis evaluation of hagedorn wavepacket}
 \end{algorithm}
 
