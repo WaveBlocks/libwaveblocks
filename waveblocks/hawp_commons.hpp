@@ -195,6 +195,9 @@ public:
     /**
      * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at complex grid nodes \f$ x \in \gamma \f$.
      * 
+     * Notice that this function does not include the global phase 
+     * \f$ \exp{\frac{iS}{\varepsilon^2}} \f$.
+     * 
      * \param grid 
      * Complex grid nodes / quadrature points \f$ \gamma \f$. 
      * Complex matrix with shape (dimensionality, number of grid nodes).
@@ -212,6 +215,9 @@ public:
     /**
      * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at real grid nodes \f$ x \in \gamma \f$.
      * 
+     * Notice that this function does not include the global phase 
+     * \f$ \exp{\frac{iS}{\varepsilon^2}} \f$.
+     * 
      * \param rgrid
      * Real grid nodes / quadrature points \f$ \gamma \f$.
      * Real matrix with shape (dimensionality, number of grid nodes).
@@ -222,6 +228,14 @@ public:
     {
         CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
         return evaluate(cgrid);
+    }
+    
+    /**
+     * \brief Computes the prefactor \f$ \frac{1}{\sqrt{det(Q)}} \f$.
+     */
+    complex_t prefactor() const
+    {
+        return real_t(1)/this->paramaters().sqrt_detQ();;
     }
     
 //     virtual HaWpBasisVector<Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const

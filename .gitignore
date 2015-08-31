@@ -26,6 +26,7 @@ profiling/
 
 # Compiled Latex Files
 *.log
+*.toc
 *.pytxcode
 *.synctex.gz
 *.aux
