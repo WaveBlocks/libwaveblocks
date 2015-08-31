@@ -22,6 +22,7 @@ public:
     // TODO: make D-dimensional, replace Dynamic
     using CMatrixNN = CMatrix<Eigen::Dynamic, Eigen::Dynamic>;
     using CMatrix1N = CMatrix<1, Eigen::Dynamic>;
+    using CMatrixN1 = CMatrix<Eigen::Dynamic, 1>;
     using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
     using NodeMatrix = typename QR::NodeMatrix;
     using WeightVector = typename QR::WeightVector;
@@ -78,6 +79,18 @@ public:
         }
 
         return result;
+    }
+
+    complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet)
+        const
+    {
+        const auto M = build_matrix(packet);
+        // Quadrature with wavepacket coefficients, c^H M c.
+        const CMatrixN1 coeffs = CMatrixN1::Map(
+                packet.coefficients().data(), packet.coefficients().size());
+        std::cout << "\nM: " << M.rows() << " x " << M.cols() << "\n";
+        std::cout << "c: " << coeffs.rows() << " x " << coeffs.cols() << "\n";
+        return coeffs.adjoint() * M * coeffs;
     }
 };
 
