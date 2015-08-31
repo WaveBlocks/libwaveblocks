@@ -16,9 +16,16 @@
 
 \input{./header_math.tex} \input{./header_code.tex}
 
-\def\code#1{\texttt{#1}} \newtheorem{definition}{Definition}
+\def\code#1{\texttt{#1}}
+\def\classname#1{\textit{#1}}
+\def\filename#1{\textit{#1}}
+
+\newtheorem{definition}{Definition}
 
 \begin{document}
+
+\tableofcontents
+\clearpage
 
 \section{Basic Shape}
 
@@ -54,7 +61,6 @@ in the backward cone are part of the shape too.
   \caption{basic shape (filled bullets) and its extension (empty
     bullets)}
 \end{figure}
-
 \subsection{Shape Union}
 
 \begin{definition}
@@ -69,8 +75,8 @@ in the backward cone are part of the shape too.
 \section{Shape Enumeration}
 
 A basic shape just tells you whether it contains a specific node. But
-for most algorithms, one needs to associate values with shape
-nodes. One way to do that is using a dictionary. But it is simpler to
+for many algorithms, one needs to associate values \(c_{\mindex{k}}\) with shape
+nodes \(\mindex{k}\). One way to do that is using a dictionary. But it is simpler to
 enumerate all nodes in a shape.  This way one is able to keep those
 values in an array, ordered according to the enumeration.
 
@@ -84,19 +90,19 @@ values in an array, ordered according to the enumeration.
 \end{definition}
 
 \subsection{Data Format}
-Many algorithms, notable evaluation of a emph{hagedorn wavepacket},
+Many algorithms, notable the evaluation of a \emph{Hagedorn wavepacket},
 use recursive formulas in the form
-\( c_{\underline{k}} = f(c_{\underline{k}-\underline{e}^1}, \ldots,
-c_{\underline{k}-\underline{e}^D}) \)
-where \( c_{\underline{k}} \)
-is a value associated with the node \( \underline{k} \)
-and where \( \underline{e}^d \)
+\( c_{\mindex{k}} = f(c_{\mindex{k}-\mindex{e}^1}, \ldots,
+c_{\mindex{k}-\mindex{e}^D}) \)
+where \( c_{\mindex{k}} \)
+is a value associated with the node \( \mindex{k} \)
+and where \( \mindex{e}^d \)
 is the unit vector in direction \( d \).
-To simplify such algorithms, the class ShapeEnum organizes a shape
+To simplify such algorithms, the class \classname{ShapeEnum} organizes a shape
 into \emph{slices}.  The \( s \)-th
 slice of a shape \( \mathfrak{K} \)
-contains all nodes \( \underline{k} \in \mathfrak{K} \)
-that satisfy \( \sum_{d=1}^{D} k_d = s \) (Manhattan distance).
+contains all nodes \( \mindex{k} \in \mathfrak{K} \)
+that satisfy \( \sum_{d=1}^{D} k_d = s \) (Manhattan distance to origin).
 
 \begin{figure}[H]
   \centering
@@ -173,7 +179,7 @@ to implement an other shape enumerator.
       (?, 8) & -1 & (8, ?) & -1 \\
     \end{tabular}
   \end{subfigure}
-  \caption{surface description for both axes of a shape example}
+  \caption{Example of a surface description of an arbitrary shape.}
 \end{figure}
 
 \begin{figure}[htbp]
@@ -185,15 +191,7 @@ to implement an other shape enumerator.
 \subsubsection{Enumeration algorithm}
 Knowing the \emph{surface} and \emph{bounding volume} of a shape, the
 enumerator lexically enumerates all nodes inside the shape. All nodes
-are subsequently put into the corresponding shape.
-
-\begin{algorithm}[H]
-  \For{\(x \leftarrow 0\) \KwTo shape.surface(\(\{0,0,0\}\),\(0\))}{
-    \For{\(y \leftarrow 0\) \KwTo shape.surface(\(\{x,0,0\}\),\(1\))}{
-      \For{\(z \leftarrow 0\) \KwTo shape.surface(\(\{x,y,0\}\),\(2\))}{
-        slice[x+y+z].pushback(\(\{x,y,z\}\)); } } }
-  \caption{enumerator passage through a description of a 3D-shape}
-\end{algorithm}
+are subsequently put into the proper shape.
 
 \begin{figure}[H]
   \centering
@@ -202,18 +200,17 @@ are subsequently put into the corresponding shape.
   \label{fig:shape_example}
 \end{figure}
 
-\subsection{Abstract Shape Enumeration}
+\begin{algorithm}[H]
+  \For{\(x \leftarrow 0\) \KwTo shape.surface(\(\{0,0,0\}\),\(0\))}{
+    \For{\(y \leftarrow 0\) \KwTo shape.surface(\(\{x,0,0\}\),\(1\))}{
+      \For{\(z \leftarrow 0\) \KwTo shape.surface(\(\{x,y,0\}\),\(2\))}{
+        slice[x+y+z].pushback(\(\{x,y,z\}\)); } } }
+  \caption{Enumerator passage through a 3-dimensional shape.}
+\end{algorithm}
 
-The file \emph{waveblocks/shape\_enumeration\_base.hpp} provides a
-interface that is meant to be overridden by different
-implementations. To represent a multi-index, this interface uses the
-greatest common denominator \emph{std::array\textless
-  int,D\textgreater}.
+\subsection{Implementation}
 
-\subsection{Default Shape Enumeration}
-
-The file \emph{waveblocks/shape\_enumeration\_default.hpp} provides a
-default implementation of a shape enumeration.
+The file \emph{waveblocks/shape\_enum.hpp} provides the implementation of the shape enumeration.
 
 \begin{verbatim}
 template<dim_t D, class MultiIndex, class S>

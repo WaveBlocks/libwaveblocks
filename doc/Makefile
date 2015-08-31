@@ -10,6 +10,7 @@ SVG2PDF=inkscape -z -T -A
 	rm -f *.pdf~
 	rm -f *.tex~
 	rm -f *.svg~
+	rm -f *.toc
 
 # DOT files (you need graphviz to compile these files)
 

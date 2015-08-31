@@ -20,7 +20,7 @@ namespace waveblocks {
  * \e limits \f$ \boldsymbol{K} = (K_1,\ldots,K_D) \f$ is defined as the set
  * 
  * \f[
- * \mathfrak{K}(D,S,\boldsymbol{K}) := \left\{(k_1,\dots,k_D) \mid 
+ * \mathfrak{K}(D,S,\boldsymbol{K}) := \left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \mid 
  *      \displaystyle\prod_{d=1}^{D} (1+k_d) \leq S \right\}
  * \f]
  * 
@@ -40,9 +40,6 @@ public:
      */
     HyperbolicCutShape(int S) : S_(S) {}
     
-    /**
-     * \sa HyperCubicShape#bbox
-     */
     virtual int bbox(dim_t axis) const override
     {
         (void)(axis); //suppress -Wunused-parameter
@@ -51,9 +48,6 @@ public:
     
     
     
-    /**
-     * \sa HyperCubicShape#limit
-     */
     virtual int limit(int const* base_node, dim_t axis) const override
     {
         double s = S_;
@@ -83,8 +77,8 @@ public:
  * \e limits \f$ \boldsymbol{K} = (K_1,\ldots,K_D) \f$ is defined as the set
  * 
  * \f[
- * \mathfrak{K}(D,S,\boldsymbol{K}) := \left\{(k_1,\dots,k_D) \mid 
- *      0 \leq k_d < K_d \; \forall d \in \{ 1,\ldots,D \} \land
+ * \mathfrak{K}(D,S,\boldsymbol{K}) := \left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \mid 
+ *      0 \leq k_d < K_d \; \land
  *      \displaystyle\prod_{d=1}^{D} (1+k_d) \leq S \right\}
  * \f]
  * 
@@ -142,17 +136,11 @@ public:
         }
     }
     
-    /**
-     * \sa HyperCubicShape#bbox
-     */
     virtual int bbox(dim_t axis) const override
     {
         return std::min( limits_[axis]-1, S_ - 1);
     }
     
-    /**
-     * \sa HyperCubicShape#limit
-     */
     virtual int limit(int const* base_node, dim_t axis) const override
     {
         double s = S_;

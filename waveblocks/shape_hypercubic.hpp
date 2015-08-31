@@ -13,6 +13,15 @@ namespace waveblocks {
 
 /**
  * \ingroup BasicShape
+ * 
+ * \brief This class implements the hypercubic basis shape.
+ * 
+ * A \f$ D \f$-dimensional hypercubic shape with limits \f$ \mathbf{K}=\{K_1,\dots,K_D\} \f$ is defined as the set
+ * 
+ * \f[
+ * \mathfrak{K}(D,\mathbf{K}) := \left\{ (k_1, \dots, k_D) \in \mathbb{N}_0^D | k_i < K_i \forall i \right\}
+ * \f]
+ * 
  */
 template<dim_t D>
 class HyperCubicShape : public AbstractShape<D>
@@ -22,18 +31,26 @@ private:
     
 public:
     /**
-     * \param[in] limits (exclusive)
+     * \param[in] limits array of all limits \f$ \{K_i\} \f$
      */
     HyperCubicShape(const std::array<int,D> &limits) 
         : limits_(limits)
     { }
     
-    HyperCubicShape(int size)
+    /**
+     * \brief Set limits to \f$ K_d := K \; \forall d \f$.
+     * 
+     * \param limit Limit \f$ K \f$.
+     */
+    HyperCubicShape(int limit)
     {
         for (std::size_t d = 0; d < D; d++)
-            limits_[d] = size;
+            limits_[d] = limit;
     }
     
+    /**
+     * \param list list of all limits \f$ \{K_i\} \f$
+     */
     HyperCubicShape(std::initializer_list<int> list)
     {
         int deflt = 0;
@@ -57,28 +74,6 @@ public:
         return *this;
     }
     
-    /**
-     * \brief Returns shape limit in one direction starting from a base node.
-     * 
-     * Returns for a given \e axis \f$ j \f$ and a given \e base \e node \f$ \boldsymbol{n} \f$
-     * the largest element \f$ k^\star \f$ that satisfies: 
-     * \f[ \boldsymbol{k} \in \mathfrak{K}, \;
-     * k_i =
-     *    \begin{cases}
-     *       n_i,& i \neq j\\
-     *       k^\star, & i = j
-     *    \end{cases}
-     * \f]
-     * 
-     * A \e base \e node is a node whose \f$ j \f$ -th entry is zero.
-     * 
-     * Notice that \f$ n_j \f$ does not influence return value \f$ k^\star \f$. 
-     * Therefore \f$ n_j \f$ can be any value since it is simply ignored.
-     * 
-     * \param base_node base point \f$ \boldsymbol{n} \f$. \f$ n_j \f$ can be arbitrary.
-     * \param axis \f$ j \f$
-     * \return \f$ k^\star \f$
-     */
     virtual int limit(int const* base_node, dim_t axis) const override
     {
         { (void)(base_node); } //disable unused-parameter warning
@@ -90,17 +85,6 @@ public:
         return limits_[axis]-1;
     }
     
-    /**
-     * \brief Returns upper shape limit in one direction.
-     * 
-     * Returns for a given \e axis \f$ j \f$ a (preferably) as small as possible \e limit \f$ L_j \f$
-     * such that:
-     * \f[
-     * \forall \boldsymbol{k} \in \mathfrak{K} \,\colon\; k_j \leq L_j
-     * \f]
-     * \param axis \f$ j \f$
-     * \return \f$ L_j \f$
-     */
     virtual int bbox(dim_t axis) const override
     {
         return limits_[axis]-1;

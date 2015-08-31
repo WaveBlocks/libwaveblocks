@@ -120,14 +120,14 @@ public:
     }
     
     /**
-     * \brief Returns the multi-index of the node at position <i>ordinal</i>.
+     * \brief Returns the multi-index of the node at position _ordinal_.
      * 
      * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
      * 
-     * Portable programs should never call this function with an argument that is <i>out-of-range</i>,
-     * since this causes \e undefined \e behaviour.
+     * Portable programs should never call this function with an argument that is _out-of-range_,
+     * since this causes _undefined behaviour_.
      * 
-     * <b>complexity: </b>logarithmic in the number of slice-nodes
+     * _Complexity:_ logarithmic in the number of slice-nodes
      * 
      * \param[in] ordinal position of a node in this slice
      * \return multi-index of the specified node
@@ -139,6 +139,17 @@ public:
         return table_[ordinal];
     }
     
+    /**
+     * \brief Retrieves the ordinal of the node \f$ k \f$ if \f$ k \f$ is part of this slice.
+     * 
+     * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
+     * 
+     * _Complexity:_ logarithmic in the number of slice-nodes
+     * 
+     * \param[in] index node \f$ k \f$
+     * \param[out] ordinal 
+     * \return Whether node \f$ k \f$ is part of this slice.
+     */
     bool try_find(const MultiIndex& index, std::size_t& ordinal) const
     {
         std::less< MultiIndex > comp;
@@ -179,6 +190,19 @@ public:
         return ordinal;
     }
     
+    /**
+     * \brief Retrieves the ordinals of all backward neighbours \f$ \{k-e^1, \ldots, k-e^D\} \f$ of a lattice node \f$k \f$.
+     * 
+     * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
+     * 
+     * _Important:_ This function only works if \f$ k \in \mathfrak{K} \f$, otherwise behaviour is undefined!
+     * 
+     * Don't forget that you have to consult the correct slice. If \f$ k \f$ is part of the \f$ s \f$-th slice.
+     * you have to call the member function of the \f$ (s-1) \f$-th slice.
+     * 
+     * \param _index multi-index \f$ k \f$
+     * \return array of all ordinals \f$ \{i^1, \ldots i^D\} \f$ where \f$ i^d \f$ corresponds to \f$ k - e^d \f$.
+     */
     std::array<std::size_t,D> find_backward_neighbours(const MultiIndex& _index) const
     {
         std::array<std::size_t,D> ordinals{}; //zero initialize
@@ -222,13 +246,30 @@ public:
 };
 
 /**
- * \ingroup ShapeEnum
+ * \brief A shape enumeration is a complete, ordered list of all 
+ * lattice nodes that are part of the basis shape.
  * 
- * \brief A shape enumeration is a complete, ordered listing of all 
- * nodes that are part of the shape.
+ * ## Definition ##
+ * A \f$ D \f$-dimensional shape enumeration \f$ \mathfrak{K} \f$ is a 
+ * set of _ordered_ D-dimensional integer-tuples (aka _node_).
  * 
- * Since many algorithms operating on wavepackets use recursive formulas, 
- * shape enumerations are divided into a set of \e slices to simplify data structures.
+ * ## Rationale ##
+ * A basis shape just tells you whether it contains a specific node. But
+ * for many algorithms, you need to associate coefficients \f$ c_k \f$ with 
+ * shape nodes \f$ k \in \mathfrak{K} \f$. One way to
+ * to that is using a dictionary. But it is simpler to enumerate all nodes in a shape.
+ * This way you can keep those coefficients in an array, ordered according to the enumeration. 
+ * 
+ * ## Implementation ##
+ * Many algorithms, notable evaluation of a _hagedorn wavepacket_, use recursive formulas in the form 
+ * \f$
+ * c_{\underline{k}} = f(c_{\underline{k}-\underline{e}^1}, \ldots, c_{\underline{k}-\underline{e}^D}) 
+ * \f$
+ * where \f$ c_{\underline{k}} \f$ is a value associated with the node \f$ \underline{k} \f$
+ * and where \f$ \underline{e}^d \f$ is the unit vector in direction \f$ d \f$.
+ * To simplify such algorithms, the class ShapeEnum organizes a shape into _slices_. 
+ * The \f$ s \f$-th slice of a shape \f$ \mathfrak{K} \f$ contains all nodes \f$ 
+ * \underline{k} \in \mathfrak{K} \f$ that satisfy \f$ \sum_{d=1}^{D} k_d = s \f$.
  * 
  * The \f$ s \f$-th slice contains all multi-indices \f$ \boldsymbol{k} \in \mathfrak{K} \f$ 
  * that satisfy \f$ \displaystyle\sum_{d=1}^{D} k_d = s \f$.
@@ -237,6 +278,55 @@ public:
  * \code{.cpp}
  * #include <numeric>
  * int islice = std::accumulate(index.begin(), index.end(), int(0));
+ * \endcode
+ * 
+ * Nodes in the same slice are ordered lexically. This ordering enables simple and efficient
+ * union and intersect operations on shape enumerations.
+ * 
+ * ## Usage ##
+ * 
+ * \code{.cpp}
+ * #include "waveblocks/shape_commons.hpp"
+ * 
+ * #include "waveblocks/tiny_multi_index.hpp"
+ * #include "waveblocks/shape_enumerator.hpp"
+ * #include "waveblocks/shape_enum.hpp"
+ * 
+ * using namespace waveblocks;
+ * \endcode
+ * 
+ * Create a _shape description_.
+ * \code{.cpp}
+ * const dim_t D = 5;
+ * LimitedHyperbolicCutShape<D> shape(7.0, {2,2,4,4,4});
+ * \endcode
+ * 
+ * Select an appropriate data type to represent an integer tuple.
+ * \code{.cpp}
+ * typedef TinyMultiIndex<std::size_t,D> MultiIndex;
+ * \endcode
+ * Pass the shape description to a _shape enumerator_ and you get an _shape enumeration_:
+ * \code{.cpp}
+ * ShapeEnumerator<D, MultiIndex> enumerator;
+ * std::shared_ptr< ShapeEnum<D, MultiIndex> > enumeration = enumerator.enumerate(shape);
+ * \endcode
+ * Select a slice:
+ * \code 
+ * const ShapeSlice<D, MultiIndex>& slice = enumeration->slice(slice_index);
+ * \endcode
+ * Get \f$ i \f$-th node of current slice:
+ * \code{.cpp}
+ * MultiIndex index = slice[i];
+ * \endcode
+ * Get position (aka ordinal) of a node \f$ \underline{k} \f$, if you know
+ * that this node _is part of the shape_, ...
+ * \code{.cpp}
+ * std::size_t ordinal = slice->find(k);
+ * \endcode
+ * ..., if not, use:
+ * \code{.cpp}
+ * std::size_t ordinal;
+ * if (slice->try_find(k, ordinal)) {}
  * \endcode
  */
 template<dim_t D, class MultiIndex>
@@ -285,17 +375,6 @@ public:
         return *this;
     }
     
-    /**
-     * \brief returns a reference to a slice
-     * 
-     * This function does not fail if an 'invalid' slice index is passed. 
-     * If slice index is negative then this function returns an empty slice with offset 0.
-     * If slice index is equals or larger then the number of (non-empty) slices the this function
-     * returns an empty slice with offset set equals to total number of entries in all slices.
-     * 
-     * \param[in] islice ordinal of the desired slice
-     * \return reference to slice
-     */
     const ShapeSlice<D, MultiIndex>& slice(int islice) const
     {
         if (islice < 0)
@@ -306,6 +385,17 @@ public:
             return slices_[islice];
     }
     
+    /**
+     * \brief Returns a reference to a slice.
+     * 
+     * This function does not fail if an 'invalid' slice index is passed. 
+     * If slice index is negative then this function returns an empty slice with offset 0.
+     * If slice index is equals or larger then the number of (non-empty) slices, this function
+     * returns an empty slice with offset equals to the basis size.
+     * 
+     * \param[in] islice ordinal of the desired slice
+     * \return reference to slice
+     */
     ShapeSlice<D, MultiIndex>& slice(int islice)
     {
         if (islice < 0)
@@ -330,13 +420,16 @@ public:
         throw std::runtime_error("ordinal >= shape.n_entries()");
     }
     
+    /**
+     * \brief Retrieves the size of the basis shape.
+     */
     std::size_t n_entries() const
     {
         return n_entries_;
     }
     
     /**
-     * \return number of non-empty (probably) slices
+     * \brief Retrieves the number of non-empty slices.
      */
     int n_slices() const
     {
@@ -348,6 +441,14 @@ public:
         return limits_;
     }
     
+    /**
+     * \brief Retrieves the \f$ d \f$-th entry of the bounding box \f$ K \f$.
+     * 
+     * \f[ k_d \leq K_d \; \forall k \in \mathfrak{K} \f]
+     * 
+     * \param axis The axis \f$ d \f$.
+     * \return The limit \f$ K_d \f$.
+     */
     int limit(dim_t axis) const
     {
         return limits_[axis];

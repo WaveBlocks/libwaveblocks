@@ -83,6 +83,13 @@ digraph HaWpInheritance {
         
         HomogeneousHaWp -> HomogeneousHaWp__Component [dir="back"]
         InhomogeneousHaWp -> InhomogeneousHaWp__Component [dir="back"]
+        
+        edge [
+            arrowtail = "none"
+            headlabel = "D"
+            taillabel = "1"
+        ]
+        
         HaWpGradient -> HaWpGradient__Component [dir="back"]
     }
     
