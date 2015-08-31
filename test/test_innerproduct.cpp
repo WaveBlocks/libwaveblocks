@@ -36,7 +36,7 @@ void test1DGaussHermite()
         enumerator.generate(HyperCubicShape<D>(N));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    std::vector<complex_t> coeffs(N, 0);
+    std::vector<complex_t> coeffs(N, 1.0);
 
     // Print QR nodes and weights.
     std::cout << "nodes: {";
@@ -59,6 +59,9 @@ void test1DGaussHermite()
         ip.build_matrix(packet);
 
     std::cout << "IP matrix:\n" << mat << std::endl;
+
+    // Calculate quadrature.
+    std::cout << "Quadrature: " << ip.quadrature(packet) << "\n";
 }
 
 void test3DGaussHermite()
@@ -77,7 +80,7 @@ void test3DGaussHermite()
         enumerator.generate(HyperCubicShape<D>(N));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    std::vector<complex_t> coeffs(D*N, 0);
+    std::vector<complex_t> coeffs(std::pow(N, D), 1.0);
     ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
@@ -107,6 +110,9 @@ void test3DGaussHermite()
         if(i%3 == 2) std::cout << "\n";
     }
     std::cout << "\n";
+
+    // Calculate quadrature.
+    std::cout << "Quadrature: " << ip.quadrature(packet) << "\n";
 }
 
 int main()
