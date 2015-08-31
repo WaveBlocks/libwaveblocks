@@ -8,7 +8,17 @@ namespace waveblocks
 {
 
 /**
- * \brief This class represents the gradient of a (scalar) wavepacket.
+ * \brief This class represents the gradient \f$ \nabla \Phi \f$ of a (scalar) Hagedorn wavepacket \f$ \Phi \f$.
+ * 
+ * The gradient of a \f$ D \f$-dimensional wavepacket has \f$ D \f$ components.
+ * 
+ * Creation
+ * --------
+ * Apply HaWpGradientOperator to an AbstractScalarHaWp to create an instance:
+ * \code
+ * HaWpGradientOperator<D,MultiIndex> nabla;
+ * HaWpGradient<D,MultiIndex> gradwp = nabla(wavepacket);
+ * \endcode
  * 
  * \tparam D dimensionality and number of components
  * \tparam MultiIndex
@@ -17,6 +27,14 @@ template<dim_t D, class MultiIndex>
 class HaWpGradient : public AbstractScalarHaWpBasis<D,MultiIndex>
 {
 public:
+    /**
+     * \brief This class is component of a Hagedorn wavepacket gradient.
+     * 
+     * Such a component is a full-fledged scalar Hagedorn wavepacket
+     * that shares the scaling parameter \f$ \varepsilon \f$,
+     * parameter set \f$ \Pi \f$ and basis shape extension \f$ \mathfrak{K}_{ext} \f$
+     * with other components.
+     */
     class Component : public AbstractScalarHaWp<D,MultiIndex>
     {
     public:
@@ -39,11 +57,19 @@ public:
             return owner_->shape();
         }
         
+        /**
+         * \brief Grants writeable access to the coefficients \f$ c \f$
+         * of the wavepacket.
+         */
         std::vector<complex_t> & coefficients()
         {
             return coefficients_;
         }
         
+        /**
+         * \brief Grants read-only access to the coefficients \f$ c \f$
+         * of the wavepacket.
+         */
         std::vector<complex_t> const& coefficients() const
         {
             return coefficients_;
@@ -59,6 +85,10 @@ public:
         : components_(D, Component(this))
     { }
     
+    /**
+     * \brief Grants writeable access to the semi-classical scaling parameter 
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     double & eps()
     {
         return eps_;
@@ -69,6 +99,10 @@ public:
         return eps_;
     }
     
+    /**
+     * \brief Grants writeable access to the Hagedorn parameter set 
+     * \f$ \Pi \f$ of the wavepacket.
+     */
     HaWpParamSet<D> & parameters()
     {
         return parameters_;
@@ -79,6 +113,14 @@ public:
         return parameters_;
     }
     
+    /**
+     * \brief Grants access to the basis shape 
+     * \f$ \mathfrak{K} \f$ of the wavepacket.
+     * 
+     * \return 
+     * Reference to the shape enumeration pointer. 
+     * You can assign a new pointer to it!
+     */
     ShapeEnumSharedPtr<D,MultiIndex> & shape()
     {
         return shape_;
@@ -89,32 +131,76 @@ public:
         return shape_;
     }
     
-    
+    /**
+     * \brief Grants writeable access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component & component(std::size_t n)
     {
         return components_[n];
     }
     
+    /**
+     * \brief Grants read-only access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component const& component(std::size_t n) const
     {
         return components_[n];
     }
     
+    /**
+     * \brief Grants writeable access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component & operator[](std::size_t n)
     {
         return component(n);
     }
     
+    /**
+     * \brief Grants read-only access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component const& operator[](std::size_t n) const
     {
         return component(n);
     }
     
+    /**
+     * \brief Returns the number of components.
+     */
     std::size_t n_components() const
     {
         return components_.size();
     }
     
+    /**
+     * \brief Evaluate the value of all components at once.
+     * 
+     * Evaluates \f$ \Psi(x) = \{\Phi_i(x)\} \f$, 
+     * where \f$ x \f$ is is a complex quadrature point.
+     * 
+     * \param grid 
+     * Complex quadrature points.
+     * Complex matrix of shape (dimensionality, number of quadrature points)
+     * \return
+     * Complex matrix of shape (number of components, number of quadrature points)
+     * 
+     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     */
     template<int N>
     CMatrix<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
     {
@@ -127,6 +213,20 @@ public:
         return result;
     }
     
+    /**
+     * \brief Evaluates the value of all components at once.
+     * 
+     * Evaluates \f$ \Psi(x) = \{\Phi_i(x)\} \f$, 
+     * where \f$ x \f$ is is a real quadrature point.
+     * 
+     * \param rgrid
+     * Real quadrature points.
+     * Real matrix of shape (dimensionality, number of quadrature points)
+     * \return
+     * Complex matrix of shape (number of components, number of quadrature points)
+     * 
+     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     */
     template<int N>
     CMatrix<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
     {
@@ -174,6 +274,13 @@ class HaWpGradientOperator
 {
 public:
     /**
+     * \brief Applies this gradient operator to a \e scalar Hagedorn wavepacket.
+     * 
+     * \e Vectorial \e wavepackets: 
+     * You cannot apply this function directly to vectorial wavepackets \f$ \Psi \f$. You have to
+     * apply the gradient to each component \f$ \Phi_n \f$ (which is scalar) of the vectorial wavepacket.
+     * \f$ \nabla \Psi = \left( \nabla \Phi_1, \dots, \nabla \Phi_N \right)^T \f$
+     * 
      * \e Thread-Safety: Computing the gradient involves creating a shape extension.
      * Since computing a shape extension is very expensive, shape extensions are cached.
      * Concurrently applying any gradient operator to the same wavepacket is unsafe (and is pointless anyway)
@@ -182,8 +289,8 @@ public:
      * is completely safe. But to ensure future compatibility, each thread should use its 
      * own gradient operator instance.
      * 
-     * \param wp scalar wavepacket
-     * \return D-dimensional wavepacket
+     * \param wp scalar Hagedorn wavepacket
+     * \return wavepacket gradient
      */
     HaWpGradient<D,MultiIndex> operator()(AbstractScalarHaWp<D,MultiIndex> const& wp) const
     {

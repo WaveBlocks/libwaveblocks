@@ -69,12 +69,37 @@ private:
     mutable ShapeEnum<D,MultiIndex> * cached_extended_shape_source_; // source of the cached extended shape
 };
 
+/**
+ * \brief Abstract superclass that represents a set 
+ * of basis function to a scalar Hagedorn wavepacket.
+ * 
+ * It provides read-only access to 
+ * the scaling parameter \f$ \varepsilon \f$, 
+ * the Hagedorn parameter set \f$ \Pi \f$ and
+ * the basis shape \f$ \mathfrak{K} \f$.
+ * 
+ * Therefore it is able to evaluate its basis functions \f$ \phi_k \f$ on quadrature points \f$ x \f$.
+ */
 template<dim_t D, class MultiIndex>
 class AbstractScalarHaWpBasis
 {
 public:
+    /**
+     * \brief Retrieves the semi-classical scaling parameter
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     virtual double eps() const = 0;
+    
+    /**
+     * \brief Grants read-only access to the Hagedorn parameter set 
+     * \f$ \Pi \f$ of the wavepacket.
+     */
     virtual HaWpParamSet<D> const& parameters() const = 0;
+    
+    /**
+     * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
+     * of the wavepacket.
+     */
     virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
     
     template<int N>
@@ -83,12 +108,28 @@ public:
         return {eps(), &parameters(), shape().get(), grid};
     }
     
+    /**
+     * \brief Evaluates all basis functions \f$ \{\phi_k\} \f$ on complex grid nodes \f$ x \in \gamma \f$.
+     * 
+     * \param grid 
+     * Complex grid nodes / quadrature points \f$ \gamma \f$. 
+     * Complex matrix with shape (dimensionality, number of grid nodes).
+     * \return Complex 2D-array with shape (basis shape size, number of grid nodes)
+     */
     template<int N>
     HaWpBasisVector<N> evaluate_basis(CMatrix<D,N> const& grid) const
     {
         return create_evaluator(grid).all();
     }
     
+    /**
+     * \brief Evaluates all basis functions \f$ \{\phi_k\} \f$ on real grid nodes \f$ x \in \gamma \f$.
+     * 
+     * \param rgrid 
+     * Real grid nodes / quadrature points \f$ \gamma \f$. 
+     * Real matrix with shape (dimensionality, number of grid nodes).
+     * \return Complex 2D-array with shape (basis shape size, number of grid nodes)
+     */
     template<int N>
     HaWpBasisVector<N> evaluate_basis(RMatrix<D,N> const& rgrid) const
     {
@@ -102,48 +143,40 @@ public:
     //     }
     
     /**
-     * \brief Computes the extended shape if necessary (caching!) and returns it.
+     * \brief Computes the extension \f$ \mathfrak{K}_{ext} \f$ of the stored
+     * basis shape \f$ \mathfrak{K} \f$.
+     * 
      * 
      * Computing an extended shape is expensive. Therefore this function
-     * manually managed cache.
-     * 
-     * Thus you need to call update_extended_shape() if you change
-     * the shape of this wavepacket.
+     * caches computed extensions.
      * 
      * \e Thread-Safety: The stored pointer to the cached shape extension is not guarded by a mutex.
      * Therefore race conditions may occur when calling this function concurrently.
      * 
-     * \return shared pointer to extended shape
+     * \return Shared pointer to the extended shape.
      */
     ShapeEnumSharedPtr<D,MultiIndex> extended_shape() const
     {
         return shape_extension_cache_.get_extended_shape( this->shape() );
     }
     
-    /**
-     * \brief Manually updates the stored shape extension if necessary.
-     * 
-     * Be aware that this operation is EXPENSIVE.
-     * Currently, generating a share extension scales O(D*log(D)*N) 
-     * where D is the wavepacket dimensionality and N is the number of shape lattice points.
-     */
-    void update_extended_shape()
-    {
-        shape_extension_cache_.update_extended_shape( this->shape() );
-    };
-    
 private:
     ShapeExtensionCache<D,MultiIndex> shape_extension_cache_;
 };
 
 /**
- * \brief Abstract basis class that represents a scalar (1-component) hagedorn wavepacket.
+ * \brief Abstract superclass that represents a scalar (1-component) hagedorn wavepacket.
  * 
- * It provides read-only access to epsilon, shape, parameters and coefficients.
- * Furthermore it is able to evaluate itself on quadrature points.
+ * A subclass provides read-only access to 
+ * the scaling parameter \f$ \varepsilon \f$, 
+ * the Hagedorn parameter set \f$ \Pi \f$, 
+ * the basis shape \f$ \mathfrak{K} \f$ and
+ * the coefficients \f$ c \f$.
+ * 
+ * Therefore it is able to evaluate itself (\f$ \Phi(x) \f$) on quadrature points \f$ x \f$.
  * 
  * \tparam D wavepacket dimensionality
- * \tparam MultiIndex
+ * \tparam MultiIndex type to represent a multi-index
  */
 template<dim_t D, class MultiIndex>
 class AbstractScalarHaWp : public AbstractScalarHaWpBasis<D,MultiIndex>
@@ -152,8 +185,21 @@ public:
     virtual double eps() const = 0;
     virtual HaWpParamSet<D> const& parameters() const = 0;
     virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
+    
+    /**
+     * \brief Grants read-only access to the coefficients \f$ \{c_k\} \f$ 
+     * for all \f$ k \in \mathfrak{K} \f$ of this wavepacket.
+     */
     virtual std::vector<complex_t> const& coefficients() const = 0;
     
+    /**
+     * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at complex grid nodes \f$ x \in \gamma \f$.
+     * 
+     * \param grid 
+     * Complex grid nodes / quadrature points \f$ \gamma \f$. 
+     * Complex matrix with shape (dimensionality, number of grid nodes).
+     * \return Complex matrix with shape (1, number of grid nodes)
+     */
     template<int N>
     CMatrix<1,N> evaluate(CMatrix<D,N> const& grid) const
     {
@@ -163,6 +209,14 @@ public:
         return this->template create_evaluator<N>(grid).reduce( coefficients() );
     }
     
+    /**
+     * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at real grid nodes \f$ x \in \gamma \f$.
+     * 
+     * \param rgrid
+     * Real grid nodes / quadrature points \f$ \gamma \f$.
+     * Real matrix with shape (dimensionality, number of grid nodes).
+     * \return Complex matrix with shape (1, number of grid nodes)
+     */
     template<int N>
     CMatrix<1,N> evaluate(RMatrix<D,N> const& rgrid) const
     {
@@ -176,45 +230,84 @@ public:
 //     }
 };
 
+/**
+ * \brief Concrete implementation of a scalar Hagedorn wavepacket.
+ */
 template<dim_t D, class MultiIndex>
 class ScalarHaWp : public AbstractScalarHaWp<D, MultiIndex>
 {
 public:
+    /**
+     * \brief Grants writeable access to the semi-classical scaling parameter 
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     double & eps()
     {
         return eps_;
     }
     
+    /**
+     * \brief Retrieves the semi-classical scaling parameter
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     double eps() const override
     {
         return eps_;
     }
     
+    /**
+     * \brief Grants writeable access to the Hagedorn parameter set 
+     * \f$ \Pi \f$ of the wavepacket.
+     */
     HaWpParamSet<D> & parameters()
     {
         return parameters_;
     }
     
+    /**
+     * \brief Grants read-only access to the Hagedorn parameter set 
+     * \f$ \Pi \f$ of the wavepacket.
+     */
     HaWpParamSet<D> const& parameters() const override
     {
         return parameters_;
     }
     
+    /**
+     * \brief Grants access to the basis shape 
+     * \f$ \mathfrak{K} \f$ of the wavepacket.
+     * 
+     * \return 
+     * Reference to the shape enumeration pointer. 
+     * You can assign a new pointer to it!
+     */
     ShapeEnumSharedPtr<D, MultiIndex> & shape()
     {
         return shape_;
     }
     
+    /**
+     * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
+     * of the wavepacket.
+     */
     ShapeEnumSharedPtr<D, MultiIndex> shape() const override
     {
         return shape_;
     }
     
+    /**
+     * \brief Grants writeable access to the coefficients \f$ c \f$
+     * of the wavepacket.
+     */
     std::vector<complex_t> & coefficients()
     {
         return coefficients_;
     }
     
+    /**
+     * \brief Grants read-only access to the coefficients \f$ c \f$
+     * of the wavepacket.
+     */
     std::vector<complex_t> const& coefficients() const override
     {
         return coefficients_;
@@ -229,10 +322,12 @@ private:
 }; // class ScalarHaWp
 
 /**
- * \brief Represents a Hagedorn wavepacket with C components.
- * All components share the same Hagedorn parameterset.
+ * \brief Represents a homogeneous Hagedorn wavepacket \f$ \Psi \f$ 
+ * with \f$ N \f$ components \f$ \Phi_n \f$.
+ * All components share the same Hagedorn parameterset \f$ \Pi \f$ 
+ * and scaling parameter \f$ \varepsilon \f$.
  * 
- * The number of components C is determined at runtime.
+ * The number of components is determined at runtime.
  * 
  * \tparam D wavepacket dimensionality
  * \tparam MultiIndex
@@ -241,6 +336,13 @@ template<dim_t D, class MultiIndex>
 class HomogeneousHaWp
 {
 public:
+    /**
+     * \brief Represents a component of a homogeneous wavepacket.
+     * 
+     * Such a component is a full-fledged scalar Hagedorn wavepacket
+     * that shares the Hagedorn parameter \f$ \Pi \f$ and scaling
+     * parameter \f$ \varepsilon \f$ with other components.
+     */
     class Component : public AbstractScalarHaWp<D,MultiIndex>
     {
     public:
@@ -275,23 +377,42 @@ public:
             return *this;
         }
         
+        /**
+         * \brief Forwards the scaling parameter \f$ \varepsilon \f$
+         * of the owning homogeneous wavepacket.
+         */
         double eps() const override
         {
             return owner_->eps();
         }
         
+        /**
+         * \brief Forwards the Hagedorn parameter set \f$ \Pi \f$
+         * of the owning homogeneous wavepacket.
+         */
         HaWpParamSet<D> const& parameters() const override
         {
             return owner_->parameters();
         }
         
         
-        
+        /**
+         * \brief Grants access to the basis shape 
+         * \f$ \mathfrak{K} \f$ of the wavepacket.
+         * 
+         * \return 
+         * Reference to the shape enumeration pointer. 
+         * You can assign a new pointer to it!
+         */
         ShapeEnumSharedPtr<D, MultiIndex> & shape()
         {
             return shape_;
         }
         
+        /**
+         * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
+         * of the wavepacket.
+         */
         ShapeEnumSharedPtr<D, MultiIndex> shape() const override
         {
             return shape_;
@@ -320,61 +441,121 @@ public:
         , components_(n, Component(this))
     { }
     
+    /**
+     * \brief Grants access to the semi-classical scaling parameter 
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     double & eps()
     {
         return eps_;
     }
     
+    /**
+     * \brief Retrieves the semi-classical scaling parameter
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     double eps() const
     {
         return eps_;
     }
     
+    /**
+     * \brief Grants writeable access to the Hagedorn parameter set 
+     * \f$ \Pi \f$ of the wavepacket.
+     */
     HaWpParamSet<D> & parameters()
     {
         return parameters_;
     }
     
+    /**
+     * \brief Grants read-only access to the Hagedorn parameter set 
+     * \f$ \Pi \f$ of the wavepacket.
+     */
     HaWpParamSet<D> const& parameters() const
     {
         return parameters_;
     }
     
+    /**
+     * \brief Grants writeable access to all components
+     * \f$ \{\Phi_n\} \f$ of this wavepacket.
+     */
     std::vector<Component> & components()
     {
         return components_;
     }
     
+    /**
+     * \brief Grants read-only access to all components
+     * \f$ \{\Phi_n\} \f$ of this wavepacket.
+     */
     std::vector<Component> const& components() const
     {
         return components_;
     }
     
+    /**
+     * \brief Grants writeable access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component & component(std::size_t n)
     {
         return components_[n];
     }
     
+    /**
+     * \brief Grants read-only access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component const& component(std::size_t n) const
     {
         return components_[n];
     }
     
+    /**
+     * \brief Grants writeable access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component & operator[](std::size_t n)
     {
         return component(n);
     }
     
+    /**
+     * \brief Grants read-only access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component const& operator[](std::size_t n) const
     {
         return component(n);
     }
     
+    /**
+     * \brief Returns the number of components.
+     */
     std::size_t n_components() const
     {
         return components_.size();
     }
     
+    /**
+     * \brief Computes the union 
+     * \f$ \bigcup_{n=1}^N \mathfrak{K}_n \f$ 
+     * of the component's basis shapes.
+     */
     ShapeEnumSharedPtr<D,MultiIndex> compute_union_shape() const
     {
         std::vector< ShapeEnum<D,MultiIndex>* > list(n_components());
@@ -384,6 +565,20 @@ public:
         return std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enum::strict_union(list));
     }
     
+    /**
+     * \brief Evaluate the value of all components at once.
+     * 
+     * Evaluates \f$ \Psi(x) = \{\Phi_i(x)\} \f$, 
+     * where \f$ x \f$ is is a complex quadrature point.
+     * 
+     * \param grid 
+     * Complex quadrature points.
+     * Complex matrix of shape (dimensionality, number of quadrature points)
+     * \return
+     * Complex matrix of shape (number of components, number of quadrature points)
+     * 
+     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     */
     template<int N>
     CMatrix<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
     {
@@ -396,6 +591,20 @@ public:
         return result;
     }
     
+    /**
+     * \brief Evaluates the value of all components at once.
+     * 
+     * Evaluates \f$ \Psi(x) = \{\Phi_i(x)\} \f$, 
+     * where \f$ x \f$ is is a real quadrature point.
+     * 
+     * \param rgrid
+     * Real quadrature points.
+     * Real matrix of shape (dimensionality, number of quadrature points)
+     * \return
+     * Complex matrix of shape (number of components, number of quadrature points)
+     * 
+     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     */
     template<int N>
     CMatrix<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
     {
@@ -411,10 +620,12 @@ private:
 }; // class HomogeneousHaWp
 
 /**
- * \brief Represents a Hagedorn wavepacket with C components.
- * All components have a different set of Hagedorn parameters, shapes and coefficients.
+ * \brief Represents an inhomogeneous Hagedorn wavepacket \f$ \Psi \f$ 
+ * with \f$ N \f$ components \f$ \Phi_n \f$.
+ * All components have a different set of Hagedorn parameters \f$ \Pi \f$, 
+ * basis shapes \f$ \mathfrak{K} \f$ and coefficients \f$ c \f$.
  * 
- * The number of components C is determined at runtime.
+ * The number of components is determined at runtime.
  * 
  * \tparam D wavepacket dimensionality
  * \tparam MultiIndex
@@ -423,6 +634,14 @@ template<dim_t D, class MultiIndex>
 class InhomogeneousHaWp
 {
 public:
+    /**
+     * \brief Represents a component \f$ \Phi_n \f$ of an
+     * inhomogeneous wavepacket \f$ \Psi \f$.
+     * 
+     * Such a component is a full-fledged scalar Hagedorn wavepacket
+     * that shares only the scaling parameter \f$ \varepsilon \f$ with other
+     * components.
+     */
     class Component : public AbstractScalarHaWp<D,MultiIndex>
     {
     public:
@@ -460,28 +679,43 @@ public:
             return *this;
         }
         
+        /**
+         * \brief Forwards the scaling parameter \f$ \varepsilon \f$
+         * of the owning inhomogeneous wavepacket.
+         */
         double eps() const override
         {
             return owner_->eps();
         }
-        
-        
         
         HaWpParamSet<D> & parameters()
         {
             return parameters_;
         }
         
+        
         HaWpParamSet<D> const& parameters() const override
         {
             return parameters_;
         }
         
+        /**
+         * \brief Grants access to the basis shape 
+         * \f$ \mathfrak{K} \f$ of the wavepacket.
+         * 
+         * \return 
+         * Reference to the shape enumeration pointer. 
+         * You can assign a new pointer to it!
+         */
         ShapeEnumSharedPtr<D, MultiIndex> & shape()
         {
             return shape_;
         }
         
+        /**
+         * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
+         * of the wavepacket.
+         */
         ShapeEnumSharedPtr<D, MultiIndex> shape() const override
         {
             return shape_;
@@ -510,51 +744,112 @@ public:
         , components_(n, Component(this))
     { }
     
+    /**
+     * \brief Grants access to the semi-classical scaling parameter 
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     double & eps()
     {
         return eps_;
     }
     
+    /**
+     * \brief Retrieves the semi-classical scaling parameter
+     * \f$ \varepsilon \f$ of the wavepacket.
+     */
     double eps() const
     {
         return eps_;
     }
     
+    /**
+     * \brief Grants writeable access to all components
+     * \f$ \{\Phi_n\} \f$ of this wavepacket.
+     */
     std::vector<Component> & components()
     {
         return components_;
     }
     
+    /**
+     * \brief Grants read-only access to all components
+     * \f$ \{\Phi_n\} \f$ of this wavepacket.
+     */
     std::vector<Component> const& components() const
     {
         return components_;
     }
     
+    /**
+     * \brief Grants writeable access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component & component(std::size_t n)
     {
         return components_[n];
     }
     
+    /**
+     * \brief Grants read-only access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component const& component(std::size_t n) const
     {
         return components_[n];
     }
     
+    /**
+     * \brief Grants writeable access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component & operator[](std::size_t n)
     {
         return component(n);
     }
     
+    /**
+     * \brief Grants read-only access to the \f$ n \f$-th component
+     * \f$ \Phi_n \f$.
+     * 
+     * \param n The index \f$ n \f$ of the requested component.
+     * \return Reference to the requested component.
+     */
     Component const& operator[](std::size_t n) const
     {
         return component(n);
     }
     
+    /**
+     * \brief Returns the number of components.
+     */
     std::size_t n_components() const
     {
         return components_.size();
     }
     
+    /**
+     * \brief Evaluate the value of all components at once.
+     * 
+     * Evaluates \f$ \Psi(x) = \{\Phi_i(x)\} \f$, 
+     * where \f$ x \f$ is is a complex quadrature point.
+     * 
+     * \param grid 
+     * Complex quadrature points.
+     * Complex matrix of shape (dimensionality, number of quadrature points)
+     * \return
+     * Complex matrix of shape (number of components, number of quadrature points)
+     * 
+     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     */
     template<int N>
     CMatrix<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
     {
@@ -567,6 +862,20 @@ public:
         return result;
     }
     
+    /**
+     * \brief Evaluates the value of all components at once.
+     * 
+     * Evaluates \f$ \Psi(x) = \{\Phi_i(x)\} \f$, 
+     * where \f$ x \f$ is is a real quadrature point.
+     * 
+     * \param rgrid
+     * Real quadrature points.
+     * Real matrix of shape (dimensionality, number of quadrature points)
+     * \return
+     * Complex matrix of shape (number of components, number of quadrature points)
+     * 
+     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     */
     template<int N>
     CMatrix<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
     {

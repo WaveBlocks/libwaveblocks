@@ -220,8 +220,8 @@ std::ostream &operator<<(std::ostream &out, const TinyMultiIndex<UINT, D> &index
 
 namespace std {
     /**
-     * provides less functor (compare) for STL (notable std::map)
-     * specializes generic std::less<T>
+     * Provides less functor (compare) for STL containers (notable std::map).
+     * Specializes generic std::less<T>.
      */
     template<class UINT, waveblocks::dim_t D>
     struct less< waveblocks::TinyMultiIndex<UINT,D> >
@@ -241,8 +241,8 @@ namespace std {
     };
     
     /**
-     * provides hash functor for STL (notable std::unordered_map)
-     * specializes generic std::hash<T>
+     * Provides hash functor for STL containers (notable std::unordered_map).
+     * Specializes generic std::hash<T>.
      */
     template<class UINT, waveblocks::dim_t D>
     struct hash< waveblocks::TinyMultiIndex<UINT,D> >
@@ -258,8 +258,8 @@ namespace std {
     };
     
     /**
-     * provides equality functor for STL (notable std::unordered_map)
-     * specializes generic std::equal_to<T>
+     * Provides equality functor for STL containers (notable std::unordered_map).
+     * Specializes generic std::equal_to<T>.
      */
     template<class UINT, waveblocks::dim_t D>
     struct equal_to< waveblocks::TinyMultiIndex<UINT,D> >

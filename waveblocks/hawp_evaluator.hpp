@@ -23,8 +23,8 @@ using HaWpBasisVector = Eigen::Array<complex_t, Eigen::Dynamic, N>;
  * evaluate()/evaluate_basis() of the class AbstractScalarHaWp in "hawp_commons.hpp".
  * 
  * The only reason you may want to use HaWpEvaluator directly is when 
- * you gain an advantage by evaluating a wavepacket slice by slice. 
- * The slice-by-slice wvaluation reduces memory since you
+ * you gain an advantage by evaluating a wavepacket slice-by-slice. 
+ * The slice-by-slice evaluation reduces memory since you
  * don't have to store all basis function values but only the 'active' ones.
  * Take a look at the implementation of the member functions all() or reduce()
  * to learn how to evaluate a wave packet slice by slice.
@@ -79,10 +79,11 @@ private:
     
 public:
     /**
-     * \param[in] eps
-     * \param[in] parameters
-     * \param[in] enumeration
-     * \param[in] x Matrix containing quadrature points as column vectors.
+     * \param[in] eps The semi-classical scaling parameter \f$ \varepsilon \f$ of the wavepacket.
+     * \param[in] parameters The Hagedorn parameter set \f$ \Pi \f$ of the wavepacket.
+     * \param[in] enumeration The basis shape \f$ \mathfrak{K} \f$ of the wavepacket.
+     * \param[in] x Quadrature points: Complex matrix of shape (#dimensions, #quadrature points).
+     * 
      */
     HaWpEvaluator(real_t eps, 
               const HaWpParamSet<D>* parameters, 
@@ -117,9 +118,9 @@ public:
     }
     
     /**
-     * \brief Evaluates basis on node \f$ \underline{0} \f$ (aka ground-state).
+     * \brief Evaluates basis function on node \f$ \underline{0} \f$ (aka ground-state).
      * 
-     * \return Complex 2D-Array of shape (1, #quadrature points)
+     * \return Complex 2D-Array of shape (1, #quadrature points).
      */
     CArray1N seed() const
     {
@@ -137,8 +138,9 @@ public:
     }
     
     /**
-     * \brief Having basis values on previous and current slice, computes basis values
-     * on next slice (using recursive evaluation formula).
+     * \brief Having basis function values on previous and current slice, 
+     * this member function computes basis function values
+     * on the next slice (using recursive evaluation formula).
      * 
      * Hint: Use function seed() to bootstrap recursion.
      * 
@@ -212,9 +214,9 @@ public:
     }
     
     /**
-     * \brief evaluates complete basis
+     * \brief Evaluates all basis functions.
      * 
-     * \return complex 2D-array of shape (#shape-nodes, #quadrature points)
+     * \return Complex 2D-array of shape (#shape-nodes, #quadrature points).
      */
     HaWpBasisVector<N> all() const
     {
@@ -244,11 +246,11 @@ public:
      * \brief Evaluates wavepacket in a memory efficient manner.
      * 
      * This function computes the dot product (thus the name 'reduce') of the wavepacket coefficients 
-     * and the wavepacket basis. This is done by evaluating the wavepacket slice by slice
+     * with the wavepacket basis. This is done by evaluating the wavepacket basis slice by slice
      * and multiplying the basis values with the coefficients on the fly. Computed
      * basis values are discarded once they are not needed any more.
      * 
-     * \param[in] coefficients Vector of wavepacket coefficients. Length = Number of shape nodes.
+     * \param[in] coefficients Vector of wavepacket coefficients. Length = Number of basis shape nodes.
      * \return complex 2D-array of shape (1, #quadrature points)
      */
     Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients) const
