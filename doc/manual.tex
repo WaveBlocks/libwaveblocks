@@ -78,58 +78,6 @@ in the backward cone are part of the shape too.
 
 \section{Basis Shape Enumeration}
 
-
-
-\begin{definition}
-  A \( D \)-dimensional
-  shape enumeration \( \mathfrak{K} \)
-  is a set of ordered D-dimensional integer-tuples, also referred to
-  as \emph{nodes}. It is a (bijective) mapping that orders all nodes
-  of \( \mathfrak{K} \)
-  and assigns the \(i\)-th node the ordinal \( (i-1) \).
-\end{definition}
-
-\subsection{Data Format}
-Many algorithms, notable the evaluation of a \emph{Hagedorn wavepacket},
-use recursive formulas in the form
-\( c_{\mindex{k}} = f(c_{\mindex{k}-\mindex{e}^1}, \ldots,
-c_{\mindex{k}-\mindex{e}^D}) \)
-where \( c_{\mindex{k}} \)
-is a value associated with the node \( \mindex{k} \)
-and where \( \mindex{e}^d \)
-is the unit vector in direction \( d \).
-To simplify such algorithms, the class \classname{ShapeEnum} organizes a shape
-into \emph{slices}.  The \( s \)-th
-slice of a shape \( \mathfrak{K} \)
-contains all nodes \( \mindex{k} \in \mathfrak{K} \)
-that satisfy \( \sum_{d=1}^{D} k_d = s \) (Manhattan distance to origin).
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[]{shape_slicing}
-  \caption{basic shape (filled bullets) and the slicing (rounded
-    rectangles)}
-\end{figure}
-
-The implementation maintains for each slice an array containing all
-nodes that are part of the slice. The user can decide at compile-time
-which multi-index type to use: \\ \\ A suitable type must \dots
-\begin{itemize}
-\item \dots provide the same semantics as \code{std::array<int,D>}.
-\item \dots specialize \code{std::less} to perform lexical comparison
-  beginning on first index.
-\item \dots specialize \code{std::equal\_to} and \code{std::hash}.
-\end{itemize}
-All nodes inside a slice are ordered according to \code{std::less} of
-used multi-index type. Be aware that the implemented shape enumerator
-currently assumes that \code{std::less} performes lexical
-comparison. Other than that there is nothing inherent that obligates
-lexical comparison.
-
-\subsection{Enumerator}
-A shape enumerator takes a shape object that describes which nodes it
-contains. The enumerator converts that shape into a shape enumeration.
-
 \subsection{Shape description}
 There exists many ways to describe a shape. My basis shape enumerator
 is able to enumerate a shape that defines its surface function and
@@ -187,7 +135,7 @@ implicit surface function \(S(\mindex{k}) = 0\) along the axis \(\alpha\).
   \caption{Example of a surface description of an arbitrary shape.}
 \end{figure}
 
-\subsection{Common Basis Shapes}
+\subsection{Common basis shapes}
 \begin{definition}[Hypercubic basis shape]
   Given the limits \(\mindex{K} \in \mathbb{N}^D\), a hypercubic shape is defined by
 
@@ -259,11 +207,11 @@ L_{\alpha}=S-1
 \end{equation}
 
 \begin{definition}[Shape intersection]
-  The intersection of the shapes \(\mathfrak{K}_{A}\) and \(\mathfrak{K}_{B}\) is defined by
+  The intersection of the shapes \(\mathfrak{K}^{A}\) and \(\mathfrak{K}^{B}\) is defined by
   \begin{equation}
     \label{eq:basis_shape_intersection}
-    \mathfrak{K}_{A \cap B}=\left\{\mindex{k} \;|\; \mindex{k} \in \mathfrak{K}_A \land
-      \mindex{k} \in \mathfrak{K}_B
+    \mathfrak{K}^{A \cap B}=\left\{\mindex{k} \;|\; \mindex{k} \in \mathfrak{K}^A \land
+      \mindex{k} \in \mathfrak{K}^B
     \right\}
   \end{equation}
 \end{definition}
@@ -285,11 +233,11 @@ Remark: The \emph{limited hyperbolic cut shape} is an intersection of an
 \emph{hypercubic shape} and a \emph{hyperbolic cut shape}.
 
 \begin{definition}[Shape union]
-  The union of the shapes \(\mathfrak{K}_{A}\) and \(\mathfrak{K}_{B}\) is defined by
+  The union of the shapes \(\mathfrak{K}^{A}\) and \(\mathfrak{K}^{B}\) is defined by
   \begin{equation}
     \label{eq:basis_shape_intersection}
-    \mathfrak{K}_{A \cup B}=\left\{\mindex{k} \;|\; \mindex{k} \in \mathfrak{K}_A \lor
-      \mindex{k} \in \mathfrak{K}_B
+    \mathfrak{K}^{A \cup B}=\left\{\mindex{k} \;|\; \mindex{k} \in \mathfrak{K}^A \lor
+      \mindex{k} \in \mathfrak{K}^B
     \right\}
   \end{equation}
 \end{definition}
@@ -307,12 +255,127 @@ and the minimum bounding box
   L_{\alpha}^{A \cup B} = \max\{L_{\alpha}^{A}, L_{\alpha}^{B}\}
 \end{equation}
 
+\subsection{Basis shape slicing}
+Many algorithms, notable the evaluation of a \emph{Hagedorn wavepacket},
+use recursive formulas in the form
+\( c_{\mindex{k}} = f(c_{\mindex{k}-\mindex{e}^1}, \ldots,
+c_{\mindex{k}-\mindex{e}^D}) \)
+where \( c_{\mindex{k}} \)
+is a value associated with the node \( \mindex{k} \)
+and where \( \mindex{e}^d \)
+is the unit vector in direction \( d \).
+Thus it is beneficial to organize a shape into slices in the following way:
+
+\begin{definition}[Basis shape slice]
+  Basis shapes \(\mathfrak{K}\) are divided into disjoint slices \(\mathfrak{S}\)
+  \begin{equation}
+    \mathfrak{K}=\bigcup_{s=0}^{\infty} \left(\mathfrak{S}_s\right)
+  \end{equation}
+  
+  The \( s \)-th
+  slice \( \mathfrak{S}^s \) of a shape \( \mathfrak{K} \)
+  contains all nodes \( \mindex{k} \in \mathfrak{K} \)
+  that satisfy
+  \begin{equation}
+    \sum_{d=1}^{D} k_d = s
+  \end{equation}
+  Observable, \(s\) is the Manhattan distance to the origin.
+\end{definition}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[]{shape_slicing}
+  \caption{A basis shape and its slicing.}
+\end{figure}
+
+
 \subsection{Basis shape enumeration}
 A basis shape just tells you whether it contains a specific node. But
 for many algorithms, one needs to associate values \(c_{\mindex{k}}\) with shape
 nodes \(\mindex{k}\). One way to do that is using a dictionary. But it is simpler to
 enumerate all nodes in a shape.  This way one is able to keep those
 values in an array, ordered according to the enumeration.
+
+\begin{definition}
+  A shape enumeration is a (bijective) mapping that orders all nodes
+  of \( \mathfrak{K} \)
+  and assigns the \(i\)-th node the ordinal \( (i-1) \).
+\end{definition}
+
+Remark: Due to the close relationship of the enumeration to the shape,
+the symbol \(\mathfrak{K}\) is used for both shape and
+shape enumeration in this report.
+
+\subsubsection{Data structure}
+
+The data structure is as followes
+
+\begin{verbatim}
+template<dim_t D, class MultiIndex>
+struct ShapeEnum {
+    std::vector< ShapeSlice<D,MultiIndex> > slices;
+};
+\end{verbatim}
+
+\begin{verbatim}
+template<dim_t D, class MultiIndex>
+struct ShapeSlice {
+    std::size_t offset;
+    std::vector< MultiIndex > slices;
+};
+\end{verbatim}
+
+The class \classname{ShapeEnum} (representing \(\mathfrak{K}\)) contains a list
+of all non-empty shape slices. The class \classname{ShapeSlice}
+\(\mathfrak{S}_s\) contains a list of all nodes \(k \in \mathfrak{S}_s\).
+
+All multi-indices of a slice are lexicographically ordered.
+The lexicographical order begins on the first index, continues on the second index and so forth.
+\begin{equation}
+  \label{eq:lexical_order}
+  a_1a_2\dots a_D <_{lex}b_1b_2\dots b_D \iff 
+  \begin{cases}
+    (a_1 < b_1) \lor (a_1 = b_1 \land a_2\dots a_D <_{lex} b_2\dots b_D) & D > 1 \\
+    (d_1 < b_1) & D = 1 \\
+  \end{cases}
+\end{equation}
+
+\subsubsection{Queries}
+The two main operations of a shape enumeration are
+\begin{itemize}
+\item Find the ordinal \(i\) of a given multi-index \(k\).
+  
+\item Retrieve the multi-index \(k\) associated with an given ordinal \(i\).
+  
+\end{itemize}
+
+\subsubsection{Multi-index representation}
+Since the size of a multi-index has a big influence to table lookup times and
+overall simulation time, the user can choose at compile-time an appropriate
+type to represent multi-indinces. I provide the class \classname{TinyMultiIndex}
+that packs all indices into 64 bits.
+Multi-indices of accomplishable simulations should fit into 64 bits.
+Otherwise you can define a new multi-index type. A custom implementation
+must possess the same semantics as \code{std::array<int,D>}.
+Furthermore it has to specialize \code{std::less} that perform lexical index comparison
+beginning on first index.
+And it has to specialize \code{std::equal\_to} and \code{std::hash} to
+enable use of multi-indices as hashmap keys.
+
+\subsubsection{Alternative data structures}
+I tried a hashtable (\code{std::unordered\_set}) to map multi-indices to ordinals.
+To represent multi-indices, i used the tiny (64 bits) representation.
+These 64 bits can be used unmodified as a hash value.
+But queries proved to be 2-3 times slower compared to binary search
+despite of \(\mathcal{O}(1)\) compared to \(\mathcal{O}(\log{}n)\) lookup time.
+Hashtables are good when querying random keys. But an algorithm working
+with shapes does \emph{not} access random nodes.
+Such algorithms typically access neighbours of previously accessed nodes.
+Hashtables map neighbour nodes to seemingly random locations in memory
+while an sorted table keeps neighbours together. Thus a hashtable triggers
+a lot more cache misses than an ordered table.
+
+\subsubsection{Algorithm}
 
 Knowing the \emph{surface} and \emph{bounding volume} of a shape, the
 enumerator lexically enumerates all nodes inside the shape. All nodes
@@ -347,60 +410,6 @@ class DefaultShapeEnumeration;
 \item[MultiIndex] type to internally represent multi-indices
 \item[S] shape description
 \end{description}
-
-\subsubsection{Internal multi-index representation}
-The default shape enumeration stores all nodes in a vector. Since
-using \emph{std::array\textless int,D\textgreater} would use a lot of
-memory, the default enumeration exposes a template parameter to define
-a better type. \\ \\ A suitable type must \dots
-\begin{itemize}
-\item provide the same semantics as \emph{std::array\textless
-    int,D\textgreater}
-\item specialize \emph{std::less} to perform lexical comparison
-\item specialize \emph{std::equal\_to}
-\item specialize \emph{std::hash}
-\end{itemize}
-
-\subsubsection{Shape definition}
-A shape definition class provides two member functions:
-
-\begin{itemize}
-\item
-\begin{verbatim}
-int limit(dim_t axis) const;
-\end{verbatim}
-  This member function returns for a given axis \( j \)
-  an as small as possible limit \( L_j \) such that:
-  \[ \forall \boldsymbol{k} \in \mathfrak{K} \,\colon\; k_j \leq
-    L_j \]
-
-\item
-\begin{verbatim}
-template<class MultiIndex>
-int limit(const MultiIndex &base_node, dim_t axis) const;
-\end{verbatim}
-  This member function for a given axis \( j \)
-  and a given base node \( \boldsymbol{n} \)
-  (whose \( j \)-th
-  entry is zero) the largest element \( k^\star \) that satisfies:
-  \[ \boldsymbol{k} \in \mathfrak{K}, \; k_i =
-    \begin{cases}
-      n_i,& i \neq j\\
-      k^\star, & i = j
-    \end{cases}
-  \]
-
-\end{itemize}
-
-\subsubsection{Queries}
-The default shape enumeration stores all multi-indices in a vector
-using lexical ordering. The query \emph{ordinal} \(\rightarrow\)
-\emph{multi-index} is therefore trivial. The query \emph{multi-index}
-\(\rightarrow\)
-\emph{ordinal} is done using binary search. Alternatively this
-implementation can be forced to use \emph{std::unordered\_map} but
-performance tests revealed that a dictionary is slightly slower than
-binary seach.
 
 \section{Hagedorn Wavepacket}
 \subsection{Scalar Wavepackets}
