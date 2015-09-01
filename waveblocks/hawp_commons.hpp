@@ -432,6 +432,10 @@ public:
             return shape_;
         }
         
+        /**
+         * \brief Grants writeable access to the coefficients of this 
+         * wavepacket component.
+         */
         std::vector<complex_t> & coefficients()
         {
             return coefficients_;
@@ -735,6 +739,10 @@ public:
             return shape_;
         }
         
+        /**
+         * \brief Grants writeable access to the coefficients of this 
+         * wavepacket component.
+         */
         std::vector<complex_t> & coefficients()
         {
             return coefficients_;

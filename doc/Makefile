@@ -43,7 +43,7 @@ grad_gather_stencil.pdf: grad_gather_stencil.svg
 basis_eval_stencil.pdf: basis_eval_stencil.svg
 	$(SVG2PDF) $@ $<
 
-manual.pdf: manual.tex basis_eval_stencil.pdf grad_gather_stencil.pdf grad_scatter_stencil.pdf shape_enumerator.pdf shape_example.pdf shape_extension.pdf shape_slicing.pdf hawp_inheritance.pdf
+manual.pdf: manual.tex header_math.tex header_code.tex basis_eval_stencil.pdf grad_gather_stencil.pdf grad_scatter_stencil.pdf shape_enumerator.pdf shape_example.pdf shape_extension.pdf shape_slicing.pdf hawp_inheritance.pdf
 	pdflatex manual.tex
 #	pdflatex --shell-escape manual.tex	
 

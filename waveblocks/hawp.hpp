@@ -21,8 +21,7 @@
 namespace waveblocks {
 
 /**
- * \brief represents a hagedorn wavepacket basis
- * 
+ * \deprecated
  */
 template<dim_t D, class MultiIndex>
 struct HaWpBasis
@@ -56,7 +55,7 @@ public:
 
 /**
  * \brief represents a hagedorn wavepacket
- * 
+ * \deprecated
  */
 template<dim_t D, class MultiIndex>
 struct HaWp
@@ -82,6 +81,9 @@ public:
 
 namespace hawp {
 
+/**
+ * \deprecated
+ */
 template<dim_t D, class MultiIndex>
 HaWpBasis<D,MultiIndex> basis(double eps, 
                               const HaWpParamSet<D>* parameters,
@@ -90,12 +92,18 @@ HaWpBasis<D,MultiIndex> basis(double eps,
     return {eps, parameters, enumeration};
 }
 
+/**
+ * \deprecated
+ */
 template<dim_t D>
 complex_t prefactor(const HaWpParamSet<D>& paramaters)
 {
     return real_t(1)/paramaters.sqrt_detQ();;
 }
 
+/**
+ * \deprecated
+ */
 template<dim_t D, class MultiIndex>
 HaWpGradientEvaluator<D,MultiIndex> nabla(double eps, 
                                      const HaWpParamSet<D>* parameters,
@@ -105,6 +113,9 @@ HaWpGradientEvaluator<D,MultiIndex> nabla(double eps,
     return {eps, parameters, base_enum, grad_enum};
 }
 
+/**
+ * \deprecated
+ */
 template<dim_t D, class MultiIndex>
 HaWpGradientEvaluator<D,MultiIndex> nabla(const HaWpBasis<D,MultiIndex>& basis,
                                      const ShapeEnum<D,MultiIndex>* grad_enum)

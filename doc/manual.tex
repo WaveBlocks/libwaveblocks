@@ -20,22 +20,26 @@
 \def\classname#1{\textit{#1}}
 \def\filename#1{\textit{#1}}
 
-\newtheorem{definition}{Definition}
+\newtheorem*{definition}{Definition}
 
 \begin{document}
 
 \tableofcontents
 \clearpage
 
-\section{Basic Shape}
+\section{Basis Shape}
 
 A \(D\)-dimensional
 shape \(\mathfrak{K}\)
 is a set of \emph{unordered} D-dimensional integer-tuples, also
 referred to as \emph{nodes}.  A shape is suitable for our needs if it
 satisfies:
-\[k \in \mathfrak{K} \Rightarrow \forall k^\star \preceq k \colon
-  k^\star \in \mathfrak{K}\]
+
+\begin{equation}
+  \label{eq:basis_shape_fundamental_property}
+  \mindex{k} \in \mathfrak{K} \Rightarrow \forall
+  \mindex{k}-\mindex{e}^d \in \mathfrak{K} \;\forall d \in \{d \;|\;k_d \geq 1\}
+\end{equation}
 That means, if an arbitrary node is part of the shape, then all nodes
 in the backward cone are part of the shape too.
 
@@ -72,13 +76,9 @@ in the backward cone are part of the shape too.
   \end{equation}
 \end{definition}
 
-\section{Shape Enumeration}
+\section{Basis Shape Enumeration}
 
-A basic shape just tells you whether it contains a specific node. But
-for many algorithms, one needs to associate values \(c_{\mindex{k}}\) with shape
-nodes \(\mindex{k}\). One way to do that is using a dictionary. But it is simpler to
-enumerate all nodes in a shape.  This way one is able to keep those
-values in an array, ordered according to the enumeration.
+
 
 \begin{definition}
   A \( D \)-dimensional
@@ -130,31 +130,36 @@ lexical comparison.
 A shape enumerator takes a shape object that describes which nodes it
 contains. The enumerator converts that shape into a shape enumeration.
 
-\subsubsection{Shape Description}
-There exists many ways to describe a shape.  The current
-implementation expects that a shape descriptions exposes two member
-functions:
-\begin{description}
-\item [surface description] This member function takes a \emph{base
-    node} \( \underline{n} \)
-  and an \emph{axis} \(j\)
-  and returns the largest element \( k^\star \)
-  that satisfies \( \underline{k}(k^\star) \in \mathfrak{K} \):
-  \[ k_i(k^\star) =
-    \begin{cases}
-      n_i,& i \neq j\\
-      k^\star, & i = j
-    \end{cases}
-  \]
-\item [bounding volume] This member function takes an axis \(j\)
-  and returns an as small as possible \emph{limit} \( L_j \)
-  such that:
-  \[ \forall \underline{k} \in \mathfrak{K} \,\colon\; k_j \leq L_j \]
-\end{description}
+\subsection{Shape description}
+There exists many ways to describe a shape. My basis shape enumerator
+is able to enumerate a shape that defines its surface function and
+minimum bounding box.
 
+\begin{definition}[Surface functions of basis shapes]
+  The \(D\) surface functions of an arbitrary \(D\)-dimensional shape are defined as:
+  \begin{equation}
+  s_{\alpha}(\mindex{n})=\max_{k_{\alpha}}
+    \left\{\mindex{k} \in \mathfrak{K} \;|\;
+      k_d = n_d \; \forall d \neq \alpha
+    \right\}
+    \label{eq:basis_shape_surface_function}
+  \end{equation}
+\end{definition}
 
-Notice that you can describe a shape in another way, but you will need
-to implement an other shape enumerator.
+These functions are well-defined because of the fundamental shape property
+(\ref{eq:basis_shape_fundamental_property}).
+
+The (explicit) functions \(s_{\alpha}\) are projections of an
+implicit surface function \(S(\mindex{k}) = 0\) along the axis \(\alpha\).
+
+\begin{definition}[Minimum bounding box of basis shapes]
+  The minimum bounding box describes the smallest
+  volume within which all lattice nodes lie.
+  \begin{equation}
+    L_{\alpha}=\max_{k_{\alpha}}\left\{\mindex{k} \in \mathfrak{K}\right\}
+    \label{eq:basis_shape_bbox}
+  \end{equation}
+\end{definition}
 
 \begin{figure}[H]
   \centering
@@ -167,7 +172,7 @@ to implement an other shape enumerator.
     \begin{tabular}{|| c | c || c | c ||}
       \multicolumn{2}{|| c ||}{\( k_1 \) (first axis) } &
                                                           \multicolumn{2}{c ||}{\( k_2 \) (second axis) } \\
-      base node & surface & base node & surface \\
+      \(\mindex{n}\) & \(s_1(\mindex{n})\) & \(\mindex{n}\) & \(s_2(\mindex{n})\) \\
       (?, 0) & 7 & (0, ?) & 7 \\
       (?, 1) & 5 & (1, ?) & 7 \\
       (?, 2) & 4 & (2, ?) & 6 \\
@@ -176,19 +181,139 @@ to implement an other shape enumerator.
       (?, 5) & 3 & (5, ?) & 1 \\
       (?, 6) & 2 & (6, ?) & 0 \\
       (?, 7) & 1 & (7, ?) & 0 \\
-      (?, 8) & -1 & (8, ?) & -1 \\
+      (?, 8) & \(-\infty\) & (8, ?) & \(-\infty\) \\
     \end{tabular}
   \end{subfigure}
   \caption{Example of a surface description of an arbitrary shape.}
 \end{figure}
 
-\begin{figure}[htbp]
-  \centering
+\subsection{Common Basis Shapes}
+\begin{definition}[Hypercubic basis shape]
+  Given the limits \(\mindex{K} \in \mathbb{N}^D\), a hypercubic shape is defined by
 
+  \begin{equation}
+    \label{eq:hypercubic_shape}
+    \mathfrak{K}(D,\mindex{K}):=\left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \;|\; k_d < K_d \forall d\right\}
+  \end{equation}
+\end{definition}
 
-\end{figure}
+We derive the surface functions by inserting (\ref{eq:hypercubic_shape}) into
+equation
+(\ref{eq:basis_shape_surface_function}).
+\[
+  s_{\alpha}(\mindex{n})=\max_{k_{\alpha}}\left\{(k_{\alpha}<K_{\alpha}) \;\land\;
+    (n_d < K_d \;\forall d \neq \alpha)\right\}
+\]
 
-\subsubsection{Enumeration algorithm}
+\begin{equation}
+  s_{\alpha}(\mindex{n})=
+  \begin{cases}
+    k_{\alpha}-1 & n_d < K_d \;\forall d \neq \alpha \\
+    -\infty & otherwise \\
+  \end{cases}
+\end{equation}
+
+We retrieve the minimum bounding box by inserting (\ref{eq:hypercubic_shape}) into
+equation
+(\ref{eq:basis_shape_bbox}).
+
+\[
+L_{\alpha}=\max_{k_{\alpha}}\left\{k_{\alpha}<K_{\alpha}\right\}
+\]
+
+\begin{equation}
+L_{\alpha}=K_{\alpha}-1
+\end{equation}
+
+\begin{definition}[Hyperbolic cut basis shape]
+  Given the sparsity parameter \(S\), a hyperbolic cut shape is defined by
+  \begin{equation}
+    \mathfrak{K}(D,S):=\left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \;|\;\prod_{d=1}^D(k_d+1) \leq S\right\}
+    \label{eq:hyperbolic_cut_shape}
+  \end{equation}
+\end{definition}
+
+We derive the surface functions by inserting (\ref{eq:hyperbolic_cut_shape}) into
+equation (\ref{eq:basis_shape_surface_function}).
+
+\[
+  s_{\alpha}(\mindex{n})=
+  \max_{k_{\alpha}}\left\{(k_{\alpha}+1)\prod_{d \neq \alpha} (n_d+1) \leq S \right\} =
+  \max_{k_{\alpha}}\left\{k_{\alpha}+1 \leq \frac{S}{\prod_{d \neq \alpha}(n_d+1)}\right\}
+\]
+
+\begin{equation}
+s_{\alpha}(\mindex{n})=\frac{1}{\prod_{d \neq \alpha} (n_d+1)}-1
+\end{equation}
+
+We retrieve the minimum bounding box by inserting (\ref{eq:hyperbolic_cut_shape}) into
+equation (\ref{eq:basis_shape_bbox}).
+
+\[
+  L_{\alpha}=\max_{k_{\alpha}}\left\{\prod_d(k_d+1) \leq S\right\} =
+  \max_{k_{\alpha}}\left\{k_{\alpha}+1 \leq \frac{S}{\prod_{d \neq \alpha}(k_d+1)}\right\}
+\]
+
+\begin{equation}
+L_{\alpha}=S-1
+\end{equation}
+
+\begin{definition}[Shape intersection]
+  The intersection of the shapes \(\mathfrak{K}_{A}\) and \(\mathfrak{K}_{B}\) is defined by
+  \begin{equation}
+    \label{eq:basis_shape_intersection}
+    \mathfrak{K}_{A \cap B}=\left\{\mindex{k} \;|\; \mindex{k} \in \mathfrak{K}_A \land
+      \mindex{k} \in \mathfrak{K}_B
+    \right\}
+  \end{equation}
+\end{definition}
+
+Using equation (\ref{eq:basis_shape_surface_function}) and (\ref{eq:basis_shape_bbox})
+one obtains the surface functions
+
+\begin{equation}
+  s_{\alpha}^{A \cap B}(\mindex{n}) = \min\{s_{\alpha}^A(\mindex{n}), s_{\alpha}^B(\mindex{n})\}
+\end{equation}
+
+and the minimum bounding box
+
+\begin{equation}
+  L_{\alpha}^{A \cap B} = \min\{L_{\alpha}^{A}, L_{\alpha}^{B}\}
+\end{equation}
+
+Remark: The \emph{limited hyperbolic cut shape} is an intersection of an
+\emph{hypercubic shape} and a \emph{hyperbolic cut shape}.
+
+\begin{definition}[Shape union]
+  The union of the shapes \(\mathfrak{K}_{A}\) and \(\mathfrak{K}_{B}\) is defined by
+  \begin{equation}
+    \label{eq:basis_shape_intersection}
+    \mathfrak{K}_{A \cup B}=\left\{\mindex{k} \;|\; \mindex{k} \in \mathfrak{K}_A \lor
+      \mindex{k} \in \mathfrak{K}_B
+    \right\}
+  \end{equation}
+\end{definition}
+
+Using equation (\ref{eq:basis_shape_surface_function}) and (\ref{eq:basis_shape_bbox})
+one obtains the surface functions
+
+\begin{equation}
+  s_{\alpha}^{A \cup B}(\mindex{n}) = \max\{s_{\alpha}^A(\mindex{n}), s_{\alpha}^B(\mindex{n})\}
+\end{equation}
+
+and the minimum bounding box
+
+\begin{equation}
+  L_{\alpha}^{A \cup B} = \max\{L_{\alpha}^{A}, L_{\alpha}^{B}\}
+\end{equation}
+
+\subsection{Basis shape enumeration}
+A basis shape just tells you whether it contains a specific node. But
+for many algorithms, one needs to associate values \(c_{\mindex{k}}\) with shape
+nodes \(\mindex{k}\). One way to do that is using a dictionary. But it is simpler to
+enumerate all nodes in a shape.  This way one is able to keep those
+values in an array, ordered according to the enumeration.
+
 Knowing the \emph{surface} and \emph{bounding volume} of a shape, the
 enumerator lexically enumerates all nodes inside the shape. All nodes
 are subsequently put into the proper shape.
