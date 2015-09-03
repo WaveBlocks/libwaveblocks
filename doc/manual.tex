@@ -27,56 +27,21 @@
 \tableofcontents
 \clearpage
 
-\section{Basis Shape}
+\section{Basis shape}
 
-A \(D\)-dimensional
-shape \(\mathfrak{K}\)
+A \(D\)-dimensional basis shape \(\mathfrak{K}\)
 is a set of \emph{unordered} D-dimensional integer-tuples, also
 referred to as \emph{nodes}.  A shape is suitable for our needs if it
-satisfies:
+satisfies the fundamental property
 
 \begin{equation}
   \label{eq:basis_shape_fundamental_property}
   \mindex{k} \in \mathfrak{K} \Rightarrow \forall
   \mindex{k}-\mindex{e}^d \in \mathfrak{K} \;\forall d \in \{d \;|\;k_d \geq 1\}
 \end{equation}
-That means, if an arbitrary node is part of the shape, then all nodes
+
+That means, if an arbitrary node is part of the basis shape, then all nodes
 in the backward cone are part of the shape too.
-
-\subsection{Implementation}
-
-\subsection{Shape Extension}
-
-\begin{definition}
-  Given a basis shape \( \mathfrak{K} \),
-  the shape extension \( \overline{\mathfrak{K}} \) is defined by
-  \begin{equation}
-    \overline{\mathfrak{K}} := \mathfrak{K} \cup 
-    \left\{\underline{k}' \colon \underline{k}' = \underline{k} + \underline{e}^d 
-      \forall d \in \{1,\ldots,D\} \forall \underline{k} \in \mathfrak{K}\right\}
-  \end{equation}
-  where \( \underline{e}^d \) is the unit vector in direction \( d \).
-\end{definition}
-
-\begin{figure}[H]
-  \begin{center}
-    \includegraphics[width=0.5\linewidth]{shape_extension}
-  \end{center}
-  \caption{basic shape (filled bullets) and its extension (empty
-    bullets)}
-\end{figure}
-\subsection{Shape Union}
-
-\begin{definition}
-  Given the shapes \( \mathfrak{K}_1, \ldots \mathfrak{K}_N \),
-  the union of these shapes is defined by
-  \begin{equation}
-    union(\mathfrak{K}_1,\ldots,\mathfrak{K}_N) := \left\{ 
-      \underline{k} \mid \exists i \in \{1, \ldots, N \} \colon \underline{k} \in \mathfrak{K}_i\right\}
-  \end{equation}
-\end{definition}
-
-\section{Basis Shape Enumeration}
 
 \subsection{Shape description}
 There exists many ways to describe a shape. My basis shape enumerator
@@ -255,7 +220,7 @@ and the minimum bounding box
   L_{\alpha}^{A \cup B} = \max\{L_{\alpha}^{A}, L_{\alpha}^{B}\}
 \end{equation}
 
-\subsection{Basis shape slicing}
+\subsection{Basis shape slicing} \label{sec:basis_shape_slice}
 Many algorithms, notable the evaluation of a \emph{Hagedorn wavepacket},
 use recursive formulas in the form
 \( c_{\mindex{k}} = f(c_{\mindex{k}-\mindex{e}^1}, \ldots,
@@ -267,6 +232,7 @@ is the unit vector in direction \( d \).
 Thus it is beneficial to organize a shape into slices in the following way:
 
 \begin{definition}[Basis shape slice]
+  \label{eq:basis_shape_slice}
   Basis shapes \(\mathfrak{K}\) are divided into disjoint slices \(\mathfrak{S}\)
   \begin{equation}
     \mathfrak{K}=\bigcup_{s=0}^{\infty} \left(\mathfrak{S}_s\right)
@@ -375,41 +341,57 @@ Hashtables map neighbour nodes to seemingly random locations in memory
 while an sorted table keeps neighbours together. Thus a hashtable triggers
 a lot more cache misses than an ordered table.
 
-\subsubsection{Algorithm}
-
-Knowing the \emph{surface} and \emph{bounding volume} of a shape, the
-enumerator lexically enumerates all nodes inside the shape. All nodes
-are subsequently put into the proper shape.
+\subsubsection{Shape enumeration algorithm}
 
 \begin{figure}[H]
   \centering
   \includegraphics[]{shape_enumerator}
-  \caption{enumerator passage through a description of a 2D-shape}
+  \caption{Enumerator passage through a 2-dimensional basis shape}
   \label{fig:shape_example}
 \end{figure}
 
+The enumerator takes a description of a basis shape and enumerates it in two passes.
+
+In the first pass, knowing the surface functions \(s_{\alpha}\)
+and the minimum bounding volume \(L_{\alpha}\) of a shape,
+the enumerator iterates through all nodes inside the basis shape in lexicographical order.
+Each node is subsequently appended to the proper slice (see section (\ref{sec:basis_shape_slice})).
+In the second pass, the enumerator determines the offset (ordinal of first node) of each shape.
+The offset is the number of all nodes in previous slices.
+
 \begin{algorithm}[H]
-  \For{\(x \leftarrow 0\) \KwTo shape.surface(\(\{0,0,0\}\),\(0\))}{
-    \For{\(y \leftarrow 0\) \KwTo shape.surface(\(\{x,0,0\}\),\(1\))}{
-      \For{\(z \leftarrow 0\) \KwTo shape.surface(\(\{x,y,0\}\),\(2\))}{
-        slice[x+y+z].pushback(\(\{x,y,z\}\)); } } }
-  \caption{Enumerator passage through a 3-dimensional shape.}
+  \emph{Enumerate all nodes in lexicographical order}\;
+  \For{\(k_1 \leftarrow 0\) \KwTo \(s_1((0,0,0))\)}{
+    \For{\(k_2 \leftarrow 0\) \KwTo \(s_2((k_1,0,0))\)}{
+      \For{\(k_3 \leftarrow 0\) \KwTo \(s_3((k_1,k_2,0))\)}{
+        \emph{Append lattice node to its slice} \;
+        \(\mathfrak{S}_{k_1+k_2+k_3} \leftarrow \mathfrak{S}_{k_1+k_2+k_3} \cdot (k_1,k_2,k_3) \);
+      }
+    }
+  }
+  \caption{Enumerator passage through a 3-dimensional basis shape.}
 \end{algorithm}
 
-\subsection{Implementation}
+\subsection{Basis shape extension}
 
-The file \emph{waveblocks/shape\_enum.hpp} provides the implementation of the shape enumeration.
+\begin{definition}
+  Given a basis shape \( \mathfrak{K} \),
+  the shape extension \( \overline{\mathfrak{K}} \) is defined by
+  \begin{equation}
+    \mathfrak{K}_{ext} := \mathfrak{K} \cup 
+    \left\{\mindex{k}' \colon \mindex{k}' = \mindex{k} + \mindex{e}^d 
+      \forall \mindex{k} \in \mathfrak{K} \forall d\right\}
+  \end{equation}
+  where \( \mindex{e}^d \) is the unit vector in direction \( d \).
+\end{definition}
 
-\begin{verbatim}
-template<dim_t D, class MultiIndex, class S>
-class DefaultShapeEnumeration;
-\end{verbatim}
-
-\begin{description}
-\item[D] number of dimensions
-\item[MultiIndex] type to internally represent multi-indices
-\item[S] shape description
-\end{description}
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.5\linewidth]{shape_extension}
+  \end{center}
+  \caption{Basis shape (filled bullets) and its extension (empty
+    bullets)}
+\end{figure}
 
 \section{Hagedorn Wavepacket}
 \subsection{Scalar Wavepackets}
@@ -664,7 +646,7 @@ My rather simple solution is to split the shape into splices.  The
   \end{center}
 \end{figure}
 
-Using an \emph{adequate} \footnote{See section \emph{Basic Shape}}
+Using an \emph{adequate} \footnote{See section \emph{Basis Shape}}
 shape, the recusion scheme implies that if we had computed all basis
 values of the parent slice \( \mathfrak{K}^{s-1} \) and of the current
 slice \( \mathfrak{K}^{s} \), then we can compute all basis values of
