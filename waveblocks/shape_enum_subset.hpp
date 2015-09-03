@@ -4,11 +4,8 @@
 #include <memory>
 #include <array>
 
-#include <Eigen/Core>
-
 #include "basic_types.hpp"
 #include "shape_enum.hpp"
-#include "hawp_evaluator.hpp"
 
 namespace waveblocks {
 

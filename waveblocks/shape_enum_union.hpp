@@ -155,7 +155,7 @@ ShapeSlice<D, MultiIndex> strict_union(const std::vector< const ShapeSlice<D, Mu
 }
 
 template<dim_t D, class MultiIndex>
-ShapeEnum<D, MultiIndex> strict_union(const std::vector< const ShapeEnum<D, MultiIndex>* >& enums)
+ShapeEnum<D, MultiIndex> strict_union(std::vector< ShapeEnum<D, MultiIndex> const* > const& enums)
 {
     // determine number of slices in union
     int n_slices = 0;

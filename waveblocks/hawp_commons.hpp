@@ -574,9 +574,9 @@ public:
      * \f$ \bigcup_{n=1}^N \mathfrak{K}_n \f$ 
      * of the component's basis shapes.
      */
-    ShapeEnumSharedPtr<D,MultiIndex> compute_union_shape() const
+    ShapeEnumSharedPtr<D,MultiIndex> union_shape() const
     {
-        std::vector< ShapeEnum<D,MultiIndex>* > list(n_components());
+        std::vector< ShapeEnum<D,MultiIndex> const* > list(n_components());
         for (std::size_t c = 0; c < n_components(); c++) {
             list[c] = components()[c].shape().get();
         }
@@ -598,15 +598,23 @@ public:
      * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
      */
     template<int N>
-    CMatrix<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
+    CArray<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
     {
-        CMatrix<Eigen::Dynamic,N> result(n_components(),grid.cols());
+        ScalarHaWp<D,MultiIndex> unionwp;
         
-        for (std::size_t c = 0; c < n_components(); c++) {
-            result.row(c) = component(c).evaluate(grid);
+        unionwp.eps() = eps();
+        unionwp.parameters() = parameters();
+        unionwp.shape() = union_shape();
+        
+        std::vector< ShapeEnum<D,MultiIndex>* > shape_list(n_components());
+        std::vector< complex_t const* > coeffs_list(n_components());
+        
+        for (std::size_t n = 0; n < n_components(); n++) {
+            shape_list[n] = component(n).shape().get();
+            coeffs_list[n] = component(n).coefficients().data();
         }
         
-        return result;
+        return unionwp.template create_evaluator<N>(grid).vector_reduce(shape_list.data(), coeffs_list.data(), n_components());
     }
     
     /**
@@ -624,7 +632,7 @@ public:
      * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
      */
     template<int N>
-    CMatrix<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
+    CArray<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
     {
         CMatrix<D,N> cgrid = rgrid.template cast<complex_t>();
         return evaluate(cgrid);

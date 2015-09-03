@@ -69,5 +69,7 @@ int main(int argc, char* argv[])
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = wavepacket.evaluate(grid);
     std::cout << "   " << result.format(CleanFmt) << std::endl;
     
+    std::cout << "Done" << std::endl;
+    
     return 0;
 }

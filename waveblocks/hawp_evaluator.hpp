@@ -8,12 +8,10 @@
 #include "hawp_paramset.hpp"
 
 #include "shape_enum.hpp"
+#include "shape_enum_subset.hpp"
 #include "kahan_sum.hpp"
 
 namespace waveblocks {
-
-template<int N>
-using HaWpBasisVector = Eigen::Array<complex_t, Eigen::Dynamic, N>;
 
 /**
  * \brief Evaluates a wavepacket slice by slice.
@@ -256,7 +254,7 @@ public:
     Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients) const
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
-        KahanSum< Eigen::Array<complex_t,1,N> > psi( Eigen::Matrix<complex_t,1,N>::Zero(1,npts_) );
+        KahanSum< CArray<1,N> > psi( CArray<1,N>::Zero(1,npts_) );
         
         HaWpBasisVector<N> prev_basis(0,npts_);
         HaWpBasisVector<N> curr_basis(0,npts_);
@@ -285,6 +283,52 @@ public:
         }
         
         return psi();
+    }
+    
+    CArray<Eigen::Dynamic,N> vector_reduce(ShapeEnum<D,MultiIndex> ** subset_enums, 
+                                           complex_t const ** subset_coeffs, 
+                                           std::size_t n_components) const
+    {
+        // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
+        std::vector< KahanSum< CArray<1,N> > > psi(n_components);
+        
+        HaWpBasisVector<N> prev_basis(0,npts_);
+        HaWpBasisVector<N> curr_basis(0,npts_);
+        HaWpBasisVector<N> next_basis(1,npts_);
+        
+        next_basis = seed();
+        
+        for (std::size_t n = 0; n < n_components; n++) {
+            psi[n] = KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
+            psi[n] += subset_coeffs[n][0]*next_basis.row(0).matrix();
+        }
+        
+        for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
+            prev_basis = std::move(curr_basis);
+            curr_basis = std::move(next_basis);
+            
+            next_basis = step(islice, prev_basis, curr_basis);
+            
+            ShapeSlice<D,MultiIndex> const& superset_slice = enumeration_->slice(islice+1);
+            
+            for (std::size_t n = 0; n < n_components; n++) {
+                ShapeSlice<D,MultiIndex> const& subset_slice = subset_enums[n]->slice(islice+1);
+                HaWpBasisVector<N> subset_basis = shape_enum::copy_subset(next_basis, superset_slice, subset_slice);
+                
+                for (long j = 0; j < subset_basis.rows(); j++) {
+                    complex_t cj = subset_coeffs[n][subset_slice.offset() + j];
+                    
+                    psi[n] += cj*subset_basis.row(j).matrix();
+                }
+            }
+        }
+        
+        CArray<Eigen::Dynamic,N> result(n_components, npts_);
+        for (std::size_t n = 0; n < n_components; n++) {
+            result.row(n) = psi[n]();
+        }
+        
+        return result;
     }
 };
 
