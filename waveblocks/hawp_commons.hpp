@@ -204,7 +204,7 @@ public:
      * \return Complex matrix with shape (1, number of grid nodes)
      */
     template<int N>
-    CMatrix<1,N> evaluate(CMatrix<D,N> const& grid) const
+    CArray<1,N> evaluate(CMatrix<D,N> const& grid) const
     {
         if (this->shape()->n_entries() != coefficients().size())
             throw std::runtime_error("shape.size() != coefficients.size()");
@@ -224,7 +224,7 @@ public:
      * \return Complex matrix with shape (1, number of grid nodes)
      */
     template<int N>
-    CMatrix<1,N> evaluate(RMatrix<D,N> const& rgrid) const
+    CArray<1,N> evaluate(RMatrix<D,N> const& rgrid) const
     {
         CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
         return evaluate(cgrid);
@@ -881,9 +881,9 @@ public:
      * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
      */
     template<int N>
-    CMatrix<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
+    CArray<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
     {
-        CMatrix<Eigen::Dynamic,N> result(n_components(),grid.cols());
+        CArray<Eigen::Dynamic,N> result(n_components(),grid.cols());
         
         for (std::size_t c = 0; c < n_components(); c++) {
             result.row(c) = component(c).evaluate(grid);
@@ -907,7 +907,7 @@ public:
      * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
      */
     template<int N>
-    CMatrix<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
+    CArray<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
     {
         CMatrix<D,N> cgrid = rgrid.template cast<complex_t>();
         return evaluate(cgrid);

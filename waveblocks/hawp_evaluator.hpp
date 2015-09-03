@@ -251,7 +251,7 @@ public:
      * \param[in] coefficients Vector of wavepacket coefficients. Length = Number of basis shape nodes.
      * \return complex 2D-array of shape (1, #quadrature points)
      */
-    Eigen::Array<complex_t,1,N> reduce(const std::vector<complex_t>& coefficients) const
+    CArray<1,N> reduce(const std::vector<complex_t>& coefficients) const
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         KahanSum< CArray<1,N> > psi( CArray<1,N>::Zero(1,npts_) );
