@@ -570,17 +570,37 @@ public:
     }
     
     /**
-     * \brief Computes the union 
-     * \f$ \bigcup_{n=1}^N \mathfrak{K}_n \f$ 
-     * of the component's basis shapes.
+     * \brief Computes the union of basis shapes of all components.
+     * 
+     * _Thread Safety:_ This function caches the basis shape union.
+     * The cache is not protected by a mutex. This concurrent access may
+     * introduce race conditions.
      */
     ShapeEnumSharedPtr<D,MultiIndex> union_shape() const
     {
-        std::vector< ShapeEnum<D,MultiIndex> const* > list(n_components());
-        for (std::size_t c = 0; c < n_components(); c++) {
-            list[c] = components()[c].shape().get();
+        // check cache status
+        bool rebuild_cache = false;
+        
+        if (union_cache_snapshot_.size() != n_components()) {
+            rebuild_cache = true;
+            union_cache_snapshot_.resize(n_components());
         }
-        return std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enum::strict_union(list));
+        
+        for (std::size_t n = 0; n < n_components() && !rebuild_cache; n++) {
+            if (union_cache_snapshot_[n] != component(n).shape().get())
+                rebuild_cache = true;
+        }
+        
+        // rebuild cache if necessary
+        if (rebuild_cache) {
+            std::vector< ShapeEnum<D,MultiIndex> const* > list(n_components());
+            for (std::size_t c = 0; c < n_components(); c++) {
+                list[c] = union_cache_snapshot_[c] = component(c).shape().get();
+            }
+            cached_shape_union_ = std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enum::strict_union(list));
+        }
+        
+        return cached_shape_union_;
     }
     
     /**
@@ -588,6 +608,9 @@ public:
      * 
      * Evaluates \f$ \Psi(x) = \{\Phi_i(x)\} \f$, 
      * where \f$ x \f$ is is a complex quadrature point.
+     * 
+     * _Thread Safety:_ Some intermediate results are cached. The cache is not
+     * protected by a mutex. Thus concurrent access may introduce race conditions.
      * 
      * \param grid 
      * Complex quadrature points.
@@ -643,6 +666,8 @@ private:
     HaWpParamSet<D> parameters_;
     std::vector<Component> components_;
     
+    mutable std::vector< ShapeEnum<D,MultiIndex>* > union_cache_snapshot_;
+    mutable ShapeEnumSharedPtr<D,MultiIndex> cached_shape_union_;
 }; // class HomogeneousHaWp
 
 /**

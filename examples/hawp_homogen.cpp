@@ -66,8 +66,10 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
     
     std::cout << "Evaluate all components at once ... " << std::endl;
-    CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = wavepacket.evaluate(grid);
-    std::cout << "   " << result.format(CleanFmt) << std::endl;
+    {
+        CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = wavepacket.evaluate(grid);
+        std::cout << "   " << result.format(CleanFmt) << std::endl;
+    }
     
     std::cout << "Done" << std::endl;
     
