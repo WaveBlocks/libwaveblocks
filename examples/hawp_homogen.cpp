@@ -11,6 +11,8 @@
 
 #include "waveblocks/hawp_commons.hpp"
 
+#include "waveblocks/util/timer.hpp"
+
 using namespace waveblocks;
 
 int main(int argc, char* argv[])
@@ -20,12 +22,12 @@ int main(int argc, char* argv[])
     
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n   ", "[", "]");
     
-    const dim_t D = 5;
+    const dim_t D = 8;
     typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     // (1) Define shapes
-    HyperCubicShape<D> shape1({2,2,4,4,4});
-    LimitedHyperbolicCutShape<D> shape23(9.0, {4,4,4,4,4});
+    HyperCubicShape<D> shape1({2,2,4,4,4,5,3,5});
+    LimitedHyperbolicCutShape<D> shape23(64, {4,4,4,4,4,4,4,4});
     
     // (2) Enumerate shapes
     ShapeEnumerator<D,MultiIndex> shape_enumerator;
@@ -56,20 +58,32 @@ int main(int argc, char* argv[])
     }
     
     // (5) Evaluate wavepacket-components
+    Timer timer;
     
     std::cout << "Evaluate each component one by one ... " << std::endl;
-    for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
-        CMatrix<1, Eigen::Dynamic> result = wavepacket[c].evaluate(grid);
-        
-        std::cout << "   " << result.format(CleanFmt) << std::endl;
+    {
+        double cumm_time = 0.0;
+        for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
+            timer.start();
+            CMatrix<1, Eigen::Dynamic> result = wavepacket[c].evaluate(grid);
+            timer.stop();
+            cumm_time += timer.millis();
+            
+            std::cout << "   " << result.format(CleanFmt) << std::endl;
+        }
+        std::cout << "   time: " << cumm_time << " [ms]" << std::endl;
     }
     std::cout << std::endl;
     
     std::cout << "Evaluate all components at once ... " << std::endl;
     {
+        timer.start();
         CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = wavepacket.evaluate(grid);
+        timer.stop();
         std::cout << "   " << result.format(CleanFmt) << std::endl;
+        std::cout << "   time: " << timer.millis() << " [ms]" << std::endl;
     }
+    std::cout << std::endl;
     
     std::cout << "Done" << std::endl;
     

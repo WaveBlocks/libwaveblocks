@@ -8,6 +8,8 @@
 #include <waveblocks/tiny_multi_index.hpp>
 #include <waveblocks/yaml/hawp_scalar_decoder.hpp>
 
+#include <waveblocks/util/timer.hpp>
+
 #include <yaml-cpp/yaml.h>
 
 #include <boost/format.hpp>
@@ -100,11 +102,15 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
     
     std::cout << boost::format("Evaluate wavepacket on %i quadrature points") % grid.cols() << std::endl;
+    Timer timer;
     {
         CMatrix<1,Eigen::Dynamic> result;
         
+        timer.start();
         result = wp.evaluate(grid);
+        timer.stop();
         std::cout << "   " << result.format(CleanFmt) << std::endl;
+        std::cout << "   time: " << timer.millis() << " [ms] " << std::endl;
     }
     std::cout << std::endl;
     
@@ -114,21 +120,24 @@ int main(int argc, char* argv[])
         HaWpGradient<D,MultiIndex> gradwp = nabla(wp);
         
         std::cout << "   Evaluate each component one by one ... " << std::endl;
+        double cummtime = 0.0;
         for (std::size_t c = 0; c < gradwp.n_components(); c++) {
+            timer.start();
             CMatrix<1, Eigen::Dynamic> result = gradwp[c].evaluate(grid);
+            timer.stop();
+            cummtime += timer.millis();
             
             std::cout << "   " << result.format(CleanFmt) << std::endl;
         }
+        std::cout << "   time: " << cummtime << " [ms] " << std::endl;
         std::cout << std::endl;
         
         std::cout << "   Evaluate all components at once ... " << std::endl;
+        timer.start();
         CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = gradwp.evaluate(grid);
+        timer.stop();
         std::cout << "   " << result.format(CleanFmt) << std::endl;
-        
-//         for (std::size_t c = 0; c < gradwp.n_components(); c++) {
-//             CMatrix<1,Eigen::Dynamic> result = gradwp[c].evaluate(grid);
-//             std::cout << "   " << result.format(CleanFmt) << std::endl;
-//         }
+        std::cout << "   time: " << timer.millis() << " [ms] " << std::endl;
     }
     std::cout << std::endl;
 }
