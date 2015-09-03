@@ -1,3 +1,4 @@
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -64,6 +65,64 @@ void test1DGaussHermite()
     std::cout << "Quadrature: " << ip.quadrature(packet) << "\n";
 }
 
+void test1DGaussHermiteOperator()
+{
+    std::cout << "\n1D Homogeneous Gauss-Hermite Custom Operator Test\n";
+    std::cout <<   "-------------------------------------------------\n";
+
+    const real_t eps = 0.2;
+    const dim_t D = 1;
+    const dim_t N = 10;
+    const dim_t order = 8;
+    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using QR = GaussHermiteQR<order>;
+    using CMatrix1N = CMatrix<1, Eigen::Dynamic>;
+    using CMatrixD1 = CMatrix<D, 1>;
+    using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
+
+    // Set up sample 1D wavepacket.
+    ShapeEnumerator<D, MultiIndex> enumerator;
+    ShapeEnum<D, MultiIndex> shape_enum =
+        enumerator.generate(HyperCubicShape<D>(N));
+    HaWpParamSet<D> param_set;
+    std::cout << param_set << std::endl;
+    std::vector<complex_t> coeffs(N, 1.0);
+
+    // Print QR nodes and weights.
+    std::cout << "nodes: {";
+    for (auto x : QR::nodes()) std::cout << " " << x;
+    std::cout << " }\n";
+
+    std::cout << "weights: {";
+    for (auto x : QR::weights()) std::cout << " " << x;
+    std::cout << " }\n";
+
+    ScalarHaWp<D, MultiIndex> packet;
+    packet.eps() = eps;
+    packet.parameters() = param_set;
+    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.coefficients() = coeffs;
+
+    // Calculate inner product matrix, print it.
+    // Use an operator that returns a sequence 1, 2, ..., number_nodes.
+    HomogeneousInnerProduct<D, MultiIndex, QR> ip;
+    auto op =
+        [] (CMatrixDN nodes, CMatrixD1 pos) -> CMatrix1N
+    {
+        const dim_t n_nodes = nodes.cols();
+        CMatrix1N result(1, n_nodes);
+        for(int i = 0; i < n_nodes; ++i) result(0, i) = i+1;
+        return result;
+    };
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
+        ip.build_matrix(packet, op);
+
+    std::cout << "IP matrix:\n" << mat << std::endl;
+
+    // Calculate quadrature.
+    std::cout << "Quadrature: " << ip.quadrature(packet, op) << "\n";
+}
+
 void test3DGaussHermite()
 {
     std::cout << "\n3D Homogeneous Tensor-Product Gauss-Hermite Test\n";
@@ -117,8 +176,9 @@ void test3DGaussHermite()
 
 int main()
 {
-    test1DGaussHermite();
-    test3DGaussHermite();
+    //test1DGaussHermite();
+    test1DGaussHermiteOperator();
+    //test3DGaussHermite();
 
     return 0;
 }

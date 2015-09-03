@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <tuple>
 #include <vector>
@@ -19,24 +20,27 @@ template<dim_t D, class MultiIndex, class QR>
 class HomogeneousInnerProduct
 {
 public:
-    // TODO: make D-dimensional, replace Dynamic
     using CMatrixNN = CMatrix<Eigen::Dynamic, Eigen::Dynamic>;
     using CMatrix1N = CMatrix<1, Eigen::Dynamic>;
     using CMatrixN1 = CMatrix<Eigen::Dynamic, 1>;
+    using CMatrixD1 = CMatrix<D, 1>;
+    using CMatrixDD = CMatrix<D, D>;
     using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
     using NodeMatrix = typename QR::NodeMatrix;
     using WeightVector = typename QR::WeightVector;
+    using op_t = std::function<CMatrix1N(CMatrixDN,CMatrixD1)>;
 
     HomogeneousInnerProduct()
     {
     }
 
-    CMatrixNN build_matrix(const AbstractScalarHaWpBasis<D, MultiIndex>& packet)
+    CMatrixNN build_matrix(const AbstractScalarHaWpBasis<D, MultiIndex>& packet,
+            const op_t& op=default_op)
         const
     {
         const dim_t n_nodes = QR::number_nodes();
-        const CMatrix<D,1>& q = complex_t(1, 0) * packet.parameters().q;
-        const CMatrix<D,D>& Q = packet.parameters().Q;
+        const CMatrixD1& q = complex_t(1, 0) * packet.parameters().q;
+        const CMatrixDD& Q = packet.parameters().Q;
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
@@ -50,8 +54,8 @@ public:
         CMatrixDN transformed_nodes =
             q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
 
-        // TODO: Apply operator.
-        CMatrix1N values = CMatrix1N::Ones(1, n_nodes);
+        // Apply operator.
+        CMatrix1N values = op(transformed_nodes, q);
 
         Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
             std::pow(packet.eps(), D) * cweights.array() * values.array();
@@ -81,16 +85,23 @@ public:
         return result;
     }
 
-    complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet)
+    complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet,
+            const op_t& op=default_op)
         const
     {
-        const auto M = build_matrix(packet);
+        const auto M = build_matrix(packet, op);
         // Quadrature with wavepacket coefficients, c^H M c.
         const CMatrixN1 coeffs = CMatrixN1::Map(
                 packet.coefficients().data(), packet.coefficients().size());
-        std::cout << "\nM: " << M.rows() << " x " << M.cols() << "\n";
-        std::cout << "c: " << coeffs.rows() << " x " << coeffs.cols() << "\n";
+        //std::cout << "\nM: " << M.rows() << " x " << M.cols() << "\n";
+        //std::cout << "c: " << coeffs.rows() << " x " << coeffs.cols() << "\n";
         return coeffs.adjoint() * M * coeffs;
+    }
+
+private:
+    static CMatrix1N default_op(const CMatrixDN& nodes, const CMatrixD1& pos)
+    {
+        return CMatrix1N::Ones(1, nodes.cols());
     }
 };
 
