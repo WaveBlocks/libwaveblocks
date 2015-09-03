@@ -204,13 +204,19 @@ public:
     template<int N>
     CArray<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
     {
-        CArray<Eigen::Dynamic,N> result(n_components(),grid.cols());
+        ScalarHaWp<D,MultiIndex> scalarwp;
         
-        for (std::size_t c = 0; c < n_components(); c++) {
-            result.row(c) = component(c).evaluate(grid);
+        scalarwp.eps() = eps();
+        scalarwp.parameters() = parameters();
+        scalarwp.shape() = shape();
+        
+        std::vector< complex_t const* > coeffs_list(n_components());
+        
+        for (std::size_t n = 0; n < n_components(); n++) {
+            coeffs_list[n] = component(n).coefficients().data();
         }
         
-        return result;
+        return scalarwp.template create_evaluator<N>(grid).vector_reduce(coeffs_list.data(), n_components());
     }
     
     /**
