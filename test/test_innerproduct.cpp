@@ -11,6 +11,7 @@
 #include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/homogeneous_inner_product.hpp"
+#include "waveblocks/inhomogeneous_inner_product.hpp"
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/stdarray2stream.hpp"
@@ -174,11 +175,57 @@ void test3DGaussHermite()
     std::cout << "Quadrature: " << ip.quadrature(packet) << "\n";
 }
 
+void test1DInhomog()
+{
+    std::cout << "\n1D Inhomogeneous Gauss-Hermite Test\n";
+    std::cout <<   "-----------------------------------\n";
+
+    const real_t eps = 0.2;
+    const dim_t D = 1;
+    const dim_t N1 = 10, N2 = 12;
+    const dim_t order = 8;
+    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using QR = GaussHermiteQR<order>;
+
+    // Set up sample 1D wavepacket.
+    ShapeEnumerator<D, MultiIndex> enumerator;
+    ShapeEnum<D, MultiIndex> shape_enum1 =
+        enumerator.generate(HyperCubicShape<D>(N1));
+    ShapeEnum<D, MultiIndex> shape_enum2 =
+        enumerator.generate(HyperCubicShape<D>(N2));
+    HaWpParamSet<D> param_set1, param_set2;
+    std::vector<complex_t> coeffs1(N1, 1.0);
+    std::vector<complex_t> coeffs2(N2, 1.4);
+
+    ScalarHaWp<D, MultiIndex> packet1;
+    packet1.eps() = eps;
+    packet1.parameters() = param_set1;
+    packet1.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum1);
+    packet1.coefficients() = coeffs1;
+
+    ScalarHaWp<D, MultiIndex> packet2;
+    packet2.eps() = eps;
+    packet2.parameters() = param_set2;
+    packet2.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum2);
+    packet2.coefficients() = coeffs2;
+
+    // Calculate inner product matrix, print it.
+    InhomogeneousInnerProduct<D, MultiIndex, QR> ip;
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
+        ip.build_matrix(packet1, packet2);
+
+    std::cout << "IP matrix:\n" << mat << std::endl;
+
+    // Calculate quadrature.
+    std::cout << "Quadrature: " << ip.quadrature(packet1, packet2) << "\n";
+}
+
 int main()
 {
     //test1DGaussHermite();
-    test1DGaussHermiteOperator();
+    //test1DGaussHermiteOperator();
     //test3DGaussHermite();
+    test1DInhomog();
 
     return 0;
 }
