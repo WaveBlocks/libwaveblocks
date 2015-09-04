@@ -393,6 +393,41 @@ The offset is the number of all nodes in previous slices.
     bullets)}
 \end{figure}
 
+While is possible to define surface functions of the extension,
+creating extended shape this way is impractical.
+The basis shape extension is needed, when
+we have to compute the gradient of a wavepacket. At this stage,
+the wavepacket's basis shape is in its enumerated form,
+basically just an array of multi-indices. The original surface functions 
+are lost. Therefore we somehow have to create the extension out
+of the enumerated form.
+
+\begin{algorithm}[H]
+  \caption{Create extension of an enumerated basis shape.}
+  \Input{Enumerated basis shape \(\mathfrak{K}=\bigcup_s\mathfrak{S}^s\)}
+  \Output{Enumerated basis shape extension \(\mathfrak{K}_{ext}=\bigcup_s\mathfrak{S}_{ext}^s\)}
+  \(\mathfrak{S}_{ext}^0 \leftarrow \mindex{0}\)\;
+  \ForEach{\(s \leftarrow 1\) \KwTo \(s_{max}+1\)}{
+    \For{\(d \leftarrow 1\) \KwTo \(D\)}{
+      \(\mathfrak{S}_{ext}^s \leftarrow \mathfrak{S}_{ext}^s \cup
+      \left\{\mindex{k}+\mindex{e}^d \;\forall \mindex{k} \in \mathfrak{S}^{s-1}\right\}\)\;
+    }
+  }
+\end{algorithm}
+
+This task turns out rather straight-forward. We take one slice \(\mathfrak{S}^s\) of
+the input basis shape, clone it and
+shift it one unit to direction \(d\) by incrementing the \(d\)-th index of each multi-index.
+We create one clone for each direction. Then we merge these \(D\) clones and get the
+slice \(\mathfrak{S}_{ext}^{s+1}\) of the extended shape. We don't have to sort
+during the merging operation.
+Notice that nodes inside a clone already are lexicographically ordered.
+We just have to interleave the clones in such a way that
+lexical order is kept and duplicates get eliminated.
+Using a divide and conquer approach, the total algorithmic complexity is
+\(\mathcal{O}(D\log{}D \cdot N)\) where \(D\) is the dimensionality and \(N\)
+is the number of basis shape nodes.
+
 \section{Hagedorn Wavepacket}
 \subsection{Scalar Wavepackets}
 A scalar Hagedorn wavepacket
@@ -709,8 +744,6 @@ My solution has two compelling advantages:
   \caption{Recursive basis evaluation of hagedorn wavepacket}
 \end{algorithm}
 
-
-
 \subsection{Gradient Computation}
 Applying the gradient operator to a scalar \(D\)-dimensional Hagedorn Wavepacket 
 \( \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, c \right)\)
@@ -825,5 +858,61 @@ This greatly simplifies parallelization.
   }
   \caption{Computes coefficients of the wavepacket gradient \(\vec{\nabla} \Phi\)}
 \end{algorithm}
+
+\subsection{Optimized evaluation of vectorial wavepackets}
+The naive approach to evaluate vectorial wavepackets, is to separately
+evaluate each component. For inhomogeneous wavepackets there is
+no better way.
+However components of homogeneous wavepackets share the same Hagedorn parameter set
+and therefore share some basis functions. How many depends on how large the overlap of
+the basis shapes is. Basis shapes of components typically are very similar so
+we can benefit if compute shared basis functions only once.
+
+One way to achieve this, is to compute the union of tha
+basis shapes of all components:
+\[
+\mathfrak{K}^{\cup} = \mathfrak{K}^1 \cup \mathfrak{K}^2 \cup \dots \cup \mathfrak{K}^N
+\]
+
+Then we compute the basis functions governed by the basis shape union:
+\[
+\left\{\phi_{\mindex{k}} \;|\;\mindex{k} \in \mathfrak{K}^{\cup}\right\}
+\]
+
+Finally, for each wavepacket component \(\Phi_n\),
+we compute the dot product of its coefficients \(c_{n,\mindex{k}}\)
+with the subset \(\left\{\phi_{\mindex{k}}\;|\; \mindex{k} \in \mathfrak{K}^n\right\}\):
+
+\[
+\Phi_n(\vec{x})=\sum_{\mindex{k} \in \mathfrak{K}^n} c_{n,\mindex{k}} \phi_{\mindex{k}}(\vec{x})
+\]
+
+Remark: My implementation does the the above computation slice by slice to save memory
+the same way as for a scalar wavepacket.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{plots/hawp_homogen_evaluation_speedup}
+  \caption{Maximal speedup compared to naive evaluation.}
+  \label{fig:hawp_homogen_evaluation_speedup}
+\end{figure}
+
+Unfortunately the speedup of this optimization method turnes out quite unspectacular.
+I benchmarked the algorithm by choosing a limited hyperbolic shape
+\footnote{dimensionality = \(10\), sparsity = \(2024\), limits = \(\vec{4}\)}
+containing 300'000 lattice nodes.
+All wavepacket components had the same basis shape which is the best case for the algorithm.
+The measured possible speedup is less than two\footnote{on AMD Phenom II X4 955}.
+\par
+Let \(\alpha\) be the time to evaluate the basis functions \(\phi_k(x)\) and \(\beta\) be the time to
+compute the dot-product \(\sum c_k\phi_k\). The speedup is given by
+\[
+  \frac{T(n)}{T(1)} = \frac{N(\alpha+\beta)}{\alpha+N\beta} \simeq
+  \frac{\alpha+\beta}{\beta} = 1.7 \Rightarrow \alpha = 0.7 \beta
+\]
+Apparently, computing the dot-product takes as much time as evaluating
+the basis functions. Each coeffient \(c_k\) is touched exactly once.
+The dot-product is so slow because it is bottlenecked by \emph{memory bandwidth}!
+
 
 \end{document}

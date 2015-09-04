@@ -311,14 +311,29 @@ public:
             
             ShapeSlice<D,MultiIndex> const& superset_slice = enumeration_->slice(islice+1);
             
-            for (std::size_t n = 0; n < n_components; n++) {
-                ShapeSlice<D,MultiIndex> const& subset_slice = subset_enums[n]->slice(islice+1);
-                HaWpBasisVector<N> subset_basis = shape_enum::copy_subset(next_basis, superset_slice, subset_slice);
-                
-                for (long j = 0; j < subset_basis.rows(); j++) {
-                    complex_t cj = subset_coeffs[n][subset_slice.offset() + j];
+//             for (std::size_t n = 0; n < n_components; n++) {
+//                 ShapeSlice<D,MultiIndex> const& subset_slice = subset_enums[n]->slice(islice+1);
+//                 HaWpBasisVector<N> subset_basis = shape_enum::copy_subset(next_basis, superset_slice, subset_slice);
+//                 
+//                 for (long j = 0; j < subset_basis.rows(); j++) {
+//                     complex_t cj = subset_coeffs[n][subset_slice.offset() + j];
+//                     
+//                     psi[n] += cj*subset_basis.row(j).matrix();
+//                 }
+//             }
+            
+            std::vector<std::size_t> seek(n_components);
+            for (long j = 0; j < next_basis.rows(); j++) {
+                for (std::size_t n = 0; n < n_components; n++) {
+                    ShapeSlice<D,MultiIndex> const& subset_slice = subset_enums[n]->slice(islice+1);
                     
-                    psi[n] += cj*subset_basis.row(j).matrix();
+                    if (seek[n] < subset_slice.size() && subset_slice[seek[n]] == superset_slice[j]) {
+                        complex_t cj = subset_coeffs[n][subset_slice.offset() + seek[n]];
+                        
+                        psi[n] += cj*next_basis.row(j).matrix();
+                        
+                        seek[n]++;
+                    }
                 }
             }
         }
@@ -355,8 +370,9 @@ public:
             
             ShapeSlice<D,MultiIndex> const& slice = enumeration_->slice(islice+1);
             
-            for (std::size_t n = 0; n < n_components; n++) {
-                for (long j = 0; j < next_basis.rows(); j++) {
+            
+            for (long j = 0; j < next_basis.rows(); j++) {
+                for (std::size_t n = 0; n < n_components; n++) {
                     complex_t cj = coefficients[n][slice.offset() + j];
                     
                     psi[n] += cj*next_basis.row(j).matrix();
