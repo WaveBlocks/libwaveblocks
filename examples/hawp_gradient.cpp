@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
     
     std::cout << boost::format("Evaluate basis functions on %i quadrature points") % grid.cols() << std::endl;
     {
-        CMatrix<Eigen::Dynamic, Eigen::Dynamic> result; // size = ( number of basis functions X number of quadrature points)
+        CMatrix<Eigen::Dynamic, numQ> result; // size = ( number of basis functions X number of quadrature points)
         
         result = wp.evaluate_basis(grid);
         

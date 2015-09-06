@@ -167,48 +167,53 @@ public:
         
         HaWpBasisVector<N> next_basis(next_enum.size(), npts_);
         
-        // pre-allocate
-        CArray<1,N> pr1(1,npts_), pr2(1,npts_);
-        
-        //loop over all multi-indices within next slice [j = position of multi-index within next slice]
-        for (std::size_t j = 0; j < next_enum.size(); j++) {
-            std::array<int,D> next_index = next_enum[j];
-            //find valid precursor: find first non-zero entry
-            dim_t axis = D;
-            for (dim_t d = 0; d < D; d++) {
-                if (next_index[d] != 0) {
-                    axis = d;
-                    break;
+        #pragma omp parallel
+        {
+            // pre-allocate
+            CArray<1,N> pr1(1,npts_), pr2(1,npts_);
+            
+            //loop over all multi-indices within next slice [j = position of multi-index within next slice]
+            #pragma omp for
+            for (std::size_t j = 0; j < next_enum.size(); j++) {
+                std::array<int,D> next_index = next_enum[j];
+                //find valid precursor: find first non-zero entry
+                dim_t axis = D;
+                for (dim_t d = 0; d < D; d++) {
+                    if (next_index[d] != 0) {
+                        axis = d;
+                        break;
+                    }
                 }
+                
+                assert(axis != D); //assert that multi-index contains some non-zero entries
+                
+                
+                // compute contribution of current slice
+                std::array<int,D> curr_index = next_index;
+                curr_index[axis] -= 1; //get backward neighbour
+                std::size_t curr_ordinal = curr_enum.find(curr_index);
+                
+                assert(curr_ordinal < curr_enum.size()); //assert that multi-index has been found within current slice
+                
+                pr1 = curr_basis.row(curr_ordinal) * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
+                
+                
+                // compute contribution of previous slice
+                std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
+                
+                pr2.setZero();
+                
+                for (dim_t d = 0; d < D; d++) {
+                    if (curr_index[d] != 0) {
+                        pr2 += prev_basis.row(prev_ordinals[d]) * Qh_Qinvt_(axis,d) * sqrt_[ curr_index[d] ];
+                    }
+                }
+                
+                
+                // compute basis value within next slice
+                next_basis.row(j) = (pr1 - pr2) / sqrt_[ 1+curr_index[axis] ];
             }
             
-            assert(axis != D); //assert that multi-index contains some non-zero entries
-            
-            
-            // compute contribution of current slice
-            std::array<int,D> curr_index = next_index;
-            curr_index[axis] -= 1; //get backward neighbour
-            std::size_t curr_ordinal = curr_enum.find(curr_index);
-            
-            assert(curr_ordinal < curr_enum.size()); //assert that multi-index has been found within current slice
-            
-            pr1 = curr_basis.row(curr_ordinal) * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
-            
-            
-            // compute contribution of previous slice
-            std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
-            
-            pr2.setZero();
-            
-            for (dim_t d = 0; d < D; d++) {
-                if (curr_index[d] != 0) {
-                    pr2 += prev_basis.row(prev_ordinals[d]) * Qh_Qinvt_(axis,d) * sqrt_[ curr_index[d] ];
-                }
-            }
-            
-            
-            // compute basis value within next slice
-            next_basis.row(j) = (pr1 - pr2) / sqrt_[ 1+curr_index[axis] ];
         }
         
         return next_basis;
