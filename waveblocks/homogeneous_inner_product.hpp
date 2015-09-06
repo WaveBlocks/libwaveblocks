@@ -16,6 +16,13 @@
 
 namespace waveblocks {
 
+/**
+ * \brief Class providing calculation of homogeneous inner products.
+ *
+ * \tparam D dimensionality of processed wavepackets
+ * \tparam MultiIndex multi-index type of processed wavepackets
+ * \tparam QR quadrature rule to use, with N nodes
+ */
 template<dim_t D, class MultiIndex, class QR>
 class HomogeneousInnerProduct
 {
@@ -34,6 +41,19 @@ public:
     {
     }
 
+    /**
+     * \brief Calculate the matrix of the inner product.
+     *
+     * Returns the matrix elements \f$\langle \phi | f | \phi \rangle\f$ with
+     * an operator \f$f\f$.
+     * The coefficients of the wavepacket are ignored.
+     *
+     * \param packet wavepacket \f$\phi\f$
+     * \param op operator \f$f(x, q) : \mathbb{C}^{D \times N} \times
+     *   \mathbb{C}^D \rightarrow \mathbb{C}^N\f$ which is evaluated at the
+     *   nodal points \f$x\f$ and position \f$q\f$;
+     *   default returns a vector of ones
+     */
     CMatrixNN build_matrix(const AbstractScalarHaWpBasis<D, MultiIndex>& packet,
             const op_t& op=default_op)
         const
