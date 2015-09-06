@@ -129,6 +129,10 @@ public:
      * Real grid nodes / quadrature points \f$ \gamma \f$. 
      * Real matrix with shape (dimensionality, number of grid nodes).
      * \return Complex 2D-array with shape (basis shape size, number of grid nodes)
+     * 
+     * \tparam N
+     * Number of quadrature points. 
+     * Don't choose Eigen::Dynamic. It works, but performance is bad.
      */
     template<int N>
     HaWpBasisVector<N> evaluate_basis(RMatrix<D,N> const& rgrid) const
@@ -936,15 +940,6 @@ public:
     {
         CMatrix<D,N> cgrid = rgrid.template cast<complex_t>();
         return evaluate(cgrid);
-    }
-    
-    ShapeEnumSharedPtr<D,MultiIndex> compute_union_shape() const
-    {
-        std::vector< ShapeEnum<D,MultiIndex>* > list(n_components());
-        for (std::size_t c = 0; c < n_components(); c++) {
-            list[c] = components()[c].shape().get();
-        }
-        return std::make_shared< ShapeEnum<D,MultiIndex> >(shape_enum::strict_union(list));
     }
     
 private:

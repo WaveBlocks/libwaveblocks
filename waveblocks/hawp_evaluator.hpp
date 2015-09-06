@@ -167,6 +167,9 @@ public:
         
         HaWpBasisVector<N> next_basis(next_enum.size(), npts_);
         
+        // pre-allocate
+        CArray<1,N> pr1(1,npts_), pr2(1,npts_);
+        
         //loop over all multi-indices within next slice [j = position of multi-index within next slice]
         for (std::size_t j = 0; j < next_enum.size(); j++) {
             std::array<int,D> next_index = next_enum[j];
@@ -189,13 +192,13 @@ public:
             
             assert(curr_ordinal < curr_enum.size()); //assert that multi-index has been found within current slice
             
-            CArray1N pr1 = curr_basis.row(curr_ordinal) * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
+            pr1 = curr_basis.row(curr_ordinal) * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
             
             
             // compute contribution of previous slice
             std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
             
-            CArray1N pr2 = CArray1N::Zero(1,npts_);
+            pr2.setZero();
             
             for (dim_t d = 0; d < D; d++) {
                 if (curr_index[d] != 0) {
@@ -262,7 +265,7 @@ public:
         
         next_basis = seed();
         
-        psi += coefficients[0]*next_basis.row(0).matrix();
+        psi += next_basis.row(0)*coefficients[0];
         
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
@@ -278,7 +281,7 @@ public:
                 //prints: multi-index -> basis -> coefficient
                 //std::cout << enumeration->slice(islice+1)[j] << " -> " << next_basis.row(j).matrix() << " * " << cj << std::endl;
                 
-                psi += cj*next_basis.row(j).matrix();
+                psi += next_basis.row(j)*cj;
             }
         }
         
@@ -318,7 +321,7 @@ public:
 //                 for (long j = 0; j < subset_basis.rows(); j++) {
 //                     complex_t cj = subset_coeffs[n][subset_slice.offset() + j];
 //                     
-//                     psi[n] += cj*subset_basis.row(j).matrix();
+//                     psi[n] += cj*subset_basis.row(j);
 //                 }
 //             }
             
@@ -330,7 +333,7 @@ public:
                     if (seek[n] < subset_slice.size() && subset_slice[seek[n]] == superset_slice[j]) {
                         complex_t cj = subset_coeffs[n][subset_slice.offset() + seek[n]];
                         
-                        psi[n] += cj*next_basis.row(j).matrix();
+                        psi[n] += next_basis.row(j)*cj;
                         
                         seek[n]++;
                     }
@@ -359,7 +362,7 @@ public:
         
         for (std::size_t n = 0; n < n_components; n++) {
             psi[n] = KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
-            psi[n] += coefficients[n][0]*next_basis.row(0).matrix();
+            psi[n] += coefficients[n][0]*next_basis.row(0);
         }
         
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
@@ -375,7 +378,7 @@ public:
                 for (std::size_t n = 0; n < n_components; n++) {
                     complex_t cj = coefficients[n][slice.offset() + j];
                     
-                    psi[n] += cj*next_basis.row(j).matrix();
+                    psi[n] += next_basis.row(j)*cj;
                 }
             }
         }

@@ -60,8 +60,9 @@ int main(int argc, char* argv[])
     }
     
     // (4) Define quadrature points
-    RMatrix<D, Eigen::Dynamic> grid(D,1);
-    for (int i = 0; i < 1; i++) {
+    const int numQ = 1;
+    RMatrix<D, numQ> grid(D,1);
+    for (int i = 0; i < D; i++) {
         grid(i,0) = -1.0 + 2.0*(i-1)/D;
     }
     
@@ -73,7 +74,7 @@ int main(int argc, char* argv[])
         double cumm_time = 0.0;
         for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
             timer.start();
-            CMatrix<1, Eigen::Dynamic> result = wavepacket[c].evaluate(grid);
+            CMatrix<1,numQ> result = wavepacket[c].evaluate(grid);
             timer.stop();
             cumm_time += timer.millis();
             std::cout << "   " << result.format(CleanFmt) << std::endl;
@@ -86,7 +87,7 @@ int main(int argc, char* argv[])
     std::cout << "Evaluate all components at once ... " << std::endl;
     {
         timer.start();
-        CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = wavepacket.evaluate(grid);
+        CMatrix<Eigen::Dynamic,numQ> result = wavepacket.evaluate(grid);
         timer.stop();
         std::cout << "   " << result.format(CleanFmt) << std::endl;
         std::cout << "   time: " << timer.millis() << " [ms]" << std::endl;

@@ -29,6 +29,12 @@ private:
      */
     T c_;
     
+    /**
+     * Preallocated temporary variables
+     */
+    T y_;
+    T t_;
+    
 public:
     /**
      * \brief compiler-generated default constructor
@@ -69,10 +75,10 @@ public:
      */
     KahanSum &operator+=(const T &summand)
     {
-        T y = summand - c_;
-        T t = sum_ + y;
-        c_ = (t - sum_) - y;
-        sum_ = t;
+        y_ = summand - c_;
+        t_ = sum_ + y_;
+        c_ = (t_ - sum_) - y_;
+        sum_ = t_;
         return *this;
     }
     

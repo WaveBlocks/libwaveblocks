@@ -76,7 +76,8 @@ int main(int argc, char* argv[])
     
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n   ", "[", "]");
     
-    RMatrix<D,Eigen::Dynamic> grid(D,1);
+    const int numQ = 1;
+    RMatrix<D,numQ> grid(D,1);
     std::cout << boost::format("Define %i quadrature points (columns)") % grid.cols() << std::endl;
     for (int i = 0; i < D; i++) {
         grid(i,0) = -1.0 + 2.0*(i)/(D-1);
@@ -104,7 +105,7 @@ int main(int argc, char* argv[])
     std::cout << boost::format("Evaluate wavepacket on %i quadrature points") % grid.cols() << std::endl;
     Timer timer;
     {
-        CMatrix<1,Eigen::Dynamic> result;
+        CMatrix<1,numQ> result;
         
         timer.start();
         result = wp.evaluate(grid);
@@ -123,7 +124,7 @@ int main(int argc, char* argv[])
         double cummtime = 0.0;
         for (std::size_t c = 0; c < gradwp.n_components(); c++) {
             timer.start();
-            CMatrix<1, Eigen::Dynamic> result = gradwp[c].evaluate(grid);
+            CMatrix<1,numQ> result = gradwp[c].evaluate(grid);
             timer.stop();
             cummtime += timer.millis();
             
@@ -134,7 +135,7 @@ int main(int argc, char* argv[])
         
         std::cout << "   Evaluate all components at once ... " << std::endl;
         timer.start();
-        CMatrix<Eigen::Dynamic, Eigen::Dynamic> result = gradwp.evaluate(grid);
+        CMatrix<Eigen::Dynamic,numQ> result = gradwp.evaluate(grid);
         timer.stop();
         std::cout << "   " << result.format(CleanFmt) << std::endl;
         std::cout << "   time: " << timer.millis() << " [ms] " << std::endl;
