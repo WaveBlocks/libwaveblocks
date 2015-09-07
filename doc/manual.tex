@@ -20,7 +20,7 @@
 \def\classname#1{\textit{#1}}
 \def\filename#1{\textit{#1}}
 
-\newtheorem*{definition}{Definition}
+\newtheorem{definition}{Definition}
 
 \begin{document}
 
@@ -40,16 +40,18 @@ satisfies the fundamental property
   \mindex{k}-\mindex{e}^d \in \mathfrak{K} \;\forall d \in \{d \;|\;k_d \geq 1\}
 \end{equation}
 
+where \(\mindex{e}^d\) is the unit vector in direction \(d\).
 That means, if an arbitrary node is part of the basis shape, then all nodes
 in the backward cone are part of the shape too.
 
-\subsection{Shape description}
-There exists many ways to describe a shape. My basis shape enumerator
-is able to enumerate a shape that defines its surface function and
-minimum bounding box.
+\subsection{Basis shape description}
+To perform a simulation, we do not want to specify every basis shape node
+manually. Instead we want a shape that looks like a Hypercube or a Hyperbola.
+
+My program takes the algebraic shape description and converts it into a list of nodes.
 
 \begin{definition}[Surface functions of basis shapes]
-  The \(D\) surface functions of an arbitrary \(D\)-dimensional shape are defined as:
+  The \(D\) surface functions of an arbitrary \(D\)-dimensional shape are defined by
   \begin{equation}
   s_{\alpha}(\mindex{n})=\max_{k_{\alpha}}
     \left\{\mindex{k} \in \mathfrak{K} \;|\;
@@ -62,12 +64,9 @@ minimum bounding box.
 These functions are well-defined because of the fundamental shape property
 (\ref{eq:basis_shape_fundamental_property}).
 
-The (explicit) functions \(s_{\alpha}\) are projections of an
-implicit surface function \(S(\mindex{k}) = 0\) along the axis \(\alpha\).
-
 \begin{definition}[Minimum bounding box of basis shapes]
   The minimum bounding box describes the smallest
-  volume within which all lattice nodes lie.
+  box within which all shape nodes lie.
   \begin{equation}
     L_{\alpha}=\max_{k_{\alpha}}\left\{\mindex{k} \in \mathfrak{K}\right\}
     \label{eq:basis_shape_bbox}
@@ -83,8 +82,6 @@ implicit surface function \(S(\mindex{k}) = 0\) along the axis \(\alpha\).
   ~
   \begin{subfigure}[]{0.5\textwidth}
     \begin{tabular}{|| c | c || c | c ||}
-      \multicolumn{2}{|| c ||}{\( k_1 \) (first axis) } &
-                                                          \multicolumn{2}{c ||}{\( k_2 \) (second axis) } \\
       \(\mindex{n}\) & \(s_1(\mindex{n})\) & \(\mindex{n}\) & \(s_2(\mindex{n})\) \\
       (?, 0) & 7 & (0, ?) & 7 \\
       (?, 1) & 5 & (1, ?) & 7 \\
@@ -97,7 +94,7 @@ implicit surface function \(S(\mindex{k}) = 0\) along the axis \(\alpha\).
       (?, 8) & \(-\infty\) & (8, ?) & \(-\infty\) \\
     \end{tabular}
   \end{subfigure}
-  \caption{Example of a surface description of an arbitrary shape.}
+  \caption{Example of a surface description of an 2-dimensional basis shape.}
 \end{figure}
 
 \subsection{Common basis shapes}
@@ -121,7 +118,7 @@ equation
 \begin{equation}
   s_{\alpha}(\mindex{n})=
   \begin{cases}
-    k_{\alpha}-1 & n_d < K_d \;\forall d \neq \alpha \\
+    K_{\alpha}-1 & n_d < K_d \;\forall d \neq \alpha \\
     -\infty & otherwise \\
   \end{cases}
 \end{equation}
@@ -245,7 +242,7 @@ Thus it is beneficial to organize a shape into slices in the following way:
   \begin{equation}
     \sum_{d=1}^{D} k_d = s
   \end{equation}
-  Observable, \(s\) is the Manhattan distance to the origin.
+  Apparently, \(s\) is the Manhattan distance to the origin.
 \end{definition}
 
 \begin{figure}[H]
@@ -265,7 +262,7 @@ values in an array, ordered according to the enumeration.
 \begin{definition}
   A shape enumeration is a (bijective) mapping that orders all nodes
   of \( \mathfrak{K} \)
-  and assigns the \(i\)-th node the ordinal \( (i-1) \).
+  and assigns the \(i\)-th node the ordinal \(i\).
 \end{definition}
 
 Remark: Due to the close relationship of the enumeration to the shape,
@@ -287,13 +284,13 @@ struct ShapeEnum {
 template<dim_t D, class MultiIndex>
 struct ShapeSlice {
     std::size_t offset;
-    std::vector< MultiIndex > slices;
+    std::vector< MultiIndex > table;
 };
 \end{verbatim}
 
 The class \classname{ShapeEnum} (representing \(\mathfrak{K}\)) contains a list
 of all non-empty shape slices. The class \classname{ShapeSlice}
-\(\mathfrak{S}_s\) contains a list of all nodes \(k \in \mathfrak{S}_s\).
+\(\mathfrak{S}_s\) contains an array of all nodes \(k \in \mathfrak{S}_s\).
 
 All multi-indices of a slice are lexicographically ordered.
 The lexicographical order begins on the first index, continues on the second index and so forth.
@@ -307,26 +304,61 @@ The lexicographical order begins on the first index, continues on the second ind
 \end{equation}
 
 \subsubsection{Queries}
-The two main operations of a shape enumeration are
-\begin{itemize}
-\item Find the ordinal \(i\) of a given multi-index \(k\).
+The two main operations of a shape enumeration are:
+\begin{description}
+\item[Retrieve the multi-index \(k\) associated with an given ordinal \(i\)]\mbox{}
+  \par
+  All multi-indices of a shape are stored in an array.
+  Thus we simply return the \(i\)-th multi-index.
+\item[Find the ordinal \(i\) of a given multi-index \(k\)]\mbox{}
+  \par
+  First you have to determine to which slice the multi-index \(k\) belongs by
+  \(s = \sum_{d=1}^D \mindex{k}_d \).\par
+  All nodes inside a slice are ordered lexicographically. Therefore
+  we determine the position of the node \(\mindex{k}\) inside the slice using \textbf{binary search}.
+  The final ordinal is the position of \(\mindex{k}\) inside its slice plus
+  the number of nodes in all previous slices.
   
-\item Retrieve the multi-index \(k\) associated with an given ordinal \(i\).
-  
-\end{itemize}
+\end{description}
+
+\subsubsection{Finding backward neighbours}
+A common task is looking up all backward neighbours \(\{k-e^1,\ldots,k-e^D\}\)
+of a node \(k\). First all neighbours live inside same slice. Secondly they
+are ordered i.e. \(k-e^d\) is stored before \(k-e^{d+1}\). Thirdly due to how lexical order
+works, the distance between \((k-e^{d-1})\) and \((k-e^d)\) is usually much larger than
+between \((k-e^d)\) and \((k-e^{d+1})\).
+The following algorithm takes advantage of this alignment by defining a search range \([a;b]\)
+which is the whole slice at the beginning.
+After each determined ordinal of the front node, the algorithm subsequently reduces the search range
+of the remaining nodes.
+
+\begin{algorithm}[H]
+  \caption{Algorithm to find ordinals of backward neighbours}
+  \Input{Node \(\mindex{k}\).}
+  \Input{Slice that contains the backward neighbours \(\mathfrak{S}\).}
+  \Output{Ordinals of backward neighbours \(\{i^1,\ldots,i^D\}\).}
+  \(a \leftarrow 1\)\;
+  \(b \leftarrow size(\mathfrak{S})\)\;
+  \(i^D \leftarrow find(\mindex{k}-\mindex{e}^D) \in \mathfrak{S}[a;b]\)\;
+  \(b \leftarrow i^D\)\;
+  \For{\(d \leftarrow 1\) \KwTo \(D-1\)}{
+    \(i^d \leftarrow find(\mindex{k}-\mindex{e}^d) \in \mathfrak{S}[a;b]\)\;
+    \(a \leftarrow i^d\)\;
+  }
+\end{algorithm}
 
 \subsubsection{Multi-index representation}
-Since the size of a multi-index has a big influence to table lookup times and
-overall simulation time, the user can choose at compile-time an appropriate
+The size of a multi-index has a big influence to lookup times and
+overall simulation time. Therefore the user can choose at compile-time an appropriate
 type to represent multi-indinces. I provide the class \classname{TinyMultiIndex}
-that packs all indices into 64 bits.
+that packs the whole multi-index into 64 bits.
 Multi-indices of accomplishable simulations should fit into 64 bits.
 Otherwise you can define a new multi-index type. A custom implementation
 must possess the same semantics as \code{std::array<int,D>}.
-Furthermore it has to specialize \code{std::less} that perform lexical index comparison
-beginning on first index.
+Furthermore it has to specialize \code{std::less} that performs lexical index comparison
+beginning on the first index.
 And it has to specialize \code{std::equal\_to} and \code{std::hash} to
-enable use of multi-indices as hashmap keys.
+enable use of multi-indices as hashtable keys.
 
 \subsubsection{Alternative data structures}
 I tried a hashtable (\code{std::unordered\_set}) to map multi-indices to ordinals.
@@ -334,12 +366,13 @@ To represent multi-indices, i used the tiny (64 bits) representation.
 These 64 bits can be used unmodified as a hash value.
 But queries proved to be 2-3 times slower compared to binary search
 despite of \(\mathcal{O}(1)\) compared to \(\mathcal{O}(\log{}n)\) lookup time.
+\par
 Hashtables are good when querying random keys. But an algorithm working
-with shapes does \emph{not} access random nodes.
+with basis shapes does \emph{not} access random nodes.
 Such algorithms typically access neighbours of previously accessed nodes.
 Hashtables map neighbour nodes to seemingly random locations in memory
-while an sorted table keeps neighbours together. Thus a hashtable triggers
-a lot more cache misses than an ordered table.
+while an sorted array keeps neighbours together. Thus a hashtable triggers
+a lot more cache misses than an sorted array.
 
 \subsubsection{Shape enumeration algorithm}
 
@@ -394,27 +427,13 @@ The offset is the number of all nodes in previous slices.
 \end{figure}
 
 While is possible to define surface functions of the extension,
-creating extended shape this way is impractical.
-The basis shape extension is needed, when
+creating an extended shape this way is impractical.
+The basis shape extension is needed when
 we have to compute the gradient of a wavepacket. At this stage,
 the wavepacket's basis shape is in its enumerated form,
-basically just an array of multi-indices. The original surface functions 
-are lost. Therefore we somehow have to create the extension out
-of the enumerated form.
-
-\begin{algorithm}[H]
-  \caption{Create extension of an enumerated basis shape.}
-  \Input{Enumerated basis shape \(\mathfrak{K}=\bigcup_s\mathfrak{S}^s\)}
-  \Output{Enumerated basis shape extension \(\mathfrak{K}_{ext}=\bigcup_s\mathfrak{S}_{ext}^s\)}
-  \(\mathfrak{S}_{ext}^0 \leftarrow \mindex{0}\)\;
-  \ForEach{\(s \leftarrow 1\) \KwTo \(s_{max}+1\)}{
-    \For{\(d \leftarrow 1\) \KwTo \(D\)}{
-      \(\mathfrak{S}_{ext}^s \leftarrow \mathfrak{S}_{ext}^s \cup
-      \left\{\mindex{k}+\mindex{e}^d \;\forall \mindex{k} \in \mathfrak{S}^{s-1}\right\}\)\;
-    }
-  }
-\end{algorithm}
-
+basically just an array of multi-indices. The original shape description is lost.
+Therefore we somehow have to create the extension out of the enumerated form.
+\par
 This task turns out rather straight-forward. We take one slice \(\mathfrak{S}^s\) of
 the input basis shape, clone it and
 shift it one unit to direction \(d\) by incrementing the \(d\)-th index of each multi-index.
@@ -425,21 +444,61 @@ Notice that nodes inside a clone already are lexicographically ordered.
 We just have to interleave the clones in such a way that
 lexical order is kept and duplicates get eliminated.
 Using a divide and conquer approach, the total algorithmic complexity is
-\(\mathcal{O}(D\log{}D \cdot N)\) where \(D\) is the dimensionality and \(N\)
+\(\mathcal{O}(D\log{}D \cdot N)\) where \(D\) is the wavepacket dimensionality and \(N\)
 is the number of basis shape nodes.
+
+\begin{algorithm}[H]
+  \caption{Create extension of an enumerated basis shape.}
+  \Input{Enumerated basis shape \(\mathfrak{K}=\bigcup_s\mathfrak{S}^s\)}
+  \Output{Basis shape extension \(\mathfrak{K}_{ext}=\bigcup_s\mathfrak{S}_{ext}^s\)}
+  \(\mathfrak{S}_{ext}^0 \leftarrow \mindex{0}\)\;
+  \ForEach{\(s \leftarrow 1\) \KwTo \(s_{max}+1\)}{
+    \For{\(d \leftarrow 1\) \KwTo \(D\)}{
+      \(\mathfrak{S}_{ext}^s \leftarrow \mathfrak{S}_{ext}^s \cup
+      \left\{\mindex{k}+\mindex{e}^d \;\forall \mindex{k} \in \mathfrak{S}^{s-1}\right\}\)\;
+    }
+  }
+\end{algorithm}
 
 \section{Hagedorn Wavepacket}
 \subsection{Scalar Wavepackets}
-A scalar Hagedorn wavepacket
+A \(D\)-dimensional scalar Hagedorn wavepacket is a linear combination of basis functions \(\phi_{\mindex{k}}\)
+with coefficients \(c_{\mindex{k}}\)
+
+\begin{equation}
+  \label{eq:scalar_hawp_inf}
+  \ket{\Phi} := \Phi[\Pi](\vec{x}) = \exp{\left(\frac{iS}{\varepsilon^2}\right)} 
+  \sum_{\mindex{k} \in \mathbb{N}^D} c_{\mindex{k}}\phi_{\mindex{k}}[\Pi](\vec{x})
+\end{equation}
+
+where \(\varepsilon\) is the semi-classical scaling parameter.\par
+Notice that \(\mindex{k}\) is a \emph{multi-index}. It is a tuple that
+contains \(D\) integers called indices.
+The basis functions \(\Phi_{\mindex{k}}\) are specified by the
+Hagedorn parameter set \(\Pi\). It is a tuple
 \[
-  \Phi_{\mathfrak{K}}^{\varepsilon}[\Pi] = e^{iS\pi} \sum_{\underline{k} \in
-    \mathfrak{K}}^{} c_{\underline{k}} \phi_{\underline{k}} \]
-is represented by a tuple
-\[ \Phi := \left( \varepsilon, \Pi, \mathfrak{K}, \boldsymbol{c}
-  \right) \]
-where \(\varepsilon\) is the semi-classical scaling parameter.
-\(\Pi\) is the Hagedorn parameter set
-\[ \Pi := \left( \vec{p}, \vec{q}, \mat{P}, \mat{Q}, S \right) \]
+  \Pi := \left(\vec{q},\vec{p},\mat{Q},\mat{P},S\right)
+\]
+containing the vectors \( \vec{q},\vec{p} \in \mathbb{R}^D \) and
+complex matrices \( \mat{Q},\mat{P} \in \mathbb{C}^{D \times D} \). \(S\) is
+the global phase.
+
+Equation (\ref{eq:scalar_hawp_inf}) contains infinite many basis functions.
+To compute the wavepacket we have to truncate the set of all basis functions to
+a finite set \(\mathfrak{K} \subset \mathbb{N}^D\) called \emph{basis shape}.
+The wavepacket equation becomes
+
+\[
+  \Phi[\Pi](\vec{x}) \approx \exp{\left(\frac{iS}{\varepsilon^2}\right)} 
+  \sum_{\mindex{k} \in \mathfrak{K}}c_{\mindex{k}}\phi_{\mindex{k}}[\Pi](\vec{x})
+\]
+
+To specify a Hagedorn wavepacket I often use the tuple notation.
+
+\[
+  \Phi := \left(\varepsilon,\Pi,\mathfrak{K},c\right)
+\]
+
 
 \subsection{Vectorial Wavepackets}
 Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\):
@@ -744,6 +803,55 @@ My solution has two compelling advantages:
   \caption{Recursive basis evaluation of hagedorn wavepacket}
 \end{algorithm}
 
+\subsubsection{Algorithmic complexity}
+Evaluating \(D\)-dimensional wavepackets involves evaluating \(N\) basis functions \(\phi_k\).
+To evaluate a basis function we have to lookup the ordinals of \(D\)
+backward neighbours which costs \(\mathcal{O}(D \log{}S)\) because we use binary search.
+\(S\) is the size of the largest slice. A shape has at least \(\mathcal{O}(D\log{}N)\)
+slices (see hypercubic shape). Therefore
+\[
+  \mathcal{O}(S)=\mathcal{O}(\frac{N}{D\log{}N}) \approx \mathcal{O}(N)
+\]
+Gathering values of previous basis functions \(\phi_{k-e^d}\) and computing \(\phi_k\)
+has complexity \(\mathcal{O}(D)\).
+Thus evaluating all basis functions has complexity
+\[
+  \mathcal{O}(N \cdot D\log{}S) + \mathcal{O}(N \cdot D) =
+  \mathcal{O}(N\log{}^2 N)
+\]
+when assuming \(D \approx \log{}N\).
+Computing the dot-product \(\sum c_k\phi_k\) costs \(\mathcal{O}(N)\)
+thus the final \emph{asympotical} complexity
+\begin{equation}
+  \label{eq:hawp_eval_complexity}
+  \mathcal{O}(N\log{}^2N)
+\end{equation}
+
+\subsubsection{Evaluating on multiple quadrature points at once}
+
+To evaluate the basis function \(\phi_k\), we need all backward neighbours
+\(\phi_k-e^d\).
+Unfortunately the program spends much time on looking up the ordinals of these
+backward neighbours. To reduce the lookup time vs computation time ratio
+I've implemented the possibility to evaluate the basis functions \(\Phi_k\)
+on multiple grid nodes at once.
+
+Figure (\ref{fig:hawp_eval_multiqp}) shows the effect of one
+evaluation with \(N\) grid nodes compared to \(N\) evaluations with one
+grid node each. It shows that the multi-evaluation of a \(10\)-dimensional
+wavepacket is up to \(2.5\) times faster than when using single-evaluations.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_multiqp}
+  \caption{Effect of multiple quadrature points}
+  \label{fig:hawp_eval_multiqp}
+\end{figure}
+
+Notice that the benefit of multiple grid nodes is smaller on high dimensions because
+lookup time scales with \(\mathcal{O}(D)\) while computation time per basis function
+scales with \(\mathcal{O}(D^2)\).
+
 \subsection{Gradient Computation}
 Applying the gradient operator to a scalar \(D\)-dimensional Hagedorn Wavepacket 
 \( \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, c \right)\)
@@ -890,29 +998,66 @@ with the subset \(\left\{\phi_{\mindex{k}}\;|\; \mindex{k} \in \mathfrak{K}^n\ri
 Remark: My implementation does the the above computation slice by slice to save memory
 the same way as for a scalar wavepacket.
 
+To quantify the improvement, I benchmarked the above algorithm on a homogeneous wavepacket with
+varying number of components. All components have the same basis shape which is
+the best case for the algorithm (since in this case shapes completely overlap).
+The 10-dimensional basis shape had a size of one million nodes.
+The results (see figure \ref{fig:hawp_homogen_evaluation_speedup}) show that the
+optimized algorithm can be six times faster than perform a naive loop over all
+wavepacket components.
+
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{plots/hawp_homogen_evaluation_speedup}
-  \caption{Maximal speedup compared to naive evaluation.}
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_homogen_speedup}
+  \caption{Archievable speedup compared to naive evaluation.}
   \label{fig:hawp_homogen_evaluation_speedup}
 \end{figure}
 
-Unfortunately the speedup of this optimization method turnes out quite unspectacular.
-I benchmarked the algorithm by choosing a limited hyperbolic shape
-\footnote{dimensionality = \(10\), sparsity = \(2024\), limits = \(\vec{4}\)}
-containing 300'000 lattice nodes.
-All wavepacket components had the same basis shape which is the best case for the algorithm.
-The measured possible speedup is less than two\footnote{on AMD Phenom II X4 955}.
-\par
-Let \(\alpha\) be the time to evaluate the basis functions \(\phi_k(x)\) and \(\beta\) be the time to
-compute the dot-product \(\sum c_k\phi_k\). The speedup is given by
-\[
-  \frac{T(n)}{T(1)} = \frac{N(\alpha+\beta)}{\alpha+N\beta} \simeq
-  \frac{\alpha+\beta}{\beta} = 1.7 \Rightarrow \alpha = 0.7 \beta
-\]
-Apparently, computing the dot-product takes as much time as evaluating
-the basis functions. Each coeffient \(c_k\) is touched exactly once.
-The dot-product is so slow because it is bottlenecked by \emph{memory bandwidth}!
+There is an upper bound to the archievable speedup because the algorithm
+avoids multiple evaluation of the same basis functions \(\phi_k\) but does not reduce
+time spent on computing the dot-product \(\sum c_k\phi_k\).
+Thus when increasing the number of components, computing the dot-product becomes
+more and more the bottleneck.
 
+\section{Benchmark}
+
+\subsection{Wavepacket evaluation}
+
+I benchmarked wavepackets using a hyperbolic cut shape with limits \(100\).
+I varied the sparsity between \(2^D\) and \(3^D\) where \(D\) is the wavepacket
+dimensionality.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_benchmark}
+  \caption{Time to evaluate a scalar wavepacket}
+  \label{fig:hawp_eval_benchmark}
+\end{figure}
+
+Evaluating a wavepacket has asymptotical complexity \(\mathcal{O}(D^2N)\) where
+\(N\) is number of basis shape nodes.
+Since \(D\) corresponds to \(\log{}N\) the asymptotial complexity is \(\mathcal{O}(N\log{}^2N)\)
+which seems confirmed by the results which suggest \(\Theta(N\log{}N)\) because asymptotic limit
+has not been reached yet.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_efficiency}
+  \caption{Effect of dimensionality to evaluation time}
+  \label{fig:hawp_eval_efficiency}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_pvc2}
+  \caption{Wavepacket evaluation time in C++ compared to WaveBlocksND.
+    WaveBlocksND uses the slim recursion routine.}
+  \label{fig:hawp_eval_pvc}
+\end{figure}
+
+Apparently, the C++ implementation is asymptotically better than Waveblocks.
+My implementation could be \(\mathcal{O}(D) \approx \mathcal{O}(\log{}N)\) faster due to slicing but by
+no means \(\mathcal{O}(N)\).
+This behaviour is caused by a flaw somewhere inside the slim recursion.
 
 \end{document}

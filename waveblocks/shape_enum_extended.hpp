@@ -54,7 +54,7 @@ template<dim_t D, class MultiIndex>
 ShapeEnum<D, MultiIndex> extend(const ShapeEnum<D, MultiIndex>* source)
 {
     std::vector< ShapeSlice<D, MultiIndex> > slices(source->n_slices()+1);
-    std::size_t offset = 0;
+    std::size_t offset = 1;
     
     slices[0] = source->slice(0);
     for (int islice = 0; islice < source->n_slices(); islice++) {

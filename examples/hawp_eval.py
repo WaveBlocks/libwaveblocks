@@ -1,7 +1,13 @@
 from WaveBlocksND import *
+import numpy.linalg
 import numpy.random
 import time
 import math
+
+def print_coefficients(wp):
+    for node, coeff in zip(list(wp.get_basis_shapes(0).get_node_iterator()), wp.get_coefficients(0)):
+        if numpy.linalg.norm(coeff) > 1e-10:
+            print node, coeff
 
 def run(D, param_sparsity, param_limit):
     # Number of dimensions
@@ -55,29 +61,56 @@ def run(D, param_sparsity, param_limit):
     #print packet.get_parameters(key=('Q'))[0]
     #print packet.get_parameters(key=('P'))[0]
     
-    print grid
+    print "Grid nodes: ", grid
     print "Evaluate wavepacket"
     print "   shape: ", shape
     print "   size of shape: ", shape.get_basis_size()
     
+    # SLIM RECURSION
+    #start = time.clock()
+    #result = packet.slim_recursion(grid,0)
+    #end = time.clock()
+    
+    #print "   value (slim): ", result
+    #print "   time:         ", str((end - start)*1000), "[ms]"
+    
+    # FAT RECURSION
     start = time.clock()
-    result = packet.slim_recursion(grid,0)
+    result = numpy.dot(packet.get_coefficients(0).T, packet.evaluate_basis_at(grid,0))
     end = time.clock()
+    
+    print "   value (fat):  ", result
+    print "   time:         ", str((end - start)*1000), "[ms]"
     
     #print packet.evaluate_basis_at(grid,0)
     
-    print "   value: ", result
-    print "   time:  ", str((end - start)*1000), "[ms]"
+    print "Evaluate gradient: "
+    nabla = packet.get_gradient_operator()
     
-    #print "Evaluate gradient: "
-    #nabla = packet.get_gradient_operator()
-    #for index, gradwp in enumerate(nabla.apply_gradient(packet)):
-        #print "   ", gradwp.slim_recursion(grid,0)
+    start = time.clock()
+    gradobject = nabla.apply_gradient(packet)
+    end = time.clock()
+    time_construct = (end - start)*1000
+    
+    start = time.clock()
+    result = numpy.zeros((D,1), dtype=complex)
+    for index, gradwp in enumerate(gradobject):
+        result[index,:] = numpy.dot(gradwp.get_coefficients(0).T, gradwp.evaluate_basis_at(grid,0));
+    end = time.clock()
+    time_evaluate = (end - start)*1000
+    
+    print "   value (fat):      ", result.T
+    print "   time (construct): ", str(time_construct), "[ms]"
+    print "   time (evaluate):  ", str(time_evaluate), "[ms]"
 
 def main():
-    D = 6
-    for s in range (0,D+1):
-        run(D,s,100)
+    for D in range(3,7):
+        for s in range(0,D+1):
+            run(D,s,100)
+    
+    #D = 6
+    #for s in range (0,D+1):
+        #run(D,s,100)
 
 if __name__ == "__main__":
     numpy.random.seed(0)

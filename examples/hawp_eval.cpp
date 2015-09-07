@@ -30,6 +30,21 @@ int pow(int m, int e)
     return res;
 }
 
+template<dim_t D, class MultiIndex>
+void print_coefficients(AbstractScalarHaWp<D,MultiIndex> const& wp)
+{
+    {
+        for (int i = 0; i < wp.shape()->n_slices(); i++) {
+            auto const& slice = wp.shape()->slice(i);
+            
+            for (std::size_t j = 0; j < slice.size(); j++) {
+                std::cout << "   " << slice[j] << ": " << wp.coefficients()[slice.offset() + j] << std::endl;
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     (void) argc;
@@ -46,7 +61,7 @@ int main(int argc, char* argv[])
     int shape_limit = boost::lexical_cast<int>(argv[2]);
     
     // (1) Define dimensionality
-    const dim_t D = 6;
+    const dim_t D = 5;
     typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     // (2) Define shapes
@@ -112,7 +127,7 @@ int main(int argc, char* argv[])
     std::cout << "     EVALUATE WAVEPACKET" << std::endl;
     std::cout << "--------------------------------------------------------------------------------" << std::endl;
     
-    Eigen::IOFormat CleanFmt(4, 0, ", ", "\n   ", "[", "]");
+    Eigen::IOFormat CleanFmt(8, 0, ", ", "\n   ", "[", "]");
     
     const int numQ = 1;
     RMatrix<D,numQ> grid(D,numQ);
@@ -149,12 +164,36 @@ int main(int argc, char* argv[])
         CMatrix<1,numQ> result(1,numQ);
         
         timer.start();
-        for (int i = 0; i < 1000; i++) {
+        //for (int i = 0; i < 1000; i++) {
             result = wp.evaluate(grid);
-        }
+        //}
         timer.stop();
         std::cout << "   " << result.format(CleanFmt) << std::endl;
         std::cout << "   time: " << timer.millis() << " [ms] " << std::endl;
+    }
+    std::cout << std::endl;
+    
+    
+    std::cout << boost::format("Evaluate gradient (%i components) on %i quadrature points") % D % grid.cols() << std::endl;
+    {
+        HaWpGradientOperator<D,MultiIndex> nabla;
+        
+        timer.start();
+        HaWpGradient<D,MultiIndex> gradwp = nabla(wp);
+        timer.stop();
+        double time_construct = timer.millis();
+        
+        //print_coefficients( gradwp.component(0) );
+        
+        std::cout << "   Evaluate all components at once ... " << std::endl;
+        timer.start();
+        CMatrix<Eigen::Dynamic,numQ> result = gradwp.evaluate(grid);
+        timer.stop();
+        double time_evaluate = timer.millis();
+        
+        std::cout << "   " << result.format(CleanFmt) << std::endl;
+        std::cout << "   time (construct): " << time_construct << " [ms] " << std::endl;
+        std::cout << "   time (evaluate):  " << time_evaluate  << " [ms] " << std::endl;
     }
     std::cout << std::endl;
 }
