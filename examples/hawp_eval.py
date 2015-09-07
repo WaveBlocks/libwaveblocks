@@ -75,7 +75,9 @@ def run(D, param_sparsity, param_limit):
         #print "   ", gradwp.slim_recursion(grid,0)
 
 def main():
-    run(6,0,10)
+    D = 6
+    for s in range (0,D+1):
+        run(D,s,100)
 
 if __name__ == "__main__":
     numpy.random.seed(0)

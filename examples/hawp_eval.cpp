@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
             wp.parameters().Q(i,j) += 0.1*std::exp(complex_t(0,0.6*(i*D+j)));
         }
     }
-    std::cout << wp.parameters() << std::endl;
+    
     ShapeEnumerator<D,MultiIndex> enumerator;
     wp.shape() = enumerator.enumerate(shape);
     
@@ -149,9 +149,9 @@ int main(int argc, char* argv[])
         CMatrix<1,numQ> result(1,numQ);
         
         timer.start();
-        //for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             result = wp.evaluate(grid);
-        //}
+        }
         timer.stop();
         std::cout << "   " << result.format(CleanFmt) << std::endl;
         std::cout << "   time: " << timer.millis() << " [ms] " << std::endl;
