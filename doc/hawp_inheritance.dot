@@ -49,7 +49,7 @@ digraph HaWpInheritance {
         ]
         
         HomogeneousHaWp [
-            label = "{HomogeneousHaWp|- components \l- eps \l- parameters \l}"
+            label = "{HomogeneousHaWp|- components \l- eps \l- parameters \l+ evaluate(grid) \l}"
             group = groupHomogeneousHaWp
         ]
         
@@ -60,7 +60,7 @@ digraph HaWpInheritance {
         ]
         
         InhomogeneousHaWp [
-            label = "{InhomogeneousHaWp|- components \l- eps \l}"
+            label = "{InhomogeneousHaWp|- components \l- eps \l+ evaluate(grid) \l}"
             group = groupInhomogeneousHaWp
         ]
         
@@ -71,7 +71,7 @@ digraph HaWpInheritance {
         ]
         
         HaWpGradient [
-            label = "{HaWpGradient|- components \l- eps \l- parameters \l- shape \l}"
+            label = "{HaWpGradient|- components \l- eps \l- parameters \l- shape \l+ evaluate(grid) \l}"
             group = groupHaWpGradient
         ]
         
