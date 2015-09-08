@@ -363,7 +363,7 @@ int main() {
 	GMatrix<rD_to_rD<D>,N,N> canonical_jacobian;
 	GMatrix<rD_to_rDxD<D>,N,N> canonical_hessian;
 	
-	canonical_potential(0,0) = [=](RVector<D> x){ return x[0]*x[1] - x[2];};
+	canonical_potential(0,0) = [=](RVector<D> x){ return x[0]*x[1] - x[2] + 1;};
 	canonical_jacobian(0,0) = [=](RVector<D> x) { return RVector<D>({x[1],x[0],-1});};
 	canonical_hessian(0,0) = [=](RVector<D> x) { 
 		RMatrix<D,D> result;
