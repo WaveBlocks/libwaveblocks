@@ -149,25 +149,30 @@ class MatrixPotential {
 			}				
         }
 
-		// TODO
-        template<template<typename ...> class Grid = std::vector>
-        Grid<RMatrix<N,N>> canonical_evaluate_exponential_at(Grid<RVector<D>> g, real_t factor = 1) {
-			function_t<RMatrix<N,N>(RVector<D>)> canonical_expPotential = [=](RVector<D> args){
-                // Compute matrix
-                RMatrix<N,N> values = evaluate_at(args);
-                RMatrix<N,N> result;
-                // Compute exponential
-                Eigen::MatrixExponential<RMatrix<N,N>> m_exp(factor * values);
+		// Computes the exponential of the canonical matrix
+        RMatrix<N,N> canonical_evaluate_exponential(RVector<D> arg, real_t factor = 1) {
+			// Compute matrix
+			RMatrix<N,N> values = canonical_evaluate(arg);
+			RMatrix<N,N> result;
+			
+			// Compute exponential
+			Eigen::MatrixExponential<RMatrix<N,N>> m_exp(factor * values);
 
-                return m_exp.compute(result);
-            };
-            return evaluate_function_matrix_in_grid<N,GMatrix,RVector<D>,real_t,Grid,function_t>(canonical_expPotential,g);
+			m_exp.compute(result);
+			return result;
         }
+        
+        // Computes the exponential of the canonical matrix in a grid
+		template<template<typename ...> class Grid = std::vector>
+		Grid<RMatrix<N,N>> canonical_evaluate_exponential_at(Grid<RVector<D>> g, real_t factor = 1) {
+			return evaluate_function_in_grid<RVector<D>, RMatrix<N,N>, Grid, function_t>(std::bind(&MatrixPotential<N,D>::canonical_evaluate_exponential,this,std::placeholders::_1),g);	
+		}
+        
 
-        // TODO
+        // Returns the potential, jacobian and hessian
         template<template<typename ...> class Tuple = std::tuple, template<typename ...> class Grid = std::vector>
-        Tuple<> canonical_evaluate_local_quadratic(Grid<RVector<D>> g){
-            return Tuple<>(evaluate_eigenvalues_at(g),evaluate_jacobian_at(g),evaluate_hessian_at(g));
+        Tuple<> canonical_taylor(Grid<RVector<D>> g){
+            return Tuple<>(canonical_evaluate_at(g),canonical_evaluate_jacobian_at(g),canonical_evaluate_hessian_at(g));
         }
 
 		
@@ -353,6 +358,25 @@ class MatrixPotential<1,D> {
 				};
 			};
 		}
+		
+		// Computes the exponential of the canonical matrix
+        real_t canonical_evaluate_exponential(RVector<D> arg, real_t factor = 1) {
+			return exp(canonical_potential(arg));
+        }
+        
+        // Computes the exponential of the canonical matrix in a grid
+		template<template<typename ...> class Grid = std::vector>
+		Grid<real_t> canonical_evaluate_exponential_at(Grid<RVector<D>> g, real_t factor = 1) {
+			return evaluate_function_in_grid<RVector<D>, real_t, Grid, function_t>(std::bind(&MatrixPotential<1,D>::canonical_evaluate_exponential,this,std::placeholders::_1),g);	
+		}
+        
+
+        // Returns the potential, jacobian and hessian
+        template<template<typename ...> class Tuple = std::tuple, template<typename ...> class Grid = std::vector>
+        Tuple<> canonical_taylor(Grid<RVector<D>> g){
+            return Tuple<>(evaluate_at(g),evaluate_jacobian_at(g),evaluate_hessian_at(g));
+        }
+
 };
 
 int main() {
@@ -485,6 +509,7 @@ int main() {
 	test.canonical_evaluate_at<std::vector>(evalPoints);
 	test.eigenvalue_evaluate_at(evalPoints);
 	test.evaluate_eigenvectors_at(evalPoints);
+	test.canonical_evaluate_exponential(evalPoints[0]);
 		
 }
 
