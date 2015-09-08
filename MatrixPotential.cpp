@@ -312,46 +312,51 @@ class MatrixPotential<1,D> {
 				canonical_calculate_local_remainder();	
 			};
 		
+	// Evaluation
+		// Evaluates the canonical matrix in one point
+        real_t evaluate(RVector<D> arg) {
+			return canonical_potential(arg);
+        }
+        
 		// Evaluates the canonical matrix in multiple points
         template<template<typename ...> class Grid = std::vector>
         Grid<real_t> evaluate_at(Grid<RVector<D>> g) {
 			return evaluate_function_in_grid<RVector<D>, real_t, Grid, function_t>(canonical_potential,g);	
         }
         
-        // Evaluates the canonical matrix in one point
-        real_t evaluate(RVector<D> arg) {
-			return canonical_potential(arg);
-        }
+    // Jacobian    
         // Evaluates the jacobian of the canonical matrix in multiple points
         template<template<typename ...> class Grid = std::vector>
         Grid<RVector<D>> evaluate_jacobian_at(Grid<RVector<D>> g) {
 			return evaluate_function_in_grid(canonical_jacobian,g);
         }
-
+    // Hessian
         // Evaluates the hessian of the canonical matrix in multiple points
         template<template<typename ...> class Grid = std::vector>
         Grid<RMatrix<D,D>> evaluate_hessian_at(Grid<RVector<D>> g) {
 			return evaluate_function_in_grid(canonical_hessian, g);
         }
-		
-		// Computes a function which returns the local remainder around a point q.
-        void canonical_calculate_local_remainder() {
-            canonical_local_remainder = [=] (RVector<D> q) {
-				rD_to_r<D> result;
-			    rD_to_r<D> local_quadratic = canonical_local_quadratic(q);
-
-				return [=](RVector<D> x) {
-					return canonical_potential(x) - local_quadratic(x);
-				};
-			};
-		}
-
-        // Evaluates the local remainder matrix in a grid.
-        template<template<typename ...> class Grid = std::vector>
-		Grid<real_t> evaluate_local_remainder_at(Grid<RVector<D>> g, RVector<D> position) {
-            return evaluate_function_in_grid<RVector<D>,real_t,Grid,function_t>(canonical_local_remainder(position),g);
+        
+	// Exponential
+		// Computes the exponential of the canonical matrix
+        real_t evaluate_exponential(RVector<D> arg, real_t factor = 1) {
+			return exp(canonical_potential(arg));
         }
-
+        
+        // Computes the exponential of the canonical matrix in a grid
+		template<template<typename ...> class Grid = std::vector>
+		Grid<real_t> evaluate_exponential_at(Grid<RVector<D>> g, real_t factor = 1) {
+			return evaluate_function_in_grid<RVector<D>, real_t, Grid, function_t>(std::bind(&MatrixPotential<1,D>::canonical_evaluate_exponential,this,std::placeholders::_1),g);	
+		}
+        
+	// Taylor
+        // Returns the potential, jacobian and hessian
+        template<template<typename ...> class Tuple = std::tuple, template<typename ...> class Grid = std::vector>
+        Tuple<> taylor(Grid<RVector<D>> g){
+            return Tuple<>(evaluate_at(g),evaluate_jacobian_at(g),evaluate_hessian_at(g));
+        }
+        
+	// Local quadratic
 		// Computes a function which returns the quadratic approximation function matrix for a given point q.
         void canonical_calculate_local_quadratic() {
 			canonical_local_quadratic = [=] (RVector<D> q) {
@@ -373,24 +378,24 @@ class MatrixPotential<1,D> {
 			};
 		}
 		
-		// Computes the exponential of the canonical matrix
-        real_t canonical_evaluate_exponential(RVector<D> arg, real_t factor = 1) {
-			return exp(canonical_potential(arg));
-        }
-        
-        // Computes the exponential of the canonical matrix in a grid
-		template<template<typename ...> class Grid = std::vector>
-		Grid<real_t> canonical_evaluate_exponential_at(Grid<RVector<D>> g, real_t factor = 1) {
-			return evaluate_function_in_grid<RVector<D>, real_t, Grid, function_t>(std::bind(&MatrixPotential<1,D>::canonical_evaluate_exponential,this,std::placeholders::_1),g);	
+	// Local remainder	
+		// Computes a function which returns the local remainder around a point q.
+        void canonical_calculate_local_remainder() {
+            canonical_local_remainder = [=] (RVector<D> q) {
+				rD_to_r<D> result;
+			    rD_to_r<D> local_quadratic = canonical_local_quadratic(q);
+
+				return [=](RVector<D> x) {
+					return canonical_potential(x) - local_quadratic(x);
+				};
+			};
 		}
-        
 
-        // Returns the potential, jacobian and hessian
-        template<template<typename ...> class Tuple = std::tuple, template<typename ...> class Grid = std::vector>
-        Tuple<> canonical_taylor(Grid<RVector<D>> g){
-            return Tuple<>(evaluate_at(g),evaluate_jacobian_at(g),evaluate_hessian_at(g));
+        // Evaluates the local remainder matrix in a grid.
+        template<template<typename ...> class Grid = std::vector>
+		Grid<real_t> evaluate_local_remainder_at(Grid<RVector<D>> g, RVector<D> position) {
+            return evaluate_function_in_grid<RVector<D>,real_t,Grid,function_t>(canonical_local_remainder(position),g);
         }
-
 };
 
 int main() {
