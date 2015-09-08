@@ -87,30 +87,32 @@ def run(D, param_sparsity, param_limit):
     print "Evaluate gradient: "
     nabla = packet.get_gradient_operator()
     
-    start = time.clock()
-    gradobject = nabla.apply_gradient(packet)
-    end = time.clock()
-    time_construct = (end - start)*1000
+    #start = time.clock()
+    #gradobject = nabla.apply_gradient(packet)
+    #end = time.clock()
+    #time_construct = (end - start)*1000
     
-    start = time.clock()
-    result = numpy.zeros((D,1), dtype=complex)
-    for index, gradwp in enumerate(gradobject):
-        result[index,:] = numpy.dot(gradwp.get_coefficients(0).T, gradwp.evaluate_basis_at(grid,0));
-    end = time.clock()
-    time_evaluate = (end - start)*1000
+    #start = time.clock()
+    #result = numpy.zeros((D,1), dtype=complex)
+    
+    #for index, gradwp in enumerate(gradobject):
+        #if index == 0:
+            #basis = gradwp.evaluate_basis_at(grid,0)
+        #result[index,:] = numpy.dot(gradwp.get_coefficients(0).T, basis);
+    #end = time.clock()
+    #time_evaluate = (end - start)*1000
     
     print "   value (fat):      ", result.T
-    print "   time (construct): ", str(time_construct), "[ms]"
-    print "   time (evaluate):  ", str(time_evaluate), "[ms]"
+    #print "   time (construct): ", str(time_construct), "[ms]"
+    #print "   time (evaluate):  ", str(time_evaluate), "[ms]"
+    print ""
+    print ""
 
 def main():
-    for D in range(3,7):
-        for s in range(0,D+1):
-            run(D,s,100)
-    
-    #D = 6
-    #for s in range (0,D+1):
-        #run(D,s,100)
+    run(6,6,100)
+    #for D in range(6,7):
+        #for s in range(1,D+1):
+            #run(D,s,100)
 
 if __name__ == "__main__":
     numpy.random.seed(0)

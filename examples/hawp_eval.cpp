@@ -19,6 +19,8 @@
 
 #include <algorithm>
 
+#include <omp.h>
+
 using namespace waveblocks;
 
 int pow(int m, int e)
@@ -57,11 +59,17 @@ int main(int argc, char* argv[])
         return -1;
     }
     
+    #pragma omp parallel
+    {
+        #pragma omp critical(output)
+        std::cout << "i am thread " << omp_get_thread_num()+1 << "/" << omp_get_num_threads() << std::endl;
+    }
+    
     int shape_sparsity = boost::lexical_cast<int>(argv[1]);
     int shape_limit = boost::lexical_cast<int>(argv[2]);
     
     // (1) Define dimensionality
-    const dim_t D = 5;
+    const dim_t D = 6;
     typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     // (2) Define shapes
@@ -157,6 +165,7 @@ int main(int argc, char* argv[])
 //     }
 //     std::cout << std::endl;
     
+    int repeat = 1;
     
     std::cout << boost::format("Evaluate wavepacket on %i quadrature points") % grid.cols() << std::endl;
     Timer timer;
@@ -164,12 +173,13 @@ int main(int argc, char* argv[])
         CMatrix<1,numQ> result(1,numQ);
         
         timer.start();
-        //for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < repeat; i++)
             result = wp.evaluate(grid);
-        //}
         timer.stop();
+        double time_eval = timer.millis()/repeat;
+        
         std::cout << "   " << result.format(CleanFmt) << std::endl;
-        std::cout << "   time: " << timer.millis() << " [ms] " << std::endl;
+        std::cout << "   time: " << time_eval << " [ms] " << std::endl;
     }
     std::cout << std::endl;
     
@@ -178,18 +188,23 @@ int main(int argc, char* argv[])
     {
         HaWpGradientOperator<D,MultiIndex> nabla;
         
+        HaWpGradient<D,MultiIndex> gradwp;
         timer.start();
-        HaWpGradient<D,MultiIndex> gradwp = nabla(wp);
+        for (int i = 0; i < repeat; i++)
+            gradwp = nabla(wp);
         timer.stop();
-        double time_construct = timer.millis();
+        double time_construct = timer.millis()/repeat;
         
         //print_coefficients( gradwp.component(0) );
         
+        CMatrix<Eigen::Dynamic,numQ> result(D,numQ);
+        
         std::cout << "   Evaluate all components at once ... " << std::endl;
         timer.start();
-        CMatrix<Eigen::Dynamic,numQ> result = gradwp.evaluate(grid);
+        for (int i = 0; i < repeat; i++)
+            result = gradwp.evaluate(grid);
         timer.stop();
-        double time_evaluate = timer.millis();
+        double time_evaluate = timer.millis()/repeat;
         
         std::cout << "   " << result.format(CleanFmt) << std::endl;
         std::cout << "   time (construct): " << time_construct << " [ms] " << std::endl;

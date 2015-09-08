@@ -1,5 +1,6 @@
 \documentclass{article}
 
+\usepackage[english]{babel}
 \usepackage[utf8]{inputenc} \usepackage[T1]{fontenc}
 
 %%%%% 
@@ -11,7 +12,6 @@
 % wrapping text around figures
 \usepackage{wrapfig}
 
-\usepackage[english]{babel}
 \usepackage{setspace}
 
 \input{./header_math.tex} \input{./header_code.tex}
@@ -1019,7 +1019,7 @@ time spent on computing the dot-product \(\sum c_k\phi_k\).
 Thus when increasing the number of components, computing the dot-product becomes
 more and more the bottleneck.
 
-\section{Benchmark}
+\section{Benchmarks}
 
 \subsection{Wavepacket evaluation}
 
@@ -1043,21 +1043,100 @@ has not been reached yet.
 \begin{figure}[H]
   \centering
   \includegraphics[width=1.0\textwidth]{plots/hawp_eval_efficiency}
-  \caption{Effect of dimensionality to evaluation time}
+  \caption{
+    This chart shows the effect of dimensionality to evaluation time.
+    It shows the time needed to evaluate one basis function depending
+    on dimensionality.
+  }
   \label{fig:hawp_eval_efficiency}
 \end{figure}
 
+\subsection{Comparison to WaveBlocksND}
+
+\subsubsection{Wavepacket evaluation}
+
 \begin{figure}[H]
   \centering
-  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_pvc2}
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_cvp_slim}
   \caption{Wavepacket evaluation time in C++ compared to WaveBlocksND.
-    WaveBlocksND uses the slim recursion routine.}
-  \label{fig:hawp_eval_pvc}
+    WaveBlocksND uses the \textbf{slim recursion} routine.}
+  \label{fig:hawp_eval_cvp_slim}
 \end{figure}
 
-Apparently, the C++ implementation is asymptotically better than Waveblocks.
-My implementation could be \(\mathcal{O}(D) \approx \mathcal{O}(\log{}N)\) faster due to slicing but by
-no means \(\mathcal{O}(N)\).
+Apparently, the C++ implementation is asymptotically better than WaveBlocksND by a factor of
+\(\mathcal{O}(N)\). My implementation could have slightly better run-time complexity due to slicing but by
+no means \(\mathcal{O}(N)\). This implies that run-time complexity of the slim recursion is
+quadratical to the basis shape size.
 This behaviour is caused by a flaw somewhere inside the slim recursion.
+Due to this discovery, I've done all further benchmarkes using the fat recursion routine,
+which behaves well, as seen in the figure below. On average my implementation evaluates a
+Hagedorn wavepacket 2000 times faster than WaveBlocksND.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_cvp_fat}
+  \caption{Wavepacket evaluation time in C++ compared to WaveBlocksND.
+  WaveBlocksND uses the \textbf{fat recursion} routine.}
+  \label{fig:hawp_eval_cvp_fat}
+\end{figure}
+
+\subsubsection{Gradient computation}
+
+Below is a benchmark of the gradient computation. The employed wavepacket
+has a limited hyperbolic cut basis shape\footnote{
+  The cutoff limit is 100, sparsity varies between \(2^D\) and \(3^D\).}.
+The results reveal run-time complexity improvements of my implementation.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/grad_eval_cvp}
+  \caption{
+    Wavepacket gradient construction and evaluation time in C++ compared to WaveBlocksND.
+    Speedup means the run-time of WaveBlocksND divided by the run-time of my implementation.
+    This chart contains two series: Empty bullets show the speedup when constructing
+    the wavepacket gradient. Filled bullets show the speedup when evaluating the
+    wavepacket gradient.
+  }
+  \label{fig:grad_eval_cvp}
+\end{figure}
+
+I've changed the way how shape extensions are generated. WaveBlocksND generates
+shape extensions that contain many superfluous nodes. The ratio of superfluous to
+essential nodes grows exponentially with the shape
+dimensionality.\footnote{This effect is very apparent when using hyperbolic cut shapes.}
+This results in a wavepacket gradient that has \(\mathcal{O}(\exp{}(D)\cdot N)\) basis functions instead of
+\(\mathcal{O}(N)\).
+
+WaveBlocksND mitigates this issue by constructing gradients using the scatter-type algorithm
+since the scatter-type algorithm simply ignores superfluous nodes. This works well for low dimension.
+Nevertheless the cost of allocating and zero-initialize oversized arrays
+becomes apparent from dimensionality six (see \emph{construct}-series).
+
+My implementation generates shape extensions that only contains essential nodes.
+The \emph{evaluate}-series reflect the advantage of such minimal shape extensions
+when evaluating wavepacket gradients.
+
+\subsection{First steps towards parallelisation using OpenMP}
+
+I paid attention to parallelisation right from the start.
+The evaluation of Hagedorn wavepackets is of quite serial nature due to its
+recursive scheme. However basis functions on the same slice can be evaluated independently.
+This was one of my main reasons to split basis shapes into slices.
+I added a simple \emph{pragma omp parallel for} to the loop that runs over all nodes
+of the same slice. I've done some measurements on the Euler cluster using up to 12 threads.
+The plot below (\ref{fig:hawp_eval_omp}) shows that the evaluation of large and high dimensional
+wavepackets scales reasonable well.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_omp}
+  \caption{
+    Strong scaling plot of the Hagedorn wavepacket evaluation.
+    It shows two measurements of a 10-dimensional wavepackets
+    with a basis shape of one million and 30 million nodes respectively.
+  }
+  \label{fig:hawp_eval_omp}
+\end{figure}
+
 
 \end{document}

@@ -44,6 +44,7 @@ public:
         }
         
         //iterate over each slice [i = index of current slice]
+        #pragma omp parallel for
         for (int i = 0; i < grad_enum_->n_slices(); i++) {
             //loop over all multi-indices within current slice [j = position of multi-index within current slice]
             for (std::size_t j = 0; j < grad_enum_->slice(i).size(); j++) {
