@@ -17,18 +17,18 @@ class MatrixPotential {
         GMatrix<rD_to_rD<D>,N,N> canonical_jacobian;
         GMatrix<rD_to_rDxD<D>,N,N> canonical_hessian;
         
+		rD_to_function_matrix<D,N,rD_to_r<D>> canonical_local_quadratic;
+        rD_to_function_matrix<D,N,rD_to_r<D>> canonical_local_remainder;
+        
+		bool canonicalBasis;
+
         GVector<rD_to_c<D>,N> eigen_potential;
         rD_to_cNxN<D,N> eigen_basis_transform;
         GVector<rD_to_cD<D>,N> eigen_jacobian;
         GVector<rD_to_cDxD<D>,N> eigen_hessian;
-        bool canonicalBasis;
-        
-        rD_to_function_matrix<D,N,rD_to_r<D>> canonical_local_quadratic;
-        rD_to_function_matrix<D,N,rD_to_r<D>> canonical_local_remainder;
-        
+               
 		rD_to_function_vector<D,N,rD_to_c<D>> eigen_local_quadratic;
 		rD_to_function_vector<D,N,rD_to_c<D>> eigen_local_remainder;
-
         
     public:
 
@@ -57,14 +57,8 @@ class MatrixPotential {
 				eigen_calculate_local_remainder();	
 			};
 
-		// Evaluates the canonical matrix in multiple points
-        template<template<typename ...> class Grid = std::vector>
-        Grid<RMatrix<N,N>> canonical_evaluate_at(Grid<RVector<D>> g) {
-			// std:bind magic 
-			return evaluate_function_in_grid<RVector<D>, RMatrix<N,N>, Grid, function_t>(std::bind(&MatrixPotential<N,D>::canonical_evaluate,this,std::placeholders::_1),g);	
-        }
-        
-        // Evaluates the canonical matrix in one point
+	// Evaluation
+		// Evaluates the canonical matrix in one point
         RMatrix<N,N> canonical_evaluate(RVector<D> arg) {
 			if (canonicalBasis) {
 				return evaluate_function_matrix<N,GMatrix,RVector<D>,real_t,function_t>(canonical_potential,arg);
@@ -79,41 +73,16 @@ class MatrixPotential {
 			}
         }
         
-        // Evaluates the jacobian of the canonical matrix in multiple points
+		// Evaluates the canonical matrix in multiple points
         template<template<typename ...> class Grid = std::vector>
-        Grid<GMatrix<RVector<D>,N,N>>canonical_evaluate_jacobian_at(Grid<RVector<D>> g) {
-			if (canonicalBasis) {
-				return evaluate_function_matrix_in_grid(canonical_jacobian,g);
-			}
-        }
-
-        // Evaluates the hessian of the canonical matrix in multiple points
-        template<template<typename ...> class Grid = std::vector>
-        Grid<GMatrix<RMatrix<D,D>,N,N>> canonical_evaluate_hessian_at(Grid<RVector<D>> g) {
-			if (canonicalBasis) {
-				return evaluate_function_matrix_in_grid(canonical_hessian, g);
-			}
-        }
-        
-		// Evaluates the jacobians of the eigen functions in multiple points
-        template<template<typename ...> class Grid = std::vector>
-        Grid<GVector<RVector<D>,N>> eigen_evaluate_jacobian_at(Grid<RVector<D>> g) {
-			if (!canonicalBasis) {
-				return evaluate_function_vector_in_grid(eigen_jacobian,g);
-			}
-        }
-
-        // Evaluates the hessians of the eigen functions in multiple points
-        template<template<typename ...> class Grid = std::vector>
-        Grid<GVector<RMatrix<D,D>,N>> eigen_evaluate_hessian_at(Grid<RVector<D>> g) {
-			if (!canonicalBasis) {
-				return evaluate_function_vector_in_grid(eigen_hessian, g);
-			}
+        Grid<RMatrix<N,N>> canonical_evaluate_at(Grid<RVector<D>> g) {
+			// std:bind magic 
+			return evaluate_function_in_grid<RVector<D>, RMatrix<N,N>, Grid, function_t>(std::bind(&MatrixPotential<N,D>::canonical_evaluate,this,std::placeholders::_1),g);	
         }
         
         // Evaluates the eigen functions in multiple points
 		template<template<typename ...> class Grid = std::vector>
-        Grid<CVector<N>> eigenvalue_evaluate_at(Grid<RVector<D>> g) {
+        Grid<CVector<N>> eigen_evaluate_at(Grid<RVector<D>> g) {
 			if (canonicalBasis) {
 				Grid<RMatrix<N,N>> values = canonical_evaluate_at(g);
 				Grid<CVector<N>> res(values.size());
@@ -129,7 +98,43 @@ class MatrixPotential {
 				return evaluate_function_vector_in_grid<N, GVector, RVector<D>, complex_t, Grid, function_t>(eigen_potential,g);
 			}
         }
+               
+	// Jacobian
+        // Evaluates the jacobian of the canonical matrix in multiple points
+        template<template<typename ...> class Grid = std::vector>
+        Grid<GMatrix<RVector<D>,N,N>>canonical_evaluate_jacobian_at(Grid<RVector<D>> g) {
+			if (canonicalBasis) {
+				return evaluate_function_matrix_in_grid(canonical_jacobian,g);
+			}
+        }
+        
+        // Evaluates the jacobians of the eigen functions in multiple points
+        template<template<typename ...> class Grid = std::vector>
+        Grid<GVector<RVector<D>,N>> eigen_evaluate_jacobian_at(Grid<RVector<D>> g) {
+			if (!canonicalBasis) {
+				return evaluate_function_vector_in_grid(eigen_jacobian,g);
+			}
+        }
 
+        
+	// Hessian
+        // Evaluates the hessian of the canonical matrix in multiple points
+        template<template<typename ...> class Grid = std::vector>
+        Grid<GMatrix<RMatrix<D,D>,N,N>> canonical_evaluate_hessian_at(Grid<RVector<D>> g) {
+			if (canonicalBasis) {
+				return evaluate_function_matrix_in_grid(canonical_hessian, g);
+			}
+        }
+        
+        // Evaluates the hessians of the eigen functions in multiple points
+        template<template<typename ...> class Grid = std::vector>
+        Grid<GVector<RMatrix<D,D>,N>> eigen_evaluate_hessian_at(Grid<RVector<D>> g) {
+			if (!canonicalBasis) {
+				return evaluate_function_vector_in_grid(eigen_hessian, g);
+			}
+        }
+        
+	// Eigenvectors
 		// Evaluates the eigen basis transformation in a grid of points
         template<template<typename ...> class Grid = std::vector>
         Grid<CMatrix<N,N>> evaluate_eigenvectors_at(Grid<RVector<D>> g) {
@@ -149,6 +154,7 @@ class MatrixPotential {
 			}				
         }
 
+	// Exponential
 		// Computes the exponential of the canonical matrix
         RMatrix<N,N> canonical_evaluate_exponential(RVector<D> arg, real_t factor = 1) {
 			// Compute matrix
@@ -168,37 +174,14 @@ class MatrixPotential {
 			return evaluate_function_in_grid<RVector<D>, RMatrix<N,N>, Grid, function_t>(std::bind(&MatrixPotential<N,D>::canonical_evaluate_exponential,this,std::placeholders::_1),g);	
 		}
         
-
+	// Taylor
         // Returns the potential, jacobian and hessian
         template<template<typename ...> class Tuple = std::tuple, template<typename ...> class Grid = std::vector>
         Tuple<> canonical_taylor(Grid<RVector<D>> g){
             return Tuple<>(canonical_evaluate_at(g),canonical_evaluate_jacobian_at(g),canonical_evaluate_hessian_at(g));
         }
 
-		
-		// Computes a function which returns the local remainder around a point q.
-        void canonical_calculate_local_remainder() {
-            canonical_local_remainder = [=] (RVector<D> q) {
-				GMatrix<rD_to_r<D>,N,N> result;
-			    GMatrix<rD_to_r<D>,N,N> local_quadratic = canonical_local_quadratic(q);
-			    
-				for (int i = 0; i < N; ++i) {
-					for (int j = 0; j < N; ++j) {
-						result(i,j) = [=](RVector<D> x) {
-							return canonical_potential(i,j)(x) - local_quadratic(i,j)(x);
-						};
-					}
-				}
-				return result;
-			};
-		}
-
-        // Evaluates the local remainder matrix in a grid.
-        template<template<typename ...> class Grid = std::vector>
-		Grid<RMatrix<N,N>> canonical_evaluate_local_remainder_at(Grid<RVector<D>> g, RVector<D> position) {
-            return evaluate_function_matrix_in_grid<N,GMatrix,RVector<D>,real_t,Grid,function_t>(canonical_local_remainder(position),g);
-        }
-
+	// Local quadratic
 		// Computes a function which returns the quadratic approximation function matrix for a given point q.
         void canonical_calculate_local_quadratic() {
 			if (canonicalBasis) {
@@ -256,6 +239,31 @@ class MatrixPotential {
 				};
 			}
 		}
+	
+	// Local remainder	
+		// Computes a function which returns the local remainder around a point q.
+        void canonical_calculate_local_remainder() {
+            canonical_local_remainder = [=] (RVector<D> q) {
+				GMatrix<rD_to_r<D>,N,N> result;
+			    GMatrix<rD_to_r<D>,N,N> local_quadratic = canonical_local_quadratic(q);
+			    
+				for (int i = 0; i < N; ++i) {
+					for (int j = 0; j < N; ++j) {
+						result(i,j) = [=](RVector<D> x) {
+							return canonical_potential(i,j)(x) - local_quadratic(i,j)(x);
+						};
+					}
+				}
+				return result;
+			};
+		}
+
+        // Evaluates the local remainder matrix in a grid.
+        template<template<typename ...> class Grid = std::vector>
+		Grid<RMatrix<N,N>> canonical_evaluate_local_remainder_at(Grid<RVector<D>> g, RVector<D> position) {
+            return evaluate_function_matrix_in_grid<N,GMatrix,RVector<D>,real_t,Grid,function_t>(canonical_local_remainder(position),g);
+        }
+
 		
 		// Computes a function which returns the local remainder around a point q.
         void eigen_calculate_local_remainder() {
@@ -271,6 +279,12 @@ class MatrixPotential {
 				return result;
 			};
 		}
+		
+		// Evaluates the local remainder vector in a grid.
+        template<template<typename ...> class Grid = std::vector>
+		Grid<RVector<N>> eigen_evaluate_local_remainder_at(Grid<RVector<D>> g, RVector<D> position) {
+            return evaluate_function_vector_in_grid<N,GVector,RVector<D>,real_t,Grid,function_t>(eigen_local_remainder(position),g);
+        }
 				
 
 };
@@ -507,7 +521,7 @@ int main() {
 	evalPoints[1] = RVector<3>{0,0,0};
 	evalPoints[2] = RVector<3>{2,1,3};
 	test.canonical_evaluate_at<std::vector>(evalPoints);
-	test.eigenvalue_evaluate_at(evalPoints);
+	test.eigen_evaluate_at(evalPoints);
 	test.evaluate_eigenvectors_at(evalPoints);
 	test.canonical_evaluate_exponential(evalPoints[0]);
 		
