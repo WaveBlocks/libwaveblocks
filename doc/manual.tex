@@ -31,7 +31,7 @@
 
 A \(D\)-dimensional basis shape \(\mathfrak{K}\)
 is a set of \emph{unordered} D-dimensional integer-tuples, also
-referred to as \emph{nodes}.  A shape is suitable for our needs if it
+referred to as \emph{nodes}.  A shape is suitable for our needs, if it
 satisfies the fundamental property
 
 \begin{equation}
@@ -45,10 +45,16 @@ That means, if an arbitrary node is part of the basis shape, then all nodes
 in the backward cone are part of the shape too.
 
 \subsection{Basis shape description}
-To perform a simulation, we do not want to specify every basis shape node
-manually. Instead we want a shape that looks like a Hypercube or a Hyperbola.
+In WaveBlocksND, implementing a shape is quite involved since you
+non only have to describe which nodes lie in a shape (which is easy),
+as well you have to provide node iterators in two flavours (which is hard).
+In my implementation, the iterator part is a service provided by the
+\emph{shape enumerator}. Thus, if you want to use new shape type in your simulation,
+all you have to do, is to provide an algebraic description, that describes
+which nodes are part of the shape. The shape enumerator takes care of the rest.
 
-My program takes the algebraic shape description and converts it into a list of nodes.
+This algebraic description consists of a set of surface functions and
+a minimum bounding box. 
 
 \begin{definition}[Surface functions of basis shapes]
   The \(D\) surface functions of an arbitrary \(D\)-dimensional shape are defined by
@@ -61,12 +67,14 @@ My program takes the algebraic shape description and converts it into a list of 
   \end{equation}
 \end{definition}
 
-These functions are well-defined because of the fundamental shape property
+These functions are well-defined, because of the fundamental shape property
 (\ref{eq:basis_shape_fundamental_property}).
+This definition looks intricate, but once understood, defining shapes with it
+is straightforward.
 
 \begin{definition}[Minimum bounding box of basis shapes]
   The minimum bounding box describes the smallest
-  box within which all shape nodes lie.
+  box, within which all shape nodes lie.
   \begin{equation}
     L_{\alpha}=\max_{k_{\alpha}}\left\{\mindex{k} \in \mathfrak{K}\right\}
     \label{eq:basis_shape_bbox}
@@ -94,7 +102,7 @@ These functions are well-defined because of the fundamental shape property
       (?, 8) & \(-\infty\) & (8, ?) & \(-\infty\) \\
     \end{tabular}
   \end{subfigure}
-  \caption{Example of a surface description of an 2-dimensional basis shape.}
+  \caption{Surface description of an 2-dimensional basis shape.}
 \end{figure}
 
 \subsection{Common basis shapes}
@@ -109,7 +117,7 @@ These functions are well-defined because of the fundamental shape property
 
 We derive the surface functions by inserting (\ref{eq:hypercubic_shape}) into
 equation
-(\ref{eq:basis_shape_surface_function}).
+(\ref{eq:basis_shape_surface_function}):
 \[
   s_{\alpha}(\mindex{n})=\max_{k_{\alpha}}\left\{(k_{\alpha}<K_{\alpha}) \;\land\;
     (n_d < K_d \;\forall d \neq \alpha)\right\}
@@ -125,7 +133,7 @@ equation
 
 We retrieve the minimum bounding box by inserting (\ref{eq:hypercubic_shape}) into
 equation
-(\ref{eq:basis_shape_bbox}).
+(\ref{eq:basis_shape_bbox}):
 
 \[
 L_{\alpha}=\max_{k_{\alpha}}\left\{k_{\alpha}<K_{\alpha}\right\}
@@ -144,7 +152,7 @@ L_{\alpha}=K_{\alpha}-1
 \end{definition}
 
 We derive the surface functions by inserting (\ref{eq:hyperbolic_cut_shape}) into
-equation (\ref{eq:basis_shape_surface_function}).
+equation (\ref{eq:basis_shape_surface_function}):
 
 \[
   s_{\alpha}(\mindex{n})=
@@ -157,7 +165,7 @@ s_{\alpha}(\mindex{n})=\frac{1}{\prod_{d \neq \alpha} (n_d+1)}-1
 \end{equation}
 
 We retrieve the minimum bounding box by inserting (\ref{eq:hyperbolic_cut_shape}) into
-equation (\ref{eq:basis_shape_bbox}).
+equation (\ref{eq:basis_shape_bbox}):
 
 \[
   L_{\alpha}=\max_{k_{\alpha}}\left\{\prod_d(k_d+1) \leq S\right\} =
@@ -179,7 +187,7 @@ L_{\alpha}=S-1
 \end{definition}
 
 Using equation (\ref{eq:basis_shape_surface_function}) and (\ref{eq:basis_shape_bbox})
-one obtains the surface functions
+we obtain the surface functions
 
 \begin{equation}
   s_{\alpha}^{A \cap B}(\mindex{n}) = \min\{s_{\alpha}^A(\mindex{n}), s_{\alpha}^B(\mindex{n})\}
@@ -205,7 +213,7 @@ Remark: The \emph{limited hyperbolic cut shape} is an intersection of an
 \end{definition}
 
 Using equation (\ref{eq:basis_shape_surface_function}) and (\ref{eq:basis_shape_bbox})
-one obtains the surface functions
+we obtain the surface functions
 
 \begin{equation}
   s_{\alpha}^{A \cup B}(\mindex{n}) = \max\{s_{\alpha}^A(\mindex{n}), s_{\alpha}^B(\mindex{n})\}
@@ -218,21 +226,20 @@ and the minimum bounding box
 \end{equation}
 
 \subsection{Basis shape slicing} \label{sec:basis_shape_slice}
-Many algorithms, notable the evaluation of a \emph{Hagedorn wavepacket},
-use recursive formulas in the form
-\( c_{\mindex{k}} = f(c_{\mindex{k}-\mindex{e}^1}, \ldots,
-c_{\mindex{k}-\mindex{e}^D}) \)
-where \( c_{\mindex{k}} \)
-is a value associated with the node \( \mindex{k} \)
-and where \( \mindex{e}^d \)
-is the unit vector in direction \( d \).
-Thus it is beneficial to organize a shape into slices in the following way:
+Many algorithms, notable the evaluation of a Hagedorn wavepacket,
+use recursive formulas of the form
+\( \phi_{\mindex{k}} = f(\phi_{\mindex{k}-\mindex{e}^1}, \ldots,
+\phi_{\mindex{k}-\mindex{e}^D}) \)
+where \( \phi_{\mindex{k}} \)
+is a value associated with the node \( \mindex{k} \).
+\( \mindex{e}^d \) is the unit vector in direction \( d \).
+Thus, it is beneficial to organize a shape into slices.
 
 \begin{definition}[Basis shape slice]
   \label{eq:basis_shape_slice}
-  Basis shapes \(\mathfrak{K}\) are divided into disjoint slices \(\mathfrak{S}\)
+  Basis shapes \(\mathfrak{K}\) are divided into (disjoint) slices \(\mathfrak{S}\)
   \begin{equation}
-    \mathfrak{K}=\bigcup_{s=0}^{\infty} \left(\mathfrak{S}_s\right)
+    \mathfrak{K}=\bigcup_{s=0}^{\infty} \left(\mathfrak{S}^s\right)
   \end{equation}
   
   The \( s \)-th
@@ -253,11 +260,16 @@ Thus it is beneficial to organize a shape into slices in the following way:
 
 
 \subsection{Basis shape enumeration}
-A basis shape just tells you whether it contains a specific node. But
-for many algorithms, one needs to associate values \(c_{\mindex{k}}\) with shape
-nodes \(\mindex{k}\). One way to do that is using a dictionary. But it is simpler to
-enumerate all nodes in a shape.  This way one is able to keep those
-values in an array, ordered according to the enumeration.
+A basis shape description just tells, whether it contains a specific node.
+But we need to associate coefficients \(c_{\mindex{k}}\)
+and basis functions \(\phi_{\mindex{k}}\) with shape
+nodes \(\mindex{k}\). We can use a hashtable to map \(\mindex{k}\) to
+\(c_{\mindex{k}}\), \(\phi_{\mindex{k}}\). But it is simpler to
+enumerate all nodes in a shape. This means, if a multi-index \(\mindex{k}\)
+maps to ordinal \(i\), we find \(\phi_{\mindex{k}}\) at the position
+\(i\) on the array  \(\{\phi\}\).
+This way, we can keep coefficients and basis function values in an array,
+ordered according to the shape enumeration.
 
 \begin{definition}
   A shape enumeration is a (bijective) mapping that orders all nodes
@@ -267,11 +279,47 @@ values in an array, ordered according to the enumeration.
 
 Remark: Due to the close relationship of the enumeration to the shape,
 the symbol \(\mathfrak{K}\) is used for both shape and
-shape enumeration in this report.
+shape enumeration.
+
+\subsubsection{Shape enumeration algorithm}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[]{shape_enumerator}
+  \caption{Enumerator passage through a 2-dimensional basis shape}
+  \label{fig:shape_example}
+\end{figure}
+
+The enumerator takes a description of a basis shape and enumerates it in two passes.
+
+In the first pass, knowing the surface functions \(s_{\alpha}\)
+and the minimum bounding volume \(L_{\alpha}\) of a shape,
+the enumerator iterates through all nodes inside the basis shape in lexicographical order.
+Each node is subsequently appended to the proper slice (see section (\ref{sec:basis_shape_slice})).
+In the second pass, the enumerator determines the offset of each slice.
+The offset is the number of all nodes in previous slices. Equivalently, it is the
+ordinal of the first node of the slice (if assuming zero-based arrays).
+
+\begin{algorithm}[H]
+  \emph{Enumerate all nodes in lexicographical order}\;
+  \For{\(k_1 \leftarrow 0\) \KwTo \(s_1((0,0,0))\)}{
+    \For{\(k_2 \leftarrow 0\) \KwTo \(s_2((k_1,0,0))\)}{
+      \For{\(k_3 \leftarrow 0\) \KwTo \(s_3((k_1,k_2,0))\)}{
+        \emph{Append lattice node to its slice} \;
+        \(\mathfrak{S}_{k_1+k_2+k_3} \leftarrow \mathfrak{S}_{k_1+k_2+k_3} \cdot (k_1,k_2,k_3) \);
+      }
+    }
+  }
+  \caption{Enumerator passage through a 3-dimensional basis shape.}
+  \label{fig:enumerator_pass_3d}
+\end{algorithm}
+
+Remark: This algorithm is recursive (one loop for each dimension).
+The real implementation however is iterative.
 
 \subsubsection{Data structure}
 
-The data structure is as followes
+The enumerator data structure is as follows
 
 \begin{verbatim}
 template<dim_t D, class MultiIndex>
@@ -293,7 +341,7 @@ of all non-empty shape slices. The class \classname{ShapeSlice}
 \(\mathfrak{S}_s\) contains an array of all nodes \(k \in \mathfrak{S}_s\).
 
 All multi-indices of a slice are lexicographically ordered.
-The lexicographical order begins on the first index, continues on the second index and so forth.
+The lexicographical order begins on the first index, continues to the second index and so forth.
 \begin{equation}
   \label{eq:lexical_order}
   a_1a_2\dots a_D <_{lex}b_1b_2\dots b_D \iff 
@@ -309,27 +357,32 @@ The two main operations of a shape enumeration are:
 \item[Retrieve the multi-index \(k\) associated with an given ordinal \(i\)]\mbox{}
   \par
   All multi-indices of a shape are stored in an array.
-  Thus we simply return the \(i\)-th multi-index.
+  Thus, we simply return the \(i\)-th multi-index.
+  \par
+  Run-time complexity: \(\mathcal{O}(1)\)
 \item[Find the ordinal \(i\) of a given multi-index \(k\)]\mbox{}
   \par
-  First you have to determine to which slice the multi-index \(k\) belongs by
-  \(s = \sum_{d=1}^D \mindex{k}_d \).\par
+  First we have to determine, to which slice the multi-index \(k\) belongs by
+  \(s = \sum k_d \).\par
   All nodes inside a slice are ordered lexicographically. Therefore
   we determine the position of the node \(\mindex{k}\) inside the slice using \textbf{binary search}.
   The final ordinal is the position of \(\mindex{k}\) inside its slice plus
   the number of nodes in all previous slices.
+  \par
+  Run-time complexity: \(\mathcal{O}(\log{}S)\), where \(S\) is the size of the slice.
   
 \end{description}
 
 \subsubsection{Finding backward neighbours}
 A common task is looking up all backward neighbours \(\{k-e^1,\ldots,k-e^D\}\)
-of a node \(k\). First all neighbours live inside same slice. Secondly they
-are ordered i.e. \(k-e^d\) is stored before \(k-e^{d+1}\). Thirdly due to how lexical order
-works, the distance between \((k-e^{d-1})\) and \((k-e^d)\) is usually much larger than
+of a node \(k\). This task can be slightly optimized: First, all neighbours live inside same slice.
+Secondly, they
+are ordered i.e. \((k-e^d)\) is stored before \((k-e^{d+1})\). Thirdly, due to how lexical order
+works, the distance between \((k-e^{d-1})\) and \((k-e^d)\) is usually much larger than the distance
 between \((k-e^d)\) and \((k-e^{d+1})\).
-The following algorithm takes advantage of this alignment by defining a search range \([a;b]\)
+The following algorithm takes advantage of this alignment by defining a search range \([a;b]\),
 which is the whole slice at the beginning.
-After each determined ordinal of the front node, the algorithm subsequently reduces the search range
+After each determined ordinal, the algorithm subsequently reduces the search range
 of the remaining nodes.
 
 \begin{algorithm}[H]
@@ -364,50 +417,22 @@ enable use of multi-indices as hashtable keys.
 I tried a hashtable (\code{std::unordered\_set}) to map multi-indices to ordinals.
 To represent multi-indices, i used the tiny (64 bits) representation.
 These 64 bits can be used unmodified as a hash value.
-But queries proved to be 2-3 times slower compared to binary search
+But queries proved to be 2-3 times slower compared to binary search,
 despite of \(\mathcal{O}(1)\) compared to \(\mathcal{O}(\log{}n)\) lookup time.
 \par
 Hashtables are good when querying random keys. But an algorithm working
 with basis shapes does \emph{not} access random nodes.
 Such algorithms typically access neighbours of previously accessed nodes.
-Hashtables map neighbour nodes to seemingly random locations in memory
-while an sorted array keeps neighbours together. Thus a hashtable triggers
-a lot more cache misses than an sorted array.
-
-\subsubsection{Shape enumeration algorithm}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[]{shape_enumerator}
-  \caption{Enumerator passage through a 2-dimensional basis shape}
-  \label{fig:shape_example}
-\end{figure}
-
-The enumerator takes a description of a basis shape and enumerates it in two passes.
-
-In the first pass, knowing the surface functions \(s_{\alpha}\)
-and the minimum bounding volume \(L_{\alpha}\) of a shape,
-the enumerator iterates through all nodes inside the basis shape in lexicographical order.
-Each node is subsequently appended to the proper slice (see section (\ref{sec:basis_shape_slice})).
-In the second pass, the enumerator determines the offset (ordinal of first node) of each shape.
-The offset is the number of all nodes in previous slices.
-
-\begin{algorithm}[H]
-  \emph{Enumerate all nodes in lexicographical order}\;
-  \For{\(k_1 \leftarrow 0\) \KwTo \(s_1((0,0,0))\)}{
-    \For{\(k_2 \leftarrow 0\) \KwTo \(s_2((k_1,0,0))\)}{
-      \For{\(k_3 \leftarrow 0\) \KwTo \(s_3((k_1,k_2,0))\)}{
-        \emph{Append lattice node to its slice} \;
-        \(\mathfrak{S}_{k_1+k_2+k_3} \leftarrow \mathfrak{S}_{k_1+k_2+k_3} \cdot (k_1,k_2,k_3) \);
-      }
-    }
-  }
-  \caption{Enumerator passage through a 3-dimensional basis shape.}
-\end{algorithm}
+The problem is, that hashtables
+map neighbour nodes to seemingly random locations in memory,
+while an sorted array keeps neighbours together. Thus, a hashtable triggers
+a lot more cache misses, than binary search on an sorted array.
 
 \subsection{Basis shape extension}
 
-\begin{definition}
+We need basis shape extensions to compute wavepacket gradients.
+
+\begin{definition}[Extended basis shape]
   Given a basis shape \( \mathfrak{K} \),
   the shape extension \( \overline{\mathfrak{K}} \) is defined by
   \begin{equation}
@@ -423,39 +448,38 @@ The offset is the number of all nodes in previous slices.
     \includegraphics[width=0.5\linewidth]{shape_extension}
   \end{center}
   \caption{Basis shape (filled bullets) and its extension (empty
-    bullets)}
+    bullets).}
 \end{figure}
 
 While is possible to define surface functions of the extension,
 creating an extended shape this way is impractical.
-The basis shape extension is needed when
+The basis shape extension is needed, when
 we have to compute the gradient of a wavepacket. At this stage,
 the wavepacket's basis shape is in its enumerated form,
-basically just an array of multi-indices. The original shape description is lost.
-Therefore we somehow have to create the extension out of the enumerated form.
+basically just an array of multi-indices. The original shape description is not available.
+Therefore, we somehow have to create the extension out of the enumerated form.
 \par
 This task turns out rather straight-forward. We take one slice \(\mathfrak{S}^s\) of
 the input basis shape, clone it and
-shift it one unit to direction \(d\) by incrementing the \(d\)-th index of each multi-index.
+shift it one unit to direction \(d\) by incrementing the \(d\)-th index of every multi-index.
 We create one clone for each direction. Then we merge these \(D\) clones and get the
-slice \(\mathfrak{S}_{ext}^{s+1}\) of the extended shape. We don't have to sort
-during the merging operation.
-Notice that nodes inside a clone already are lexicographically ordered.
-We just have to interleave the clones in such a way that
+slice \(\mathfrak{S}_{ext}^{s+1}\) of the extended shape.
+Notice that nodes inside a clone are already lexicographically ordered.
+Thus, during the merge operation, we just have to interleave the clones in such a way that
 lexical order is kept and duplicates get eliminated.
 Using a divide and conquer approach, the total algorithmic complexity is
-\(\mathcal{O}(D\log{}D \cdot N)\) where \(D\) is the wavepacket dimensionality and \(N\)
+\(\mathcal{O}(D\log{}D \cdot N)\), where \(D\) is the wavepacket dimensionality and \(N\)
 is the number of basis shape nodes.
 
 \begin{algorithm}[H]
-  \caption{Create extension of an enumerated basis shape.}
-  \Input{Enumerated basis shape \(\mathfrak{K}=\bigcup_s\mathfrak{S}^s\)}
-  \Output{Basis shape extension \(\mathfrak{K}_{ext}=\bigcup_s\mathfrak{S}_{ext}^s\)}
+  \caption{Create extended shape of an already enumerated basis shape.}
+  \Input{Enumerated basis shape (slices) \(\mathfrak{K}=\bigcup_s\mathfrak{S}^s\)}
+  \Output{Basis shape extension (slices) \(\mathfrak{K}_{ext}=\bigcup_s\mathfrak{S}_{ext}^s\)}
   \(\mathfrak{S}_{ext}^0 \leftarrow \mindex{0}\)\;
-  \ForEach{\(s \leftarrow 1\) \KwTo \(s_{max}+1\)}{
+  \ForEach{\(\mathfrak{S}^s \in \mathfrak{K}\)}{
     \For{\(d \leftarrow 1\) \KwTo \(D\)}{
-      \(\mathfrak{S}_{ext}^s \leftarrow \mathfrak{S}_{ext}^s \cup
-      \left\{\mindex{k}+\mindex{e}^d \;\forall \mindex{k} \in \mathfrak{S}^{s-1}\right\}\)\;
+      \(\mathfrak{S}_{ext}^{s+1} \leftarrow \mathfrak{S}_{ext}^{s+1} \cup
+      \left\{\mindex{k}+\mindex{e}^d \;\forall \mindex{k} \in \mathfrak{S}^s\right\}\)\;
     }
   }
 \end{algorithm}
@@ -493,7 +517,7 @@ The wavepacket equation becomes
   \sum_{\mindex{k} \in \mathfrak{K}}c_{\mindex{k}}\phi_{\mindex{k}}[\Pi](\vec{x})
 \]
 
-To specify a Hagedorn wavepacket I often use the tuple notation.
+To specify a Hagedorn wavepacket I often use the tuple notation
 
 \[
   \Phi := \left(\varepsilon,\Pi,\mathfrak{K},c\right)
@@ -501,7 +525,7 @@ To specify a Hagedorn wavepacket I often use the tuple notation.
 
 
 \subsection{Vectorial Wavepackets}
-Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\):
+Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\)
 \[
   \Psi(\vec{x}) :=
   \begin{pmatrix}
@@ -512,13 +536,13 @@ Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\):
   \end{pmatrix}
 \]
 The components \(\Phi_i\) itself are plain scalar wavepackets.
-They have the same scaling parameter \(\varepsilon\) in common but
+They have the scaling parameter \(\varepsilon\) in common, but
 the Hagedorn parameter set and the basis shape may differ depending on
 the concrete type. \\
 Common vectorial wavepacket types are:
 \begin{description}
 \item[Inhomogeneous wavepacket]
-  The inhomogeneous wavepacket is the most general case as its components only share
+  The inhomogeneous wavepacket is the most general case, as its components only share
   the scaling parameter \(\varepsilon\).
   \[
     \Phi_i := (\varepsilon, \Pi_i, \mathfrak{K}_i, c_i) \] \[
@@ -530,8 +554,8 @@ Common vectorial wavepacket types are:
     \end{pmatrix}\right)
   \]
 \item[Homogeneous wavepackets]
-  A homogeneous wavepacket is a special case of the inhomogeneous wavepacket
-  since all components share the same Hagedorn parameter set \(\Pi\).
+  A homogeneous wavepacket is a special case of the inhomogeneous wavepacket.
+  All components share the same Hagedorn parameter set \(\Pi\).
   \[
     \Phi_i := (\varepsilon, \Pi, \mathfrak{K}_i, c_i) \] \[
     \Psi := \left(\varepsilon, \Pi,
@@ -542,11 +566,11 @@ Common vectorial wavepacket types are:
     \end{pmatrix}\right)
   \]
 \item[Gradient]
-  The gradient of a scalar Hagedorn wavepacket can be represented using a vectorial Hagedorn
+  The gradient of a scalar Hagedorn wavepacket is a vectorial Hagedorn
   wavepacket. All components share the same Hagedorn parameter set and the
-  same basis shape (which is an extension of the original wavepacket's basis shape).
+  same basis shape, which is an extension of the original wavepacket's basis shape.
   \[
-    \frac{\partial \Phi}{\partial x_i} := (\varepsilon, \Pi, \mathfrak{K}_{ext}, c'_i) \] \[
+    \frac{\partial \Phi}{\partial x_n} := (\varepsilon, \Pi, \mathfrak{K}_{ext}, c'_n) \] \[
     \vec{\nabla} \Phi := \left(\varepsilon, \Pi, \mathfrak{K}_{ext},
     \begin{pmatrix}
       (c'_1) \\
@@ -556,13 +580,12 @@ Common vectorial wavepacket types are:
   \]
 \end{description}
 
-
 \subsection{Class Diagram}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=1.0\textwidth]{hawp_inheritance}
-  \caption{Wavepacket classes and the inheritance hierarchy}
+  \caption{Wavepacket classes and the inheritance hierarchy.}
   \label{fig:hawp_inheritance}
 \end{figure}
 
@@ -573,67 +596,63 @@ It provides read-only access to \(\varepsilon\), \(\Pi\) and \(\mathfrak{K}\)
 through its abstract virtual member functions \emph{eps()}, \emph{parameters()} and \emph{shape()}
 respectively. It does not provide access to the coefficients \(\{c_k\}\), because coefficients
 are not necessary to evaluate the basis functions \(\{\phi_k(\vec{x})\}\) on the grid nodes \(\vec{x}\),
-which is implemented by the memberfunction \textbf{evaluate\_basis(grid)}.
-This function is not virtual. It is a service provided by this base class.
-All classes that inherit \classname{AbstractScalarHaWpBasis} and thus provide access to \(\varepsilon\),
-\(\Pi\) and \(\mathfrak{K}\) automatically gain the ability to evaluate its basis functions.
+which is implemented by the member function \textbf{evaluate\_basis(grid)}.
+This function is not virtual, because it is a service provided by this base class.
+All classes that inherit AbstractScalarHaWpBasis and thus provide access to \(\varepsilon\),
+\(\Pi\) and \(\mathfrak{K}\) automatically gain the ability to evaluate their basis functions.
+
+This superclass further implements the function \textbf{extended\-\_shape()},
+which returns the basis shape extension \(\mathfrak{K}_{ext}\)
+of the current basis shape \(\mathfrak{K}\). It is used for the gradient computation.
+Creating a basis shape extension is expensive, therefore \(\mathfrak{K}_{ext}\) is cached.
 
 The abstract class \textbf{AbstractScalarHaWp} extends the \classname{AbstractScalarHaWpBasis}.
 It provides read-only access to the coefficients \(\{c_k\}\) through its virtual member function
 \emph{coefficients()}. Thus it is able to evaluate itself \(\Phi(\vec{x})\) on the grid nodes \(\vec{x}\),
-which is implemented by the memberfunction \textbf{evaluate(grid)}.
-
-The class \classname{AbstractScalarHaWpBasis} further implements the function \textbf{extended\-\_shape()}
-which returns the basis shape extension \(\mathfrak{K}_{ext}\) of the current basis shape \(\mathfrak{K}\).
-It is used for the gradient computation.
-Creating a basis shape extension is expensive, therefore \(\mathfrak{K}_{ext}\) is cached.
+which is implemented by the member function \textbf{evaluate(grid)}.
 
 \subsubsection{Vectorial wavepacket classes}
 Vectorial wavepacket class are implemented as a composition of scalar wavepackets.
 Shared aspects are stored in the composition class while different aspects are
 stored in the component class.
-Component classes inherit the features of the scalar wavepacket class.
-Therefore they have to implement access to the parameters \(\varepsilon\), \(\Pi\), \(\mathfrak{K}\),
+Component classes inherit the features of the abstract scalar wavepacket class.
+Therefore they have to implement access to the parameters \(\varepsilon\), \(\Pi\), \(\mathfrak{K}\)
 and \(\{c_k\}\).
-If a parameter is not stored inside the component class but in the composition class,
+If a parameter is not stored inside the component class itself, but in the composition class,
 the component class refers to the parameter stored inside the composition class.
 
 Vectorial wavepacket classes provide a member function to evaluate itself \((\Psi(\vec{x}))\).
-The return type is a vector instead of a scalar value.
+The return type is a vector, instead of a scalar value.
 This function not only simplifies evaluation, it can considerable improve performance.
-It exploits that components of homogeneous wavepackets share some basis
+It exploits that components of homogeneous wavepackets share most basis
 functions.\footnote{See section (\ref{sec:vector_hawp_eval}).}
 
 \subsubsection{Rationale}
 
-\textbf{Abstract superclasses don't provide writeable access to parameters.} \par
-Editing parameters of a superclass can have unwanted side-effects
-you have no control over since subclasses may share parameters across many wavepackets.
-A nice example is an inhomogeneous wavepacket: All components refer to the same Hagedorn parameter set
-and scaling parameter \(\varepsilon\).
-However concrete subclasses like \emph{ScalarHaWp}, \emph{HomogeneousHaWp}, etc. provide writeable
-access to its parameters. This is safe because you know at \emph{compile-time} that you are working with
-an homogeneous wavepacket thus you know that if you change the parameter set of one compile, you change
-all components. This side-effects are controllable.
+\textbf{Abstract superclasses don't provide writeable access to parameters.}\par
+Editing parameters of a superclass may have side-effects, you have no control over.
+Some subclasses, like homogeneous wavepackets, share parameters across its components, while
+others don't, like inhomogeneous wavepacket. It's not known at compile-time, what a
+parameter change will cause. It may unintendedly change the parameters of many wavepackets.
 
-\bigskip
-
-\textbf{Scalar and Vectorial wavepackets don't have a common superclass.} \par
-The python version actually does that. It proved to be a bad choice.
-The problem is that evaluation and parameter access functions would yield
-results with different shapes dependent on the actual wavepacket type.
-As an example, the function \emph{evaluate()} of a scalar wavepacket yields a scalar value, while
-applied on a vectorial wavepacket, this function will yield a vector.
-In python this behaviour is halfway manageable because of python's high flexible type system
+However, concrete subclasses like ScalarHaWp, HomogeneousHaWp provide writeable
+access to its parameters. This is safe, because you know the concrete wavepacket type at compile-time.
+Thus the behaviour is specified.
+\par\bigskip
+\textbf{Scalar and Vectorial wavepackets don't have a common superclass.}\par
+In WaveBlocksND, scalar and vectorial wavepackets actually have a common superclass.
+It proved to be a bad design choice.
+The problem is, that the evaluation function yields results
+with different shape ranks, depending on the actual wavepacket type. It may
+return a scalar, vector or even a matrix!
+In python, this behaviour is halfway manageable, thanks to python's high flexible type system
 and numpy's broadcasting operations.
-However, dealing with such a behaviour is very hard in C++.
-Therefore scalar and vectorial wavepacket don't have a common superclass.
-
-\bigskip
-
-\textbf{There is no dedicated class to represent a gradient of a vectorial wavepacket.} \par
-Applying the gradient operator to a vectorial wavepacket is trivial. Just apply it
-to its components:
+However, dealing with such behaviour is very hard in C++.
+Therefore I decided, that scalar and vectorial wavepacket don't have a common superclass.
+\par\bigskip
+\textbf{There is no dedicated class to represent a gradient of a vectorial wavepacket.}\par
+Applying the gradient operator to a vectorial wavepacket is trivial: Just apply it
+to its components.
 \[\nabla \Psi \equiv
 \begin{pmatrix}
   \nabla \Phi_1 \\
@@ -641,15 +660,16 @@ to its components:
   \nabla \Phi_N \\
 \end{pmatrix}
 \]
-It is an overkill to introduce a new class, just to replace a for-loop.
+It is an overkill to introduce a new class, just to replace a loop.
 Furthermore, storing all coefficients of \(\vec{\nabla}\Psi\) occupies \(\mathcal{O}(D \cdot N \cdot M)\) space.
 Using a basis shape of a realistic size \(M=1'000'000\), and wavepacket
 dimensionality \(D=10\), one can easily run out of memory.
 
+
 \subsection{Basis Evaluation}
 
 All basis function values are evaluated recursively. Once we have the basis function
-value at an anchor node \(\mindex{k}\) and the basis values of all
+value at an anchor node \(\mindex{k}\) and the basis functions values on all
 backward neighbours \(\mindex{k}-\mindex{e}^d\), we can compute all
 forward neighbours by
 
@@ -676,7 +696,7 @@ forward neighbours by
   \end{pmatrix}
 \end{equation}
 
-where the operator \(\oslash\) denotes component-wise division.
+where the operator \(\oslash\) denotes a component-wise division.
 
 \begin{figure}[H]
   \centering
@@ -700,8 +720,7 @@ The root basis function \(\phi_{\mindex{0}}\) is evaluated by
 Basis functions with some negative indices are zero.
 
 \subsubsection{Implementation}
-There are many possibilities to implement this recursion scheme. One
-possibility is.
+There are two possibilities to implement this recursion scheme:
 \begin{description}
 \item[Scatter Type Strategy] We maintain a queue of anchor nodes whose
   basis functions already have been evaluated.
@@ -716,9 +735,8 @@ possibility is.
 \item[Gather Type Strategy] We maintain a queue of not yet evaluated
   forward neighbours (\(\phi_{k+e^d}\)). Entries of this queue can be evaluated
   since there exists a suitable\footnote{(\(\phi_k\)) and all (\(\phi_{k-e^d}\))'s have been evaluated.}
-  anchor node (\(\phi_k\)), we can apply the stencil on.
-  We subsequently remove one entry of the queue (called \emph{child node})
-  and evaluate its basis function.
+  anchor node (\(\phi_k\)) we can apply the stencil on.
+  We subsequently remove one entry of the queue and evaluate its basis function.
   Then we check, whether \emph{all} backward neighbours of the child
   node (\(\phi_{k+e^d}\)) are computed. If this is the case, we put all forward neighbours
   of (\(\phi_{k+e^d}\)) into the queue.
@@ -734,35 +752,35 @@ or would require excessive thread synchronisation.
 \item[B] We need to avoid multiple evaluation of the same node.
 \end{description}
 
-My rather simple solution is to split the basis shape into splices.  The
+My rather simple solution is to split the basis shape into slices.  The
 \(s\)-th slice contains all nodes \(\mindex{k}\) that fulfill
 \( \sum_{d=1}^{D} k_d = s \).
 
 \begin{figure}[H]
   \centering
   \includegraphics{shape_slicing}
-  \caption{Slicing of a basis shape.}
+  \caption{Slicing of a 2-dimensional basis shape.}
 \end{figure}
 
-Using an adequate\footnote{Fundamental property of a basis shape, equation 
+Using an adequate\footnote{Fundamental property of a basis shape; see equation 
   (\ref{eq:basis_shape_fundamental_property}).} shape, 
 the recursion scheme implies that if we had computed all basis
 functions of the parent slice \( \mathfrak{S}^{s-1} \) and of the current
 slice \( \mathfrak{S}^{s} \), then we can compute all basis functions of
 the child slice \( \mathfrak{S}^{s+1} \) without having difficulty
-\textbf{A}.  Furthermore if we use the gather type strategy where we
+\textbf{A}. Furthermore, if we use the gather type strategy where we
 iterate through the child slice and compute its basis functions, we
 automatically avoid difficulty \textbf{B}.
 
 My solution has two compelling advantages:
 \begin{description}
-\item[Simple data structures] We can keep our computed basis value in
+\item[Simple data structures] We can store the values of basis funcions in
   an array. We need a \emph{shape enumeration}
-  that maps shape nodes to ordinals used as array offsets.
-\item[Easy parallelisation] To parallelise the wavepacket evaluation,
-  simply put an OpenMP pragma above the loop that runs over the child slice.
-  All previous slices have been
-  completely computed therefore the only synchronisation mechanism
+  that maps shape nodes to ordinals, used as array offsets.
+\item[Easy parallelisation] Parallelise the wavepacket evaluation is simple:
+  Put an OpenMP pragma to the loop, that runs over the child slice.
+  All previous slices have been completely computed,
+  therefore the only synchronisation mechanism
   needed is a barrier at the end of the slice.
 \end{description}
 
@@ -772,20 +790,14 @@ My solution has two compelling advantages:
     \(\mathfrak{K} = \left(\mathfrak{S}^0, \ldots,
       \mathfrak{S}^{S-1}\right)\)}
   \Output{Evaluated basis functions (slices) \(\phi := \left(\phi^0, \phi^1, \ldots, \phi^{S-1}\right)\)}
-  \emph{Initialisation}\;
-  \(\phi^-, \phi, \phi^+ \gets \varnothing \)\;
   \emph{Compute ground state}\;
-  \(\phi^+ \gets \left\{ \phi_{\mindex{0}}[\Pi](\vec{x}) \right\} \)\;
+  \(\phi^0 \gets \left\{ \phi_{\mindex{0}}[\Pi](\vec{x}) \right\} \)\;
   \emph{Loop over all slices}\;
-  \ForEach{\(\mathfrak{S}^s \in \mathfrak{K}\)}{
-    \emph{Exchange temporary slices}\;
-    \(\phi^- \gets \phi\)\;
-    \(\phi \gets \phi^+\)\;
-    \(\phi^+ \gets \varnothing\)\;
+  \ForEach{\(s \gets 0\) \KwTo \(S-2\)}{
     \emph{Loop over all
       nodes of next slice}\;
     \For{\(\mindex{k}^{s+1} \in \mathfrak{S}^{s+1}\)}{ \emph{Find
-        suitable anchor node (in current slice \(\mathfrak{S}^s\))}\;
+        suitable anchor node (in anchor slice \(\mathfrak{S}^s\))}\;
       \(\alpha \gets \varnothing \)\\
       \For{\(d \in \{1,\ldots,D\}\)}{
         \If{\(k^{s+1}_{d} > 0\)}{
@@ -796,8 +808,8 @@ My solution has two compelling advantages:
       \(\mindex{k}^{s} \gets \mindex{k}^{s+1} - \mindex{e}^\alpha\)\;
     
       \emph{Compute contribution of anchor node}\;
-      \(a \gets
-      \frac{\sqrt{2}}{\varepsilon}\left(\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})\right)_\alpha\phi^{s}_{\mindex{k}}\)
+      \(m \gets
+      \frac{\sqrt{2}}{\varepsilon}\left(\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})\right)_\alpha\phi^{s}_{\mindex{k}^s}\)
     
       \emph{Compute contribution of anchor node's backward
         neighbours}\; \(b \gets 0\)\;
@@ -809,16 +821,18 @@ My solution has two compelling advantages:
     
       \emph{Compute basis function at \(\mindex{k}^{s+1}\)}\;
       \(\phi^{s+1}_{\mindex{k}^{s+1}} \gets
-      \frac{1}{\sqrt{k^{s}_\alpha+1}}(a-b) \) } }
+      \frac{1}{\sqrt{k^{s}_\alpha+1}}(m-b) \)
+    }
+  }
   \caption{Recursive basis evaluation of hagedorn wavepacket}
 \end{algorithm}
 
-\subsubsection{Algorithmic complexity}
-Evaluating \(D\)-dimensional wavepackets involves evaluating \(N\) basis functions \(\phi_k\).
+\subsubsection{Algorithmic complexity} \label{sec:hawp_eval_runtime_complexity}
+Evaluating \(D\)-dimensional wavepackets involves evaluating \(N\) basis functions.
 To evaluate a basis function we have to lookup the ordinals of \(D\)
 backward neighbours which costs \(\mathcal{O}(D \log{}S)\) because we use binary search.
 \(S\) is the size of the largest slice. A shape has at least \(\mathcal{O}(D\log{}N)\)
-slices (see hypercubic shape). Therefore
+slices (hypercubic shape). Therefore
 \[
   \mathcal{O}(S)=\mathcal{O}(\frac{N}{D\log{}N}) \approx \mathcal{O}(N)
 \]
@@ -826,11 +840,12 @@ Gathering values of previous basis functions \(\phi_{k-e^d}\) and computing \(\p
 has complexity \(\mathcal{O}(D)\).
 Thus evaluating all basis functions has complexity
 \[
-  \mathcal{O}(N \cdot D\log{}S) + \mathcal{O}(N \cdot D) =
+  N \cdot \left(\mathcal{O}(D\log{}S) + \mathcal{O}(\cdot D)\right) =
+  \mathcal{O}(ND\log{}S) \approx
   \mathcal{O}(N\log{}^2 N)
 \]
 when assuming \(D \approx \log{}N\).
-Computing the dot-product \(\sum c_k\phi_k\) costs \(\mathcal{O}(N)\)
+Computing the dot-product \(\sum c_k\phi_k\) costs just \(\mathcal{O}(N)\)
 thus the final \emph{asympotical} complexity
 \begin{equation}
   \label{eq:hawp_eval_complexity}
@@ -848,8 +863,8 @@ on multiple grid nodes at once.
 
 Figure (\ref{fig:hawp_eval_multiqp}) shows the effect of one
 evaluation with \(N\) grid nodes compared to \(N\) evaluations with one
-grid node each. It shows that the multi-node-evaluation of a \(10\)-dimensional
-wavepacket is up to \(2.5\) times faster than when using single-evaluations.
+grid node each. It shows that the multi-node evaluation of a \(10\)-dimensional
+wavepacket is up to \(2.5\) times faster than when using single-node evaluations.
 On a \(5\)-dimensional wavepacket, the multi-evaluation is more the \(3\) times faster.
 
 \begin{figure}[H]
@@ -857,7 +872,7 @@ On a \(5\)-dimensional wavepacket, the multi-evaluation is more the \(3\) times 
   \includegraphics[width=1.0\textwidth]{plots/hawp_eval_multiqp}
   \caption{
     Effect of wavepacket evaluation on multiple quadrature points at once.
-    The speedup is the cummulative run-time of single evaluations divided by
+    The speedup is the cummulative run-time of single-node evaluations divided by
     the run-time of the multi-node-evaluation.
   }
   \label{fig:hawp_eval_multiqp}
@@ -867,15 +882,15 @@ On a \(5\)-dimensional wavepacket, the multi-evaluation is more the \(3\) times 
 The naive approach to evaluate vectorial wavepackets, is to separately
 evaluate each component. For inhomogeneous wavepackets there is
 no better way.
-However components of homogeneous wavepackets share the same Hagedorn parameter set
-and therefore share some basis functions. How many depends on how large the overlap of
-the basis shapes is. Basis shapes of components typically are very similar so
-we can benefit if compute shared basis functions only once.
+However components of homogeneous wavepackets share the same Hagedorn parameter set \(\Pi\)
+and therefore share some basis functions. How many, depends on how large the overlap of
+the basis shapes is. Basis shapes of components typically are very similar, therefore
+the benefit of an algorithm, that exploits shape overlaps, can be considerable.
 
-One way to achieve this, is to compute the union of tha
+One way to achieve this, is to compute the union of the
 basis shapes of all components:
 \[
-\mathfrak{K}^{\cup} = \mathfrak{K}^1 \cup \mathfrak{K}^2 \cup \dots \cup \mathfrak{K}^N
+\mathfrak{K}^{\cup} := \mathfrak{K}^1 \cup \mathfrak{K}^2 \cup \dots \cup \mathfrak{K}^N
 \]
 
 Then we compute the basis functions governed by the basis shape union:
@@ -891,7 +906,7 @@ with the subset \(\left\{\phi_{\mindex{k}}\;|\; \mindex{k} \in \mathfrak{K}^n\ri
 \Phi_n(\vec{x})=\sum_{\mindex{k} \in \mathfrak{K}^n} c_{n,\mindex{k}} \phi_{\mindex{k}}(\vec{x})
 \]
 
-Remark: My implementation does the the above computation slice by slice to save memory
+Remark: My implementation does the the above computation slice by slice to save memory;
 the same way as for a scalar wavepacket.
 
 To quantify the improvement, I benchmarked the above algorithm on a homogeneous wavepacket with
@@ -899,24 +914,24 @@ varying number of components. All components have the same basis shape which is
 the best case for the algorithm (since in this case, shapes completely overlap).
 The 10-dimensional basis shape contains one million nodes.
 The results (see figure \ref{fig:hawp_homogen_evaluation_speedup}) show that the
-optimized algorithm can be six times faster than a simple loop over all
+optimized algorithm can be six times faster than a naive loop over all
 wavepacket components.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=1.0\textwidth]{plots/hawp_eval_homogen_speedup}
   \caption{
-    Archievable speedup compared to naive evaluation.
+    Archievable speedup compared to naive evaluation of a vectorial wavepacket.
     The speedup is the run-time of the naive evaluation divided by the run-time of
     the optimized evaluation.
   }
   \label{fig:hawp_homogen_evaluation_speedup}
 \end{figure}
 
-There is an upper bound to the archievable speedup because the algorithm
-avoids multiple evaluation of the same basis functions \(\phi_k\) but does not reduce
-time spent on computing the dot-product \(\sum c_k\phi_k\).
-Thus when increasing the number of components, computing the dot-product becomes
+There is an upper bound to the archievable speedup, as though the algorithm
+avoids multiple evaluation of the same basis functions, it doesn't reduce
+time spent on computing the dot products for each component.
+Thus when increasing the number of wavepacket components, computing the dot-product becomes
 more and more the bottleneck.
 
 \subsection{Gradient Computation}
@@ -924,11 +939,11 @@ Applying the gradient operator to a scalar \(D\)-dimensional Hagedorn Wavepacket
 \( \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, c \right)\)
 yields a vectorial Hagedorn Wavepacket \(\Psi=\vec{\nabla}\Phi\) with \(D\) components.
 The wavepacket gradient \(\Phi' = \nabla \Phi\) has the same parameterset \(\Pi\)
-as the original wavepacket \(\Phi\), but has a new coefficients set \(c'\) given by
+as the original wavepacket \(\Phi\), but has a new coefficients set \(\vec{c'}\) given by
 
 \begin{equation}
   \label{eq:compute_grad_coeff}
-  c'_{\mindex{k}}=c_{\mindex{k}}\vec{p}+\sqrt{\frac{\varepsilon^2}{2}}
+  \vec{c'}_{\mindex{k}}=c_{\mindex{k}}\vec{p}+\sqrt{\frac{\varepsilon^2}{2}}
   \left(\mat{\overline{P}}
     \begin{pmatrix}
       c_{\mindex{k}+\mindex{e}^1}\sqrt{k_1+1} \\
@@ -962,11 +977,11 @@ with the following property
   \right)
 \end{equation}
 
-\subsubsection{How it was done in Python}
-The original python code uses the \emph{scatter-type algorithm}:
+\subsubsection{How it was implemented in WaveBlocksND}
+The original python code uses the \emph{scatter-type algorithm}.
 It loops over all \(\mindex{k} \in \mathfrak{K}\) and computes the contribution
 to its neighbours in \(\mathfrak{K}_{ext}\). The reason to use this strategy is,
-how the shape extension \(\mathfrak{K}_{ext}\) is implemented.
+how the shape extension \(\mathfrak{K}_{ext}\) is implemented in WaveBlocksND.
 The extension contains far more entries than required by equation
 \eqref{eq:shape_extension_requirement}.
 Since the scatter-type strategy loops over \(\mathfrak{K}\) and
@@ -982,19 +997,20 @@ not over the oversized \(\mathfrak{K}_{ext}\), no computation power is wasted.
 \subsubsection{How I have implemented it}
 As my implementation of the shape extension \(\mathfrak{K}_{ext}\) only contains
 nodes that are required by equation \eqref{eq:shape_extension_requirement},
-there is no necessity for me to use the scatter type strategy.
-Instead my implementation uses the \emph{gather-type strategy}: It loops over all
+there is no necessity to use the scatter type strategy.
+Instead my implementation uses the \emph{gather-type algorithm}. It loops over all
 \(\mindex{k} \in \mathfrak{K}_{ext}\), gathers the values of its contributors
-and finally computes the new coefficients \(c'_{\mindex{k}}\) according to equation
+and finally computes the new coefficients \(c'_k\) according to equation
 \eqref{eq:compute_grad_coeff}.
-I decided to use this strategy because it is much easier to parallelize.
+I decided to use this strategy, because it is much easier to parallelise than the
+scatter-type algorithm.
 For each node, the program just writes to one instead to \(2D\) locations.
-This greatly simplifies parallelization.
+This greatly simplifies parallelisation.
 
 \begin{figure}[H]
   \centering
   \includegraphics{grad_gather_stencil}
-  \caption{Stencil of the gather-type algorithm}
+  \caption{Stencil of the gather-type algorithm.}
   \label{fig:grad_gather_stencil}
 \end{figure}
 
@@ -1008,7 +1024,7 @@ This greatly simplifies parallelization.
   \Output{Coefficients of wavepacket gradient \(\boldsymbol{\vec{c'}} \in \mathbb{C}^{N \times D}\) (array of vectors)}
   \For{\(\mindex{k} \in \mathfrak{K}_{ext} \)}{
     \emph{Compute contribution of center node}\;
-    \(m \leftarrow 0 \in \mathbb{C}^D\)\;
+    \(m \leftarrow 0 \in \mathbb{C}\)\;
     \If{\(\mindex{k} \in \mathfrak{K}\)}{
       \(m \leftarrow c_{\mindex{k}}\)\;
     }
@@ -1035,36 +1051,66 @@ This greatly simplifies parallelization.
   \caption{Computes coefficients of the wavepacket gradient \(\vec{\nabla} \Phi\)}
 \end{algorithm}
 
-\section{Benchmarks}
+\section{Performance}
 
 \subsection{Wavepacket evaluation}
 
-I benchmarked wavepackets using a hyperbolic cut shape with limits \(100\).
-I varied the sparsity between \(2^D\) and \(3^D\) where \(D\) is the wavepacket
-dimensionality.
+I benchmarked the wavepacket evaluation and gradient construction
+on the
+Euler cluster\footnote{Intel Xeon E5-2697v2 (2.7 GHz), 12 cores}
+using one thread.
+I used a hyperbolic cut shape with limits \(10\), and varied the
+sparsity between \(2^D\) and \(3^D\) to obtain different numbers of
+basis functions for a given dimensionality \(D\).
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_benchmark}
-  \caption{Time to evaluate a scalar wavepacket}
-  \label{fig:hawp_eval_benchmark}
+  \includegraphics[width=1.0\textwidth]{plots/hawp_eval_runtime}
+  \caption{Time to evaluate a scalar wavepacket on one node \(\vec{x}\).}
+  \label{fig:hawp_eval_runtime}
 \end{figure}
 
-Evaluating a wavepacket has asymptotical complexity \(\mathcal{O}(D^2N)\) where
-\(N\) is number of basis shape nodes.
-Since \(D\) corresponds to \(\log{}N\) the asymptotial complexity is \(\mathcal{O}(N\log{}^2N)\)
-which seems confirmed by the results which suggest \(\Theta(N\log{}N)\) because asymptotic limit
-has not been reached yet.
+The plot (\ref{fig:hawp_eval_runtime}) shows that
+evaluating a Hagedorn wavepacket with one million basis functions
+on one quadrature point \(\vec{x}\) took 150 milliseconds.
+
+Evaluating a Hagedorn wavepacket has asymptotical run-time
+complexity\footnote{Assuming \(\mathcal{O}(D) \approx \mathcal{O}(\log{}N)\).
+See section (\ref{sec:hawp_eval_runtime_complexity}) for details.}
+\(\mathcal{O}(N \log{}^2N)\)
+where \(N\) is number of basis shape nodes. The measurements of runtime suggest \(\Theta(N\log{}N)\),
+which is better because asymptotic limit has not been reached yet.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=1.0\textwidth]{plots/hawp_eval_efficiency}
   \caption{
     This chart shows the effect of dimensionality to evaluation time.
-    It shows the time needed to evaluate one basis function depending
-    on dimensionality.
+    It shows the time needed to evaluate \emph{one} basis function on one
+    node \(\vec{x}\) depending on dimensionality.
   }
   \label{fig:hawp_eval_efficiency}
+\end{figure}
+
+\subsection{Gradient Computation}
+
+Measurements reveal that gradient construction, i.e. computing the coefficients
+of the gradient wavepacket, takes approximately six times longer than wavepacket evaluation.
+Evaluating the gradient on one grid node \(\vec{x}\) takes \(2.5\) times longer.
+That means, if the evaluation of some wavepacket \(\Phi_0\) takes \(1 ms\) time, than
+computing the coefficients of the gradient wavepacket \(\vec{\nabla}\Phi_0\) takes \(6ms\) time.
+Evaluating the gradient \((\vec{\nabla} \Phi_0)(\vec{x})\) on one node requires \(2.5 ms\) time.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1.0\textwidth]{plots/grad_reltime}
+  \label{fig:grad_reltime}
+  \caption{
+    This plot shows two series: One depicts the time to construct a wavepacket gradient.
+    The other depicts the time to evaluate a wavepacket gradient.
+    Time is shown \emph{relative} to wavepacket evaluating.
+    Errorbars depict the standard deviation.
+  }
 \end{figure}
 
 \subsection{Comparison to WaveBlocksND}
@@ -1079,13 +1125,14 @@ has not been reached yet.
   \label{fig:hawp_eval_cvp_slim}
 \end{figure}
 
-Apparently, the C++ implementation is asymptotically better than WaveBlocksND by a factor of
-\(\mathcal{O}(N)\). My implementation could have slightly better run-time complexity due to slicing but by
-no means \(\mathcal{O}(N)\). This implies that run-time complexity of the slim recursion is
+Apparently, the C++ implementation is asymptotically better than
+WaveBlocksND's slim recursion by a factor of \(\mathcal{O}(N)\).
+My implementation could have slightly better run-time complexity due to slicing, but by
+no means \(\mathcal{O}(N)\). The run-time complexity of the slim recursion is
 quadratical to the basis shape size.
-This behaviour is caused by a flaw somewhere inside the slim recursion.
-Due to this discovery, I've done all further benchmarkes using the fat recursion routine,
-which behaves well, as seen in the figure below. On average my implementation evaluates a
+This behaviour is caused by a flaw, somewhere inside the slim recursion.
+Due to this discovery, I've done all further comparisons using the fat recursion routine,
+which behaves well, as seen in the figure below. On average, my implementation evaluates a
 Hagedorn wavepacket 2000 times faster than WaveBlocksND.
 
 \begin{figure}[H]
@@ -1123,24 +1170,24 @@ dimensionality.\footnote{This effect is very apparent when using hyperbolic cut 
 This results in a wavepacket gradient that has \(\mathcal{O}(\exp{}(D)\cdot N)\) basis functions instead of
 \(\mathcal{O}(N)\).
 
-WaveBlocksND mitigates this issue by constructing gradients using the scatter-type algorithm
+WaveBlocksND mitigates this issue by constructing gradients using the scatter-type algorithm,
 since the scatter-type algorithm simply ignores superfluous nodes. This works well for low dimension.
-Nevertheless the cost of allocating and zero-initialize oversized arrays
-becomes apparent from dimensionality six (see \emph{construct}-series).
+Nevertheless, the cost of allocating and zero-initialize oversized arrays
+becomes apparent from dimensionality six.
 
-My implementation generates shape extensions that only contains essential nodes.
+My implementation generates shape extensions that only contain essential nodes.
 The \emph{evaluate}-series reflect the advantage of such minimal shape extensions
 when evaluating wavepacket gradients.
 
 \subsection{First steps towards parallelisation using OpenMP}
 
 I paid attention to possible parallelisation right from the start.
-The evaluation of Hagedorn wavepackets is of quite serial nature due to its
-recursive scheme. However basis functions on the same slice can be evaluated independently.
+The evaluation of Hagedorn wavepackets is of quite serial nature, due to its
+recursive scheme. But basis functions on the same slice can be evaluated independently.
 This was one of my main reasons to split basis shapes into slices.
-I added a simple \emph{pragma omp parallel for} to the loop that runs over all nodes
-of the same slice. I've done some measurements on the Euler cluster using up to 12 threads.
-The plot below (\ref{fig:hawp_eval_omp}) shows that the evaluation of large and high dimensional
+I added a simple \emph{pragma omp parallel for} to the loop, that runs over all nodes
+of the same slice. I've done some measurements on the Euler cluster, using up to 12 threads.
+The plot below (\ref{fig:hawp_eval_omp}) shows, that the evaluation of large and high dimensional
 wavepackets scales reasonable well.
 
 \begin{figure}[H]
