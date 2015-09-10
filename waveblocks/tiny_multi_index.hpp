@@ -15,15 +15,33 @@
 namespace waveblocks {
 
 /**
- * \brief Represents the whole multi-index using a single integer.
+ * \brief Represents a multi-index using a single integer.
  * 
  * This implementation splits an integer into same sized parts.
- * For example using a 64bit integer for 20 entries yields only 3 bits per entry.
- * This means when using this class, special care must be taken to prevent <b>overflows</b>.
- * When running in release mode, input is not checked.
+ * For example, using a 64bit integer to represent a 10-dimensional multi-index:
+ * The largest index it can represent is 63 (6 bits).
+ * This means when using this class, special care must be taken to prevent _overflows_.
+ * Thus, code that uses multi-indices should ensure that a multi-index type is viable:
  * 
- * \tparam UINT option to select which integer type to use
- * \tparam D number of multi-index dimension i.e number of entries
+ * \code
+ * MultiIndex mindex;
+ * for (dim_t d = 0; d < D; d++) {
+ *    mindex[d] = largest_possible_index;
+ *    if (mindex[d] != largest_possible_index)
+ *       throw std::runtime_error("multi-index type is not compatible!");
+ * }
+ * \endcode
+ * 
+ * If TinyMultiIndex is not enough for you. You will have to implement your own type.
+ * A custom implementation
+ * must possess the same semantics as std::array<int,D>.
+ * Furthermore it has to specialize std::less, that performs lexical index comparison
+ * beginning on the first index.
+ * And it has to specialize std::equal_to and std::hash to
+ * enable use of multi-indices as hashtable keys.
+ * 
+ * \tparam UINT Option to select, which integer type is used.
+ * \tparam D Dimensionality of multi-index i.e number of entries.
  */
 template<class UINT, dim_t D>
 class TinyMultiIndex
@@ -220,8 +238,10 @@ std::ostream &operator<<(std::ostream &out, const TinyMultiIndex<UINT, D> &index
 
 namespace std {
     /**
+     * \cond HIDDEN_SYMBOLS
      * Provides less functor (compare) for STL containers (notable std::map).
      * Specializes generic std::less<T>.
+     * \endcond
      */
     template<class UINT, waveblocks::dim_t D>
     struct less< waveblocks::TinyMultiIndex<UINT,D> >
@@ -241,8 +261,10 @@ namespace std {
     };
     
     /**
+     * \cond HIDDEN_SYMBOLS
      * Provides hash functor for STL containers (notable std::unordered_map).
      * Specializes generic std::hash<T>.
+     * \endcond
      */
     template<class UINT, waveblocks::dim_t D>
     struct hash< waveblocks::TinyMultiIndex<UINT,D> >
@@ -258,8 +280,10 @@ namespace std {
     };
     
     /**
+     * \cond HIDDEN_SYMBOLS
      * Provides equality functor for STL containers (notable std::unordered_map).
      * Specializes generic std::equal_to<T>.
+     * \endcond
      */
     template<class UINT, waveblocks::dim_t D>
     struct equal_to< waveblocks::TinyMultiIndex<UINT,D> >

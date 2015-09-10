@@ -10,19 +10,21 @@
 
 namespace waveblocks {
 
+/**
+ * \brief Enumerates nodes of a basis shape.
+ * 
+ * This basis shape enumerator takes shape description of the form
+ * AbstractShape and converts the information to a ShapeEnum.
+ * 
+ * \tparam D The basis shape dimensionality.
+ * \tparam MultiIndex The type to represent a multi-index. TinyMultiIndex is a valid type.
+ */
 template<dim_t D, class MultiIndex>
 class ShapeEnumerator
 {
 public:
     /**
-     * \brief Enumerates all nodes contained in a shape.
-     * 
-     * \param[in] shape description of a shape
-     * \return shape enumeration
-     * 
-     * \see HyperCubicShape
-     * \see HyperbolicCutShape
-     * \see LimitedHyperbolicCutShape
+     * \deprecated Use member function enumerate instead.
      */
     template<class Shape>
     ShapeEnum<D,MultiIndex> generate(const Shape& shape) const
@@ -110,11 +112,23 @@ enumeration_complete:
         return {std::move(slices), size, limits};
     }
     
+    /**
+     * \brief Enumerates all nodes of a basis shape described by AbstractShape.
+     * 
+     * \param shape A reference to the basis shape description.
+     * \return A shared pointer to the enumerated shape.
+     */
     std::shared_ptr<ShapeEnum<D,MultiIndex> > enumerate(AbstractShape<D> const& shape) const
     {
         return std::make_shared<ShapeEnum<D,MultiIndex> >(generate<AbstractShape<D> >(shape));
     }
     
+    /**
+     * \brief Enumerates all nodes of basis shape described by AbstractShape.
+     * 
+     * \param shape A pointer to the basis shape description.
+     * \return A shared pointer to the enumerated shape.
+     */
     std::shared_ptr<ShapeEnum<D,MultiIndex> > enumerate(AbstractShape<D> const* shape) const
     {
         return std::make_shared<ShapeEnum<D,MultiIndex> >(generate<AbstractShape<D> >(*shape));

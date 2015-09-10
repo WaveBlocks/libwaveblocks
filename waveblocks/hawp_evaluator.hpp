@@ -17,19 +17,21 @@ namespace waveblocks {
  * \brief Evaluates a wavepacket slice by slice.
  * 
  * This class is low-level. You should not use it directly.
- * You should program against the high-level member functions 
- * evaluate()/evaluate_basis() of the class AbstractScalarHaWp in "hawp_commons.hpp".
+ * You should use the high-level member functions 
+ * AbstractScalarHaWp::evaluate() and AbstractScalarHaWpBasis::evaluate_basis().
  * 
  * The only reason you may want to use HaWpEvaluator directly is when 
  * you gain an advantage by evaluating a wavepacket slice-by-slice. 
  * The slice-by-slice evaluation reduces memory since you
- * don't have to store all basis function values but only the 'active' ones.
+ * don't have to store all basis function values, but only the 'active' ones.
  * Take a look at the implementation of the member functions all() or reduce()
- * to learn how to evaluate a wave packet slice by slice.
+ * to learn, how to evaluate a wave packet slice-by-slice.
  * 
  * \tparam D dimensionality of wavepacket
- * \tparam MulitIndex
- * \tparam N number of quadrature points (if unknown: use Eigen::Dynamic)
+ * \tparam MulitIndex The type used to represent multi-indices.
+ * \tparam N
+ * Number of quadrature points.
+ * Don't use Eigen::Dynamic. It works, but performance is bad.
  */
 template<dim_t D, class MultiIndex, int N>
 class HaWpEvaluator
@@ -79,9 +81,10 @@ public:
     /**
      * \param[in] eps The semi-classical scaling parameter \f$ \varepsilon \f$ of the wavepacket.
      * \param[in] parameters The Hagedorn parameter set \f$ \Pi \f$ of the wavepacket.
-     * \param[in] enumeration The basis shape \f$ \mathfrak{K} \f$ of the wavepacket.
-     * \param[in] x Quadrature points: Complex matrix of shape (#dimensions, #quadrature points).
-     * 
+     * \param[in] enumeration
+     * The basis shape \f$ \mathfrak{K} \f$ of the wavepacket.
+     * Or the union of all component's basis shapes, if you want to evaluate a vectorial wavepacket.
+     * \param[in] x Quadrature points: Complex matrix of shape \f$ (D \times N) \f$, where \f$ N \f$ number of quadrature points).
      */
     HaWpEvaluator(real_t eps, 
               const HaWpParamSet<D>* parameters, 
@@ -116,9 +119,9 @@ public:
     }
     
     /**
-     * \brief Evaluates basis function on node \f$ \underline{0} \f$ (aka ground-state).
+     * \brief Evaluates basis function on node \f$ \underline{0} \f$ (ground-state).
      * 
-     * \return Complex 2D-Array of shape (1, #quadrature points).
+     * \return Complex 2D-Array of shape \f$ (D \times N) \f$, where \f$ N \f$ is the number of quadrature points.
      */
     CArray1N seed() const
     {
@@ -145,14 +148,17 @@ public:
      * \param[in] islice Ordinal of current slice.
      * \param[in] prev_basis 
      * Basis values on previous slice.
-     * Type: Complex 2D-array of shape (number of nodes in previous slice, #quadrature points)
+     * Type: Complex 2D-array of shape \f$ (S \times N) \f$, 
+     * where \f$ S \f$ is the number of nodes in the current slice 
+     * and \f$ N \f$ is the number of quadrature points.
      * \param[in] curr_basis B
      * Basis values on current slice.
-     * Type: Complex 2D-array of shape (number of nodes in current slice, #quadrature points)
+     * Type: Complex 2D-array of shape \f$ (S \times N) \f$
      * 
      * \return
      * Computed basis values on next slice.
-     * Type: Complex 2D-array of shape (number of nodes in next slice, #quadrature points).
+     * Type: Complex 2D-Array of shape \f$ (S^+ \times N) \f$, 
+     * where \f$ S^+ \f$ is the number of nodes in the next slice.
      */
     HaWpBasisVector<N> step(std::size_t islice,
                   const HaWpBasisVector<N>& prev_basis,
@@ -222,7 +228,9 @@ public:
     /**
      * \brief Evaluates all basis functions.
      * 
-     * \return Complex 2D-array of shape (#shape-nodes, #quadrature points).
+     * \return
+     * Complex 2D-Array of shape \f$ (|\mathfrak{K}| \times N) \f$,
+     * where \f$ N \f$ is the number of quadrature points.
      */
     HaWpBasisVector<N> all() const
     {
@@ -254,10 +262,12 @@ public:
      * This function computes the dot product (thus the name 'reduce') of the wavepacket coefficients 
      * with the wavepacket basis. This is done by evaluating the wavepacket basis slice by slice
      * and multiplying the basis values with the coefficients on the fly. Computed
-     * basis values are discarded once they are not needed any more.
+     * basis values are discarded, once they are not needed any more.
      * 
-     * \param[in] coefficients Vector of wavepacket coefficients. Length = Number of basis shape nodes.
-     * \return complex 2D-array of shape (1, #quadrature points)
+     * \param[in] coefficients Vector of wavepacket coefficients, length is \f$ |\mathfrak{K}| \f$.
+     * \return
+     * Complex 2D-Array of shape \f$ (1 \times N) \f$,
+     * where \f$ N \f$ is the number of quadrature points.
      */
     CArray<1,N> reduce(const std::vector<complex_t>& coefficients) const
     {
@@ -293,6 +303,21 @@ public:
         return psi();
     }
     
+    /**
+     * \brief Efficiently evaluates a vectorial wavepacket with shared Hagedorn parameter set, 
+     * but different basis shapes.
+     * 
+     * The union of all component's basis shapes is passed to the constructor.
+     * 
+     * This function is used to evaluate a homogeneous wavepacket (see HomogeneousHaWp::evaluate())
+     * 
+     * \param[in] subset_enums The shape enumerations of each wavepacket component.
+     * \param[in] subset_coeffs The coefficients of each wavepacket component.
+     * \param[in] n_components The number of wavepacket components \f$ C \f$.
+     * \return
+     * Complex 2D-Array of shape \f$ (C \times N) \f$,
+     * where \f$ N \f$ is the number of quadrature points.
+     */
     CArray<Eigen::Dynamic,N> vector_reduce(ShapeEnum<D,MultiIndex> ** subset_enums, 
                                            complex_t const ** subset_coeffs, 
                                            std::size_t n_components) const
@@ -354,6 +379,18 @@ public:
         return result;
     }
     
+    /**
+     * \brief Efficiently evaluates a vectorial wavepacket with shared Hagedorn parameter set and shared basis shapes.
+     * 
+     * This function is used to evaluate a wavepacket gradient (see HaWpGradient::evaluate()).
+     * 
+     * \param[in] coefficients The coefficients of each wavepacket component.
+     * \param[in] n_components The number of wavepacket components.
+     * \param[in] n_components The number of wavepacket components \f$ C \f$.
+     * \return
+     * Complex 2D-Array of shape \f$ (C \times N) \f$,
+     * where \f$ N \f$ is the number of quadrature points.
+     */
     CArray<Eigen::Dynamic,N> vector_reduce(complex_t const ** coefficients, std::size_t n_components) const
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))

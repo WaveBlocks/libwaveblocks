@@ -199,7 +199,9 @@ public:
      * \return
      * Complex matrix of shape (number of components, number of quadrature points)
      * 
-     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     * \tparam N
+     * Number of quadrature points.
+     * Don't use Eigen::Dynamic. It works, but performance is bad.
      */
     template<int N>
     CArray<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
@@ -231,7 +233,9 @@ public:
      * \return
      * Complex matrix of shape (number of components, number of quadrature points)
      * 
-     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     * \tparam N
+     * Number of quadrature points.
+     * Don't use Eigen::Dynamic. It works, but performance is bad.
      */
     template<int N>
     CArray<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
@@ -249,8 +253,7 @@ private:
 }; // class HaWpGradient
 
 /**
- * \brief Instances of this class take a scalar Hagedorn wavepacket, apply the
- * gradient operator on it and return a D-component Hagedorn wavepacket.
+ * \brief Constructs the gradient wavepacket, given a scalar Hagedorn wavepacket.
  * 
  * All you have to do is:
  * \code{.cpp}
@@ -264,30 +267,30 @@ private:
  * 
  * This class uses the HaWpGradientEvaluator to evaluate the coefficients of
  * the resulting wavepacket.
- * This class simplifies taking gradients since it assembles the resulting 
- * wavepacket (HaWpGradientEvaluator just returns the new coefficients).
+ * This class simplifies taking gradients, since it assembles the resulting 
+ * wavepacket in contrast to HaWpGradientEvaluator, which just returns the new coefficients.
  * 
  * You cannot apply the gradient to multi-component wavepackets (yet).
- * If you want the gradient of multi-component wavepackets you
- * will have to loop over all components and apply the gradient operator
+ * If you want the gradient of multi-component wavepackets, you
+ * have to loop over all components and apply the gradient operator
  * on each component.
  * 
- * \tparam D dimensionality of the processed wavepackets
- * \tparam MultiIndex multi-index type of the processed wavepackets
+ * \tparam D The dimensionality of the processed wavepackets.
+ * \tparam MultiIndex The multi-index type of the processed wavepackets.
  */
 template<dim_t D, class MultiIndex>
 class HaWpGradientOperator
 {
 public:
     /**
-     * \brief Applies this gradient operator to a \e scalar Hagedorn wavepacket.
+     * \brief Applies this gradient operator to a _scalar_ Hagedorn wavepacket.
      * 
-     * \e Vectorial \e wavepackets: 
+     * _Vectorial wavepackets:_ 
      * You cannot apply this function directly to vectorial wavepackets \f$ \Psi \f$. You have to
      * apply the gradient to each component \f$ \Phi_n \f$ (which is scalar) of the vectorial wavepacket.
      * \f$ \nabla \Psi = \left( \nabla \Phi_1, \dots, \nabla \Phi_N \right)^T \f$
      * 
-     * \e Thread-Safety: Computing the gradient involves creating a shape extension.
+     * _Thread-Safety:_ Computing the gradient involves creating a shape extension.
      * Since computing a shape extension is very expensive, shape extensions are cached.
      * Concurrently applying any gradient operator to the same wavepacket is unsafe (and is pointless anyway)
      * since cached shape extensions are stored inside the wavepacket objects without mutex guard.
@@ -295,8 +298,8 @@ public:
      * is completely safe. But to ensure future compatibility, each thread should use its 
      * own gradient operator instance.
      * 
-     * \param wp scalar Hagedorn wavepacket
-     * \return wavepacket gradient
+     * \param wp The scalar Hagedorn wavepacket
+     * \return The wavepacket gradient.
      */
     HaWpGradient<D,MultiIndex> operator()(AbstractScalarHaWp<D,MultiIndex> const& wp) const
     {

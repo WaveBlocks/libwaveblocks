@@ -19,9 +19,10 @@ namespace waveblocks {
  * A \f$ D \f$-dimensional hypercubic shape with limits \f$ \mathbf{K}=\{K_1,\dots,K_D\} \f$ is defined as the set
  * 
  * \f[
- * \mathfrak{K}(D,\mathbf{K}) := \left\{ (k_1, \dots, k_D) \in \mathbb{N}_0^D | k_i < K_i \forall i \right\}
+ * \mathfrak{K}(D,\mathbf{K}) := \left\{ (k_1, \dots, k_D) \in \mathbb{N}_0^D | k_d < K_d \forall d \right\}
  * \f]
  * 
+ * \tparam D basis shape dimensionality
  */
 template<dim_t D>
 class HyperCubicShape : public AbstractShape<D>
@@ -31,7 +32,7 @@ private:
     
 public:
     /**
-     * \param[in] limits array of all limits \f$ \{K_i\} \f$
+     * \param[in] limits Array of all limits \f$ \{K_d\} \f$.
      */
     HyperCubicShape(const std::array<int,D> &limits) 
         : limits_(limits)
@@ -49,7 +50,7 @@ public:
     }
     
     /**
-     * \param list list of all limits \f$ \{K_i\} \f$
+     * \param list List of all limits \f$ \{K_d\} \f$.
      */
     HyperCubicShape(std::initializer_list<int> list)
     {

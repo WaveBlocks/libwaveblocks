@@ -9,12 +9,9 @@
 namespace waveblocks {
 
 /**
- * \ingroup ShapeEnum
- * 
- * The \f$ s \f$-th slice of a shape enumeration contains all multi-indices 
+ * \brief The \f$ s \f$-th slice of a shape enumeration contains all multi-indices 
  * \f$ \boldsymbol{k} \in \mathfrak{K} \f$ 
  * that satisfy \f$ \displaystyle\sum_{d=1}^{D} k_d = s \f$.
- * 
  */
 template<dim_t D, class MultiIndex>
 class ShapeSlice
@@ -59,9 +56,6 @@ public:
         return *this;
     }
     
-    /**
-     * \brief constructs an empty slice
-     */
     ShapeSlice(std::size_t offset)
         : offset_(offset)
         , table_()
@@ -83,7 +77,9 @@ public:
     }
     
     /**
-     * \return number of nodes in all previous slices
+     * \brief Retrieves the number of nodes in all previous slices.
+     * 
+     * Aside, the offset is the ordinal of the first node in this slice.
      */
     std::size_t offset() const
     {
@@ -91,29 +87,40 @@ public:
     }
     
     /**
-     * \return number of nodes in this slice
+     * \return Retrieves the number of nodes in this slice.
      */
     std::size_t size() const
     {
         return table_.size();
     }
     
-    
+    /**
+     * \brief Returns a const-iterator pointing to the first node.
+     */
     const_iterator begin() const
     {
         return table_.begin();
     }
     
+    /**
+     * \brief Returns a const-iterator referring to the _past-the-end_ node.
+     */
     const_iterator end() const
     {
         return table_.end();
     }
     
+    /**
+     * \brief Returns a const-iterator pointing to the first node.
+     */
     const_iterator cbegin() const
     {
         return table_.cbegin();
     }
     
+    /**
+     * \brief Returns a const-iterator referring to the _past-the-end_ node.
+     */
     const_iterator cend() const
     {
         return table_.cend();
@@ -122,7 +129,7 @@ public:
     /**
      * \brief Returns the multi-index of the node at position _ordinal_.
      * 
-     * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
+     * Notice that the first node in the slice has position 0 (not 1 or offset()).
      * 
      * Portable programs should never call this function with an argument that is _out-of-range_,
      * since this causes _undefined behaviour_.
@@ -140,14 +147,16 @@ public:
     }
     
     /**
-     * \brief Retrieves the ordinal of the node \f$ k \f$ if \f$ k \f$ is part of this slice.
+     * \brief Retrieves the position of the node \f$ k \f$, if \f$ k \f$ is part of this slice.
      * 
-     * Notice that the first node in the slice has ordinal 0 (not 1 or offset()).
+     * The first node in the slice has position 0 (not 1 or offset()).
      * 
-     * _Complexity:_ logarithmic in the number of slice-nodes
+     * _Caution:_ You have to add the slice-offset to the position to get the _ordinal_ of the node.
      * 
-     * \param[in] index node \f$ k \f$
-     * \param[out] ordinal 
+     * _Complexity:_ Logarithmic in the number of slice-nodes.
+     * 
+     * \param[in] index The node \f$ k \f$.
+     * \param[out] ordinal Reference to 
      * \return Whether node \f$ k \f$ is part of this slice.
      */
     bool try_find(const MultiIndex& index, std::size_t& ordinal) const
@@ -166,19 +175,19 @@ public:
     }
     
     /**
-     * \brief Returns the position of the node with multi-index \p index.
+     * \brief Returns the position of a node.
      * 
      * Notice that the first node in the slice has position 0 (not 1 or offset()).
      * 
      * Portable programs should never call this function with an node that is not part 
-     * of this slice since this causes \e undefined \e behaviour.
+     * of this slice, since this causes _undefined behaviour_.
      * 
-     * Use ShapeEnumeration<D>::contains(index) to check whether this slice contains the given node.
+     * _Caution:_ You have to add the slice-offset to the position to get the _ordinal_ of the node.
      * 
-     * <b>complexity: </b>logarithmic in the number of slice-nodes
+     * _Complexity:_ Logarithmic in the number of slice-nodes.
      * 
-     * \param[in] index multi-index of a node in this slice
-     * \return position of the specified node
+     * \param[in] index The 
+     * \return The position of the specified node.
      */
     std::size_t find(const MultiIndex& index) const
     {
@@ -200,8 +209,8 @@ public:
      * Don't forget that you have to consult the correct slice. If \f$ k \f$ is part of the \f$ s \f$-th slice.
      * you have to call the member function of the \f$ (s-1) \f$-th slice.
      * 
-     * \param _index multi-index \f$ k \f$
-     * \return array of all ordinals \f$ \{i^1, \ldots i^D\} \f$ where \f$ i^d \f$ corresponds to \f$ k - e^d \f$.
+     * \param _index The multi-index \f$ k \f$.
+     * \return Array of all ordinals \f$ \{i^1, \ldots i^D\} \f$ where \f$ i^d \f$ corresponds to \f$ k - e^d \f$.
      */
     std::array<std::size_t,D> find_backward_neighbours(const MultiIndex& _index) const
     {
@@ -234,6 +243,9 @@ public:
         return ordinals;
     }
     
+    /**
+     * \brief Checks whether both sides are equals by comparison of every node.
+     */
     bool operator==(const ShapeSlice& that) const
     {
         return table_ == that.table_;
@@ -254,20 +266,25 @@ public:
  * set of _ordered_ D-dimensional integer-tuples (aka _node_).
  * 
  * ## Rationale ##
- * A basis shape just tells you whether it contains a specific node. But
- * for many algorithms, you need to associate coefficients \f$ c_k \f$ with 
- * shape nodes \f$ k \in \mathfrak{K} \f$. One way to
- * to that is using a dictionary. But it is simpler to enumerate all nodes in a shape.
- * This way you can keep those coefficients in an array, ordered according to the enumeration. 
+ * A basis shape description just tells, whether it contains a specific node.
+ * But we need to associate coefficients \f$c_{\underline{k}}\f$
+ * and basis functions \f$\phi_{\underline{k}}\f$ with shape
+ * nodes \f$\underline{k}\f$. We can use a hashtable to map \f$\underline{k}\f$ to
+ * \f$c_{\underline{k}}\f$, \f$\phi_{\underline{k}}\f$. But it is simpler to
+ * enumerate all nodes in a shape. This means, if a multi-index \f$\underline{k}\f$
+ * maps to ordinal \f$i\f$, we find \f$\phi_{\underline{k}}\f$ at the position
+ * \f$i\f$ on the array  \f$\{\phi\}\f$.
+ * This way, we can keep coefficients and basis function values in an array,
+ * ordered according to the shape enumeration.
  * 
- * ## Implementation ##
+ * ## Slicing ##
  * Many algorithms, notable evaluation of a _hagedorn wavepacket_, use recursive formulas in the form 
  * \f$
- * c_{\underline{k}} = f(c_{\underline{k}-\underline{e}^1}, \ldots, c_{\underline{k}-\underline{e}^D}) 
- * \f$
- * where \f$ c_{\underline{k}} \f$ is a value associated with the node \f$ \underline{k} \f$
+ * \phi_{\underline{k}} = f(\phi_{\underline{k}-\underline{e}^1}, \ldots, \phi_{\underline{k}-\underline{e}^D}) 
+ * \f$,
+ * where \f$ \phi_{\underline{k}} \f$ is a value associated with the node \f$ \underline{k} \f$
  * and where \f$ \underline{e}^d \f$ is the unit vector in direction \f$ d \f$.
- * To simplify such algorithms, the class ShapeEnum organizes a shape into _slices_. 
+ * Thus, it is beneficial to organize a shape into _slices_.
  * The \f$ s \f$-th slice of a shape \f$ \mathfrak{K} \f$ contains all nodes \f$ 
  * \underline{k} \in \mathfrak{K} \f$ that satisfy \f$ \sum_{d=1}^{D} k_d = s \f$.
  * 
@@ -295,7 +312,7 @@ public:
  * using namespace waveblocks;
  * \endcode
  * 
- * Create a _shape description_.
+ * Create a shape description (see AbstractShape).
  * \code{.cpp}
  * const dim_t D = 5;
  * LimitedHyperbolicCutShape<D> shape(7.0, {2,2,4,4,4});
@@ -305,7 +322,7 @@ public:
  * \code{.cpp}
  * typedef TinyMultiIndex<std::size_t,D> MultiIndex;
  * \endcode
- * Pass the shape description to a _shape enumerator_ and you get an _shape enumeration_:
+ * Pass the shape description to the ShapeEnumerator and you get a ShapeEnum:
  * \code{.cpp}
  * ShapeEnumerator<D, MultiIndex> enumerator;
  * std::shared_ptr< ShapeEnum<D, MultiIndex> > enumeration = enumerator.enumerate(shape);
@@ -314,19 +331,21 @@ public:
  * \code 
  * const ShapeSlice<D, MultiIndex>& slice = enumeration->slice(slice_index);
  * \endcode
- * Get \f$ i \f$-th node of current slice:
+ * Get the \f$ i \f$-th node of the slice:
  * \code{.cpp}
  * MultiIndex index = slice[i];
  * \endcode
- * Get position (aka ordinal) of a node \f$ \underline{k} \f$, if you know
- * that this node _is part of the shape_, ...
+ * Get ordinal of a node \f$ \underline{k} \f$:
  * \code{.cpp}
- * std::size_t ordinal = slice->find(k);
+ * std::size_t ordinal = slice.offset() + slice.find(k);
  * \endcode
- * ..., if not, use:
+ * If you aren't sure, whether the slice contains a node, use:
  * \code{.cpp}
  * std::size_t ordinal;
- * if (slice->try_find(k, ordinal)) {}
+ * if (slice.try_find(k, ordinal)) {
+ *    ordinal += slice.offset();
+ *    // do something
+ * }
  * \endcode
  */
 template<dim_t D, class MultiIndex>
@@ -375,6 +394,17 @@ public:
         return *this;
     }
     
+    /**
+     * \brief Returns a reference to a slice.
+     * 
+     * This function does not fail if an invalid slice index is passed. 
+     * If the slice index is negative, then this function returns an empty slice with offset 0.
+     * If the slice index is equals or larger then the number of slices, this function
+     * returns an empty slice with offset equals to the basis shape size.
+     * 
+     * \param[in] islice Ordinal of the requested slice.
+     * \return Reference to slice.
+     */
     const ShapeSlice<D, MultiIndex>& slice(int islice) const
     {
         if (islice < 0)
@@ -385,17 +415,6 @@ public:
             return slices_[islice];
     }
     
-    /**
-     * \brief Returns a reference to a slice.
-     * 
-     * This function does not fail if an 'invalid' slice index is passed. 
-     * If slice index is negative then this function returns an empty slice with offset 0.
-     * If slice index is equals or larger then the number of (non-empty) slices, this function
-     * returns an empty slice with offset equals to the basis size.
-     * 
-     * \param[in] islice ordinal of the desired slice
-     * \return reference to slice
-     */
     ShapeSlice<D, MultiIndex>& slice(int islice)
     {
         if (islice < 0)
@@ -406,6 +425,9 @@ public:
             return slices_[islice];
     }
     
+    /**
+     * \brief Returns a reference to the array containing all slices.
+     */
     const std::vector< ShapeSlice<D, MultiIndex> >& slices() const
     {
         return slices_;
@@ -421,7 +443,7 @@ public:
     }
     
     /**
-     * \brief Retrieves the size of the basis shape.
+     * \brief Retrieves the number of nodes.
      */
     std::size_t n_entries() const
     {
@@ -429,22 +451,36 @@ public:
     }
     
     /**
-     * \brief Retrieves the number of non-empty slices.
+     * \brief Retrieves the number of slices.
      */
     int n_slices() const
     {
         return (int)slices_.size();
     }
     
+    /**
+     * \brief Retrieves the minimum bounding box which contains all nodes.
+     * 
+     * The minimum bounding box \f$ K \f$ of \f$ \mathfrak{K} \f$ is defined by
+     * 
+     * \f[
+     * K_d = \max\left\{k_d | k \in \mathfrak{K} \right\}
+     * \f]
+     * 
+     */
     const MultiIndex& limits() const
     {
         return limits_;
     }
     
     /**
-     * \brief Retrieves the \f$ d \f$-th entry of the bounding box \f$ K \f$.
+     * \brief Retrieves the \f$ d \f$-th entry of the minimum bounding box \f$ K \f$.
      * 
-     * \f[ k_d \leq K_d \; \forall k \in \mathfrak{K} \f]
+     * The minimum bounding box of \f$ \mathfrak{K} \f$ is defined by
+     * 
+     * \f[
+     * K_d = \max\left\{k_d | k \in \mathfrak{K} \right\}
+     * \f]
      * 
      * \param axis The axis \f$ d \f$.
      * \return The limit \f$ K_d \f$.
@@ -454,6 +490,10 @@ public:
         return limits_[axis];
     }
     
+    /**
+     * \brief Checks whether both enumerations are equals by
+     * comparison of every node.
+     */
     bool operator==(const ShapeEnum &that) const
     {
         if (n_entries_ != that.n_entries_)

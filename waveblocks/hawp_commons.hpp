@@ -1,12 +1,14 @@
 #ifndef WAVEBLOCKS_HAWP_COMMONS_HPP
 #define WAVEBLOCKS_HAWP_COMMONS_HPP
 
-#include "hawp.hpp"
-
 #include "shape_enum_union.hpp"
 #include "shape_enum_extended.hpp"
 
+#include "hawp_paramset.hpp"
+#include "hawp_evaluator.hpp"
+
 #include <stdexcept>
+#include <memory>
 
 namespace waveblocks
 {
@@ -264,10 +266,6 @@ public:
         return eps_;
     }
     
-    /**
-     * \brief Retrieves the semi-classical scaling parameter
-     * \f$ \varepsilon \f$ of the wavepacket.
-     */
     double eps() const override
     {
         return eps_;
@@ -282,10 +280,6 @@ public:
         return parameters_;
     }
     
-    /**
-     * \brief Grants read-only access to the Hagedorn parameter set 
-     * \f$ \Pi \f$ of the wavepacket.
-     */
     HaWpParamSet<D> const& parameters() const override
     {
         return parameters_;
@@ -304,10 +298,6 @@ public:
         return shape_;
     }
     
-    /**
-     * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
-     * of the wavepacket.
-     */
     ShapeEnumSharedPtr<D, MultiIndex> shape() const override
     {
         return shape_;
@@ -322,10 +312,6 @@ public:
         return coefficients_;
     }
     
-    /**
-     * \brief Grants read-only access to the coefficients \f$ c \f$
-     * of the wavepacket.
-     */
     std::vector<complex_t> const& coefficients() const override
     {
         return coefficients_;
@@ -395,19 +381,11 @@ public:
             return *this;
         }
         
-        /**
-         * \brief Forwards the scaling parameter \f$ \varepsilon \f$
-         * of the owning homogeneous wavepacket.
-         */
         double eps() const override
         {
             return owner_->eps();
         }
         
-        /**
-         * \brief Forwards the Hagedorn parameter set \f$ \Pi \f$
-         * of the owning homogeneous wavepacket.
-         */
         HaWpParamSet<D> const& parameters() const override
         {
             return owner_->parameters();
@@ -427,10 +405,6 @@ public:
             return shape_;
         }
         
-        /**
-         * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
-         * of the wavepacket.
-         */
         ShapeEnumSharedPtr<D, MultiIndex> shape() const override
         {
             return shape_;
@@ -622,7 +596,9 @@ public:
      * \return
      * Complex matrix of shape (number of components, number of quadrature points)
      * 
-     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     * \tparam N
+     * Number of quadrature points.
+     * Don't use Eigen::Dynamic. It works, but performance is bad.
      */
     template<int N>
     CArray<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
@@ -656,7 +632,9 @@ public:
      * \return
      * Complex matrix of shape (number of components, number of quadrature points)
      * 
-     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     * \tparam N
+     * Number of quadrature points.
+     * Don't use Eigen::Dynamic. It works, but performance is bad.
      */
     template<int N>
     CArray<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const
@@ -743,6 +721,9 @@ public:
             return owner_->eps();
         }
         
+        /**
+         * \brief Grants writeable access to the Hagedorn parameter set \f$ \Pi \f$.
+         */
         HaWpParamSet<D> & parameters()
         {
             return parameters_;
@@ -767,10 +748,6 @@ public:
             return shape_;
         }
         
-        /**
-         * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
-         * of the wavepacket.
-         */
         ShapeEnumSharedPtr<D, MultiIndex> shape() const override
         {
             return shape_;
@@ -907,7 +884,9 @@ public:
      * \return
      * Complex matrix of shape (number of components, number of quadrature points)
      * 
-     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     * \tparam N
+     * Number of quadrature points.
+     * Don't use Eigen::Dynamic. It works, but performance is bad.
      */
     template<int N>
     CArray<Eigen::Dynamic,N> evaluate(CMatrix<D,N> const& grid) const
@@ -933,7 +912,9 @@ public:
      * \return
      * Complex matrix of shape (number of components, number of quadrature points)
      * 
-     * \tparam N Number of quadrature points or Eigen::Dynamic if not known at compile-time.
+     * \tparam N
+     * Number of quadrature points.
+     * Don't use Eigen::Dynamic. It works, but performance is bad.
      */
     template<int N>
     CArray<Eigen::Dynamic,N> evaluate(RMatrix<D,N> const& rgrid) const

@@ -12,15 +12,23 @@
 namespace waveblocks {
 
 /**
- * \brief This class evaluates the coefficients of the gradient wavepacket.
+ * \brief This class constructs the coefficients of the Hagedorn gradient wavepacket.
  * 
  * This class is low-level. You should not use it directly.
- * Use the high-level HaWpGradientOperator in file "hawp_gradient_operator.hpp".
+ * Instead, use the high-level HaWpGradientOperator.
  */
 template<dim_t D, class MultiIndex>
 class HaWpGradientEvaluator
 {
 public:
+    /**
+     * \brief Initialisation.
+     * 
+     * \param eps The semi-classical scaling parameter \f$ \varepsilon \f$.
+     * \param parameters The Hagedor parameter set \f$ \Pi \f$.
+     * \param base_enum The basis shape \f$ \mathfrak{K} \f$ of the source wavepacket.
+     * \param grad_enum The extended basis shape \f$ \mathfrak{K}_{ext} \f$ of the future wavepacket gradient.
+     */
     HaWpGradientEvaluator(double eps,
                      const HaWpParamSet<D>* parameters,
                      const ShapeEnum<D,MultiIndex>* base_enum,
@@ -31,6 +39,15 @@ public:
         , grad_enum_(grad_enum)
     { }
     
+    /**
+     * \brief Computes the coefficients of the gradient wavepacket.
+     * 
+     * \param base_coeffs Coefficients of the input Hagedorn wavepacket.
+     * \return
+     * Array of coefficient vectors:
+     * The i-th entry of the array contains the coefficients of the i-th component
+     * \f$ \frac{\partial \Phi}{\partial x_i} \f$.
+     */
     std::array< std::vector<complex_t>, std::size_t(D) > apply(const std::vector<complex_t>& base_coeffs) const
     {
         const auto & p = parameters_->p;

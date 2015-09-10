@@ -15,6 +15,10 @@ namespace waveblocks {
  * 
  * \tparam D dimension of nodes
  * \tparam S type of nested shape
+ * 
+ * \deprecated
+ * This class is not used anymore; now it is broken.
+ * It has been surpassed by shape_enum::extend().
  */
 template<dim_t D, class S>
 class ExtendedShape
