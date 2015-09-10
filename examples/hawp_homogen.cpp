@@ -20,25 +20,25 @@ int main(int argc, char* argv[])
     (void) argc;
     (void) argv;
     
-    Eigen::IOFormat CleanFmt(4, 0, ", ", "\n   ", "[", "]");
+    Eigen::IOFormat CleanFmt(8, 0, ", ", "\n   ", "[", "]");
     
-    const dim_t D = 10;
+    const dim_t D = 8;
     typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     // (1) Define shapes
     HyperCubicShape<D> shape1({2,2,4,4,4,5,3,5});
-    LimitedHyperbolicCutShape<D> shape23(1 << D, {4,4,4,4,4,4,4,4,4,4});
+    LimitedHyperbolicCutShape<D> shape23(1 << D, 4);
     
     // (2) Enumerate shapes
     ShapeEnumerator<D,MultiIndex> shape_enumerator;
     
     int n_components = 10;
-
+    
     std::vector< ShapeEnumSharedPtr<D,MultiIndex> > shape_enums(n_components);
-    for (int i = 0; i < n_components; i++) {
+    shape_enums[0] = shape_enumerator.enumerate(shape1);
+    for (int i = 1; i < n_components; i++) {
         shape_enums[i] = shape_enumerator.enumerate(shape23);
     }
-    std::cout << shape_enums[0]->n_entries() << std::endl;
     
     // (3) Initialize wavepacket-components
     HomogeneousHaWp<D,MultiIndex> wavepacket(n_components);
@@ -54,9 +54,12 @@ int main(int argc, char* argv[])
         
         std::size_t n_basis_shapes = shape_enums[c]->n_entries();
         
-        // initialize wavepacket coefficients (with some bogus-values)
-        wavepacket[c].coefficients() = std::vector<complex_t>(n_basis_shapes, 
-                                                              complex_t(std::sqrt(1.0/n_basis_shapes),std::sqrt(1.0/n_basis_shapes)));
+        std::vector<complex_t> coeffs(n_basis_shapes);
+        for (std::size_t i = 0; i < n_basis_shapes; i++) {
+            coeffs[i] = std::exp(complex_t(0,i))/std::sqrt(n_basis_shapes);
+        }
+        
+        wavepacket[c].coefficients() = std::move(coeffs);
     }
     
     // (4) Define quadrature points

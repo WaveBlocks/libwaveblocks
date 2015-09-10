@@ -130,10 +130,11 @@ public:
      */
     std::complex<T> operator()() const
     {
-        if (empty_)
-            throw std::runtime_error("continuous_sqrt: no reference solution stored");
-        else
-            return sqrt_;
+//         if (empty_)
+//             throw std::runtime_error("continuous_sqrt: no reference solution stored");
+//         else
+        
+        return sqrt_;
     }
 };
 

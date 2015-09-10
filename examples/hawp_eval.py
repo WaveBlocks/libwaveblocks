@@ -3,6 +3,7 @@ import numpy.linalg
 import numpy.random
 import time
 import math
+import sys
 
 def print_coefficients(wp):
     for node, coeff in zip(list(wp.get_basis_shapes(0).get_node_iterator()), wp.get_coefficients(0)):
@@ -67,12 +68,12 @@ def run(D, param_sparsity, param_limit):
     print "   size of shape: ", shape.get_basis_size()
     
     # SLIM RECURSION
-    #start = time.clock()
-    #result = packet.slim_recursion(grid,0)
-    #end = time.clock()
+    start = time.clock()
+    result = packet.slim_recursion(grid,0)
+    end = time.clock()
     
-    #print "   value (slim): ", result
-    #print "   time:         ", str((end - start)*1000), "[ms]"
+    print "   value (slim): ", result
+    print "   time:         ", str((end - start)*1000), "[ms]"
     
     # FAT RECURSION
     start = time.clock()
@@ -87,29 +88,39 @@ def run(D, param_sparsity, param_limit):
     print "Evaluate gradient: "
     nabla = packet.get_gradient_operator()
     
-    #start = time.clock()
-    #gradobject = nabla.apply_gradient(packet)
-    #end = time.clock()
-    #time_construct = (end - start)*1000
+    start = time.clock()
+    gradobject = nabla.apply_gradient(packet)
+    end = time.clock()
+    time_construct = (end - start)*1000
     
-    #start = time.clock()
-    #result = numpy.zeros((D,1), dtype=complex)
+    start = time.clock()
+    result = numpy.zeros((D,1), dtype=complex)
     
-    #for index, gradwp in enumerate(gradobject):
-        #if index == 0:
-            #basis = gradwp.evaluate_basis_at(grid,0)
-        #result[index,:] = numpy.dot(gradwp.get_coefficients(0).T, basis);
-    #end = time.clock()
-    #time_evaluate = (end - start)*1000
+    for index, gradwp in enumerate(gradobject):
+        if index == 0:
+            basis = gradwp.evaluate_basis_at(grid,0)
+        result[index,:] = numpy.dot(gradwp.get_coefficients(0).T, basis);
+    end = time.clock()
+    time_evaluate = (end - start)*1000
     
     print "   value (fat):      ", result.T
-    #print "   time (construct): ", str(time_construct), "[ms]"
-    #print "   time (evaluate):  ", str(time_evaluate), "[ms]"
+    print "   time (construct): ", str(time_construct), "[ms]"
+    print "   time (evaluate):  ", str(time_evaluate), "[ms]"
     print ""
     print ""
 
-def main():
-    run(6,6,100)
+def main(args):
+    if len(args) != 3:
+        print "3 arguments required:"
+        print "   (1) wavepacket dimensionality D"
+        print "   (2) sparsity of basis shape. 0 <= integer value <= D"
+        print "   (2) limit of basis shape. integer value > 0"
+        print ""
+        print "   try example parameters: 5 0 100"
+        sys.exit(1)
+    
+    run(int(args[0]),int(args[1]),int(args[2]))
+    
     #for D in range(6,7):
         #for s in range(1,D+1):
             #run(D,s,100)
@@ -117,4 +128,4 @@ def main():
 if __name__ == "__main__":
     numpy.random.seed(0)
     
-    main()
+    main(sys.argv[1:])

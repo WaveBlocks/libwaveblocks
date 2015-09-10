@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
     int shape_limit = boost::lexical_cast<int>(argv[2]);
     
     // (1) Define dimensionality
-    const dim_t D = 6;
+    const dim_t D = 5;
     typedef TinyMultiIndex<std::size_t, D> MultiIndex;
     
     // (2) Define shapes

@@ -685,20 +685,22 @@ public:
         { }
         
         Component(Component&& that)
-            : parameters_(std::move(that.paramaters_))
+            : owner_(that.owner_)
+            , parameters_(std::move(that.parameters_))
             , shape_(that.shape_)
             , coefficients_(std::move(that.coefficients_))
         { }
         
         Component(Component const& that)
-            : parameters_(that.paramaters_)
+            : owner_(that.owner_)
+            , parameters_(that.parameters_)
             , shape_(that.shape_)
             , coefficients_(that.coefficients_)
         { }
         
         Component & operator=(Component&& that)
         {
-            parameters_ = std::move(that.paramaters_);
+            parameters_ = std::move(that.parameters_);
             shape_ = that.shape_;
             coefficients_ = std::move(that.coefficients_);
             return *this;
