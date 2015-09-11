@@ -1,6 +1,62 @@
 #pragma once
 #include<vector>
 #include<functional>
+#include"types.hpp"
+
+template<class I, int N, int M>
+class Adaptor;
+
+template<class I,int N, int M>
+class AdaptorIterator {
+private:
+	Adaptor<I,N,M> g;
+	int i;
+	const Adaptor<I,N,M>& adaptor;
+	
+public:
+	AdaptorIterator(const Adaptor<I,N,N>& adaptor, int i) : adaptor(adaptor), i(i) {}
+	bool operator!=(AdaptorIterator<I,N,M> other) {return other.i != i;}
+	
+	void operator++() {++i;}
+	GVector<I,N>& operator*() {
+		return g[i];
+		
+	}
+	
+};
+
+template<class I, int N, int M>
+class Adaptor {
+private:
+	const GMatrix<I,N,M>& matrix;
+	
+public:
+	size_t size(){return M;}
+
+	Adaptor(size_t size) {}
+	Adaptor(const GMatrix<I,N,M>& matrix) : matrix(matrix) {}
+	
+	GVector<I,N>& operator[] (int i) {
+		return matrix.block<N,1>(i,0);
+	}
+	
+	
+	AdaptorIterator<I,N,M> begin() {
+		return AdaptorIterator<I,N,M>(*this, 0);
+	}
+	AdaptorIterator<I,N,M> end() {
+		return AdaptorIterator<I,N,M>(*this, M);
+	}
+		
+	
+};
+
+template<int N, int M>
+struct AdaptorHelper {
+	template<class I>
+	using type = Adaptor<I,N,M>;
+};
+
 
 // Function evaluations
 template<class A, class R, template<typename ...> class G = std::vector, template<typename ...> class F = std::function>
