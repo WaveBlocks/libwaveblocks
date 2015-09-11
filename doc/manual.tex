@@ -1,10 +1,13 @@
 \documentclass{article}
 
 \usepackage[english]{babel}
-\usepackage[utf8]{inputenc} \usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 
 %%%%% 
-\usepackage{graphicx} \usepackage{caption} \usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
 
 % lock figure into place (H option of \begin{figure})
 \usepackage{float}
@@ -14,7 +17,11 @@
 
 \usepackage{setspace}
 
-\input{./header_math.tex} \input{./header_code.tex}
+\usepackage{cite}
+\usepackage{url}
+
+\input{./header_math.tex}
+\input{./header_code.tex}
 
 \def\code#1{\texttt{#1}}
 \def\classname#1{\textit{#1}}
@@ -24,8 +31,25 @@
 
 \begin{document}
 
+\input{./title.tex}
+
 \tableofcontents
 \clearpage
+
+\section{Introduction}
+The topic of this thesis is the C++ reimplementation of the library WaveBlocksND
+\cite{waveblocksnd}, which is written in Python.
+This report describes the inner working of my C++ implementation
+and explains the reasoning behind important software designs choices.
+This report doesn't explain the theory behind Hagedorn wavepackets.
+If you are interested in, I refer to some earlier work of George A. Hagedorn \cite{H_ladder_operators}.
+The technical details of WaveBlocksND are explained
+in the master thesis of Raoul Bourquin \cite{B_master_thesis}.
+
+WaveBlocksND implements the time propagation of Hagedorn wavepackets.
+The extent is too large for a bachelor thesis, therefore I focused on the
+evaluation and gradient computation of Hagedorn wavepackets.
+I made extensive use of Eigen \cite{eigenweb}, a C++ template library for linear algebra.
 
 \section{Basis shape}
 
@@ -263,7 +287,7 @@ Thus, it is beneficial to organize a shape into slices.
 A basis shape description just tells, whether it contains a specific node.
 But we need to associate coefficients \(c_{\mindex{k}}\)
 and basis functions \(\phi_{\mindex{k}}\) with shape
-nodes \(\mindex{k}\). We can use a hashtable to map \(\mindex{k}\) to
+nodes \(\mindex{k}\). We can use a hash table to map \(\mindex{k}\) to
 \(c_{\mindex{k}}\), \(\phi_{\mindex{k}}\). But it is simpler to
 enumerate all nodes in a shape. This means, if a multi-index \(\mindex{k}\)
 maps to ordinal \(i\), we find \(\phi_{\mindex{k}}\) at the position
@@ -403,7 +427,7 @@ of the remaining nodes.
 \subsubsection{Multi-index representation}
 The size of a multi-index has a big influence to lookup times and
 overall simulation time. Therefore the user can choose at compile-time an appropriate
-type to represent multi-indinces. I provide the class \classname{TinyMultiIndex}
+type to represent multi-indices. I provide the class \classname{TinyMultiIndex}
 that packs the whole multi-index into 64 bits.
 Multi-indices of accomplishable simulations should fit into 64 bits.
 Otherwise you can define a new multi-index type. A custom implementation
@@ -411,21 +435,21 @@ must possess the same semantics as \code{std::array<int,D>}.
 Furthermore it has to specialize \code{std::less} that performs lexical index comparison
 beginning on the first index.
 And it has to specialize \code{std::equal\_to} and \code{std::hash} to
-enable use of multi-indices as hashtable keys.
+enable use of multi-indices as hash table keys.
 
 \subsubsection{Alternative data structures}
-I tried a hashtable (\code{std::unordered\_set}) to map multi-indices to ordinals.
+I tried a hash table (\code{std::unordered\_set}) to map multi-indices to ordinals.
 To represent multi-indices, i used the tiny (64 bits) representation.
 These 64 bits can be used unmodified as a hash value.
 But queries proved to be 2-3 times slower compared to binary search,
 despite of \(\mathcal{O}(1)\) compared to \(\mathcal{O}(\log{}n)\) lookup time.
 \par
-Hashtables are good when querying random keys. But an algorithm working
+Hash Tables are good when querying random keys. But an algorithm working
 with basis shapes does \emph{not} access random nodes.
 Such algorithms typically access neighbours of previously accessed nodes.
-The problem is, that hashtables
+The problem is, that hash tables
 map neighbour nodes to seemingly random locations in memory,
-while an sorted array keeps neighbours together. Thus, a hashtable triggers
+while an sorted array keeps neighbours together. Thus, a hash table triggers
 a lot more cache misses, than binary search on an sorted array.
 
 \subsection{Basis shape extension}
@@ -484,8 +508,8 @@ is the number of basis shape nodes.
   }
 \end{algorithm}
 
-\section{Hagedorn Wavepacket}
-\subsection{Scalar Wavepackets}
+\section{Hagedorn wavepacket}
+\subsection{Scalar wavepackets}
 A \(D\)-dimensional scalar Hagedorn wavepacket is a linear combination of basis functions \(\phi_{\mindex{k}}\)
 with coefficients \(c_{\mindex{k}}\)
 
@@ -523,8 +547,7 @@ To specify a Hagedorn wavepacket I often use the tuple notation
   \Phi := \left(\varepsilon,\Pi,\mathfrak{K},c\right)
 \]
 
-
-\subsection{Vectorial Wavepackets}
+\subsection{Vectorial wavepackets}
 Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\)
 \[
   \Psi(\vec{x}) :=
@@ -580,7 +603,7 @@ Common vectorial wavepacket types are:
   \]
 \end{description}
 
-\subsection{Class Diagram}
+\subsection{Class diagram}
 
 \begin{figure}[H]
   \centering
@@ -629,13 +652,13 @@ functions.\footnote{See section (\ref{sec:vector_hawp_eval}).}
 
 \subsubsection{Rationale}
 
-\textbf{Abstract superclasses don't provide writeable access to parameters.}\par
+\textbf{Abstract superclasses don't provide writable access to parameters.}\par
 Editing parameters of a superclass may have side-effects, you have no control over.
 Some subclasses, like homogeneous wavepackets, share parameters across its components, while
 others don't, like inhomogeneous wavepacket. It's not known at compile-time, what a
 parameter change will cause. It may unintendedly change the parameters of many wavepackets.
 
-However, concrete subclasses like ScalarHaWp, HomogeneousHaWp provide writeable
+However, concrete subclasses like ScalarHaWp, HomogeneousHaWp provide writable
 access to its parameters. This is safe, because you know the concrete wavepacket type at compile-time.
 Thus the behaviour is specified.
 \par\bigskip
@@ -666,7 +689,7 @@ Using a basis shape of a realistic size \(M=1'000'000\), and wavepacket
 dimensionality \(D=10\), one can easily run out of memory.
 
 
-\subsection{Basis Evaluation}
+\subsection{Basis evaluation}
 
 All basis function values are evaluated recursively. Once we have the basis function
 value at an anchor node \(\mindex{k}\) and the basis functions values on all
@@ -753,7 +776,7 @@ or would require excessive thread synchronisation.
 \end{description}
 
 My rather simple solution is to split the basis shape into slices.  The
-\(s\)-th slice contains all nodes \(\mindex{k}\) that fulfill
+\(s\)-th slice contains all nodes \(\mindex{k}\) that fulfil
 \( \sum_{d=1}^{D} k_d = s \).
 
 \begin{figure}[H]
@@ -774,7 +797,7 @@ automatically avoid difficulty \textbf{B}.
 
 My solution has two compelling advantages:
 \begin{description}
-\item[Simple data structures] We can store the values of basis funcions in
+\item[Simple data structures] We can store the values of basis functions in
   an array. We need a \emph{shape enumeration}
   that maps shape nodes to ordinals, used as array offsets.
 \item[Easy parallelisation] Parallelise the wavepacket evaluation is simple:
@@ -846,7 +869,7 @@ Thus evaluating all basis functions has complexity
 \]
 when assuming \(D \approx \log{}N\).
 Computing the dot-product \(\sum c_k\phi_k\) costs just \(\mathcal{O}(N)\)
-thus the final \emph{asympotical} complexity
+thus the final \emph{asymptotic} complexity
 \begin{equation}
   \label{eq:hawp_eval_complexity}
   \mathcal{O}(N\log{}^2N)
@@ -872,7 +895,7 @@ On a \(5\)-dimensional wavepacket, the multi-evaluation is more the \(3\) times 
   \includegraphics[width=1.0\textwidth]{plots/hawp_eval_multiqp}
   \caption{
     Effect of wavepacket evaluation on multiple quadrature points at once.
-    The speedup is the cummulative run-time of single-node evaluations divided by
+    The speedup is the cumulative run-time of single-node evaluations divided by
     the run-time of the multi-node-evaluation.
   }
   \label{fig:hawp_eval_multiqp}
@@ -921,24 +944,24 @@ wavepacket components.
   \centering
   \includegraphics[width=1.0\textwidth]{plots/hawp_eval_homogen_speedup}
   \caption{
-    Archievable speedup compared to naive evaluation of a vectorial wavepacket.
+    Achievable speedup compared to naive evaluation of a vectorial wavepacket.
     The speedup is the run-time of the naive evaluation divided by the run-time of
     the optimized evaluation.
   }
   \label{fig:hawp_homogen_evaluation_speedup}
 \end{figure}
 
-There is an upper bound to the archievable speedup, as though the algorithm
+There is an upper bound to the achievable speedup, as though the algorithm
 avoids multiple evaluation of the same basis functions, it doesn't reduce
 time spent on computing the dot products for each component.
 Thus when increasing the number of wavepacket components, computing the dot-product becomes
 more and more the bottleneck.
 
-\subsection{Gradient Computation}
+\subsection{Gradient computation}
 Applying the gradient operator to a scalar \(D\)-dimensional Hagedorn Wavepacket 
 \( \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, c \right)\)
 yields a vectorial Hagedorn Wavepacket \(\Psi=\vec{\nabla}\Phi\) with \(D\) components.
-The wavepacket gradient \(\Phi' = \nabla \Phi\) has the same parameterset \(\Pi\)
+The wavepacket gradient \(\Phi' = \nabla \Phi\) has the same parameter set \(\Pi\)
 as the original wavepacket \(\Phi\), but has a new coefficients set \(\vec{c'}\) given by
 
 \begin{equation}
@@ -1023,7 +1046,7 @@ This greatly simplifies parallelisation.
   \Input{Wavepacket coefficients \(\boldsymbol{c} \in \mathbb{C}^{N \times 1}\) (array of scalars)}
   \Output{Coefficients of wavepacket gradient \(\boldsymbol{\vec{c'}} \in \mathbb{C}^{N \times D}\) (array of vectors)}
   \For{\(\mindex{k} \in \mathfrak{K}_{ext} \)}{
-    \emph{Compute contribution of center node}\;
+    \emph{Compute contribution of centre node}\;
     \(m \leftarrow 0 \in \mathbb{C}\)\;
     \If{\(\mindex{k} \in \mathfrak{K}\)}{
       \(m \leftarrow c_{\mindex{k}}\)\;
@@ -1074,7 +1097,7 @@ The plot (\ref{fig:hawp_eval_runtime}) shows that
 evaluating a Hagedorn wavepacket with one million basis functions
 on one quadrature point \(\vec{x}\) took 150 milliseconds.
 
-Evaluating a Hagedorn wavepacket has asymptotical run-time
+Evaluating a Hagedorn wavepacket has asymptotic run-time
 complexity\footnote{Assuming \(\mathcal{O}(D) \approx \mathcal{O}(\log{}N)\).
 See section (\ref{sec:hawp_eval_runtime_complexity}) for details.}
 \(\mathcal{O}(N \log{}^2N)\)
@@ -1109,7 +1132,7 @@ Evaluating the gradient \((\vec{\nabla} \Phi_0)(\vec{x})\) on one node requires 
     This plot shows two series: One depicts the time to construct a wavepacket gradient.
     The other depicts the time to evaluate a wavepacket gradient.
     Time is shown \emph{relative} to wavepacket evaluating.
-    Errorbars depict the standard deviation.
+    Error bars depict the standard deviation.
   }
 \end{figure}
 
@@ -1129,7 +1152,7 @@ Apparently, the C++ implementation is asymptotically better than
 WaveBlocksND's slim recursion by a factor of \(\mathcal{O}(N)\).
 My implementation could have slightly better run-time complexity due to slicing, but by
 no means \(\mathcal{O}(N)\). The run-time complexity of the slim recursion is
-quadratical to the basis shape size.
+quadratic to the basis shape size.
 This behaviour is caused by a flaw, somewhere inside the slim recursion.
 Due to this discovery, I've done all further comparisons using the fat recursion routine,
 which behaves well, as seen in the figure below. On average, my implementation evaluates a
@@ -1147,7 +1170,7 @@ Hagedorn wavepacket 2000 times faster than WaveBlocksND.
 
 Below is a benchmark of the gradient computation. The employed wavepacket
 has a limited hyperbolic cut basis shape\footnote{
-  The cutoff limit is 100, sparsity varies between \(2^D\) and \(3^D\).}.
+  The cut-off limit is 100, sparsity varies between \(2^D\) and \(3^D\).}.
 The results reveal run-time complexity improvements of my implementation.
 
 \begin{figure}[H]
@@ -1213,5 +1236,8 @@ wavepackets scales reasonable well.
   }
   \label{fig:grad_eval_omp}
 \end{figure}
+
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}
