@@ -226,7 +226,7 @@ Remark: The \emph{limited hyperbolic cut shape} is an intersection of an
 \begin{definition}[Shape union]
   The union of the shapes \(\mathfrak{K}^{A}\) and \(\mathfrak{K}^{B}\) is defined by
   \begin{equation}
-    \label{eq:basis_shape_intersection}
+    \label{eq:basis_shape_union}
     \mathfrak{K}^{A \cup B}=\left\{\mindex{k} \;|\; \mindex{k} \in \mathfrak{K}^A \lor
       \mindex{k} \in \mathfrak{K}^B
     \right\}
@@ -308,7 +308,7 @@ shape enumeration.
   \centering
   \includegraphics[]{shape_enumerator}
   \caption{Enumerator passage through a 2-dimensional basis shape}
-  \label{fig:shape_example}
+  \label{fig:shape_enumerator}
 \end{figure}
 
 The enumerator takes a description of a basis shape and enumerates it in two passes.
@@ -364,7 +364,7 @@ of all non-empty shape slices. The class \classname{ShapeSlice}
 All multi-indices of a slice are lexicographically ordered.
 The lexicographical order begins on the first index, continues to the second index and so forth.
 \begin{equation}
-  \label{eq:lexical_order}
+  \label{eq:lexicographical_order}
   a_1a_2\dots a_D <_{lex}b_1b_2\dots b_D \iff
   \begin{cases}
     (a_1 < b_1) \lor (a_1 = b_1 \land a_2\dots a_D <_{lex} b_2\dots b_D) & D > 1 \\
@@ -398,7 +398,7 @@ The two main operations of a shape enumeration are:
 A common task is looking up all backward neighbours \(\{\mindex{k}-\mindex{e}^1,\ldots,\mindex{k}-\mindex{e}^D\}\)
 of a node \(\mindex{k}\). This task can be slightly optimized: First, all neighbours live inside the same slice.
 Secondly, they are ordered i.e. \((\mindex{k}-\mindex{e}^d)\) is stored before \((\mindex{k}-\mindex{e}^{d+1})\).
-Thirdly, due to how lexical order works, the distance between \((\mindex{k}-\mindex{e}^{d-1})\) and \((\mindex{k}-\mindex{e}^d)\)
+Thirdly, due to how lexicographical order works, the distance between \((\mindex{k}-\mindex{e}^{d-1})\) and \((\mindex{k}-\mindex{e}^d)\)
 is usually much larger than the distance between \((\mindex{k}-\mindex{e}^d)\) and \((\mindex{k}-\mindex{e}^{d+1})\).
 The following algorithm takes advantage of this alignment by defining a search range \([a;b]\),
 which is the whole slice at the beginning.
@@ -428,7 +428,7 @@ that packs the whole multi-index into 64 bits.
 Multi-indices of accomplishable simulations should fit into 64 bits.
 Otherwise you can define a new multi-index type. A custom implementation
 must possess the same semantics as \code{std::array<int,D>}.
-Furthermore it has to specialize \code{std::less} that performs lexical index comparison
+Furthermore it has to specialize \code{std::less} that performs lexicographical index comparison
 beginning on the first index.
 And it has to specialize \code{std::equal\_to} and \code{std::hash} to
 enable use of multi-indices as hash table keys.
@@ -486,7 +486,7 @@ We create one clone for each direction. Then we merge these \(D\) clones and get
 slice \(\mathfrak{S}_{ext}^{s+1}\) of the extended shape.
 Notice that nodes inside a clone are already lexicographically ordered.
 Thus, during the merge operation, we just have to interleave the clones in such a way that
-lexical order is kept and duplicates get eliminated.
+lexicographical order is kept and duplicates get eliminated.
 Using a divide and conquer approach, the total algorithmic complexity is
 \(\mathcal{O}(D\log{}D \cdot N)\), where \(D\) is the wavepacket dimensionality and \(N\)
 is the number of basis shape nodes.
@@ -528,7 +528,7 @@ complex matrices \( \mat{Q},\mat{P} \in \mathbb{C}^{D \times D} \). \(S\in \math
 the global phase factor.
 
 Equation (\ref{eq:scalar_hawp_inf}) contains infinitely many basis functions.
-To compute the wavepacket we have to truncate the set of all basis functions to
+To compute the wave\-packet we have to truncate the set of all basis functions to
 a finite set \(\mathfrak{K} \subset \mathbb{N}^D\) called \emph{basis shape}.
 The wavepacket equation becomes
 
