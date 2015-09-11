@@ -195,9 +195,10 @@ public:
      * 
      * \param grid 
      * Complex quadrature points.
-     * Complex matrix of shape (dimensionality, number of quadrature points)
+     * Complex matrix of shape \f$ (D \times X) \f$,
+     * where \f$ X \f$ is the number of quadrature points.
      * \return
-     * Complex matrix of shape (number of components, number of quadrature points)
+     * Complex 2D-Array of shape \f$ (D \times X) \f$
      * 
      * \tparam N
      * Number of quadrature points.
@@ -229,9 +230,10 @@ public:
      * 
      * \param rgrid
      * Real quadrature points.
-     * Real matrix of shape (dimensionality, number of quadrature points)
+     * Real matrix of shape \f$ (D \times X) \f$,
+     * where \f$ X \f$ is the number of quadrature points.
      * \return
-     * Complex matrix of shape (number of components, number of quadrature points)
+     * Complex 2D-Array of shape \f$ (D \times X) \f$
      * 
      * \tparam N
      * Number of quadrature points.
