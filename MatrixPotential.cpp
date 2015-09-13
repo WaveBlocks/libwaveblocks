@@ -165,16 +165,58 @@ class MatrixPotential {
 	}
 };
 
-template<template<int, int> class B, int N, int D>
-class TransformableMatrixPotential : public MatrixPotential<B,N,D> {
-		
+template<template<int, int> class B1, template<int,int> class B2, int N, int D>
+class TransformableMatrixPotential : public MatrixPotential<B1,N,D> {
+	private:
+	typename B1::transformation_type transformation;
+	
+	public:
+	
+	//~ B2::potential_evaluation_type other_evaluate_at(RVector<D> arg) {
+		//~ auto transform = transform(arg);
+		//~ CMatrix<N,N> eigs;
+		//~ for (int d = 0; d < D; ++d) {
+			//~ eigs(d,d) = eigen_potential[d](arg);
+		//~ }
+		//~ return (transform*D*transform.inverse()).real();
+	//~ }
+	//~ 
+	//~ Grid<RMatrix<N,N>> values = canonical_evaluate_at(g);
+				//~ Grid<CVector<N>> res(values.size());
+				//~ auto it = res.begin();
+				//~ for (auto& matrix: values) {
+					//~ Eigen::EigenSolver<RMatrix<N,N>> es(matrix,false);
+					//~ *it = es.eigenvalues();
+					//~ ++it;
+				//~ }
+				//~ return res;
+				//~ 
+				 //~ Grid<CMatrix<N,N>> evaluate_eigenvectors_at(Grid<RVector<D>> g) {
+			//~ if (canonicalBasis) {
+				//~ Grid<RMatrix<N,N>> values = canonical_evaluate_at(g);
+				//~ Grid<CMatrix<N,N>> res(values.size());
+				//~ auto it = res.begin();
+				//~ for (auto& matrix: values) {
+					//~ Eigen::EigenSolver<RMatrix<N,N>> es(matrix);
+					//~ *it = es.eigenvectors();
+					//~ ++it;
+				//~ }
+				//~ return res;
+			//~ }
+			//~ else {
+				//~ return evaluate_function_in_grid<RVector<D>, CMatrix<N,N>, Grid, function_t>(eigen_basis_transform,g);
+			//~ }				
+        //~ }
 };
+
+
 
 template<int N, int D>
 struct CanonicalBasis {
 	using potential_type = GMatrix<rD_to_r<D>,N,N>;
 	using jacobian_type = GMatrix<rD_to_rD<D>,N,N>;
 	using hessian_type = GMatrix<rD_to_rDxD<D>,N,N>;
+	using transformation_type = rD_to_cNxN<D,N>;
 	using local_quadratic_type = rD_to_function_matrix<D,N,rD_to_r<D>>;
     using local_remainder_type = rD_to_function_matrix<D,N,rD_to_r<D>>;
     
@@ -212,6 +254,7 @@ struct EigenBasis {
 	using transformation_type = rD_to_cNxN<D,N>;
 	using local_quadratic_type = rD_to_function_vector<D,N,rD_to_c<D>>;
     using local_remainder_type = rD_to_function_vector<D,N,rD_to_c<D>>;
+    using transformation_type = rD_to_cNxN<D,N>;
     
     using potential_evaluation_type = CVector<N>;
     using jacobian_evaluation_type = GVector<CVector<D>,N>;
