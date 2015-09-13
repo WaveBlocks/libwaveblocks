@@ -9,6 +9,8 @@
 #include<unsupported/Eigen/MatrixFunctions>
 #include"types.hpp"
 #include"utilities.hpp"
+template<template<int,int> class B, int N, int D>
+class FunctionBuilder;
 
 //General definition			
 template<template<int, int> class B, int N, int D>
@@ -16,6 +18,7 @@ class MatrixPotential {
 	
 	private:
 	using Basis = B<N,D>;
+	using Builder = FunctionBuilder<B,N,D>;
 	using potential_type = typename Basis::potential_type;
 	using jacobian_type = typename Basis::jacobian_type;
 	using hessian_type = typename Basis::hessian_type;
@@ -28,6 +31,7 @@ class MatrixPotential {
 	using self_type = MatrixPotential<B,N,D>;
 
 	friend Basis;
+	friend Builder;
 
 	
 	
@@ -94,49 +98,14 @@ class MatrixPotential {
 		return evaluate_function_in_grid<RVector<D>, Tuple<>, grid_in,grid_out,function_t>(std::bind(&MatrixPotential<B,N,D>::taylor_at,this,std::placeholders::_1),args);
 	}
 	
-	
 	void calculate_local_quadratic() {
-		local_quadratic = [=] (RVector<D> q) {
-			potential_type result_matrix;
-					
-			for (int l = 0; l < N; ++l) {
-				for (int m = 0; m < N; ++m) {
-					result_matrix(l,m) = [=](RVector<D> x) {
-						auto V = potential(l,m)(q);
-						auto J =  jacobian(l,m)(q);
-						auto H = hessian(l,m)(q);
-
-						auto result = V;
-						for(int i = 0; i < D; ++i) {
-							auto xmqi = x[i] - q[i];
-							result += J[i]*(xmqi);
-							for (int j = 0; j < D; ++j) {
-								result += 0.5*xmqi*H(i,j) * (x[j]-q[j]);
-							}
-						}
-						return result;
-					};
-				}
-			}
-			return result_matrix;
-		};
+		Builder::calculate_local_quadratic(*this);
 	}
 	
 	void calculate_local_remainder() {
-		local_remainder = [=] (RVector<D> q) {
-			potential_type result;
-			auto local_quadratic_q = local_quadratic(q);
-			
-			for (int i = 0; i < N; ++i) {
-				for (int j = 0; j < N; ++j) {
-					result(i,j) = [=](RVector<D> x) {
-						return potential(i,j)(x) - local_quadratic_q(i,j)(x);
-					};
-				}
-			}
-			return result;
-		};
+		Builder::calculate_local_remainder(*this);
 	}
+	
 	
 	potential_evaluation_type evaluate_local_remainder_at(RVector<D> g, RVector<D> position) {
 		return Basis::evaluate_local_remainder_at(*this,g,position);
@@ -165,12 +134,63 @@ class MatrixPotential {
 	}
 };
 
-template<template<int, int> class B1, template<int,int> class B2, int N, int D>
-class TransformableMatrixPotential : public MatrixPotential<B1,N,D> {
-	private:
-	typename B1::transformation_type transformation;
+template<template<int, int> class B, int N, int D>
+class FunctionBuilder {
 	
-	public:
+	using potential_type  = typename B<N,D>::potential_type;
+	friend MatrixPotential<B,N,D>;
+	
+	static void calculate_local_quadratic(MatrixPotential<B,N,D>& that) {
+		that.local_quadratic = [=] (RVector<D> q) {
+			potential_type result_matrix;
+					
+			for (int l = 0; l < N; ++l) {
+				for (int m = 0; m < N; ++m) {
+					result_matrix(l,m) = [=](RVector<D> x) {
+						auto V = that.potential(l,m)(q);
+						auto J =  that.jacobian(l,m)(q);
+						auto H = that.hessian(l,m)(q);
+
+						auto result = V;
+						for(int i = 0; i < D; ++i) {
+							auto xmqi = x[i] - q[i];
+							result += J[i]*(xmqi);
+							for (int j = 0; j < D; ++j) {
+								result += 0.5*xmqi*H(i,j) * (x[j]-q[j]);
+							}
+						}
+						return result;
+					};
+				}
+			}
+			return result_matrix;
+		};
+	}
+	
+	static void calculate_local_remainder(MatrixPotential<B,N,D>& that) {
+		that.local_remainder = [=] (RVector<D> q) {
+			potential_type result;
+			auto local_quadratic_q = that.local_quadratic(q);
+			
+			for (int i = 0; i < N; ++i) {
+				for (int j = 0; j < N; ++j) {
+					result(i,j) = [=](RVector<D> x) {
+						return that.potential(i,j)(x) - local_quadratic_q(i,j)(x);
+					};
+				}
+			}
+			return result;
+		};
+	}
+	
+};
+
+//~ template<template<int, int> class B1, template<int,int> class B2, int N, int D>
+//~ class TransformableMatrixPotential : public MatrixPotential<B1,N,D> {
+	//~ private:
+	//~ typename B1::transformation_type transformation;
+	//~ 
+	//~ public:
 	
 	//~ B2::potential_evaluation_type other_evaluate_at(RVector<D> arg) {
 		//~ auto transform = transform(arg);
@@ -207,7 +227,7 @@ class TransformableMatrixPotential : public MatrixPotential<B1,N,D> {
 				//~ return evaluate_function_in_grid<RVector<D>, CMatrix<N,N>, Grid, function_t>(eigen_basis_transform,g);
 			//~ }				
         //~ }
-};
+//~ };
 
 
 
@@ -254,7 +274,6 @@ struct EigenBasis {
 	using transformation_type = rD_to_cNxN<D,N>;
 	using local_quadratic_type = rD_to_function_vector<D,N,rD_to_c<D>>;
     using local_remainder_type = rD_to_function_vector<D,N,rD_to_c<D>>;
-    using transformation_type = rD_to_cNxN<D,N>;
     
     using potential_evaluation_type = CVector<N>;
     using jacobian_evaluation_type = GVector<CVector<D>,N>;
