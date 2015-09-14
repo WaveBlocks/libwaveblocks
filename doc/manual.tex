@@ -589,8 +589,8 @@ Common vectorial wavepacket types are:
   wavepacket. All components share the same Hagedorn parameter set and the
   same basis shape, which is an extension of the original wavepacket's basis shape.
   \[
-    \frac{\partial \Phi}{\partial x_n} \coloneqq  (\varepsilon, \Pi, \mathfrak{K}_{ext}, c'_n) \] \[
-    \nabla \Phi \coloneqq  \left(\varepsilon, \Pi, \mathfrak{K}_{ext},
+    -i\varepsilon^2\frac{\partial \Phi}{\partial x_n} \coloneqq  (\varepsilon, \Pi, \mathfrak{K}_{ext}, c'_n) \] \[
+    -i\varepsilon^2\nabla \Phi \coloneqq  \left(\varepsilon, \Pi, \mathfrak{K}_{ext},
     \begin{pmatrix}
       (c'_1) \\
       \vdots \\
@@ -672,15 +672,16 @@ Therefore I decided, that scalar and vectorial wavepacket don't have a common su
 \textbf{There is no dedicated class to represent a gradient of a vectorial wavepacket.}\par
 Applying the gradient operator to a vectorial wavepacket is trivial: Just apply it
 to its components.
-\[\nabla \Psi \equiv
+\[-i\varepsilon^2\nabla \Psi \equiv
 \begin{pmatrix}
-  \nabla \Phi_1 \\
+  -i\varepsilon^2\nabla \Phi_1 \\
   \vdots \\
-  \nabla \Phi_N \\
+  -i\varepsilon^2\nabla \Phi_N \\
 \end{pmatrix}
 \]
 It is an overkill to introduce a new class, just to replace a loop.
-Furthermore, storing all coefficients of \(\nabla\Psi\) occupies \(\mathcal{O}(D \cdot N \cdot M)\) space.
+Furthermore, storing all coefficients of \(-i\varepsilon^2\nabla\Psi\)
+occupies \(\mathcal{O}(D \cdot N \cdot M)\) space.
 Using a basis shape of a realistic size \(M=1'000'000\), and wavepacket
 dimensionality \(D=10\), one can easily run out of memory.
 
@@ -957,8 +958,8 @@ more and more the bottleneck.
 \subsection{Gradient computation}
 Applying the gradient operator to a scalar \(D\)-dimensional Hagedorn Wave\-packet
 \( \Phi = \left( \varepsilon, \Pi, \mathfrak{K}, c \right)\)
-yields a vectorial Hagedorn Wavepacket \(\Psi=\nabla\Phi\) with \(D\) components.
-The wavepacket gradient \(\Phi' = \nabla \Phi\) has the same parameter set \(\Pi\)
+yields a vectorial Hagedorn Wavepacket \(\Psi=-i\varepsilon^2\nabla\Phi\) with \(D\) components.
+The wavepacket gradient has the same parameter set \(\Pi\)
 as the original wavepacket \(\Phi\), but has a new coefficients set \(\vec{c'}\) given by
 
 \begin{equation}
@@ -1068,7 +1069,7 @@ This greatly simplifies parallelisation.
     \emph{Merge contributions of every node to get the coefficients of the gradient}\;
     \(\vec{c'_k} \leftarrow m\vec{p}+\frac{\varepsilon}{\sqrt{2}}(\mat{\overline{P}}\vec{f}+\mat{P}\vec{b})\)
   }
-  \caption{Computes coefficients of the wavepacket gradient \(\nabla \Phi\)}
+  \caption{Computes coefficients of the wavepacket gradient \(-i\varepsilon^2\nabla \Phi\)}
 \end{algorithm}
 
 \section{Performance}
@@ -1118,8 +1119,8 @@ Measurements reveal that gradient construction, i.e. computing the coefficients
 of the gradient wavepacket, takes approximately six times longer than wavepacket evaluation.
 Evaluating the gradient on one grid node \(\vec{x}\) takes \(2.5\) times longer.
 That means, if the evaluation of some wavepacket \(\Phi_0\) takes \(1 ms\) time, than
-computing the coefficients of the gradient wavepacket \(\nabla\Phi_0\) takes \(6ms\) time.
-Evaluating the gradient \((\nabla \Phi_0)(\vec{x})\) on one node requires \(2.5 ms\) time.
+computing the coefficients of the gradient wavepacket \(-i\varepsilon^2\nabla\Phi_0\) takes \(6ms\) time.
+Evaluating the gradient \((-i\varepsilon^2\nabla \Phi_0)(\vec{x})\) on one node requires \(2.5 ms\) time.
 
 \begin{figure}[H]
   \centering
