@@ -6,7 +6,7 @@ template <template <template <int, int> class, int, int> class S,
 struct ExponentialImplemenation {
   GET_TYPES(ExponentialImplemenation, S, B, N, D);
 
-  potential_evaluation_type evaluate_exponential_at(RVector<D> arg,
+  potential_evaluation_type evaluate_exponential_at(const RVector<D>& arg,
                                                     real_t factor = 1) {
     // Compute matrix
     auto values = that.evaluate(arg);
@@ -40,7 +40,7 @@ struct ExponentialImplemenation {
 //~
 //~ public:
 
-//~ B2::potential_evaluation_type other_evaluate_at(RVector<D> arg) {
+//~ B2::potential_evaluation_type other_evaluate_at(const RVector<D>& arg) {
 //~ auto transform = transform(arg);
 //~ CMatrix<N,N> eigs;
 //~ for (int d = 0; d < D; ++d) {
