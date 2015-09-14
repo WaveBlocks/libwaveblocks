@@ -880,13 +880,23 @@ To evaluate the basis function \(\phi_{\mindex{k}}\), we need all backward neigh
 Unfortunately the program spends much time on looking up the ordinals of these
 backward neighbours. To improve the ratio of lookup time versus computation time,
 I've implemented the possibility to evaluate the basis functions \(\phi_{\mindex{k}}\)
-on multiple grid nodes at once.
+on multiple grid nodes at once. The number of grid nodes is a template parameter.
 
 Figure (\ref{fig:hawp_eval_multiqp}) shows the effect of one
 evaluation with \(N\) grid nodes compared to \(N\) evaluations with one
 grid node each. It shows that the multi-node evaluation of a \(10\)-dimensional
-wavepacket is up to \(2.5\) times faster than when using single-node evaluations.
-On a \(5\)-dimensional wavepacket, the multi-evaluation is more the \(3\) times faster.
+wavepacket is on average up to \(3\) times faster than when using single-node evaluations.
+The speedup is relatively independent on the dimensionality.
+Deviations are caused by compiler optimizations and inner working of the Eigen library.
+
+Notice, that you won't evaluate a wavepacket on let's say \(100'000\) quadrature points at once.
+You will split these \(100'000\) quadrature points into chunks, each containing for example \(5\) nodes.
+Then you evaluate the wavepacket on every chunk.
+Compared to Python, in C++, there is no performance advantage in passing large
+number of nodes to the evaluation function.
+Far from it, you eventually run out of memory! Remember, that the evaluation function allocates memory for
+\(\mathcal{O}(3SN)\) basis functions, where \(S\) is the size of the largest slice
+and \(N\) is the number of grid nodes.
 
 \begin{figure}[H]
   \centering
@@ -1078,8 +1088,8 @@ This greatly simplifies parallelisation.
 
 I benchmarked the wavepacket evaluation and gradient construction
 on the
-Euler cluster\footnote{Intel Xeon E5-2697v2 (2.7 GHz), 12 cores}
-using one thread.
+Euler cluster\footnote{Measurements done in year 2015, the CPU is Intel Xeon E5-2697v2 (2.7 GHz).}
+\cite{euler_cluster} using one thread.
 I used a hyperbolic cut shape with limits \(10\), and varied the
 sparsity between \(2^D\) and \(3^D\) to obtain different numbers of
 basis functions for a given dimensionality \(D\).
@@ -1093,7 +1103,7 @@ basis functions for a given dimensionality \(D\).
 
 The plot (\ref{fig:hawp_eval_runtime}) shows that
 evaluating a Hagedorn wavepacket with one million basis functions
-on one quadrature point \(\vec{x}\) took 150 milliseconds.
+on one grid node \(\vec{x}\) took 150 milliseconds.
 
 Evaluating a Hagedorn wavepacket has an asymptotic run-time
 complexity\footnote{Assuming \(\mathcal{O}(D) \approx \mathcal{O}(\log{}N)\).
