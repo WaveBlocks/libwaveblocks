@@ -10,15 +10,35 @@
 #include"types.hpp"
 #include"utilities.hpp"
 template<template<int,int> class B, int N, int D>
-class FunctionBuilder;
+class LocalRemainderImplementation;
+
+template<template<int,int> class B, int N, int D>
+class EvaluationImplementation;
+
+template<int N, int D>
+struct CanonicalBasis {
+	using potential_type = GMatrix<rD_to_r<D>,N,N>;
+	using jacobian_type = GMatrix<rD_to_rD<D>,N,N>;
+	using hessian_type = GMatrix<rD_to_rDxD<D>,N,N>;
+	using transformation_type = rD_to_cNxN<D,N>;
+	using local_quadratic_type = rD_to_function_matrix<D,N,rD_to_r<D>>;
+    using local_remainder_type = rD_to_function_matrix<D,N,rD_to_r<D>>;
+    
+	using potential_evaluation_type = RMatrix<N,N>;
+	using jacobian_evaluation_type = GMatrix<RVector<D>,N,N>;
+	using hessian_evaluation_type = GMatrix<RMatrix<D,D>,N,N>;
+};
+
+
+
+
 
 //General definition			
 template<template<int, int> class B, int N, int D>
-class MatrixPotential {
+class AbstractMatrixPotential {
 	
-	private:
+public:
 	using Basis = B<N,D>;
-	using Builder = FunctionBuilder<B,N,D>;
 	using potential_type = typename Basis::potential_type;
 	using jacobian_type = typename Basis::jacobian_type;
 	using hessian_type = typename Basis::hessian_type;
@@ -28,62 +48,49 @@ class MatrixPotential {
 	using potential_evaluation_type = typename Basis::potential_evaluation_type;
 	using jacobian_evaluation_type = typename Basis::jacobian_evaluation_type;
 	using hessian_evaluation_type = typename Basis::hessian_evaluation_type;
-	using self_type = MatrixPotential<B,N,D>;
+	using self_type = AbstractMatrixPotential<B,N,D>;
 
-	friend Basis;
-	friend Builder;
-
-	
-	
-	
-	
+protected:
 	potential_type potential;
 	jacobian_type jacobian;
 	hessian_type hessian; 
 	local_quadratic_type local_quadratic;
 	local_remainder_type local_remainder;
 	
-	public:
-	MatrixPotential(potential_type potential,
+public:
+	AbstractMatrixPotential(potential_type potential,
 					jacobian_type jacobian,
 					hessian_type hessian
 		) : potential(potential),
 			jacobian(jacobian),
 			hessian(hessian)
 		{
-			calculate_local_quadratic();
-			calculate_local_remainder();
+
 		}
 		
-	potential_evaluation_type evaluate_at(RVector<D> arg) {
-		return Basis::evaluate_at(*this, arg);	
-	}
+	virtual potential_evaluation_type evaluate_at(RVector<D> arg) = 0;
 	
 	template<template<typename ...> class grid_in = std::vector, template<typename ...> class grid_out = grid_in>
 	grid_out<potential_evaluation_type> evaluate(grid_in<RVector<D>> args) {
-		return evaluate_function_in_grid<RVector<D>, potential_evaluation_type, grid_in,grid_out,function_t>(std::bind(&MatrixPotential<B,N,D>::evaluate_at,this,std::placeholders::_1),args);
+		return evaluate_function_in_grid<RVector<D>, potential_evaluation_type, grid_in,grid_out,function_t>(std::bind(&AbstractMatrixPotential<B,N,D>::evaluate_at,this,std::placeholders::_1),args);
 	}
 	
 	
 	
-	jacobian_evaluation_type evaluate_jacobian_at(RVector<D> arg) {
-		return Basis::evaluate_jacobian_at(*this, arg);
-	}
+	virtual jacobian_evaluation_type evaluate_jacobian_at(RVector<D> arg) = 0;
 	
 	template<template<typename ...> class grid_in = std::vector, template<typename ...> class grid_out = grid_in>
 	grid_out<jacobian_evaluation_type> evaluate_jacobian(grid_in<RVector<D>> args) {
-		return evaluate_function_in_grid<RVector<D>, jacobian_evaluation_type, grid_in,grid_out,function_t>(std::bind(&MatrixPotential<B,N,D>::evaluate_jacobian_at,this,std::placeholders::_1),args);
+		return evaluate_function_in_grid<RVector<D>, jacobian_evaluation_type, grid_in,grid_out,function_t>(std::bind(&AbstractMatrixPotential<B,N,D>::evaluate_jacobian_at,this,std::placeholders::_1),args);
 	}
 	
 	
 	
-	hessian_evaluation_type evaluate_hessian_at(RVector<D> arg) {
-		return Basis::evaluate_hessian_at(*this, arg);
-	}
+	virtual hessian_evaluation_type evaluate_hessian_at(RVector<D> arg) = 0;
 	
 	template<template<typename ...> class grid_in = std::vector, template<typename ...> class grid_out = grid_in>
 	grid_out<hessian_evaluation_type> evaluate_hessian(grid_in<RVector<D>> args) {
-		return evaluate_function_in_grid<RVector<D>, hessian_evaluation_type, grid_in,grid_out,function_t>(std::bind(&MatrixPotential<B,N,D>::evaluate_hessian_at,this,std::placeholders::_1),args);
+		return evaluate_function_in_grid<RVector<D>, hessian_evaluation_type, grid_in,grid_out,function_t>(std::bind(&AbstractMatrixPotential<B,N,D>::evaluate_hessian_at,this,std::placeholders::_1),args);
 	}
 	
 	
@@ -95,25 +102,19 @@ class MatrixPotential {
 	
 	template<template<typename ...> class Tuple = std::tuple, template<typename ...> class grid_in = std::vector, template<typename ...> class grid_out = grid_in>
 	grid_out<Tuple<>> taylor(grid_in<RVector<D>> args) {
-		return evaluate_function_in_grid<RVector<D>, Tuple<>, grid_in,grid_out,function_t>(std::bind(&MatrixPotential<B,N,D>::taylor_at,this,std::placeholders::_1),args);
+		return evaluate_function_in_grid<RVector<D>, Tuple<>, grid_in,grid_out,function_t>(std::bind(&AbstractMatrixPotential<B,N,D>::taylor_at,this,std::placeholders::_1),args);
 	}
 	
-	void calculate_local_quadratic() {
-		Builder::calculate_local_quadratic(*this);
-	}
+	virtual void calculate_local_quadratic() = 0;
 	
-	void calculate_local_remainder() {
-		Builder::calculate_local_remainder(*this);
-	}
+	virtual void calculate_local_remainder() = 0;
 	
 	
-	potential_evaluation_type evaluate_local_remainder_at(RVector<D> g, RVector<D> position) {
-		return Basis::evaluate_local_remainder_at(*this,g,position);
-	}
+	virtual potential_evaluation_type evaluate_local_remainder_at(RVector<D> g, RVector<D> position) = 0;
 	
 	template<template<typename ...> class grid_in = std::vector, template<typename ...> class grid_out = grid_in>
 	grid_out<potential_evaluation_type> evaluate_local_remainder(grid_in<RVector<D>> args) {
-		return evaluate_function_in_grid<RVector<D>, potential_evaluation_type, grid_in,grid_out,function_t>(std::bind(&MatrixPotential<B,N,D>::evaluate_local_remainder_at,this,std::placeholders::_1),args);
+		return evaluate_function_in_grid<RVector<D>, potential_evaluation_type, grid_in,grid_out,function_t>(std::bind(&AbstractMatrixPotential<B,N,D>::evaluate_local_remainder_at,this,std::placeholders::_1),args);
 	}
 	
 	potential_evaluation_type evaluate_exponential_at(RVector<D> arg, real_t factor = 1) {
@@ -130,26 +131,47 @@ class MatrixPotential {
 	
 	template<template<typename ...> class grid_in = std::vector, template<typename ...> class grid_out = grid_in>
 	grid_out<potential_evaluation_type> evaluate_exponential(grid_in<RVector<D>> args, real_t factor = 1) {
-		return evaluate_function_in_grid<RVector<D>, potential_evaluation_type, grid_in,grid_out,function_t>(std::bind(&MatrixPotential<B,N,D>::evaluate_exponential_at,this,std::placeholders::_1,factor),args);
+		return evaluate_function_in_grid<RVector<D>, potential_evaluation_type, grid_in,grid_out,function_t>(std::bind(&AbstractMatrixPotential<B,N,D>::evaluate_exponential_at,this,std::placeholders::_1,factor),args);
 	}
 };
 
+
+
 template<template<int, int> class B, int N, int D>
-class FunctionBuilder {
+class LocalRemainderImplementation : virtual public AbstractMatrixPotential<B,N,D> {
+public:
+	using Base = AbstractMatrixPotential<B, N, D>;
+	using Basis = typename Base::Basis;
+
+	using potential_type = typename Basis::potential_type;
+	using jacobian_type = typename Basis::jacobian_type;
+	using hessian_type = typename Basis::hessian_type;
+	using local_quadratic_type = typename Basis::local_quadratic_type;
+	using local_remainder_type = typename Basis::local_remainder_type;
 	
-	using potential_type  = typename B<N,D>::potential_type;
-	friend MatrixPotential<B,N,D>;
+	using potential_evaluation_type = typename Basis::potential_evaluation_type;
+	using jacobian_evaluation_type = typename Basis::jacobian_evaluation_type;
+	using hessian_evaluation_type = typename Basis::hessian_evaluation_type;
 	
-	static void calculate_local_quadratic(MatrixPotential<B,N,D>& that) {
-		that.local_quadratic = [=] (RVector<D> q) {
+	LocalRemainderImplementation(potential_type potential,
+					jacobian_type jacobian,
+					hessian_type hessian
+		) : Base(potential, jacobian, hessian)
+		{
+			calculate_local_quadratic();
+			calculate_local_remainder();
+		}
+		
+	void calculate_local_quadratic() {
+		this->local_quadratic = [=] (RVector<D> q) {
 			potential_type result_matrix;
 					
 			for (int l = 0; l < N; ++l) {
 				for (int m = 0; m < N; ++m) {
 					result_matrix(l,m) = [=](RVector<D> x) {
-						auto V = that.potential(l,m)(q);
-						auto J =  that.jacobian(l,m)(q);
-						auto H = that.hessian(l,m)(q);
+						auto V = this->potential(l,m)(q);
+						auto J =  this->jacobian(l,m)(q);
+						auto H = this->hessian(l,m)(q);
 
 						auto result = V;
 						for(int i = 0; i < D; ++i) {
@@ -167,15 +189,15 @@ class FunctionBuilder {
 		};
 	}
 	
-	static void calculate_local_remainder(MatrixPotential<B,N,D>& that) {
-		that.local_remainder = [=] (RVector<D> q) {
+	void calculate_local_remainder() {
+		this->local_remainder = [=] (RVector<D> q) {
 			potential_type result;
-			auto local_quadratic_q = that.local_quadratic(q);
+			auto local_quadratic_q = this->local_quadratic(q);
 			
 			for (int i = 0; i < N; ++i) {
 				for (int j = 0; j < N; ++j) {
 					result(i,j) = [=](RVector<D> x) {
-						return that.potential(i,j)(x) - local_quadratic_q(i,j)(x);
+						return this->potential(i,j)(x) - local_quadratic_q(i,j)(x);
 					};
 				}
 			}
@@ -186,7 +208,7 @@ class FunctionBuilder {
 };
 
 //~ template<template<int, int> class B1, template<int,int> class B2, int N, int D>
-//~ class TransformableMatrixPotential : public MatrixPotential<B1,N,D> {
+//~ class TransformableMatrixPotential : public AbstractMatrixPotential<B1,N,D> {
 	//~ private:
 	//~ typename B1::transformation_type transformation;
 	//~ 
@@ -212,7 +234,7 @@ class FunctionBuilder {
 				//~ return res;
 				//~ 
 				 //~ Grid<CMatrix<N,N>> evaluate_eigenvectors_at(Grid<RVector<D>> g) {
-			//~ if (canonicalBasis) {
+			//~ if (CanonicalBasisImplementation) {
 				//~ Grid<RMatrix<N,N>> values = canonical_evaluate_at(g);
 				//~ Grid<CMatrix<N,N>> res(values.size());
 				//~ auto it = res.begin();
@@ -232,69 +254,94 @@ class FunctionBuilder {
 
 
 template<int N, int D>
-struct CanonicalBasis {
-	using potential_type = GMatrix<rD_to_r<D>,N,N>;
-	using jacobian_type = GMatrix<rD_to_rD<D>,N,N>;
-	using hessian_type = GMatrix<rD_to_rDxD<D>,N,N>;
-	using transformation_type = rD_to_cNxN<D,N>;
-	using local_quadratic_type = rD_to_function_matrix<D,N,rD_to_r<D>>;
-    using local_remainder_type = rD_to_function_matrix<D,N,rD_to_r<D>>;
-    
-	using potential_evaluation_type = RMatrix<N,N>;
-	using jacobian_evaluation_type = GMatrix<RVector<D>,N,N>;
-	using hessian_evaluation_type = GMatrix<RMatrix<D,D>,N,N>;
+struct EvaluationImplementation<CanonicalBasis, N, D> : virtual public AbstractMatrixPotential<CanonicalBasis, N, D> {
+	
+	using Base = AbstractMatrixPotential<CanonicalBasis, N, D>;
+	using Basis = typename Base::Basis;
+	using potential_type = typename Basis::potential_type;
+	using jacobian_type = typename Basis::jacobian_type;
+	using hessian_type = typename Basis::hessian_type;
+	using local_quadratic_type = typename Basis::local_quadratic_type;
+	using local_remainder_type = typename Basis::local_remainder_type;
+	
+	using potential_evaluation_type = typename Basis::potential_evaluation_type;
+	using jacobian_evaluation_type = typename Basis::jacobian_evaluation_type;
+	using hessian_evaluation_type = typename Basis::hessian_evaluation_type;
+	
+	public:
+	EvaluationImplementation(potential_type potential,
+					jacobian_type jacobian,
+					hessian_type hessian
+		) : Base(potential, jacobian, hessian)
+		{
 
-	private:
-	friend MatrixPotential< ::CanonicalBasis,N,D>;
-	// ::CanonicalBasis is NOT a typo. Clang does not implement the injected-class-name rule yet even though its in the standard.
+		}
+
+	public:
+	// ::EvaluationImplementation is NOT a typo. Clang does not implement the injected-class-name rule yet even though its in the standard.
 	// This is a workaround. compare http://stackoverflow.com/a/17687568/3139931
-	static potential_evaluation_type evaluate_at(const MatrixPotential< ::CanonicalBasis,N,D>& that, RVector<D> arg) {
-		return evaluate_function_matrix<N,GMatrix,RVector<D>,real_t,function_t>(that.potential,arg);
+	potential_evaluation_type evaluate_at( RVector<D> arg) {
+		return evaluate_function_matrix<N,GMatrix,RVector<D>,real_t,function_t>(this->potential,arg);
 	}
 	
-	static jacobian_evaluation_type evaluate_jacobian_at(const MatrixPotential< ::CanonicalBasis,N,D>& that, RVector<D> arg) {
-		return evaluate_function_matrix(that.jacobian,arg);
+	jacobian_evaluation_type evaluate_jacobian_at(RVector<D> arg) {
+		return evaluate_function_matrix<N,GMatrix,RVector<D>,RVector<D>,function_t>(this->jacobian,arg);
 	}
 	
-	static hessian_evaluation_type evaluate_hessian_at(const MatrixPotential< ::CanonicalBasis,N,D>& that, RVector<D> arg) {
-		return evaluate_function_matrix(that.hessian, arg);
+	hessian_evaluation_type evaluate_hessian_at(RVector<D> arg) {
+		return evaluate_function_matrix<N,GMatrix,RVector<D>,RMatrix<D,D>,function_t>(this->hessian, arg);
 	}
 	
-	static real_t evaluate_local_remainder_at(const MatrixPotential< ::CanonicalBasis,N,D>& that, RVector<D> g, RVector<D> position) {
-		return evaluate_function_matrix<N,GMatrix,RVector<D>,real_t,function_t>(that.local_remainder(position),g);
+	potential_evaluation_type evaluate_local_remainder_at(RVector<D> g, RVector<D> position) {
+		return evaluate_function_matrix<N,GMatrix,RVector<D>,real_t,function_t>(this->local_remainder(position),g);
 	}
 
 };
 
-template<int N, int D>
-struct EigenBasis {
-	using potential_type = GVector<rD_to_c<D>,N>;
-	using jacobian_type = GVector<rD_to_cD<D>,N>;
-	using hessian_type = GVector<rD_to_cDxD<D>,N>;
-	using transformation_type = rD_to_cNxN<D,N>;
-	using local_quadratic_type = rD_to_function_vector<D,N,rD_to_c<D>>;
-    using local_remainder_type = rD_to_function_vector<D,N,rD_to_c<D>>;
-    
-    using potential_evaluation_type = CVector<N>;
-    using jacobian_evaluation_type = GVector<CVector<D>,N>;
-	using hessian_evaluation_type = GVector<CMatrix<D,D>,N>;
-
-	private:
-	friend MatrixPotential< ::CanonicalBasis,N,D>;
-
-	static potential_evaluation_type evaluate_at(const MatrixPotential< ::EigenBasis,N,D>& that, RVector<D> arg) {
-		return evaluate_function_vector<N,GVector,RVector<D>,complex_t,function_t>(that.potential,arg);
+template<template<int,int> class B, int N, int D>
+struct MatrixPotential : public EvaluationImplementation<B, N,D>, public LocalRemainderImplementation<B,N,D> {
+	
+	using Basis = B<N,D>;
+	MatrixPotential(typename Basis::potential_type potential,
+	typename Basis::jacobian_type jacobian,
+	typename Basis::hessian_type hessian) 
+	: AbstractMatrixPotential<B,N,D>(potential,jacobian,hessian),
+	EvaluationImplementation<B,N,D>(potential,jacobian, hessian),
+	LocalRemainderImplementation<B,N,D>(potential,jacobian,hessian)
+	{
 	}
 	
-	static jacobian_evaluation_type evaluate_jacobian_at(const MatrixPotential< ::EigenBasis,N,D>& that, RVector<D> arg) {
-		return evaluate_function_vector(that.jacobian,arg);
-	}
-	
-	static hessian_evaluation_type evaluate_hessian_at(const MatrixPotential< ::EigenBasis,N,D>& that, RVector<D> arg) {
-		return evaluate_function_matrix(that.hessian, arg);
-	}
-
 };
+
+//~ template<int N, int D>
+//~ struct EigenBasis {
+	//~ using potential_type = GVector<rD_to_c<D>,N>;
+	//~ using jacobian_type = GVector<rD_to_cD<D>,N>;
+	//~ using hessian_type = GVector<rD_to_cDxD<D>,N>;
+	//~ using transformation_type = rD_to_cNxN<D,N>;
+	//~ using local_quadratic_type = rD_to_function_vector<D,N,rD_to_c<D>>;
+    //~ using local_remainder_type = rD_to_function_vector<D,N,rD_to_c<D>>;
+    //~ 
+    //~ using potential_evaluation_type = CVector<N>;
+    //~ using jacobian_evaluation_type = GVector<CVector<D>,N>;
+	//~ using hessian_evaluation_type = GVector<CMatrix<D,D>,N>;
+//~ 
+	//~ private:
+	//~ friend MatrixPotential< ::CanonicalBasisImplementation,N,D>;
+//~ 
+	//~ potential_evaluation_type evaluate_at(RVector<D> arg) {
+		//~ return evaluate_function_vector<N,GVector,RVector<D>,complex_t,function_t>(this->potential,arg);
+	//~ }
+	//~ 
+	//~ static jacobian_evaluation_type evaluate_jacobian_at(RVector<D> arg) {
+		//~ return evaluate_function_vector(this->jacobian,arg);
+	//~ }
+	//~ 
+	//~ static hessian_evaluation_type evaluate_hessian_at(RVector<D> arg) {
+		//~ return evaluate_function_matrix(this->hessian, arg);
+	//~ }
+//~ 
+//~ };
 
 
 
@@ -415,7 +462,7 @@ int main() {
 	
 
 	
-	//~ MatrixPotential<CanonicalBasis,2,3> eigen_test(eigen_potential,  basis_transform, eigen_jacobian, eigen_hessian);
+	//~ MatrixPotential<CanonicalBasisImplementation,2,3> eigen_test(eigen_potential,  basis_transform, eigen_jacobian, eigen_hessian);
 	
 	MatrixPotential<CanonicalBasis,2,3> test(canonical_potential, canonical_jacobian, canonical_hessian);
 	//~ MatrixPotential<EigenBasis,2,3> testEigs(eigen_potential, eigen_jacobian, eigen_hessian);
@@ -428,7 +475,7 @@ int main() {
 	evalPoints[2] = RVector<3>{2,1,3};
 	test.evaluate_at(evalPoints[0]);
 	test.evaluate(evalPoints);
-	//~ CanonicalBasis<N,D>::evaluate_at(test,evalPoints[0]);
+	//~ CanonicalBasisImplementation<N,D>::evaluate_at(test,evalPoints[0]);
 	//~ testEigs.evaluate_at(evalPoints[0]);
 	//~ test.test();
 	//~ test.evaluate_at<std::vector>(evalPoints);
