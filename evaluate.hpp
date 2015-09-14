@@ -7,26 +7,26 @@ template <template <template <int, int> class, int, int> class S,
 struct EvaluationAbstract {
   GET_TYPES(EvaluationAbstract, S, B, N, D);
 
-  potential_evaluation_type evaluate_at(RVector<D> arg) {
+  potential_evaluation_type evaluate_at(const RVector<D>& arg) {
     return that.evaluate_at_implementation(arg);
   }
 
   template <template <typename...> class grid_in = std::vector,
             template <typename...> class grid_out = grid_in>
-  grid_out<potential_evaluation_type> evaluate(grid_in<RVector<D> > args) {
+  grid_out<potential_evaluation_type> evaluate(const grid_in<RVector<D>>& args) {
     return evaluate_function_in_grid<RVector<D>, potential_evaluation_type,
                                      grid_in, grid_out, function_t>(
         std::bind(&self_type::evaluate_at, this, std::placeholders::_1), args);
   }
 
-  jacobian_evaluation_type evaluate_jacobian_at(RVector<D> arg) {
+  jacobian_evaluation_type evaluate_jacobian_at(const RVector<D>& arg) {
     return that.evaluate_jacobian_at_implementation(arg);
   }
 
   template <template <typename...> class grid_in = std::vector,
             template <typename...> class grid_out = grid_in>
   grid_out<jacobian_evaluation_type>
-  evaluate_jacobian(grid_in<RVector<D> > args) {
+  evaluate_jacobian(const grid_in<RVector<D>>& args) {
     return evaluate_function_in_grid<RVector<D>, jacobian_evaluation_type,
                                      grid_in, grid_out, function_t>(
         std::bind(&self_type::evaluate_jacobian_at, this,
@@ -34,14 +34,14 @@ struct EvaluationAbstract {
         args);
   }
 
-  hessian_evaluation_type evaluate_hessian_at(RVector<D> arg) {
+  hessian_evaluation_type evaluate_hessian_at(const RVector<D>& arg) {
     return that.evaluate_hessian_at_implementation(arg);
   }
 
   template <template <typename...> class grid_in = std::vector,
             template <typename...> class grid_out = grid_in>
   grid_out<hessian_evaluation_type>
-  evaluate_hessian(grid_in<RVector<D> > args) {
+  evaluate_hessian(const grid_in<RVector<D>>& args) {
     return evaluate_function_in_grid<RVector<D>, hessian_evaluation_type,
                                      grid_in, grid_out, function_t>(
         std::bind(&self_type::evaluate_hessian_at, this, std::placeholders::_1),
@@ -57,7 +57,7 @@ struct EvaluationAbstract {
   template <template <typename...> class Tuple = std::tuple,
             template <typename...> class grid_in = std::vector,
             template <typename...> class grid_out = grid_in>
-  grid_out<Tuple<> > taylor(grid_in<RVector<D> > args) {
+  grid_out<Tuple<> > taylor(const grid_in<RVector<D>>& args) {
     return evaluate_function_in_grid<RVector<D>, Tuple<>, grid_in, grid_out,
                                      function_t>(
         std::bind(&self_type::taylor_at, this, std::placeholders::_1), args);
@@ -71,7 +71,7 @@ struct EvaluationAbstract {
   template <template <typename...> class grid_in = std::vector,
             template <typename...> class grid_out = grid_in>
   grid_out<potential_evaluation_type>
-  evaluate_local_remainder(grid_in<RVector<D> > args,RVector<D> position) {
+  evaluate_local_remainder(const grid_in<RVector<D>>& args,RVector<D> position) {
     return evaluate_function_in_grid<RVector<D>, potential_evaluation_type,
                                      grid_in, grid_out, function_t>(
         std::bind(&self_type::evaluate_local_remainder_at, this,
@@ -103,19 +103,19 @@ public:
       : potential(potential), jacobian(jacobian), hessian(hessian) {}
 
 public:
-  potential_evaluation_type evaluate_at_implementation(RVector<D> arg) {
+  potential_evaluation_type evaluate_at_implementation(const RVector<D>& arg) {
     return evaluate_function_matrix<N, GMatrix, RVector<D>,
                                     potential_return_type, function_t>(
         this->potential, arg);
   }
 
-  jacobian_evaluation_type evaluate_jacobian_at_implementation(RVector<D> arg) {
+  jacobian_evaluation_type evaluate_jacobian_at_implementation(const RVector<D>& arg) {
     return evaluate_function_matrix<N, GMatrix, RVector<D>,
                                     jacobian_return_type, function_t>(
         this->jacobian, arg);
   }
 
-  hessian_evaluation_type evaluate_hessian_at_implementation(RVector<D> arg) {
+  hessian_evaluation_type evaluate_hessian_at_implementation(const RVector<D>& arg) {
     return evaluate_function_matrix<N, GMatrix, RVector<D>, hessian_return_type,
                                     function_t>(this->hessian, arg);
   }
@@ -147,19 +147,19 @@ public:
       : potential(potential), jacobian(jacobian), hessian(hessian) {}
 
 public:
-  potential_evaluation_type evaluate_at_implementation(RVector<D> arg) {
+  potential_evaluation_type evaluate_at_implementation(const RVector<D>& arg) {
     return evaluate_function_vector<N, GVector, RVector<D>,
                                     potential_return_type, function_t>(
         this->potential, arg);
   }
 
-  jacobian_evaluation_type evaluate_jacobian_at_implementation(RVector<D> arg) {
+  jacobian_evaluation_type evaluate_jacobian_at_implementation(const RVector<D>& arg) {
     return evaluate_function_vector<N, GVector, RVector<D>,
                                     jacobian_return_type, function_t>(
         this->jacobian, arg);
   }
 
-  hessian_evaluation_type evaluate_hessian_at_implementation(RVector<D> arg) {
+  hessian_evaluation_type evaluate_hessian_at_implementation(const RVector<D>& arg) {
     return evaluate_function_vector<N, GVector, RVector<D>, hessian_return_type,
                                     function_t>(this->hessian, arg);
   }
