@@ -13,4 +13,4 @@
   using potential_return_type = typename Basis::potential_return_type;         \
   using jacobian_return_type = typename Basis::jacobian_return_type;           \
   using hessian_return_type = typename Basis::hessian_return_type;             \
-  using self_type = NAME<S, B, N, D>
+  using Self = NAME<S, B, N, D>

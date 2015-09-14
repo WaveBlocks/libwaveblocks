@@ -1,42 +1,41 @@
 #pragma once
 #include "macros.hpp"
 
-template < template <template <int, int> class, int, int> class S,
-         template <int, int> class B,
-         int N,
-         int D >
-struct ExponentialImplemenation
-{
-  GET_TYPES( ExponentialImplemenation, S, B, N, D );
-  
-  potential_evaluation_type evaluate_exponential_at( const RVector<D> &arg,
-      real_t factor = 1 ) {
+template <template <template <int, int> class, int, int> class S,
+          template <int, int> class B,
+          int N,
+          int D>
+struct ExponentialImplemenation {
+  GET_TYPES(ExponentialImplemenation, S, B, N, D);
+
+  potential_evaluation_type evaluate_exponential_at(const RVector<D>& arg,
+                                                    real_t factor = 1) {
     // Compute matrix
-    auto values = that.evaluate( arg );
+    auto values = that.evaluate(arg);
     potential_evaluation_type result;
-    
+
     // Compute exponential
-    Eigen::MatrixExponential<potential_evaluation_type> m_exp( factor * values );
-    
-    m_exp.compute( result );
+    Eigen::MatrixExponential<potential_evaluation_type> m_exp(factor * values);
+
+    m_exp.compute(result);
     return result;
   }
-  
-  template < template <typename...> class grid_in = std::vector,
-           template <typename...> class grid_out = grid_in >
+
+  template <template <typename...> class grid_in = std::vector,
+            template <typename...> class grid_out = grid_in>
   grid_out<potential_evaluation_type> evaluate_exponential(
-    grid_in<RVector<D> > args,
-    real_t factor = 1 ) {
-    return evaluate_function_in_grid < RVector<D>,
-           potential_evaluation_type,
-           grid_in,
-           grid_out,
-           function_t > (
-             std::bind( &self_type::evaluate_exponential_at,
-                        this,
-                        std::placeholders::_1,
-                        factor ),
-             args );
+      grid_in<RVector<D> > args,
+      real_t factor = 1) {
+    return evaluate_function_in_grid<RVector<D>,
+                                     potential_evaluation_type,
+                                     grid_in,
+                                     grid_out,
+                                     function_t>(
+        std::bind(&Self::evaluate_exponential_at,
+                  this,
+                  std::placeholders::_1,
+                  factor),
+        args);
   }
 };
 
