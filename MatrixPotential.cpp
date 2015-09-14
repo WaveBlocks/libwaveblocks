@@ -29,24 +29,21 @@ struct MatrixPotential
    * the C++11 injected-class-name rule can be found at
    * http://stackoverflow.com/a/17687568/3139931
    */
-  friend EvaluationImplementation< ::MatrixPotential, B, N, D>;
-  friend LocalRemainderImplementation< ::MatrixPotential, B, N, D>;
+  friend EvaluationImplementation<::MatrixPotential, B, N, D>;
+  friend LocalRemainderImplementation<::MatrixPotential, B, N, D>;
 
   MatrixPotential(typename Basis::potential_type potential,
                   typename Basis::jacobian_type jacobian,
                   typename Basis::hessian_type hessian)
-      : EvaluationImplementation< ::MatrixPotential, B, N, D>(
-            potential, jacobian, hessian),
-        LocalRemainderImplementation< ::MatrixPotential, B, N, D>() {}
+      : EvaluationImplementation<::MatrixPotential, B, N, D>(potential,
+                                                             jacobian, hessian),
+        LocalRemainderImplementation<::MatrixPotential, B, N, D>() {}
 };
 
 template <template <int, int> class B, int N, int D>
-struct ExtendedPotential 
-	: public MatrixPotential<B,N,D>,
-	  public ExponentialImplemenation<ExtendedPotential, B, N, D> {
-	  
-};
-
+struct ExtendedPotential
+    : public MatrixPotential<B, N, D>,
+      public ExponentialImplemenation<ExtendedPotential, B, N, D> {};
 
 int main() {
   // Testing
@@ -58,9 +55,8 @@ int main() {
 
   canonical_potential(0,
                       0) = [=](RVector<D> x) { return x[0] * x[1] - x[2] + 1; };
-  canonical_jacobian(0, 0) = [=](RVector<D> x) {
-    return RVector<D>({ x[1], x[0], -1 });
-  };
+  canonical_jacobian(
+      0, 0) = [=](RVector<D> x) { return RVector<D>({x[1], x[0], -1}); };
   canonical_hessian(0, 0) = [=](RVector<D> x) {
     RMatrix<D, D> result;
     result(0, 0) = 0;
@@ -78,7 +74,7 @@ int main() {
 
   canonical_potential(0, 1) = [=](RVector<D> x) { return 2 * x[0]; };
   canonical_jacobian(0,
-                     1) = [=](RVector<D> x) { return RVector<D>({ 2, 0, 0 }); };
+                     1) = [=](RVector<D> x) { return RVector<D>({2, 0, 0}); };
   canonical_hessian(0, 1) = [=](RVector<D> x) {
     RMatrix<D, D> result;
     result(0, 0) = 0;
@@ -95,9 +91,8 @@ int main() {
   };
 
   canonical_potential(1, 0) = [=](RVector<D> x) { return x[0] * x[0]; };
-  canonical_jacobian(1, 0) = [=](RVector<D> x) {
-    return RVector<D>({ 2 * x[0], 0, 0 });
-  };
+  canonical_jacobian(
+      1, 0) = [=](RVector<D> x) { return RVector<D>({2 * x[0], 0, 0}); };
   canonical_hessian(1, 0) = [=](RVector<D> x) {
     RMatrix<D, D> result;
     result(0, 0) = 2;
@@ -113,9 +108,8 @@ int main() {
     return result;
   };
   canonical_potential(1, 1) = [=](RVector<D> x) { return x[1] * x[1]; };
-  canonical_jacobian(1, 1) = [=](RVector<D> x) {
-    return RVector<D>({ 0, 2 * x[1], 0 });
-  };
+  canonical_jacobian(
+      1, 1) = [=](RVector<D> x) { return RVector<D>({0, 2 * x[1], 0}); };
   canonical_hessian(1, 1) = [=](RVector<D> x) {
     RMatrix<D, D> result;
     result(0, 0) = 0;
@@ -136,7 +130,7 @@ int main() {
   GVector<rD_to_cDxD<D>, N> eigen_hessian;
   eigen_potential(1) = [=](RVector<D> x) { return x[1] * x[1]; };
   eigen_jacobian(1) = [=](RVector<D> x) {
-    return CVector<D>({ 0, 2 * x[1], 0 });
+    return CVector<D>({0, 2 * x[1], 0});
   };
   eigen_hessian(1) = [=](RVector<D> x) {
     CMatrix<D, D> result;
@@ -155,7 +149,7 @@ int main() {
 
   eigen_potential(0) = [=](RVector<D> x) { return x[0] * x[0]; };
   eigen_jacobian(0) = [=](RVector<D> x) {
-    return CVector<D>({ 2 * x[0], 0, 0 });
+    return CVector<D>({2 * x[0], 0, 0});
   };
   eigen_hessian(0) = [=](RVector<D> x) {
     CMatrix<D, D> result;
@@ -174,20 +168,20 @@ int main() {
 
   rD_to_cNxN<D, N> basis_transform;
 
-  MatrixPotential<EigenBasis,2,3>
-  eigen_test(eigen_potential, eigen_jacobian, eigen_hessian);
+  MatrixPotential<EigenBasis, 2, 3> eigen_test(eigen_potential, eigen_jacobian,
+                                               eigen_hessian);
 
-  MatrixPotential<CanonicalBasis, 2, 3> 
-  test(canonical_potential, canonical_jacobian, canonical_hessian);
+  MatrixPotential<CanonicalBasis, 2, 3> test(
+      canonical_potential, canonical_jacobian, canonical_hessian);
 
-  test.evaluate_local_remainder<std::vector>(std::vector<RVector<3>>(1,RVector<3>({1,2,3})),RVector<3>{0,1,2});
+  test.evaluate_local_remainder<std::vector>(
+      std::vector<RVector<3>>(1, RVector<3>({1, 2, 3})), RVector<3>{0, 1, 2});
 
-  std::vector<RVector<3> > evalPoints(3);
-  evalPoints[0] = RVector<3>{ 1, 1, 3 };
-  evalPoints[1] = RVector<3>{ 0, 2, 0 };
-  evalPoints[2] = RVector<3>{ 2, 1, 3 };
+  std::vector<RVector<3>> evalPoints(3);
+  evalPoints[0] = RVector<3>{1, 1, 3};
+  evalPoints[1] = RVector<3>{0, 2, 0};
+  evalPoints[2] = RVector<3>{2, 1, 3};
   test.evaluate_at(evalPoints[0]);
   test.evaluate(evalPoints);
   eigen_test.evaluate_at(evalPoints[0]);
-  
 }
