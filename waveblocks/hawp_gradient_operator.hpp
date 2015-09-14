@@ -8,7 +8,7 @@ namespace waveblocks
 {
 
 /**
- * \brief This class represents the gradient \f$ \nabla \Phi \f$ of a (scalar) Hagedorn wavepacket \f$ \Phi \f$.
+ * \brief This class represents the gradient \f$ -i\varepsilon^2\nabla_x \Phi \f$ of a (scalar) Hagedorn wavepacket \f$ \Phi \f$.
  * 
  * The gradient of a \f$ D \f$-dimensional wavepacket has \f$ D \f$ components.
  * 
@@ -255,7 +255,8 @@ private:
 }; // class HaWpGradient
 
 /**
- * \brief Constructs the gradient wavepacket, given a scalar Hagedorn wavepacket.
+ * \brief This class applies the gradient operator \f$ -i\varepsilon^2\nabla_x \f$
+ * to an arbitrary scalar wavepacket \f$ \Phi \f$.
  * 
  * All you have to do is:
  * \code{.cpp}
@@ -285,12 +286,13 @@ class HaWpGradientOperator
 {
 public:
     /**
-     * \brief Applies this gradient operator to a _scalar_ Hagedorn wavepacket.
+     * \brief Applies the gradient operator \f$ -i\varepsilon^2\nabla_x \f$
+     * to an arbitrary scalar wavepacket \f$ \Phi \f$.
      * 
      * _Vectorial wavepackets:_ 
      * You cannot apply this function directly to vectorial wavepackets \f$ \Psi \f$. You have to
      * apply the gradient to each component \f$ \Phi_n \f$ (which is scalar) of the vectorial wavepacket.
-     * \f$ \nabla \Psi = \left( \nabla \Phi_1, \dots, \nabla \Phi_N \right)^T \f$
+     * \f$ -i\varepsilon^2\nabla \Psi = \left( -i\varepsilon^2\nabla \Phi_1, \dots, -i\varepsilon^2\nabla \Phi_N \right)^T \f$
      * 
      * _Thread-Safety:_ Computing the gradient involves creating a shape extension.
      * Since computing a shape extension is very expensive, shape extensions are cached.

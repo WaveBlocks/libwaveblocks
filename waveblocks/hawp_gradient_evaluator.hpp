@@ -12,7 +12,9 @@
 namespace waveblocks {
 
 /**
- * \brief This class constructs the coefficients of the Hagedorn gradient wavepacket.
+ * \brief This class constructs the coefficients of the 
+ * Hagedorn gradient wavepacket \f$ -i\varepsilon^2\nabla_x \f$
+ * applied to an arbitrary scalar wavepacket \f$ \Phi \f$.
  * 
  * This class is low-level. You should not use it directly.
  * Instead, use the high-level HaWpGradientOperator.
