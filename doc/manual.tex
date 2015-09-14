@@ -84,8 +84,8 @@ a minimum bounding box.
 \begin{definition}[Surface functions of basis shapes]
   The \(D\) surface functions of an arbitrary \(D\)-dimensional shape are defined by
   \begin{equation}
-  s_{\alpha}(\mindex{n})=\max_{k_{\alpha}}
-    \left\{\mindex{k} \in \mathfrak{K} \;|\;
+  s_{\alpha}(\mindex{n})=\max
+    \left\{k_{\alpha} \mid \mindex{k} \in \mathfrak{K} \land
       k_d = n_d \; \forall d \neq \alpha
     \right\}
     \label{eq:basis_shape_surface_function}
@@ -101,7 +101,7 @@ is straightforward.
   The minimum bounding box describes the smallest
   box, within which all shape nodes lie.
   \begin{equation}
-    L_{\alpha}=\max_{k_{\alpha}}\left\{\mindex{k} \in \mathfrak{K}\right\}
+    L_{\alpha}=\max\left\{k_{\alpha} \mid \mindex{k} \in \mathfrak{K}\right\}
     \label{eq:basis_shape_bbox}
   \end{equation}
 \end{definition}
@@ -136,7 +136,7 @@ is straightforward.
 
   \begin{equation}
     \label{eq:hypercubic_shape}
-    \mathfrak{K}(D,\mindex{K}):=\left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \;|\; k_d < K_d \forall d\right\}
+    \mathfrak{K}(D,\mindex{K}) \coloneqq \left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \;|\; k_d < K_d \forall d\right\}
   \end{equation}
 \end{definition}
 
@@ -144,7 +144,7 @@ We derive the surface functions by inserting (\ref{eq:hypercubic_shape}) into
 equation
 (\ref{eq:basis_shape_surface_function}):
 \[
-  s_{\alpha}(\mindex{n})=\max_{k_{\alpha}}\left\{(k_{\alpha}<K_{\alpha}) \;\land\;
+  s_{\alpha}(\mindex{n})=\max\left\{k_{\alpha} \mid (k_{\alpha}<K_{\alpha}) \;\land\;
     (n_d < K_d \;\forall d \neq \alpha)\right\}
 \]
 
@@ -161,7 +161,7 @@ equation
 (\ref{eq:basis_shape_bbox}):
 
 \[
-L_{\alpha}=\max_{k_{\alpha}}\left\{k_{\alpha}<K_{\alpha}\right\}
+L_{\alpha}=\max\left\{k_{\alpha} \mid k_{\alpha}<K_{\alpha}\right\}
 \]
 
 \begin{equation}
@@ -171,7 +171,7 @@ L_{\alpha}=K_{\alpha}-1
 \begin{definition}[Hyperbolic cut basis shape]
   Given the sparsity parameter \(S\), a hyperbolic cut shape is defined by
   \begin{equation}
-    \mathfrak{K}(D,S):=\left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \;|\;\prod_{d=1}^D(k_d+1) \leq S\right\}
+    \mathfrak{K}(D,S) \coloneqq \left\{(k_1,\dots,k_D) \in \mathbb{N}_0^D \;|\;\prod_{d=1}^D(k_d+1) \leq S\right\}
     \label{eq:hyperbolic_cut_shape}
   \end{equation}
 \end{definition}
@@ -181,8 +181,8 @@ equation (\ref{eq:basis_shape_surface_function}):
 
 \[
   s_{\alpha}(\mindex{n})=
-  \max_{k_{\alpha}}\left\{(k_{\alpha}+1)\prod_{d \neq \alpha} (n_d+1) \leq S \right\} =
-  \max_{k_{\alpha}}\left\{k_{\alpha}+1 \leq \frac{S}{\prod_{d \neq \alpha}(n_d+1)}\right\}
+  \max\left\{k_{\alpha} \mid (k_{\alpha}+1)\prod_{d \neq \alpha} (n_d+1) \leq S \right\} =
+  \max\left\{k_{\alpha} \mid k_{\alpha}+1 \leq \frac{S}{\prod_{d \neq \alpha}(n_d+1)}\right\}
 \]
 
 \begin{equation}
@@ -193,8 +193,8 @@ We retrieve the minimum bounding box by inserting (\ref{eq:hyperbolic_cut_shape}
 equation (\ref{eq:basis_shape_bbox}):
 
 \[
-  L_{\alpha}=\max_{k_{\alpha}}\left\{\prod_d(k_d+1) \leq S\right\} =
-  \max_{k_{\alpha}}\left\{k_{\alpha}+1 \leq \frac{S}{\prod_{d \neq \alpha}(k_d+1)}\right\}
+  L_{\alpha}=\max\left\{k_{\alpha} \mid \prod_d(k_d+1) \leq S\right\} =
+  \max\left\{k_{\alpha} \mid k_{\alpha}+1 \leq \frac{S}{\prod_{d \neq \alpha}(k_d+1)}\right\}
 \]
 
 \begin{equation}
@@ -461,7 +461,7 @@ We need basis shape extensions to compute wavepacket gradients.
   Given a basis shape \( \mathfrak{K} \),
   the shape extension \( \overline{\mathfrak{K}} \) is defined by
   \begin{equation}
-    \mathfrak{K}_{ext} := \mathfrak{K} \cup 
+    \mathfrak{K}_{ext} \coloneqq \mathfrak{K} \cup 
     \left\{\mindex{k}' \colon \mindex{k}' = \mindex{k} + \mindex{e}^d 
       \forall \mindex{k} \in \mathfrak{K} \forall d\right\}
   \end{equation}
@@ -516,7 +516,7 @@ with coefficients \(c_{\mindex{k}}\)
 
 \begin{equation}
   \label{eq:scalar_hawp_inf}
-  \ket{\Phi} := \Phi[\Pi](\vec{x}) = \exp{\left(\frac{iS}{\varepsilon^2}\right)} 
+  \ket{\Phi} \coloneqq \Phi[\Pi](\vec{x}) = \exp{\left(\frac{iS}{\varepsilon^2}\right)} 
   \sum_{\mindex{k} \in \mathbb{N}^D} c_{\mindex{k}}\phi_{\mindex{k}}[\Pi](\vec{x})
 \end{equation}
 
@@ -526,7 +526,7 @@ contains \(D\) integers called indices.
 The basis functions \(\Phi_{\mindex{k}}\) are specified by the
 Hagedorn parameter set \(\Pi\). It is a tuple
 \[
-  \Pi := \left(\vec{q},\vec{p},\mat{Q},\mat{P},S\right)
+  \Pi \coloneqq \left(\vec{q},\vec{p},\mat{Q},\mat{P},S\right)
 \]
 containing the vectors \( \vec{q},\vec{p} \in \mathbb{R}^D \) and
 complex matrices \( \mat{Q},\mat{P} \in \mathbb{C}^{D \times D} \). \(S\) is
@@ -545,13 +545,13 @@ The wavepacket equation becomes
 To specify a Hagedorn wavepacket I often use the tuple notation
 
 \[
-  \Phi := \left(\varepsilon,\Pi,\mathfrak{K},c\right)
+  \Phi \coloneqq  \left(\varepsilon,\Pi,\mathfrak{K},c\right)
 \]
 
 \subsection{Vectorial wavepackets}
 Vectorial Hagedorn wavepackets \(\Psi\) have multiple components \(\Phi_i\)
 \[
-  \Psi(\vec{x}) :=
+  \Psi(\vec{x}) \coloneqq 
   \begin{pmatrix}
     \Phi_1(\vec{x}) \\
     \Phi_2(\vec{x}) \\
@@ -569,8 +569,8 @@ Common vectorial wavepacket types are:
   The inhomogeneous wavepacket is the most general case, as its components only share
   the scaling parameter \(\varepsilon\).
   \[
-    \Phi_i := (\varepsilon, \Pi_i, \mathfrak{K}_i, c_i) \] \[
-    \Psi := \left(\varepsilon, 
+    \Phi_i \coloneqq  (\varepsilon, \Pi_i, \mathfrak{K}_i, c_i) \] \[
+    \Psi \coloneqq  \left(\varepsilon, 
     \begin{pmatrix}
       (\Pi_1, \mathfrak{K}_1, c_1) \\
       \vdots \\
@@ -581,8 +581,8 @@ Common vectorial wavepacket types are:
   A homogeneous wavepacket is a special case of the inhomogeneous wavepacket.
   All components share the same Hagedorn parameter set \(\Pi\).
   \[
-    \Phi_i := (\varepsilon, \Pi, \mathfrak{K}_i, c_i) \] \[
-    \Psi := \left(\varepsilon, \Pi,
+    \Phi_i \coloneqq  (\varepsilon, \Pi, \mathfrak{K}_i, c_i) \] \[
+    \Psi \coloneqq  \left(\varepsilon, \Pi,
     \begin{pmatrix}
       (\mathfrak{K}_1, c_1) \\
       \vdots \\
@@ -594,8 +594,8 @@ Common vectorial wavepacket types are:
   wavepacket. All components share the same Hagedorn parameter set and the
   same basis shape, which is an extension of the original wavepacket's basis shape.
   \[
-    \frac{\partial \Phi}{\partial x_n} := (\varepsilon, \Pi, \mathfrak{K}_{ext}, c'_n) \] \[
-    \vec{\nabla} \Phi := \left(\varepsilon, \Pi, \mathfrak{K}_{ext},
+    \frac{\partial \Phi}{\partial x_n} \coloneqq  (\varepsilon, \Pi, \mathfrak{K}_{ext}, c'_n) \] \[
+    \vec{\nabla} \Phi \coloneqq  \left(\varepsilon, \Pi, \mathfrak{K}_{ext},
     \begin{pmatrix}
       (c'_1) \\
       \vdots \\
@@ -733,7 +733,7 @@ The root basis function \(\phi_{\mindex{0}}\) is evaluated by
 \begin{equation}
   \label{eq:phi0_Dd}
   \phi_{\mindex{0}}[\Pi]\left(\vec{x}\right)
-  \assign
+  \coloneqq
   (\pi\varepsilon^2)^{-\frac{D}{4}} (\det\mat{Q})^{-\frac{1}{2}}
   \exp \left( \frac{i}{2\varepsilon^2}
     \dotp{(\vec{x}-\vec{q})}{\mat{P}\mat{Q}^\mathrm{-1}(\vec{x}-\vec{q})}
@@ -813,7 +813,7 @@ My solution has two compelling advantages:
   \Input{Shape enumeration (slices)
     \(\mathfrak{K} = \left(\mathfrak{S}^0, \ldots,
       \mathfrak{S}^{S-1}\right)\)}
-  \Output{Evaluated basis functions (slices) \(\phi := \left(\phi^0, \phi^1, \ldots, \phi^{S-1}\right)\)}
+  \Output{Evaluated basis functions (slices) \(\phi \coloneqq  \left(\phi^0, \phi^1, \ldots, \phi^{S-1}\right)\)}
   \emph{Compute ground state}\;
   \(\phi^0 \gets \left\{ \phi_{\mindex{0}}[\Pi](\vec{x}) \right\} \)\;
   \emph{Loop over all slices}\;
@@ -914,7 +914,7 @@ the benefit of an algorithm, that exploits shape overlaps, can be considerable.
 One way to achieve this, is to compute the union of the
 basis shapes of all components:
 \[
-\mathfrak{K}^{\cup} := \mathfrak{K}^1 \cup \mathfrak{K}^2 \cup \dots \cup \mathfrak{K}^N
+\mathfrak{K}^{\cup} \coloneqq  \mathfrak{K}^1 \cup \mathfrak{K}^2 \cup \dots \cup \mathfrak{K}^N
 \]
 
 Then we compute the basis functions governed by the basis shape union:
@@ -1242,3 +1242,8 @@ wavepackets scales reasonable well.
 \bibliography{references}
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
