@@ -1,4 +1,4 @@
-#define that (*static_cast<Subtype *>(this))
+#define that (*static_cast<Subtype*>(this))
 #define GET_TYPES(NAME, S, B, N, D)                                            \
   using Basis = B<N, D>;                                                       \
   using Subtype = S<B, N, D>;                                                  \

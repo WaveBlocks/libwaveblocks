@@ -5,91 +5,108 @@
 
 #include <iostream>
 
-// Adaptor class 
-template <class Matrix> class MatrixToGrid;
+// Adaptor class
+template <class Matrix>
+class MatrixToGrid;
 
-template <class Matrix> class MatrixToGridIterator {
-private:
-  MatrixToGrid<Matrix> &g;
-
-  static const int N = Matrix::RowsAtCompileTime;
-  static const int M = Matrix::ColsAtCompileTime;
-  using grid_element_type = GVector<typename Matrix::Scalar, N>;
-  int i;
-
-public:
-  MatrixToGridIterator(MatrixToGrid<Matrix> &adaptor, int i)
-      : g(adaptor), i(i) {}
-  bool operator!=(MatrixToGridIterator<Matrix> other) { return other.i != i; }
-
-  void operator++() { ++i; }
-  grid_element_type operator*() { return g[i]; }
+template <class Matrix>
+class MatrixToGridIterator
+{
+  private:
+    MatrixToGrid<Matrix> &g;
+    
+    static const int N = Matrix::RowsAtCompileTime;
+    static const int M = Matrix::ColsAtCompileTime;
+    using grid_element_type = GVector<typename Matrix::Scalar, N>;
+    int i;
+    
+  public:
+    MatrixToGridIterator( MatrixToGrid<Matrix> &adaptor, int i )
+      : g( adaptor ), i( i ) {}
+    bool operator!=( MatrixToGridIterator<Matrix> other ) {
+      return other.i != i;
+    }
+    
+    void operator++() {
+      ++i;
+    }
+    grid_element_type operator*() {
+      return g[i];
+    }
 };
 
-template <class Matrix> class MatrixToGrid {
-private:
-  static const int N = Matrix::RowsAtCompileTime;
-  static const int M = Matrix::ColsAtCompileTime;
-  using grid_element_type = GVector<typename Matrix::Scalar, N>;
-
-  const Matrix &matrix;
-
-public:
-  size_t size() { return M; }
-
-  MatrixToGrid(const Matrix &matrix) : matrix(matrix) {}
-
-  grid_element_type operator[](int i) {
-		return matrix.template block<N, 1>(0, i);
-  }
-
-  MatrixToGridIterator<Matrix> begin() {
-    return MatrixToGridIterator<Matrix>(*this, 0);
-  }
-  MatrixToGridIterator<Matrix> end() {
-    return MatrixToGridIterator<Matrix>(*this, M);
-  }
+template <class Matrix>
+class MatrixToGrid
+{
+  private:
+    static const int N = Matrix::RowsAtCompileTime;
+    static const int M = Matrix::ColsAtCompileTime;
+    using grid_element_type = GVector<typename Matrix::Scalar, N>;
+    
+    const Matrix &matrix;
+    
+  public:
+    size_t size() {
+      return M;
+    }
+    
+    MatrixToGrid( const Matrix &matrix ) : matrix( matrix ) {}
+    
+    grid_element_type operator[]( int i ) {
+      return matrix.template block<N, 1>( 0, i );
+    }
+    
+    MatrixToGridIterator<Matrix> begin() {
+      return MatrixToGridIterator<Matrix>( *this, 0 );
+    }
+    MatrixToGridIterator<Matrix> end() {
+      return MatrixToGridIterator<Matrix>( *this, M );
+    }
 };
 
-template <int M> struct Helper {
+template <int M>
+struct Helper {
   template <class I>
   using type =
-      MatrixToGrid<GMatrix<typename I::Scalar, I::RowsAtCompileTime, M> >;
+    MatrixToGrid<GMatrix<typename I::Scalar, I::RowsAtCompileTime, M> >;
 };
 
 template <class Matrix>
 using grid_element_type =
-    GVector<typename Matrix::Scalar, Matrix::RowsAtCompileTime>;
-
+  GVector<typename Matrix::Scalar, Matrix::RowsAtCompileTime>;
 
 // Copies matrix into grid
 template <class Matrix, template <typename...> class Grid = std::vector>
-Grid<grid_element_type<Matrix> > matrixToGrid(const Matrix &m) {
+Grid<grid_element_type<Matrix> > matrixToGrid( const Matrix &m )
+{
   const int N = Matrix::RowsAtCompileTime;
   const int M = Matrix::ColsAtCompileTime;
-
-  Grid<grid_element_type<Matrix> > result(M);
+  
+  Grid<grid_element_type<Matrix> > result( M );
   auto it = result.begin();
-  for (int i = 0; i < M; ++i) {
-    *it = m.template block<N, 1>(0, i);
+  
+  for ( int i = 0; i < M; ++i ) {
+    *it = m.template block<N, 1>( 0, i );
     ++it;
   }
+  
   return result;
 }
 
 // copies grid into matrix
 template <class Matrix, template <typename...> class Grid = std::vector>
-Matrix gridToMatrix(Grid<grid_element_type<Matrix> > g) {
+Matrix gridToMatrix( Grid<grid_element_type<Matrix> > g )
+{
   const int N = Matrix::RowsAtCompileTime;
   const int M = Matrix::ColsAtCompileTime;
-
+  
   Matrix m;
   auto it = g.begin();
-  for (int i = 0; i < M; ++i) {
-    m.block<N, 1>(0, i) = *it;
+  
+  for ( int i = 0; i < M; ++i ) {
+    m.block<N, 1>( 0, i ) = *it;
     ++it;
   }
-
+  
   return m;
 }
-
