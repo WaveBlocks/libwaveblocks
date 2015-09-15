@@ -1,5 +1,6 @@
 #pragma once
 #include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 #include <functional>
 
 // scalar types
