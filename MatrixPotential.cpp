@@ -10,18 +10,9 @@
 #include "LocalRemainder.hpp"
 #include "LocalQuadratic.hpp"
 
-template <template <int, int> class B, int N, int D>
-struct MatrixPotential
-    : public LocalQuadraticImplementation<EvaluationImplementation<B,N,D>, B,N,D> {
-    
-  using Basis = B<N, D>;
-  
-  MatrixPotential( typename Basis::potential_type potential,
-                   typename Basis::jacobian_type jacobian,
-                   typename Basis::hessian_type hessian )
-    : LocalQuadraticImplementation<EvaluationImplementation<B,N,D>, B, N, D>( potential,
-        jacobian, hessian ) {}
-};
+template<int N, int D>
+using MatrixPotential = LocalRemainderHomogenousImplementation<EvaluationImplementation,N,D>;
+
 
 //~ template <template <int, int> class B, int N, int D>
 //~ struct ExtendedPotential
@@ -185,21 +176,21 @@ int main()
   
   rD_to_cNxN<D, N> basis_transform;
   
-  MatrixPotential<EigenBasis, 2, 3> eigen_test( eigen_potential, eigen_jacobian,
-      eigen_hessian );
-      
-  MatrixPotential<CanonicalBasis, 2, 3> test(
-    canonical_potential, canonical_jacobian, canonical_hessian );
-    
+  //~ MatrixPotential<EigenBasis, 2, 3> eigen_test( eigen_potential, eigen_jacobian,
+      //~ eigen_hessian );
+      //~ 
+  //~ MatrixPotential<CanonicalBasis, 2, 3> test(
+    //~ canonical_potential, canonical_jacobian, canonical_hessian );
+    //~ 
   //~ FullTest ft(canonical_potential, canonical_jacobian, canonical_hessian, basis_transform);  
   //~ test.evaluate_local_remainder<std::vector>(
     //~ std::vector<RVector<3>>( 1, RVector<3>( {1, 2, 3} ) ), RVector<3> {0, 1, 2} );
-    
-  std::vector<RVector<3>> evalPoints( 3 );
-  evalPoints[0] = RVector<3> {1, 1, 3};
-  evalPoints[1] = RVector<3> {0, 2, 0};
-  evalPoints[2] = RVector<3> {2, 1, 3};
-  test.evaluate_at( evalPoints[0] );
-  test.evaluate( evalPoints );
-  eigen_test.evaluate_at( evalPoints[0] );
+    //~ 
+  //~ std::vector<RVector<3>> evalPoints( 3 );
+  //~ evalPoints[0] = RVector<3> {1, 1, 3};
+  //~ evalPoints[1] = RVector<3> {0, 2, 0};
+  //~ evalPoints[2] = RVector<3> {2, 1, 3};
+  //~ test.evaluate_at( evalPoints[0] );
+  //~ test.evaluate( evalPoints );
+  //~ eigen_test.evaluate_at( evalPoints[0] );
 }

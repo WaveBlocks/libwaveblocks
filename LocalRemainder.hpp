@@ -23,10 +23,13 @@ class LocalRemainderHomogenousImplementation : public LocalRemainderAbstract<Loc
   LocalQuadraticImplementation<EvalImpl<EigenBasis,1,D>,EigenBasis,1,D> quadratic;
 public:
   LocalRemainderHomogenousImplementation(
-    typename leading_level_type::potential_type pot,
-    typename leading_level_type::jacobian_type jac,
-    typename leading_level_type::hessian_type hess
-  ) : quadratic(pot,jac,hess) {} 
+    potential_type pot,
+    jacobian_type jac,
+    hessian_type hess,
+    typename leading_level_type::potential_type lead_pot,
+    typename leading_level_type::jacobian_type lead_jac,
+    typename leading_level_type::hessian_type lead_hess
+  ) : EvalImpl<CanonicalBasis,N,D>(pot,jac,hess), quadratic(lead_pot,lead_jac,lead_hess) {} 
   
     typename EigenBasis<N,D>::potential_evaluation_type evaluate_local_remainder_at_implementation(const RVector<D>& arg) {
       auto u = quadratic.evaluate_local_quadratic_at(arg);
