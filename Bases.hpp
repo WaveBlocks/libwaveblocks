@@ -7,7 +7,6 @@ struct CanonicalBasis {
   using hessian_type = GMatrix<rD_to_rDxD<D>, N, N>;
   using transformation_type = rD_to_cNxN<D, N>;
   using local_quadratic_type = rD_to_function_matrix<D, N, rD_to_r<D> >;
-  using local_remainder_type = rD_to_function_matrix<D, N, rD_to_r<D> >;
   
   using potential_evaluation_type = RMatrix<N, N>;
   using jacobian_evaluation_type = GMatrix<RVector<D>, N, N>;

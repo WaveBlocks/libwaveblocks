@@ -1,9 +1,10 @@
 #pragma once
-#include <Eigen/Core>
-#include <Eigen/Eigenvalues>
 #include "types.hpp"
 
-#include <iostream>
+
+template <class Matrix>
+using grid_element_type =
+  GVector<typename Matrix::Scalar, Matrix::RowsAtCompileTime>;
 
 // Adaptor class
 template <class Matrix>
@@ -62,18 +63,15 @@ class MatrixToGrid
     MatrixToGridIterator<Matrix> end() {
       return MatrixToGridIterator<Matrix>( *this, M );
     }
+    
+    template <class I>
+    using type = MatrixToGrid<Matrix>;
 };
 
-template <int M>
-struct Helper {
-  template <class I>
-  using type =
-    MatrixToGrid<GMatrix<typename I::Scalar, I::RowsAtCompileTime, M> >;
-};
 
-template <class Matrix>
-using grid_element_type =
-  GVector<typename Matrix::Scalar, Matrix::RowsAtCompileTime>;
+
+
+// Copiers
 
 // Copies matrix into grid
 template <class Matrix, template <typename...> class Grid = std::vector>

@@ -2,29 +2,24 @@
 #include <iostream>
 #include <array>
 #include <list>
-#include <functional>
-#include <cmath>
-#include <Eigen/Core>
-#include <Eigen/Eigenvalues>
-#include <unsupported/Eigen/MatrixFunctions>
 #include "types.hpp"
 #include "utilities.hpp"
-#include "evaluate.hpp"
-#include "local_remainder.hpp"
-#include "macros.hpp"
-#include "extensions.hpp"
-#include "abstract.hpp"
+#include "Bases.hpp"
+#include "Evaluation.hpp"
+#include "Exponential.hpp"
+#include "LocalRemainder.hpp"
+#include "LocalQuadratic.hpp"
 
 template <template <int, int> class B, int N, int D>
 struct MatrixPotential
-    : public LocalRemainderImplementation<EvaluationImplementation<B,N,D>, B,N,D> {
+    : public LocalQuadraticImplementation<EvaluationImplementation<B,N,D>, B,N,D> {
     
   using Basis = B<N, D>;
   
   MatrixPotential( typename Basis::potential_type potential,
                    typename Basis::jacobian_type jacobian,
                    typename Basis::hessian_type hessian )
-    : LocalRemainderImplementation<EvaluationImplementation<B,N,D>, B, N, D>( potential,
+    : LocalQuadraticImplementation<EvaluationImplementation<B,N,D>, B, N, D>( potential,
         jacobian, hessian ) {}
 };
 
