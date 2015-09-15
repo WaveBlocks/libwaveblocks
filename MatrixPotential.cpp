@@ -11,26 +11,15 @@
 #include "LocalQuadratic.hpp"
 
 template<int N, int D>
-using MatrixPotential = LocalRemainderHomogenousImplementation<EvaluationImplementation,N,D>;
+using MatrixPotential = LocalRemainderHomogenousImplementation<EvaluationImplementation<CanonicalBasis,N,D>,EvaluationImplementation<EigenBasis,1,D>,N,D>;
+
+template<int N, int D>
+using InhomogenousMatrixPotential = LocalRemainderInhomogenousImplementation<EvaluationImplementation<CanonicalBasis,N,D>,EvaluationImplementation<EigenBasis,N,D>,N,D>;
+
+template<template<int,int> class Basis, int N, int D>
+using FullTest = ExponentialImplementation<LocalQuadraticImplementation<EvaluationImplementation<Basis,N,D>,Basis,N,D>,Basis,N,D>;
 
 
-//~ template <template <int, int> class B, int N, int D>
-//~ struct ExtendedPotential
-    //~ : public MatrixPotential<B, N, D>,
-    //~ public ExponentialImplemenation<ExtendedPotential, B, N, D> {};
-
-
-
-//~ struct FullTest 
-   //~ : public MatrixPotential<CanonicalBasis, 2,3>,
-    //~ public TransformableImplementation< ::MatrixPotential, CanonicalBasis, EigenBasis, 2, 3> {
-      //~ FullTest(typename CanonicalBasis<2,3>::potential_type pot,
-      //~ typename CanonicalBasis<2,3>::jacobian_type jac,
-      //~ typename CanonicalBasis<2,3>::hessian_type hess,
-      //~ typename TransformableAbstract< ::MatrixPotential, CanonicalBasis, EigenBasis, 2,3>::transformation_type trafo
-      //~ ):
-      //~ MatrixPotential(pot,jac,hess), TransformableImplementation(trafo) {}
-//~ };
    
 int main()
 {
