@@ -3,6 +3,7 @@
 #include "../types.hpp"
 #include "../utilities/evaluations.hpp"
 
+
 namespace matrixPotentials {
   namespace modules {
     namespace localQuadratic {
@@ -117,9 +118,21 @@ namespace matrixPotentials {
         void calculate_local_quadratic_implementation() {
           Super::local_quadratic = [ = ]( RVector<D> q ) {
             return [ = ]( RVector<D> x ) {
+              
+// Takes care of http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda              
+#if defined(__clang__)
               auto V = EvalImpl::potential( q );
               auto J = EvalImpl::jacobian( q );
               auto H = EvalImpl::hessian( q );
+#elif defined(__GNUC__) || defined(__GNUG__)
+              auto V = this->potential( q );
+              auto J = this->jacobian( q );
+              auto H = this->hessian( q );     
+#else 
+              auto V = EvalImpl::potential( q );
+              auto J = EvalImpl::jacobian( q );
+              auto H = EvalImpl::hessian( q );
+#endif
               
               auto result = V;
               
