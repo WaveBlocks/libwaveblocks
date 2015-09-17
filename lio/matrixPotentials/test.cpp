@@ -3,8 +3,8 @@
 #include "types.hpp"
 #include "bases.hpp"
 #include "potentials.hpp"
-   
-using namespace matrixPotentials;  
+
+using namespace lio;  
 int main()
 {
   // Testing
@@ -172,3 +172,4 @@ int main()
   MatrixPotential<N,D> s(canonical_potential,canonical_jacobian,canonical_hessian,leading_level,leading_jac,leading_hess);
   std::cout<<s.evaluate_local_remainder_at(RVector<D>({1,2,3}),RVector<D>({1,2,3}))<<std::endl;
 }
+
