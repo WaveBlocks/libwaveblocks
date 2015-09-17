@@ -1,32 +1,59 @@
 #pragma once
-#define IMPORT_TYPES_FROM(B,N,D)  \
-  using scalar_type = typename B<N,D>::scalar_type;                        \
-  using potential_type = typename B<N,D>::potential_type;                       \
-  using jacobian_type = typename B<N,D>::jacobian_type;                         \
-  using hessian_type = typename B<N,D>::hessian_type;                           \
-  using local_quadratic_type = typename B<N,D>::local_quadratic_type;           \
-  using potential_evaluation_type = typename B<N,D>::potential_evaluation_type; \
-  using jacobian_evaluation_type = typename B<N,D>::jacobian_evaluation_type;   \
-  using hessian_evaluation_type = typename B<N,D>::hessian_evaluation_type;     \
-  using potential_return_type = typename B<N,D>::potential_return_type;         \
-  using jacobian_return_type = typename B<N,D>::jacobian_return_type;           \
-  using hessian_return_type = typename B<N,D>::hessian_return_type              \
-  
-namespace lio { 
-  namespace matrixPotentials { 
-    namespace bases {
+#define IMPORT_TYPES_FROM(B, N, D)                                             \
+  using scalar_type = typename B<N, D>::scalar_type;                           \
+  using potential_type = typename B<N, D>::potential_type;                     \
+  using jacobian_type = typename B<N, D>::jacobian_type;                       \
+  using hessian_type = typename B<N, D>::hessian_type;                         \
+  using local_quadratic_type = typename B<N, D>::local_quadratic_type;         \
+  using potential_evaluation_type =                                            \
+      typename B<N, D>::potential_evaluation_type;                             \
+  using jacobian_evaluation_type = typename B<N, D>::jacobian_evaluation_type; \
+  using hessian_evaluation_type = typename B<N, D>::hessian_evaluation_type;   \
+  using potential_return_type = typename B<N, D>::potential_return_type;       \
+  using jacobian_return_type = typename B<N, D>::jacobian_return_type;         \
+  using hessian_return_type = typename B<N, D>::hessian_return_type
+
+namespace lio
+{
+  namespace matrixPotentials
+  {
+    namespace bases
+    {
       template <int N, int D>
       struct Basis;
-
+      
+      /**
+       * \brief Collection of types associated with a matrix potential in canonical basis
+       * 
+       * \tparam N
+       * Number of levels (dimension of square matrix when evaluated)
+       * \tparam D
+       * Dimension of argument space
+       */
       template <int N, int D>
-      using Canonical = typename Basis<N,D>::Canonical;
-
-      template< int N, int D>
-      using Eigen = typename Basis<N,D>::Eigen;
-
-
-      template<int N, int D>
-      struct Basis { 
+      using Canonical = typename Basis<N, D>::Canonical;
+      
+      /**
+       * \brief Collection of types associated with a matrix potential in eigen basis
+       * 
+       * \tparam N
+       * Number of levels (dimension of diagonal vector when evaluated)
+       * \tparam D
+       * Dimension of argument space
+       */
+      template <int N, int D>
+      using Eigen = typename Basis<N, D>::Eigen;
+      
+      /**
+       * \brief Helper class to ease template specialzations
+       * 
+       * \tparam N
+       * Number of levels
+       * \tparam D
+       * Dimension of argument space
+       */
+      template <int N, int D>
+      struct Basis {
         struct Canonical {
           using scalar_type = real_t;
           using potential_type = GMatrix<rD_to_r<D>, N, N>;
@@ -43,7 +70,7 @@ namespace lio {
           using jacobian_return_type = RVector<D>;
           using hessian_return_type = RMatrix<D, D>;
         };
-
+        
         struct Eigen {
           using scalar_type = complex_t;
           using potential_type = GVector<rD_to_c<D>, N>;
@@ -61,8 +88,8 @@ namespace lio {
           using hessian_return_type = CMatrix<D, D>;
         };
       };
-      template<int D>
-      struct Basis<1,D> {
+      template <int D>
+      struct Basis<1, D> {
         struct Canonical {
           using scalar_type = real_t;
           using potential_type = rD_to_r<D>;
@@ -94,7 +121,6 @@ namespace lio {
           using potential_return_type = complex_t;
           using jacobian_return_type = CVector<D>;
           using hessian_return_type = CMatrix<D, D>;
-         
         };
       };
     }

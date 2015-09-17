@@ -1,16 +1,21 @@
 #pragma once
 #include "types.hpp"
 
-namespace lio { 
-  namespace utilities {
+namespace lio
+{
+  namespace utilities
+  {
     template <class Matrix>
     using grid_element_type =
       GVector<typename Matrix::Scalar, Matrix::RowsAtCompileTime>;
-
-    // Adaptor class
+      
     template <class Matrix>
     class MatrixToGrid;
-
+    
+     /**
+     * \brief Forward iterator for the MatrixToGrid class
+     * \tparam Matrix The class that the MatrixToGrid is adapting
+     */
     template <class Matrix>
     class MatrixToGridIterator
     {
@@ -36,7 +41,15 @@ namespace lio {
           return g[i];
         }
     };
-
+    
+    /**
+     * \brief Adaptor which accepts an Eigen::Matrix and emulates some behavior of a std::vector
+     * 
+     * In particular allows to use for:in loops to iterate over each column of the matrix 
+     * as well as random accesses to each column.
+     * 
+     * \tparam Matrix Eigen::Matrix to which to adapt
+     */
     template <class Matrix>
     class MatrixToGrid
     {
@@ -65,21 +78,30 @@ namespace lio {
           return MatrixToGridIterator<Matrix>( *this, M );
         }
         
+        // "grid class template"
         template <class I>
         using type = MatrixToGrid<Matrix>;
     };
-
-
-
-
-    // Copiers
-
-    // Copies matrix into grid
+    
+    
+      /**
+     * \brief Copies a Eigen::Matrix into a grid
+     * 
+     * Builds a grid of row vectors from a matrix
+     * 
+     * \param m The matrix to copy into a grid
+     * 
+     * \return
+     * Grid of row vectors
+     * 
+     * \tparam Matrix The type of matrix to adapt
+     * \tparam Grid Class template to use for return
+     */
     template <class Matrix, template <typename...> class Grid = std::vector>
     Grid<grid_element_type<Matrix> > matrix_to_grid( const Matrix &m )
     {
-      const int N = Matrix::RowsAtCompileTime;
-      const int M = Matrix::ColsAtCompileTime;
+      const int N = m.rows();
+      const int M = m.cols();
       
       Grid<grid_element_type<Matrix> > result( M );
       auto it = result.begin();
@@ -91,20 +113,28 @@ namespace lio {
       
       return result;
     }
-
-    // copies grid into matrix
-    template <class Matrix, template <typename...> class Grid = std::vector>
+    
+      /**
+     * \brief Copies a grid into a Eigen::Matrix
+     * 
+     * Builds a matrix from a grid of row vectors 
+     * 
+     * \param g Grid of row vectors
+     * \return
+     * Matrix with these row vectors
+     * 
+     * \tparam Matrix The type of matrix to use for return
+     * \tparam Grid Class template of the grid to adapt
+     */    template <class Matrix, template <typename...> class Grid = std::vector>
     Matrix grid_to_matrix( Grid<grid_element_type<Matrix> > g )
     {
       const int N = Matrix::RowsAtCompileTime;
-      const int M = Matrix::ColsAtCompileTime;
       
       Matrix m;
       auto it = g.begin();
       
-      for ( int i = 0; i < M; ++i ) {
+      for ( int i = 0; it != g.end(); ++i, ++it ) {
         m.block<N, 1>( 0, i ) = *it;
-        ++it;
       }
       
       return m;
