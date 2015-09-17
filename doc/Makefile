@@ -1,4 +1,5 @@
 SVG2PDF=inkscape -z -T -A
+LATEX_FLAGS="-synctex=1"
 
 .PHONY all: manual.pdf
 
@@ -44,9 +45,9 @@ basis_eval_stencil.pdf: basis_eval_stencil.svg
 	$(SVG2PDF) $@ $<
 
 manual.pdf: basis_eval_stencil.pdf grad_gather_stencil.pdf grad_scatter_stencil.pdf shape_enumerator.pdf shape_example.pdf shape_extension.pdf shape_slicing.pdf hawp_inheritance.pdf
-	pdflatex manual
+	pdflatex $(LATEX_FLAGS) manual
 	bibtex manual
-	pdflatex manual
-	pdflatex manual
+	pdflatex $(LATEX_FLAGS) manual
+	pdflatex $(LATEX_FLAGS) manual
 #	pdflatex --shell-escape manual.tex	
 
