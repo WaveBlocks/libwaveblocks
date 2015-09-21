@@ -13,7 +13,7 @@
   using jacobian_return_type = typename B<N, D>::jacobian_return_type;         \
   using hessian_return_type = typename B<N, D>::hessian_return_type
 
-namespace lio
+namespace waveblocks
 {
   namespace matrixPotentials
   {

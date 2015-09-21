@@ -4,7 +4,7 @@
 #include "types.hpp"
 #include "utilities/evaluations.hpp"
 
-namespace lio
+namespace waveblocks
 {
   namespace matrixPotentials
   {
@@ -33,14 +33,14 @@ namespace lio
           using Self = Abstract<Subtype, Basis, N, D>;
           IMPORT_TYPES_FROM( Basis, N, D );
           
-          potential_evaluation_type evaluate_at( const RVector<D> &arg ) {
-            return that.evaluate_at_implementation( arg );
+          potential_evaluation_type evaluate_at( const RVector<D> &arg ) const {
+            return static_cast<const Subtype*>(this)->evaluate_at_implementation( arg );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<potential_evaluation_type> evaluate(
-            const grid_in<RVector<D> > &args ) {
+            const grid_in<RVector<D> > &args ) const {
             return utilities::evaluate_function_in_grid < RVector<D>,
                    potential_evaluation_type,
                    grid_in,
@@ -49,14 +49,14 @@ namespace lio
                      std::bind( &Self::evaluate_at, this, std::placeholders::_1 ), args );
           }
           
-          jacobian_evaluation_type evaluate_jacobian_at( const RVector<D> &arg ) {
-            return that.evaluate_jacobian_at_implementation( arg );
+          jacobian_evaluation_type evaluate_jacobian_at( const RVector<D> &arg ) const {
+            return static_cast<const Subtype*>(this)->evaluate_jacobian_at_implementation( arg );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<jacobian_evaluation_type> evaluate_jacobian(
-            const grid_in<RVector<D> > &args ) {
+            const grid_in<RVector<D> > &args ) const {
             return utilities::evaluate_function_in_grid < RVector<D>,
                    jacobian_evaluation_type,
                    grid_in,
@@ -66,14 +66,14 @@ namespace lio
                      args );
           }
           
-          hessian_evaluation_type evaluate_hessian_at( const RVector<D> &arg ) {
-            return that.evaluate_hessian_at_implementation( arg );
+          hessian_evaluation_type evaluate_hessian_at( const RVector<D> &arg ) const {
+            return static_cast<const Subtype*>(this)->evaluate_hessian_at_implementation( arg );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<hessian_evaluation_type> evaluate_hessian(
-            const grid_in<RVector<D> > &args ) {
+            const grid_in<RVector<D> > &args ) const {
             return utilities::evaluate_function_in_grid < RVector<D>,
                    hessian_evaluation_type,
                    grid_in,
@@ -84,15 +84,15 @@ namespace lio
           }
           
           template <template <typename...> class Tuple = std::tuple>
-          Tuple<> taylor_at( const RVector<D> &g ) {
-            return Tuple<>(
+          Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at( const RVector<D> &g ) const {
+            return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
                      evaluate_at( g ), evaluate_jacobian_at( g ), evaluate_hessian_at( g ) );
           }
           
           template < template <typename...> class Tuple = std::tuple,
                    template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
-          grid_out<Tuple<> > taylor( const grid_in<RVector<D> > &args ) {
+          grid_out< Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>>taylor( const grid_in<RVector<D> > &args ) const {
             return utilities::evaluate_function_in_grid < RVector<D>,
                    Tuple<>,
                    grid_in,
@@ -128,11 +128,11 @@ namespace lio
                 Canonical( potential_type potential,
                            jacobian_type jacobian,
                            hessian_type hessian )
-                  : potential( potential ), jacobian( jacobian ), hessian( hessian ) {}
+                  : potential( potential ), jacobian( jacobian ), hessian( hessian ){}
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return utilities::evaluate_function_matrix < N,
                          GMatrix,
                          RVector<D>,
@@ -141,7 +141,7 @@ namespace lio
                 }
                 
                 jacobian_evaluation_type evaluate_jacobian_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return utilities::evaluate_function_matrix < N,
                          GMatrix,
                          RVector<D>,
@@ -150,7 +150,7 @@ namespace lio
                 }
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return utilities::evaluate_function_matrix < N,
                          GMatrix,
                          RVector<D>,
@@ -176,7 +176,7 @@ namespace lio
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return utilities::evaluate_function_vector < N,
                          GVector,
                          RVector<D>,
@@ -185,7 +185,7 @@ namespace lio
                 }
                 
                 jacobian_evaluation_type evaluate_jacobian_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return utilities::evaluate_function_vector < N,
                          GVector,
                          RVector<D>,
@@ -194,7 +194,7 @@ namespace lio
                 }
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return utilities::evaluate_function_vector < N,
                          GVector,
                          RVector<D>,
@@ -224,17 +224,17 @@ namespace lio
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return potential( arg );
                 }
                 
                 jacobian_evaluation_type evaluate_jacobian_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return jacobian( arg );
                 }
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const RVector<D> &arg ) {
+                  const RVector<D> &arg ) const {
                   return hessian( arg );
                 }
             };

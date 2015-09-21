@@ -3,7 +3,7 @@
 #include <functional>
 #include "types.hpp"
 
-namespace lio
+namespace waveblocks
 {
   namespace utilities
   {

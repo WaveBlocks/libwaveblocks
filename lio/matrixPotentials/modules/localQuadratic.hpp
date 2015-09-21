@@ -3,7 +3,7 @@
 #include "types.hpp"
 #include "utilities/evaluations.hpp"
 
-namespace lio
+namespace waveblocks
 {
   namespace matrixPotentials
   {
@@ -37,21 +37,21 @@ namespace lio
             local_quadratic_type local_quadratic;
             
           public:
-            void calculate_local_quadratic() {
-              that.calculate_local_quadratic_implementation();
+            void calculate_local_quadratic() const {
+              static_cast<const Subtype*>(this)->calculate_local_quadratic_implementation();
             }
             
             potential_evaluation_type evaluate_local_quadratic_at(
               const RVector<D> &arg,
-              const RVector<D> &position ) {
-              return that.local_quadratic( position )( arg );
+              const RVector<D> &position ) const {
+              return static_cast<const Subtype*>(this)->local_quadratic( position )( arg );
             }
             
             template < template <typename...> class grid_in = std::vector,
                      template <typename...> class grid_out = grid_in >
             grid_out<potential_evaluation_type> evaluate_local_remainder(
               const grid_in<RVector<D> > &args,
-              RVector<D> position ) {
+              RVector<D> position ) const {
               return utilities::evaluate_function_in_grid < RVector<D>,
                      potential_evaluation_type,
                      grid_in,
@@ -81,17 +81,28 @@ namespace lio
               calculate_local_quadratic_implementation();
             }
             
-            void calculate_local_quadratic_implementation() {
-              Super::local_quadratic = [ = ]( RVector<D> q ) {
+            void calculate_local_quadratic_implementation() const {
+              Super::local_quadratic = [ this ]( RVector<D> q ) {
                 potential_type result_matrix;
                 
                 for ( int l = 0; l < N; ++l ) {
-                  for ( int m = 0; m < N; ++m ) {
-                    result_matrix( l, m ) = [ = ]( RVector<D> x ) {
-                      auto V = EvalImpl::potential( l, m )( q );
-                      auto J = EvalImpl::jacobian( l, m )( q );
-                      auto H = EvalImpl::hessian( l, m )( q );
-                      
+                  for ( int m = 0; m < N; ++m )  {
+                    result_matrix( l, m ) = [ this, l, m, q]( RVector<D> x ) {
+                  // Takes care of
+                  // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda
+#if defined(__clang__)
+                  auto V = EvalImpl::potential( q );
+                  auto J = EvalImpl::jacobian( q );
+                  auto H = EvalImpl::hessian( q );
+#elif defined(__GNUC__) || defined(__GNUG__)
+                  auto V = this->potential( q );
+                  auto J = this->jacobian( q );
+                  auto H = this->hessian( q );
+#else
+                  auto V = EvalImpl::potential( q );
+                  auto J = EvalImpl::jacobian( q );
+                  auto H = EvalImpl::hessian( q );
+#endif                      
                       auto result = V;
                       
                       for ( int i = 0; i < D; ++i ) {
@@ -134,8 +145,8 @@ namespace lio
             }
             
             void calculate_local_quadratic_implementation() {
-              Super::local_quadratic = [ = ]( RVector<D> q ) {
-                return [ = ]( RVector<D> x ) {
+              Super::local_quadratic = [ this ]( RVector<D> q ) {
+                return [ this ,q ]( RVector<D> x ) {
                 
                   // Takes care of
                   // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda

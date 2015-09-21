@@ -1,1 +1,1 @@
-#define that (*static_cast<Subtype*>(this))
+//~ #define that (*static_cast<Subtype*>(this))
