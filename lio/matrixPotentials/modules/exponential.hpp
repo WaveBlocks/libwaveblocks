@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 #include <unsupported/Eigen/MatrixFunctions>
 
-namespace lio
+namespace waveblocks
 {
   namespace matrixPotentials
   {
@@ -36,15 +36,15 @@ namespace lio
             IMPORT_TYPES_FROM( Basis, N, D );
             
             potential_evaluation_type evaluate_exponential_at( const RVector<D> &arg,
-                const real_t &factor = 1 ) {
-              that.evaluate_exponential_at_implementation( arg, factor );
+                const real_t &factor = 1 ) const {
+              static_cast<const Subtype*>(this)->evaluate_exponential_at_implementation( arg, factor );
             }
             
             template < template <typename...> class grid_in = std::vector,
                      template <typename...> class grid_out = grid_in >
             grid_out<potential_evaluation_type> evaluate_exponential(
               grid_in<RVector<D> > args,
-              real_t factor = 1 ) {
+              real_t factor = 1 ) const {
               return utilities::evaluate_function_in_grid < RVector<D>,
                      potential_evaluation_type,
                      grid_in,
@@ -80,7 +80,7 @@ namespace lio
           
           potential_evaluation_type evaluate_exponential_at_implementation(
             const RVector<D> &arg,
-            real_t factor ) {
+            real_t factor ) const {
             // Compute matrix
             auto values = ( arg );
             potential_evaluation_type result;

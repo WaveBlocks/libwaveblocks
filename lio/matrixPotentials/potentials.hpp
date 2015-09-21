@@ -4,7 +4,7 @@
 #include "matrixPotentials/modules/evaluation.hpp"
 #include "matrixPotentials/modules/exponential.hpp"
 
-namespace lio
+namespace waveblocks
 {
   namespace matrixPotentials
   {
@@ -25,6 +25,12 @@ namespace lio
                        N,
                        D >;
         
+      template <int N, int D>
+      using Inhomogenous = modules::localRemainder::Inhomogenous <
+                       modules::Evaluation<bases::Canonical, N, D>,
+                       modules::Evaluation<bases::Eigen, 1, D>,
+                       N,
+                       D >;
      /**
        * \brief Matrix potential for which the exponential can be computed
        * 
@@ -42,7 +48,10 @@ namespace lio
   }
   // More convenient typedefs
   template <int N, int D>
-  using MatrixPotential = matrixPotentials::potentials::Standard<N, D>;
+  using HomogenousMatrixPotential = matrixPotentials::potentials::Standard<N, D>;
+  
+  template <int N, int D>
+  using InhomogenousMatrixPotential = matrixPotentials::potentials::Inhomogenous<N,D>;
   
   template <template <int, int> class Basis, int N, int D>
   using MatrixPotentialExponential =

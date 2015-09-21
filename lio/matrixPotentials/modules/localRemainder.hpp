@@ -5,7 +5,7 @@
 #include "types.hpp"
 #include "utilities/evaluations.hpp"
 
-namespace lio
+namespace waveblocks
 {
   namespace matrixPotentials
   {
@@ -57,15 +57,15 @@ namespace lio
         struct Abstract {
           using Self = Abstract<Subtype, N, D>;
           CMatrix<N, N> evaluate_local_remainder_at( const RVector<D> &arg,
-              const RVector<D> &q ) {
-            return that.evaluate_local_remainder_at_implementation( arg, q );
+              const RVector<D> &q ) const {
+            return static_cast<const Subtype*>(this)->evaluate_local_remainder_at_implementation( arg, q );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<CMatrix<N, N> > evaluate_local_remainder(
             const grid_in<RVector<D> > &args,
-            const RVector<D> &q ) {
+            const RVector<D> &q ) const {
             return utilities::evaluate_function_in_grid < RVector<D>,
                    CMatrix<N, N>,
                    grid_in,
@@ -75,7 +75,8 @@ namespace lio
                        &Self::evaluate_local_remainder_at, this, std::placeholders::_1, q ),
                      args );
           }
-        };
+          
+        }; 
         
         template <class EvalImpl, class LeadingEvalImpl, int N, int D>
         class Homogenous
@@ -83,12 +84,12 @@ namespace lio
             EvalImpl
         {
             IMPORT_TYPES_FROM( bases::Canonical, N, D );
-            
-            using leading_level_type = bases::Eigen<1, D>;
-            
+                      
             LocalQuadratic<LeadingEvalImpl, bases::Eigen, 1, D> quadratic;
             
           public:
+                      using leading_level_type = bases::Eigen<1, D>;
+
             Homogenous( potential_type pot,
                         jacobian_type jac,
                         hessian_type hess,
@@ -99,11 +100,18 @@ namespace lio
               
             CMatrix<N, N> evaluate_local_remainder_at_implementation(
               const RVector<D> &arg,
-              const RVector<D> &q ) {
+              const RVector<D> &q ) const {
               auto u = quadratic.evaluate_local_quadratic_at( arg, q );
               return helper::DiagonalDifference<N>::Homogenous::apply(
                        EvalImpl::evaluate_at( arg ), u );
             }
+            
+          template <template <typename...> class Tuple = std::tuple>
+          Tuple<typename leading_level_type::potential_evaluation_type,
+          typename leading_level_type::jacobian_evaluation_type,
+          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const RVector<D> &g ) const {
+            return quadratic.taylor_at(g);
+          }
         };
         
         template <class EvalImpl, class LeadingEvalImpl, int N, int D>
@@ -113,11 +121,12 @@ namespace lio
         {
             IMPORT_TYPES_FROM( bases::Canonical, N, D );
             
-            using leading_level_type = bases::Eigen<N, D>;
             
             LocalQuadratic<LeadingEvalImpl, bases::Eigen, N, D> quadratic;
             
           public:
+                      using leading_level_type = bases::Eigen<N, D>;
+
             Inhomogenous( potential_type pot,
                           jacobian_type jac,
                           hessian_type hess,
@@ -128,11 +137,18 @@ namespace lio
               
             CMatrix<N, N> evaluate_local_remainder_at_implementation(
               const RVector<D> &arg,
-              const RVector<D> &q ) {
+              const RVector<D> &q ) const {
               auto u = quadratic.evaluate_local_quadratic_at( arg, q );
               return helper::DiagonalDifference<N>::Inhomogenous::apply(
                        EvalImpl::evaluate_at( arg ), u );
             }
+            
+            template <template <typename...> class Tuple = std::tuple>
+              Tuple<typename leading_level_type::potential_evaluation_type,
+          typename leading_level_type::jacobian_evaluation_type,
+          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const RVector<D> &g ) const {
+            return quadratic.taylor_at(g);
+          }
         };
       }
     }

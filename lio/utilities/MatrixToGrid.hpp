@@ -1,7 +1,7 @@
 #pragma once
 #include "types.hpp"
 
-namespace lio
+namespace waveblocks
 {
   namespace utilities
   {
@@ -29,15 +29,15 @@ namespace lio
         
       public:
         MatrixToGridIterator( MatrixToGrid<Matrix> &adaptor, int i )
-          : g( adaptor ), i( i ) {}
-        bool operator!=( MatrixToGridIterator<Matrix> other ) {
+          : g( adaptor ), i( i ) const {}
+        bool operator!=( MatrixToGridIterator<Matrix> other ) const {
           return other.i != i;
         }
         
-        void operator++() {
+        void operator++() const {
           ++i;
         }
-        grid_element_type operator*() {
+        grid_element_type operator*() const {
           return g[i];
         }
     };
@@ -61,20 +61,20 @@ namespace lio
         const Matrix &matrix;
         
       public:
-        size_t size() {
+        size_t size() const {
           return M;
         }
         
-        MatrixToGrid( const Matrix &matrix ) : matrix( matrix ) {}
+        MatrixToGrid( const Matrix &matrix ) : matrix( matrix ) const {}
         
-        grid_element_type operator[]( int i ) {
+        grid_element_type operator[]( int i ) const {
           return matrix.template block<N, 1>( 0, i );
         }
         
-        MatrixToGridIterator<Matrix> begin() {
+        MatrixToGridIterator<Matrix> begin() const {
           return MatrixToGridIterator<Matrix>( *this, 0 );
         }
-        MatrixToGridIterator<Matrix> end() {
+        MatrixToGridIterator<Matrix> end() const {
           return MatrixToGridIterator<Matrix>( *this, M );
         }
         
@@ -106,7 +106,7 @@ namespace lio
       Grid<grid_element_type<Matrix> > result( M );
       auto it = result.begin();
       
-      for ( int i = 0; i < M; ++i ) {
+      for ( int i = 0; i < M; ++i ) const {
         *it = m.template block<N, 1>( 0, i );
         ++it;
       }
@@ -133,7 +133,7 @@ namespace lio
       Matrix m;
       auto it = g.begin();
       
-      for ( int i = 0; it != g.end(); ++i, ++it ) {
+      for ( int i = 0; it != g.end(); ++i, ++it ) const {
         m.block<N, 1>( 0, i ) = *it;
       }
       
