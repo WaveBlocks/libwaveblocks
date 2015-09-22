@@ -101,9 +101,15 @@ struct HaWpParamSet
     }
     
     /**
-     * 
+     * Mix the two parameter sets \f$ \Pi_i \f$ and \f$ \Pi_j \f$
+     * from the bra and the ket wavepackets \f$ \Phi\left[\Pi_i\right] \f$
+     * and \f$ \Phi^\prime\left[\Pi_j\right] \f$.
+     *
+     * \param other The parameter set \f$ \Pi_j \f$ from the ket part wavepacket.
+     * \return The mixed parameters \f$ q_0 \f$ and \f$ Q_0 \f$.
      */
-    std::pair< RMatrix<D,1>, RMatrix<D,D> > mix(const HaWpParamSet<D>& other) const
+    std::pair< RMatrix<D,1>, RMatrix<D,D> >
+    mix(const HaWpParamSet<D>& other) const
     {
         // Mix the parameters
         CMatrix<D,D> Gr = P * Q.inverse();
@@ -113,8 +119,8 @@ struct HaWpParamSet
         RMatrix<D,1> g = (Gc*other.q - Gr.adjoint()*q).imag();
         RMatrix<D,1> q0 = G.inverse() * g;
         RMatrix<D,D> Q0 = 0.5 * G;
-        
-        // We can not avoid the matrix root by using svd
+
+        // We can not avoid the matrix root
         RMatrix<D,D> Qs = Q0.sqrt().inverse();
         
         // Assign (q0, Qs)
