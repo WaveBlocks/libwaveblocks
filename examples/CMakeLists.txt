@@ -8,3 +8,5 @@ add_executable(hawp_homogen hawp_homogen.cpp)
 add_executable(hawp_inhomogen hawp_inhomogen.cpp)
 
 add_executable(hawp_eval hawp_eval.cpp)
+
+add_executable(hawp_t hawp_t.cpp)
