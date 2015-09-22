@@ -87,16 +87,19 @@ struct HaWpParamSet
     }
     
     /**
-     * Checks for compatibility relations
-     * For details see master thesis 3.11
+     * Check the compatibility relations
+     * \f[\begin{align}
+     *      Q^{\texttt{H}} P - P^{\texttt{H}} Q & = 2i I \\
+     *      Q^{\texttt{T}} P - P^{\texttt{T}} Q & = 0
+     *    \end{align}\f]
      */
     bool compatible() const
     {
+        const double tol = 1e-10;
+
         CMatrix<D,D> C1 = Q.adjoint()*P - P.adjoint()*Q - CMatrix<D,D>::Identity()*complex_t(0,2);
-        CMatrix<D,D> C2 = P.transpose()*Q - Q.transpose()*P;
-        
-        double tol = 1e-10;
-        
+        CMatrix<D,D> C2 = Q.transpose()*P - P.transpose()*Q;
+
         return C1.template lpNorm<1>() < tol && C2.template lpNorm<1>() < tol;
     }
     
