@@ -36,9 +36,9 @@ struct HaWpParamSet
         : q(RMatrix<D,1>::Zero())
         , p(RMatrix<D,1>::Zero())
         , Q(CMatrix<D,D>::Identity())
-        , P(CMatrix<D,D>::Identity()*complex_t(0.0, 1.0))
-        , S(complex_t(0.0, 0.0))
-        , sqrt_detQ() //detQ = 1.0 => sqrt(detQ) = 1.0
+        , P(CMatrix<D,D>::Identity()*complex_t(0,1))
+        , S(complex_t(0,0))
+        , sqrt_detQ(1)
     { }
 
     /** Construct a Hagedorn parameter set by copying from another one.
@@ -64,7 +64,7 @@ struct HaWpParamSet
         , Q(Q)
         , P(P)
         , S(S)
-        , sqrt_detQ( std::sqrt(Q.determinant()) ) //choose 1st root
+        , sqrt_detQ(std::sqrt(Q.determinant()))
     { }
 
     HaWpParamSet(const RMatrix<D,1> &q,
@@ -77,8 +77,8 @@ struct HaWpParamSet
         , p(p)
         , Q(Q)
         , P(P)
-        , sqrt_detQ(sqrt_detQ)
         , S(S)
+        , sqrt_detQ(sqrt_detQ)
     { }
 
     /** Construct a Hagedorn parameter set by assigning from another one.
