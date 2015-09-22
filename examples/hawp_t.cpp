@@ -52,6 +52,18 @@ int main(int argc, char* argv[])
     // (3) Define standard parameters
     wp.parameters() = HaWpParamSet<D>{};
 
+    wp.parameters().Q /= 2;
+    wp.parameters().P *= 2;
+
+    // wp.parameters() = HaWpParamSet<D>(wp.parameters().q,
+    //                                   wp.parameters().p,
+    //                                   wp.parameters().Q,
+    //                                   wp.parameters().P,
+    //                                   wp.parameters().S);
+
+    wp.parameters() = HaWpParamSet<D>(wp.parameters());
+    wp.parameters().resync();
+
     // (4) Define basis shape
     HyperCubicShape<D> shape(12);
     ShapeEnumerator<D,MultiIndex> enumerator;
@@ -83,15 +95,21 @@ int main(int argc, char* argv[])
     //     wp.coefficients()[ordinal] = 1.0;
     // }
 
+    complex_t prefactor = wp.prefactor();
+    complex_t phase = wp.phasefactor();
 
     // The final wavepacket
-    std::cout << std::endl;
+    std::cout << "--------------------------------------------------------------------------------" << std::endl;
+    std::cout << "     WAVEPACKET CONFIGURATION" << std::endl;
+    std::cout << "--------------------------------------------------------------------------------" << std::endl;
     std::cout << "dimensionality: " << D << std::endl;
     std::cout << "basis shape:    " << shape << std::endl;
     std::cout << "    #entries:   " << wp.shape()->n_entries() << std::endl;
     std::cout << "    #slices:    " << wp.shape()->n_slices() << std::endl;
     std::cout << "scaling eps:    " << wp.eps() << std::endl;
-    std::cout << "parameterset:   " << wp.parameters() << std::endl;
+    std::cout << "parameterset:   " << wp.parameters();
+    std::cout << "prefactor:      " << prefactor << std::endl;
+    std::cout << "global phase:   " << phase << std::endl;
     std::cout << "coefficients:" << std::endl;
     print_coefficients(wp);
 
@@ -117,7 +135,7 @@ int main(int argc, char* argv[])
     std::cout << boost::format("Evaluate wavepacket on %i quadrature points") % grid.cols() << std::endl;
 
     CMatrix<1,numQ> result(1,numQ);
-    result = wp.evaluate(grid);
+    result = prefactor * phase * wp.evaluate(grid);
     std::cout << "   " << result.format(CleanFmt) << std::endl;
 
     std::cout << std::endl;
