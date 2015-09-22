@@ -106,8 +106,8 @@ public:
      */
     virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
 
-    template<int N>
-    HaWpEvaluator<D,MultiIndex,N> create_evaluator(CMatrix<D,N> const& grid) const
+    template<int N> HaWpEvaluator<D,MultiIndex,N>
+    create_evaluator(CMatrix<D,N> const& grid) const
     {
         return {eps(), &parameters(), shape().get(), grid};
     }
@@ -120,8 +120,8 @@ public:
      * Complex matrix with shape (dimensionality, number of grid nodes).
      * \return Complex 2D-array with shape (basis shape size, number of grid nodes)
      */
-    template<int N>
-    HaWpBasisVector<N> evaluate_basis(CMatrix<D,N> const& grid) const
+    template<int N> HaWpBasisVector<N>
+    evaluate_basis(CMatrix<D,N> const& grid) const
     {
         return create_evaluator(grid).all();
     }
@@ -138,8 +138,8 @@ public:
      * Number of quadrature points.
      * Don't choose Eigen::Dynamic. It works, but performance is bad.
      */
-    template<int N>
-    HaWpBasisVector<N> evaluate_basis(RMatrix<D,N> const& rgrid) const
+    template<int N> HaWpBasisVector<N>
+    evaluate_basis(RMatrix<D,N> const& rgrid) const
     {
         CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
         return evaluate_basis(cgrid);
@@ -163,7 +163,8 @@ public:
      *
      * \return Shared pointer to the extended shape.
      */
-    ShapeEnumSharedPtr<D,MultiIndex> extended_shape() const
+    ShapeEnumSharedPtr<D,MultiIndex>
+    extended_shape() const
     {
         return shape_extension_cache_.get_extended_shape( this->shape() );
     }
@@ -182,7 +183,7 @@ private:
  * the basis shape \f$ \mathfrak{K} \f$ and
  * the coefficients \f$ c \f$.
  *
- * Therefore it is able to evaluate itself (\f$ \Phi(x) \f$) on quadrature points \f$ x \f$.
+ * Therefore it is able to evaluate itself (\f$ \Phi(x) \f$) on grid points \f$ x \f$.
  *
  * \tparam D wavepacket dimensionality
  * \tparam MultiIndex type to represent a multi-index
@@ -205,15 +206,15 @@ public:
      * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at complex grid nodes \f$ x \in \gamma \f$.
      *
      * Notice that this function does not include the global phase
-     * \f$ \exp{\frac{iS}{\varepsilon^2}} \f$.
+     * \f$ \exp{(\frac{iS}{\varepsilon^2})} \f$.
      *
      * \param grid
      * Complex grid nodes / quadrature points \f$ \gamma \f$.
      * Complex matrix with shape (dimensionality, number of grid nodes).
      * \return Complex matrix with shape (1, number of grid nodes)
      */
-    template<int N>
-    CArray<1,N> evaluate(CMatrix<D,N> const& grid) const
+    template<int N> CArray<1,N>
+    evaluate(CMatrix<D,N> const& grid) const
     {
         if (this->shape()->n_entries() != coefficients().size())
             throw std::runtime_error("shape.size() != coefficients.size()");
@@ -225,15 +226,15 @@ public:
      * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at real grid nodes \f$ x \in \gamma \f$.
      *
      * Notice that this function does not include the global phase
-     * \f$ \exp{\frac{iS}{\varepsilon^2}} \f$.
+     * \f$ \exp{(\frac{iS}{\varepsilon^2})} \f$.
      *
      * \param rgrid
      * Real grid nodes / quadrature points \f$ \gamma \f$.
      * Real matrix with shape (dimensionality, number of grid nodes).
      * \return Complex matrix with shape (1, number of grid nodes)
      */
-    template<int N>
-    CArray<1,N> evaluate(RMatrix<D,N> const& rgrid) const
+    template<int N> CArray<1,N>
+    evaluate(RMatrix<D,N> const& rgrid) const
     {
         CMatrix<D,N> cgrid = rgrid.template cast <complex_t>();
         return evaluate(cgrid);
@@ -253,12 +254,11 @@ public:
     }
 
     /**
-     * \brief Computes the global phase factor \f$ \exp(\frac{i S}{\varepsilon^2}) \f$.
+     * \brief Computes the global phase factor \f$ \exp{(\frac{i S}{\varepsilon^2})} \f$.
      */
     complex_t phasefactor() const
     {
-        complex_t S = parameters().S;
-        return std::exp(complex_t(0.0, 1.0) * S / eps() / eps() );
+        return std::exp(complex_t(0,1) * this->parameters().S / eps() / eps());
     }
 };
 
@@ -404,7 +404,6 @@ public:
         {
             return owner_->parameters();
         }
-
 
         /**
          * \brief Grants access to the basis shape
