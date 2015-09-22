@@ -95,6 +95,16 @@ struct HaWpParamSet
     }
 
     /**
+     * Compute the continuous square root of \f$ \det Q \f$ after an update
+     * of the \f$ Q \f$ parameter.
+     */
+    void resync()
+    {
+        // TODO: Find a better way to do this.
+        sqrt_detQ = ContinuousSqrt<real_t>(std::sqrt(Q.determinant()));
+    }
+
+    /**
      * Check the compatibility relations
      * \f[\begin{align}
      *      Q^{\texttt{H}} P - P^{\texttt{H}} Q & = 2i I \\
