@@ -29,7 +29,7 @@ struct HaWpParamSet
     CMatrix<D,D> Q, P;
     complex_t S;
     ContinuousSqrt<real_t> sqrt_detQ;
-    
+
     HaWpParamSet()
         : q(RMatrix<D,1>::Zero())
         , p(RMatrix<D,1>::Zero())
@@ -38,7 +38,7 @@ struct HaWpParamSet
         , S(complex_t(0.0, 0.0))
         , sqrt_detQ() //detQ = 1.0 => sqrt(detQ) = 1.0
     { }
-    
+
     HaWpParamSet(const HaWpParamSet &that)
         : q(that.q)
         , p(that.p)
@@ -74,7 +74,7 @@ struct HaWpParamSet
         , sqrt_detQ(sqrt_detQ)
         , S(S)
     { }
-    
+
     HaWpParamSet &operator=(const HaWpParamSet &that)
     {
         q = that.q;
@@ -85,7 +85,7 @@ struct HaWpParamSet
         sqrt_detQ = that.sqrt_detQ;
         return *this;
     }
-    
+
     /**
      * Check the compatibility relations
      * \f[\begin{align}
@@ -102,7 +102,7 @@ struct HaWpParamSet
 
         return C1.template lpNorm<1>() < tol && C2.template lpNorm<1>() < tol;
     }
-    
+
     /**
      * Mix the two parameter sets \f$ \Pi_i \f$ and \f$ \Pi_j \f$
      * from the bra and the ket wavepackets \f$ \Phi\left[\Pi_i\right] \f$
@@ -117,7 +117,7 @@ struct HaWpParamSet
         // Mix the parameters
         CMatrix<D,D> Gr = P * Q.inverse();
         CMatrix<D,D> Gc = other.P * other.Q.inverse();
-        
+
         RMatrix<D,D> G = (Gc - Gr.adjoint()).imag();
         RMatrix<D,1> g = (Gc*other.q - Gr.adjoint()*q).imag();
         RMatrix<D,1> q0 = G.inverse() * g;
@@ -125,7 +125,7 @@ struct HaWpParamSet
 
         // We can not avoid the matrix root
         RMatrix<D,D> Qs = Q0.sqrt().inverse();
-        
+
         // Assign (q0, Qs)
         return {q0,Qs};
     }
@@ -135,7 +135,7 @@ template<dim_t D>
 std::ostream &operator<<(std::ostream &out, const HaWpParamSet<D> &parameters)
 {
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n     ", "[", "]");
-    
+
     out << "HaWpParamSet {\n";
     out << "  q: " << parameters.q.format(CleanFmt) << '\n';
     out << "  p: " << parameters.p.format(CleanFmt) << '\n';
