@@ -150,7 +150,7 @@ std::ostream &operator<<(std::ostream &out, const HaWpParamSet<D> &parameters)
     out << "  Q: " << parameters.Q.format(CleanFmt) << '\n';
     out << "  P: " << parameters.P.format(CleanFmt) << '\n';
     out << "  S: " << parameters.S << '\n';
-    out << "  sqrt(detQ): " << std::abs(parameters.sqrt_detQ()) << "*exp(" << std::arg(parameters.sqrt_detQ()) << "*i)" << '\n';
+    out << "  sqrt(detQ): " << parameters.sqrt_detQ() << '\n';
     out << "  compatible(): " << (parameters.compatible() ? "yes" : "no") << '\n';
     out << "}" << std::endl;
     return out;
