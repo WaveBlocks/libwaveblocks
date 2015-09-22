@@ -4,7 +4,7 @@
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <functional>
-#include "libwaveblocks/waveblocks/basic_types.hpp"
+#include "basic_types.hpp"
 
 namespace waveblocks
 {

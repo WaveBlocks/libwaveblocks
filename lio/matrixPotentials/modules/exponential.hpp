@@ -82,7 +82,7 @@ namespace waveblocks
             const CVector<D> &arg,
             real_t factor ) const {
             // Compute matrix
-            auto values = ( arg );
+            auto values = evaluate_at( arg );
             potential_evaluation_type result;
             
             // Compute exponential
@@ -95,7 +95,7 @@ namespace waveblocks
       }
       
       template <class EvalImpl, template <int, int> class Basis, int N, int D>
-      using Exponential = exponential::Standard<EvalImpl, Basis, N, D>;
+      using Exponential = exponential::Standard<Evaluation<Basis,N,D>, Basis, N, D>;
     }
   }
 }

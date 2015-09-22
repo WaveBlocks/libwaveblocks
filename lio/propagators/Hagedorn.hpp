@@ -3,34 +3,20 @@
 #include "types.hpp"
 #include "matrixPotentials/bases.hpp"
 #include "matrixPotentials/potentials.hpp"
-#include "libwaveblocks/waveblocks/hawp_commons.hpp"
-#include "ben/libwaveblocks/waveblocks/inhomogeneous_inner_product.hpp"
-#include "ben/libwaveblocks/waveblocks/tensor_product_qr.hpp"
-#include "ben/libwaveblocks/waveblocks/gauss_hermite_qr.hpp"
+#include "hawp_commons.hpp"
+#include "inhomogeneous_inner_product.hpp"
+#include "tensor_product_qr.hpp"
+#include "gauss_hermite_qr.hpp"
 
 
 
 namespace waveblocks
 {
 
-  
   namespace propagators
   {
     template <int N, int D, class MultiIndex>
     struct Hagedorn {
-        using CMatrixNN = CMatrix<Eigen::Dynamic, Eigen::Dynamic>;
-        using CMatrix1N = CMatrix<1, Eigen::Dynamic>;
-        using CMatrixN1 = CMatrix<Eigen::Dynamic, 1>;
-        using CMatrixD1 = CMatrix<D, 1>;
-        using CMatrixDD = CMatrix<D, D>;
-        using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
-        using RMatrixD1 = RMatrix<D, 1>;
-        using op_t = std::function<CMatrix1N(CMatrixDN,RMatrixD1)>;
-
-        static void foo(op_t op);
-      
-      
-      
       
       static void propagate( waveblocks::InhomogeneousHaWp<D,MultiIndex> &packet,
                       const real_t &delta_t,

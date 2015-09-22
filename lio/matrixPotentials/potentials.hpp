@@ -10,54 +10,27 @@ namespace waveblocks
   {
     namespace potentials
     {
-      /**
-       * \brief Matrix potential in canonical basis for which homogenous local remainder can be computed
-       * 
-       * \tparam N
-       * Number of levels (dimension of square matrix when evaluated)
-       * \tparam D
-       * Dimension of argument space
-       */
-      template <int N, int D>
-      using Standard = modules::localRemainder::Homogenous <
-                       modules::Evaluation<bases::Canonical, N, D>,
-                       modules::Evaluation<bases::Eigen, 1, D>,
-                       N,
-                       D >;
-        
-      template <int N, int D>
-      using Inhomogenous = modules::localRemainder::Inhomogenous <
-                       modules::Evaluation<bases::Canonical, N, D>,
-                       modules::Evaluation<bases::Eigen, 1, D>,
-                       N,
-                       D >;
-     /**
-       * \brief Matrix potential for which the exponential can be computed
-       * 
-       * \tparam Basis
-       * Which basis (bases::Eigen or bases::Canonical) the potential is given in
-       * \tparam N
-       * Number of levels (dimension of square matrix when evaluated)
-       * \tparam D
-       * Dimension of argument space
-       */                
-      template <template <int, int> class Basis, int N, int D>
-      using Exponential =
-        modules::Exponential<modules::Evaluation<Basis, N, D>, Basis, N, D>;
+      template<int N, int D>
+      using InhomogenousMatrixPotential =
+        modules::Inhomogenous<N,D>;
+
+      template<int N, int D>
+      using HomogenousMatrixPotential =
+        modules::Homogenous<N,D>;
+
+      template<template<int,int> class Basis, int N, int D>
+      using MatrixPotential = modules::Taylor<Basis,N,D>;
     }
   }
-  // More convenient typedefs
-  template <int N, int D>
-  using HomogenousMatrixPotential = matrixPotentials::potentials::Standard<N, D>;
-  
-  template <int N, int D>
-  using InhomogenousMatrixPotential = matrixPotentials::potentials::Inhomogenous<N,D>;
-  
-  template <template <int, int> class Basis, int N, int D>
-  using MatrixPotentialExponential =
-    matrixPotentials::potentials::Exponential<Basis, N, D>;
-    
-  template <template <int, int> class Basis, int N, int D>
-  using MatrixPotentialEvaluate =
-    matrixPotentials::modules::Evaluation<Basis, N, D>;
+
+  template<int N, int D>
+  using InhomogenousMatrixPotential =
+    matrixPotentials::potentials::InhomogenousMatrixPotential<N,D>;
+
+  template<int N, int D>
+  using HomogenousMatrixPotential =
+    matrixPotentials::potentials::HomogenousMatrixPotential<N,D>;
+
+  template<template<int,int> class Basis, int N, int D>
+    using MatrixPotential = matrixPotentials::potentials::MatrixPotential<Basis,N,D>;
 }
