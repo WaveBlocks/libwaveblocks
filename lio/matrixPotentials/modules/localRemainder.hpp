@@ -15,12 +15,25 @@ namespace waveblocks
       {
         namespace helper
         {
+       // templated typedef with specialization
+        template <int N>
+        struct LOC_REMAIN_TYPE_HELPER {
+          using type = CMatrix<N,N>;
+        };
+        
+        template <>
+        struct LOC_REMAIN_TYPE_HELPER<1> {
+          using type = complex_t;
+        };
+
+        template <int N>
+        using local_quadratic_evaluation_type = typename LOC_REMAIN_TYPE_HELPER<N>::type;
         
           template <int N>
           struct DiagonalDifference {
             struct Inhomogenous {
-              static CMatrix<N, N> apply( RMatrix<N, N> V, const CVector<N> &u ) {
-                CMatrix<N, N> C = V.template cast<complex_t>();
+              static local_quadratic_evaluation_type<N> apply( RMatrix<N, N> V, const CVector<N> &u ) {
+                local_quadratic_evaluation_type<N> C = V.template cast<complex_t>();
                 
                 for ( int i = 0; i < N; ++i ) {
                   C( i, i ) -= u( i );
@@ -30,8 +43,8 @@ namespace waveblocks
               }
             };
             struct Homogenous {
-              static CMatrix<N, N> apply( RMatrix<N, N> V, const complex_t &u ) {
-                CMatrix<N, N> C = V.template cast<complex_t>();
+              static local_quadratic_evaluation_type<N> apply( RMatrix<N, N> V, const complex_t &u ) {
+                local_quadratic_evaluation_type<N> C = V.template cast<complex_t>();
                 
                 for ( int i = 0; i < N; ++i ) {
                   C( i, i ) -= u;
@@ -45,7 +58,7 @@ namespace waveblocks
           template <>
           struct DiagonalDifference<1> {
             struct Homogenous {
-              static complex_t apply( real_t V, const complex_t &u ) {
+              static local_quadratic_evaluation_type<1> apply( real_t V, const complex_t &u ) {
                 return V - u;
               }
             };
@@ -53,21 +66,24 @@ namespace waveblocks
           };
         }
         
+        template <int N>
+        using local_quadratic_evaluation_type = typename helper::local_quadratic_evaluation_type<N>;
+        
         template <class Subtype, int N, int D>
         struct Abstract {
           using Self = Abstract<Subtype, N, D>;
-          CMatrix<N, N> evaluate_local_remainder_at( const RVector<D> &arg,
-              const RVector<D> &q ) const {
+          local_quadratic_evaluation_type<N> evaluate_local_remainder_at( const CVector<D> &arg,
+              const CVector<D> &q ) const {
             return static_cast<const Subtype*>(this)->evaluate_local_remainder_at_implementation( arg, q );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
-          grid_out<CMatrix<N, N> > evaluate_local_remainder(
-            const grid_in<RVector<D> > &args,
-            const RVector<D> &q ) const {
-            return utilities::evaluate_function_in_grid < RVector<D>,
-                   CMatrix<N, N>,
+          grid_out<local_quadratic_evaluation_type<N> > evaluate_local_remainder(
+            const grid_in<CVector<D> > &args,
+            const CVector<D> &q ) const {
+            return utilities::evaluate_function_in_grid < CVector<D>,
+                   local_quadratic_evaluation_type<N>,
                    grid_in,
                    grid_out,
                    function_t > (
@@ -98,9 +114,9 @@ namespace waveblocks
                         typename leading_level_type::hessian_type lead_hess )
               : EvalImpl( pot, jac, hess ), quadratic( lead_pot, lead_jac, lead_hess ) {}
               
-            CMatrix<N, N> evaluate_local_remainder_at_implementation(
-              const RVector<D> &arg,
-              const RVector<D> &q ) const {
+            local_quadratic_evaluation_type<N> evaluate_local_remainder_at_implementation(
+              const CVector<D> &arg,
+              const CVector<D> &q ) const {
               auto u = quadratic.evaluate_local_quadratic_at( arg, q );
               return helper::DiagonalDifference<N>::Homogenous::apply(
                        EvalImpl::evaluate_at( arg ), u );
@@ -109,7 +125,7 @@ namespace waveblocks
           template <template <typename...> class Tuple = std::tuple>
           Tuple<typename leading_level_type::potential_evaluation_type,
           typename leading_level_type::jacobian_evaluation_type,
-          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const RVector<D> &g ) const {
+          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const CVector<D> &g ) const {
             return quadratic.taylor_at(g);
           }
         };
@@ -135,9 +151,9 @@ namespace waveblocks
                           typename leading_level_type::hessian_type lead_hess )
               : EvalImpl( pot, jac, hess ), quadratic( lead_pot, lead_jac, lead_hess ) {}
               
-            CMatrix<N, N> evaluate_local_remainder_at_implementation(
-              const RVector<D> &arg,
-              const RVector<D> &q ) const {
+            local_quadratic_evaluation_type<N> evaluate_local_remainder_at_implementation(
+              const CVector<D> &arg,
+              const CVector<D> &q ) const {
               auto u = quadratic.evaluate_local_quadratic_at( arg, q );
               return helper::DiagonalDifference<N>::Inhomogenous::apply(
                        EvalImpl::evaluate_at( arg ), u );
@@ -146,7 +162,7 @@ namespace waveblocks
             template <template <typename...> class Tuple = std::tuple>
               Tuple<typename leading_level_type::potential_evaluation_type,
           typename leading_level_type::jacobian_evaluation_type,
-          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const RVector<D> &g ) const {
+          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const CVector<D> &g ) const {
             return quadratic.taylor_at(g);
           }
         };

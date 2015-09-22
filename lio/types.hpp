@@ -59,6 +59,28 @@ namespace waveblocks
   template <int D, int N>
   using rD_to_cNxN = function_t<CMatrix<N, N>( RVector<D> )>;
   
+  
+  template <int D>
+  using cD_to_r = function_t<real_t( CVector<D> )>;
+  
+  template <int D>
+  using cD_to_rD = function_t<RVector<D>( CVector<D> )>;
+  
+  template <int D>
+  using cD_to_rDxD = function_t<RMatrix<D, D>( CVector<D> )>;
+  
+  template <int D>
+  using cD_to_c = function_t<complex_t( CVector<D> )>;
+  
+  template <int D>
+  using cD_to_cD = function_t<CVector<D>( CVector<D> )>;
+  
+  template <int D>
+  using cD_to_cDxD = function_t<CMatrix<D, D>( CVector<D> )>;
+  
+  template <int D, int N>
+  using cD_to_cNxN = function_t<CMatrix<N, N>( CVector<D> )>;
+  
   // function valued functions
   template <int D, class F>
   using rD_to_function = function_t<F( RVector<D> )>;
@@ -68,6 +90,15 @@ namespace waveblocks
   
   template <int D, int N, class F>
   using rD_to_function_matrix = function_t<GMatrix<F, N, N>( RVector<D> )>;
+  
+  template <int D, class F>
+  using cD_to_function = function_t<F( CVector<D> )>;
+  
+  template <int D, int N, class F>
+  using cD_to_function_vector = function_t<GVector<F, N>( CVector<D> )>;
+  
+  template <int D, int N, class F>
+  using cD_to_function_matrix = function_t<GMatrix<F, N, N>( CVector<D> )>;
   
   // eigenvalue
   template <int N>
