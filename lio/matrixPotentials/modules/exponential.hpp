@@ -35,7 +35,7 @@ namespace waveblocks
             using Self = Abstract<Subtype, Basis, N, D>;
             IMPORT_TYPES_FROM( Basis, N, D );
             
-            potential_evaluation_type evaluate_exponential_at( const RVector<D> &arg,
+            potential_evaluation_type evaluate_exponential_at( const CVector<D> &arg,
                 const real_t &factor = 1 ) const {
               static_cast<const Subtype*>(this)->evaluate_exponential_at_implementation( arg, factor );
             }
@@ -43,9 +43,9 @@ namespace waveblocks
             template < template <typename...> class grid_in = std::vector,
                      template <typename...> class grid_out = grid_in >
             grid_out<potential_evaluation_type> evaluate_exponential(
-              grid_in<RVector<D> > args,
+              grid_in<CVector<D> > args,
               real_t factor = 1 ) const {
-              return utilities::evaluate_function_in_grid < RVector<D>,
+              return utilities::evaluate_function_in_grid < CVector<D>,
                      potential_evaluation_type,
                      grid_in,
                      grid_out,
@@ -79,7 +79,7 @@ namespace waveblocks
           IMPORT_TYPES_FROM( Basis, N, D );
           
           potential_evaluation_type evaluate_exponential_at_implementation(
-            const RVector<D> &arg,
+            const CVector<D> &arg,
             real_t factor ) const {
             // Compute matrix
             auto values = ( arg );

@@ -42,17 +42,17 @@ namespace waveblocks
             }
             
             potential_evaluation_type evaluate_local_quadratic_at(
-              const RVector<D> &arg,
-              const RVector<D> &position ) const {
+              const CVector<D> &arg,
+              const CVector<D> &position ) const {
               return static_cast<const Subtype*>(this)->local_quadratic( position )( arg );
             }
             
             template < template <typename...> class grid_in = std::vector,
                      template <typename...> class grid_out = grid_in >
             grid_out<potential_evaluation_type> evaluate_local_remainder(
-              const grid_in<RVector<D> > &args,
-              RVector<D> position ) const {
-              return utilities::evaluate_function_in_grid < RVector<D>,
+              const grid_in<CVector<D> > &args,
+              CVector<D> position ) const {
+              return utilities::evaluate_function_in_grid < CVector<D>,
                      potential_evaluation_type,
                      grid_in,
                      grid_out,
@@ -82,12 +82,12 @@ namespace waveblocks
             }
             
             void calculate_local_quadratic_implementation() const {
-              Super::local_quadratic = [ this ]( RVector<D> q ) {
+              Super::local_quadratic = [ this ]( CVector<D> q ) {
                 potential_type result_matrix;
                 
                 for ( int l = 0; l < N; ++l ) {
                   for ( int m = 0; m < N; ++m )  {
-                    result_matrix( l, m ) = [ this, l, m, q]( RVector<D> x ) {
+                    result_matrix( l, m ) = [ this, l, m, q]( CVector<D> x ) {
                   // Takes care of
                   // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda
 #if defined(__clang__)
@@ -145,8 +145,8 @@ namespace waveblocks
             }
             
             void calculate_local_quadratic_implementation() {
-              Super::local_quadratic = [ this ]( RVector<D> q ) {
-                return [ this ,q ]( RVector<D> x ) {
+              Super::local_quadratic = [ this ]( CVector<D> q ) {
+                return [ this ,q ]( CVector<D> x ) {
                 
                   // Takes care of
                   // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda

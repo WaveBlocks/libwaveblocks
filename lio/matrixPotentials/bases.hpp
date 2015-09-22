@@ -56,11 +56,11 @@ namespace waveblocks
       struct Basis {
         struct Canonical {
           using scalar_type = real_t;
-          using potential_type = GMatrix<rD_to_r<D>, N, N>;
-          using jacobian_type = GMatrix<rD_to_rD<D>, N, N>;
-          using hessian_type = GMatrix<rD_to_rDxD<D>, N, N>;
-          using transformation_type = rD_to_cNxN<D, N>;
-          using local_quadratic_type = rD_to_function_matrix<D, N, rD_to_r<D> >;
+          using potential_type = GMatrix<cD_to_r<D>, N, N>;
+          using jacobian_type = GMatrix<cD_to_rD<D>, N, N>;
+          using hessian_type = GMatrix<cD_to_rDxD<D>, N, N>;
+          using transformation_type = cD_to_cNxN<D, N>;
+          using local_quadratic_type = cD_to_function_matrix<D, N, cD_to_r<D> >;
           
           using potential_evaluation_type = RMatrix<N, N>;
           using jacobian_evaluation_type = GMatrix<RVector<D>, N, N>;
@@ -73,11 +73,11 @@ namespace waveblocks
         
         struct Eigen {
           using scalar_type = complex_t;
-          using potential_type = GVector<rD_to_c<D>, N>;
-          using jacobian_type = GVector<rD_to_cD<D>, N>;
-          using hessian_type = GVector<rD_to_cDxD<D>, N>;
-          using transformation_type = rD_to_cNxN<D, N>;
-          using local_quadratic_type = rD_to_function_vector<D, N, rD_to_c<D> >;
+          using potential_type = GVector<cD_to_c<D>, N>;
+          using jacobian_type = GVector<cD_to_cD<D>, N>;
+          using hessian_type = GVector<cD_to_cDxD<D>, N>;
+          using transformation_type = cD_to_cNxN<D, N>;
+          using local_quadratic_type = cD_to_function_vector<D, N, cD_to_c<D> >;
           
           using potential_evaluation_type = CVector<N>;
           using jacobian_evaluation_type = GVector<CVector<D>, N>;
@@ -92,10 +92,10 @@ namespace waveblocks
       struct Basis<1, D> {
         struct Canonical {
           using scalar_type = real_t;
-          using potential_type = rD_to_r<D>;
-          using jacobian_type = rD_to_rD<D>;
-          using hessian_type = rD_to_rDxD<D>;
-          using local_quadratic_type = rD_to_function<D, rD_to_r<D> >;
+          using potential_type = cD_to_r<D>;
+          using jacobian_type = cD_to_rD<D>;
+          using hessian_type = cD_to_rDxD<D>;
+          using local_quadratic_type = cD_to_function<D, cD_to_r<D> >;
           
           using potential_evaluation_type = real_t;
           using jacobian_evaluation_type = RVector<D>;
@@ -109,10 +109,10 @@ namespace waveblocks
         //~ using Eigen = Canonical;
         struct Eigen {
           using scalar_type = complex_t;
-          using potential_type = rD_to_c<D>;
-          using jacobian_type = rD_to_cD<D>;
-          using hessian_type = rD_to_cDxD<D>;
-          using local_quadratic_type = rD_to_function<D, rD_to_c<D> >;
+          using potential_type = cD_to_c<D>;
+          using jacobian_type = cD_to_cD<D>;
+          using hessian_type = cD_to_cDxD<D>;
+          using local_quadratic_type = cD_to_function<D, cD_to_c<D> >;
           
           using potential_evaluation_type = complex_t;
           using jacobian_evaluation_type = CVector<D>;
