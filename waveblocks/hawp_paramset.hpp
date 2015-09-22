@@ -30,6 +30,8 @@ struct HaWpParamSet
     complex_t S;
     ContinuousSqrt<real_t> sqrt_detQ;
 
+    /** Construct a Hagedorn parameter set with default values.
+     */
     HaWpParamSet()
         : q(RMatrix<D,1>::Zero())
         , p(RMatrix<D,1>::Zero())
@@ -39,6 +41,8 @@ struct HaWpParamSet
         , sqrt_detQ() //detQ = 1.0 => sqrt(detQ) = 1.0
     { }
 
+    /** Construct a Hagedorn parameter set by copying from another one.
+     */
     HaWpParamSet(const HaWpParamSet &that)
         : q(that.q)
         , p(that.p)
@@ -48,6 +52,8 @@ struct HaWpParamSet
         , sqrt_detQ(that.sqrt_detQ)
     { }
 
+    /** Construct a Hagedorn parameter set with explicit values.
+     */
     HaWpParamSet(const RMatrix<D,1> &q,
                  const RMatrix<D,1> &p,
                  const CMatrix<D,D> &Q,
@@ -75,6 +81,8 @@ struct HaWpParamSet
         , S(S)
     { }
 
+    /** Construct a Hagedorn parameter set by assigning from another one.
+     */
     HaWpParamSet &operator=(const HaWpParamSet &that)
     {
         q = that.q;
