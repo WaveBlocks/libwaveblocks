@@ -14,6 +14,14 @@
 
 namespace waveblocks {
 
+/**
+ * \brief This class represents the Hagedorn parameter set \f$ \Pi = {q, p, Q, P, S} \f$.
+ *
+ * The first two parameters \f$ q \f$ and \f$ p \f$ are \f$ D \f$ dimensional
+ * real-valued vectors. The second two \f$ Q \f$ and \f$ P \f$ are complex
+ * \f$ D \times D \f$ matrices. The last parameter \f$ S \f$ is the global
+ * complex phase.
+ */
 template<dim_t D>
 struct HaWpParamSet
 {
