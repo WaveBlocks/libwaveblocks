@@ -2,6 +2,7 @@
 #include "macros.hpp"
 #include "matrixPotentials/bases.hpp"
 #include "matrixPotentials/modules/localQuadratic.hpp"
+#include "matrixPotentials/modules/leadingLevelOwner.hpp"
 #include "types.hpp"
 #include "utilities/evaluations.hpp"
 
@@ -13,77 +14,25 @@ namespace waveblocks
     {
       namespace localRemainder
       {
-        namespace helper
-        {
-       // templated typedef with specialization
-        template <int N>
-        struct LOC_REMAIN_TYPE_HELPER {
-          using type = CMatrix<N,N>;
-        };
-        
-        template <>
-        struct LOC_REMAIN_TYPE_HELPER<1> {
-          using type = complex_t;
-        };
-
-        template <int N>
-        using local_quadratic_evaluation_type = typename LOC_REMAIN_TYPE_HELPER<N>::type;
-        
-          template <int N>
-          struct DiagonalDifference {
-            struct Inhomogenous {
-              static local_quadratic_evaluation_type<N> apply( RMatrix<N, N> V, const CVector<N> &u ) {
-                local_quadratic_evaluation_type<N> C = V.template cast<complex_t>();
-                
-                for ( int i = 0; i < N; ++i ) {
-                  C( i, i ) -= u( i );
-                }
-                
-                return C;
-              }
-            };
-            struct Homogenous {
-              static local_quadratic_evaluation_type<N> apply( RMatrix<N, N> V, const complex_t &u ) {
-                local_quadratic_evaluation_type<N> C = V.template cast<complex_t>();
-                
-                for ( int i = 0; i < N; ++i ) {
-                  C( i, i ) -= u;
-                }
-                
-                return C;
-              }
-            };
-          };
-          
-          template <>
-          struct DiagonalDifference<1> {
-            struct Homogenous {
-              static local_quadratic_evaluation_type<1> apply( real_t V, const complex_t &u ) {
-                return V - u;
-              }
-            };
-            using Inhomogenous = Homogenous;
-          };
-        }
-        
-        template <int N>
-        using local_quadratic_evaluation_type = typename helper::local_quadratic_evaluation_type<N>;
-        
+         
         template <class Subtype, int N, int D>
         struct Abstract {
           using Self = Abstract<Subtype, N, D>;
-          local_quadratic_evaluation_type<N> evaluate_local_remainder_at( const CVector<D> &arg,
+          IMPORT_TYPES_FROM( bases::Canonical, N, D );
+
+
+          local_quadratic_evaluation_type evaluate_local_remainder_at( const CVector<D> &arg,
               const CVector<D> &q ) const {
             return static_cast<const Subtype*>(this)->evaluate_local_remainder_at_implementation( arg, q );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
-          grid_out<local_quadratic_evaluation_type<N> > evaluate_local_remainder(
+          grid_out<local_quadratic_evaluation_type > evaluate_local_remainder(
             const grid_in<CVector<D> > &args,
             const CVector<D> &q ) const {
             return utilities::evaluate_function_in_grid < CVector<D>,
-                   local_quadratic_evaluation_type<N>,
+                   local_quadratic_evaluation_type,
                    grid_in,
                    grid_out,
                    function_t > (
@@ -94,79 +43,90 @@ namespace waveblocks
           
         }; 
         
-        template <class EvalImpl, class LeadingEvalImpl, int N, int D>
-        class Homogenous
-          : public Abstract<Homogenous<EvalImpl, LeadingEvalImpl, N, D>, N, D>,
-            EvalImpl
+        template <class DiagDifference, class EvalImpl, class LocQuadraticImpl, int N, int D>
+        class General : public Abstract<General<DiagDifference, EvalImpl, LocQuadraticImpl, N, D>, N, D>, public EvalImpl, public LeadingLevelOwner<LocQuadraticImpl>
         {
             IMPORT_TYPES_FROM( bases::Canonical, N, D );
                       
-            LocalQuadratic<LeadingEvalImpl, bases::Eigen, 1, D> quadratic;
-            
           public:
-                      using leading_level_type = bases::Eigen<1, D>;
 
-            Homogenous( potential_type pot,
-                        jacobian_type jac,
-                        hessian_type hess,
-                        typename leading_level_type::potential_type lead_pot,
-                        typename leading_level_type::jacobian_type lead_jac,
-                        typename leading_level_type::hessian_type lead_hess )
-              : EvalImpl( pot, jac, hess ), quadratic( lead_pot, lead_jac, lead_hess ) {}
+            General( potential_type pot,
+                        typename LocQuadraticImpl::potential_type lead_pot,
+                        typename LocQuadraticImpl::jacobian_type lead_jac,
+                        typename LocQuadraticImpl::hessian_type lead_hess )
+              : EvalImpl(pot), LeadingLevelOwner<LocQuadraticImpl>( LocQuadraticImpl(lead_pot, lead_jac, lead_hess )) {}
+
               
-            local_quadratic_evaluation_type<N> evaluate_local_remainder_at_implementation(
+            local_quadratic_evaluation_type evaluate_local_remainder_at_implementation(
               const CVector<D> &arg,
               const CVector<D> &q ) const {
-              auto u = quadratic.evaluate_local_quadratic_at( arg, q );
-              return helper::DiagonalDifference<N>::Homogenous::apply(
+              auto u = LeadingLevelOwner<LocQuadraticImpl>::get_leading_level().evaluate_local_quadratic_at( arg, q );
+              return DiagDifference::apply(
                        EvalImpl::evaluate_at( arg ), u );
             }
-            
-          template <template <typename...> class Tuple = std::tuple>
-          Tuple<typename leading_level_type::potential_evaluation_type,
-          typename leading_level_type::jacobian_evaluation_type,
-          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const CVector<D> &g ) const {
-            return quadratic.taylor_at(g);
-          }
         };
+
         
-        template <class EvalImpl, class LeadingEvalImpl, int N, int D>
-        class Inhomogenous
-          : public Abstract<Inhomogenous<EvalImpl, LeadingEvalImpl, N, D>, N, D>,
-            EvalImpl
-        {
+        namespace helper
+        {       
+          template <class LocQuadImpl, int N, int D>
+          struct DiagonalDifference {
             IMPORT_TYPES_FROM( bases::Canonical, N, D );
-            
-            
-            LocalQuadratic<LeadingEvalImpl, bases::Eigen, N, D> quadratic;
-            
-          public:
-                      using leading_level_type = bases::Eigen<N, D>;
 
-            Inhomogenous( potential_type pot,
-                          jacobian_type jac,
-                          hessian_type hess,
-                          typename leading_level_type::potential_type lead_pot,
-                          typename leading_level_type::jacobian_type lead_jac,
-                          typename leading_level_type::hessian_type lead_hess )
-              : EvalImpl( pot, jac, hess ), quadratic( lead_pot, lead_jac, lead_hess ) {}
-              
-            local_quadratic_evaluation_type<N> evaluate_local_remainder_at_implementation(
-              const CVector<D> &arg,
-              const CVector<D> &q ) const {
-              auto u = quadratic.evaluate_local_quadratic_at( arg, q );
-              return helper::DiagonalDifference<N>::Inhomogenous::apply(
-                       EvalImpl::evaluate_at( arg ), u );
-            }
-            
-            template <template <typename...> class Tuple = std::tuple>
-              Tuple<typename leading_level_type::potential_evaluation_type,
-          typename leading_level_type::jacobian_evaluation_type,
-          typename leading_level_type::hessian_evaluation_type> taylor_leading_at( const CVector<D> &g ) const {
-            return quadratic.taylor_at(g);
-          }
-        };
+            struct Inhomogenous {
+              static local_quadratic_evaluation_type apply(const potential_evaluation_type& V, const typename LocQuadImpl::local_quadratic_evaluation_type &u ) {
+                local_quadratic_evaluation_type C = V.template cast<local_quadratic_return_type>();
+                
+                for ( int i = 0; i < N; ++i ) {
+                  C( i, i ) -= u( i );
+                }
+                
+                return C;
+              }
+            };
+            struct Homogenous {
+              static local_quadratic_evaluation_type apply(const potential_evaluation_type& V, const typename LocQuadImpl::local_quadratic_evaluation_type &u ) {
+                local_quadratic_evaluation_type C = V.template cast<local_quadratic_return_type>();
+                
+                for ( int i = 0; i < N; ++i ) {
+                  C( i, i ) -= u;
+                }
+                
+                return C;
+              }
+            };
+          };
+          
+          template <class LocQuadImpl, int D>
+          struct DiagonalDifference<LocQuadImpl,1,D> {
+            IMPORT_TYPES_FROM( bases::Canonical, 1, D );
+
+            struct Homogenous {
+              static local_quadratic_evaluation_type apply(const potential_evaluation_type& V, const typename LocQuadImpl::local_quadratic_evaluation_type &u ) {
+                return V - u;
+              }
+            };
+            using Inhomogenous = Homogenous;
+          };
+        }
+        
+
+       
+
+        template<class EvalImpl, class LocQuadraticImpl, int N, int D>
+        using Homogenous = General<typename helper::DiagonalDifference<LocQuadraticImpl,N,D>::Homogenous,EvalImpl,LocQuadraticImpl,N,D>;
+
+        template<class EvalImpl, class LocQuadraticImpl, int N, int D>
+        using Inhomogenous = General<typename helper::DiagonalDifference<LocQuadraticImpl,N,D>::Inhomogenous,EvalImpl,LocQuadraticImpl,N,D>;
+        
       }
+    
+      template<int N, int D>
+      using Homogenous = localRemainder::Homogenous<Evaluation<bases::Canonical,N,D>,LocalQuadratic<bases::Eigen,1,D>,N,D>;
+
+      template<int N, int D>
+      using Inhomogenous = localRemainder::Inhomogenous<Evaluation<bases::Canonical,N,D>,LocalQuadratic<bases::Eigen,N,D>,N,D>;
+      
     }
   }
 }

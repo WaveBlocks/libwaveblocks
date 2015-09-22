@@ -2,6 +2,7 @@
 #include "macros.hpp"
 #include "types.hpp"
 #include "utilities/evaluations.hpp"
+#include "matrixPotentials/modules/taylor.hpp"
 
 namespace waveblocks
 {
@@ -33,8 +34,6 @@ namespace waveblocks
             using Self = Abstract<Subtype, Basis, N, D>;
             IMPORT_TYPES_FROM( Basis, N, D );
             
-          protected:
-            local_quadratic_type local_quadratic;
             
           public:
             void calculate_local_quadratic() const {
@@ -65,24 +64,25 @@ namespace waveblocks
             }
         };
         
-        template <class EvalImpl, template <int, int> class Basis, int N, int D>
-        class Standard : public Abstract<Standard<EvalImpl, Basis, N, D>, Basis, N, D>,
-          public EvalImpl
+        template <class TaylorImpl, template <int, int> class Basis, int N, int D>
+        class Standard : public Abstract<Standard<TaylorImpl, Basis, N, D>, Basis, N, D>,
+          public TaylorImpl
         {
           public:
             IMPORT_TYPES_FROM( Basis, N, D );
-            using Super = Abstract<Standard<EvalImpl, Basis, N, D>, Basis, N, D>;
-            
+
+          protected:
+            local_quadratic_type local_quadratic;
           public:
             Standard( potential_type potential,
                       jacobian_type jacobian,
                       hessian_type hessian )
-              : EvalImpl( potential, jacobian, hessian ) {
+              : TaylorImpl( potential, jacobian, hessian ) {
               calculate_local_quadratic_implementation();
             }
             
             void calculate_local_quadratic_implementation() const {
-              Super::local_quadratic = [ this ]( CVector<D> q ) {
+              local_quadratic = [ this ]( CVector<D> q ) {
                 potential_type result_matrix;
                 
                 for ( int l = 0; l < N; ++l ) {
@@ -91,17 +91,17 @@ namespace waveblocks
                   // Takes care of
                   // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda
 #if defined(__clang__)
-                  auto V = EvalImpl::potential( q );
-                  auto J = EvalImpl::jacobian( q );
-                  auto H = EvalImpl::hessian( q );
+                  auto V = TaylorImpl::potential( q );
+                  auto J = TaylorImpl::jacobian( q );
+                  auto H = TaylorImpl::hessian( q );
 #elif defined(__GNUC__) || defined(__GNUG__)
                   auto V = this->potential( q );
                   auto J = this->jacobian( q );
                   auto H = this->hessian( q );
 #else
-                  auto V = EvalImpl::potential( q );
-                  auto J = EvalImpl::jacobian( q );
-                  auto H = EvalImpl::hessian( q );
+                  auto V = TaylorImpl::potential( q );
+                  auto J = TaylorImpl::jacobian( q );
+                  auto H = TaylorImpl::hessian( q );
 #endif                      
                       auto result = V;
                       
@@ -124,44 +124,44 @@ namespace waveblocks
             }
         };
         
-        template <class EvalImpl, template <int, int> class Basis, int D>
-        class Standard<EvalImpl, Basis, 1, D> : public Abstract <
-          Standard<EvalImpl, Basis, 1, D>,
+        template <class TaylorImpl, template <int, int> class Basis, int D>
+        class Standard<TaylorImpl, Basis, 1, D> : public Abstract <
+          Standard<TaylorImpl, Basis, 1, D>,
           Basis,
           1,
           D > ,
-        public EvalImpl
+        public TaylorImpl
         {
           public:
             IMPORT_TYPES_FROM( Basis, 1, D );
-            using Super = Abstract<Standard<EvalImpl, Basis, 1, D>, Basis, 1, D>;
-            
+          protected:
+            local_quadratic_type local_quadratic;            
           public:
             Standard( potential_type potential,
                       jacobian_type jacobian,
                       hessian_type hessian )
-              : EvalImpl( potential, jacobian, hessian ) {
+              : TaylorImpl( potential, jacobian, hessian ) {
               calculate_local_quadratic_implementation();
             }
             
             void calculate_local_quadratic_implementation() {
-              Super::local_quadratic = [ this ]( CVector<D> q ) {
+              local_quadratic = [ this ]( CVector<D> q ) {
                 return [ this ,q ]( CVector<D> x ) {
                 
                   // Takes care of
                   // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda
 #if defined(__clang__)
-                  auto V = EvalImpl::potential( q );
-                  auto J = EvalImpl::jacobian( q );
-                  auto H = EvalImpl::hessian( q );
+                  auto V = TaylorImpl::potential( q );
+                  auto J = TaylorImpl::jacobian( q );
+                  auto H = TaylorImpl::hessian( q );
 #elif defined(__GNUC__) || defined(__GNUG__)
                   auto V = this->potential( q );
                   auto J = this->jacobian( q );
                   auto H = this->hessian( q );
 #else
-                  auto V = EvalImpl::potential( q );
-                  auto J = EvalImpl::jacobian( q );
-                  auto H = EvalImpl::hessian( q );
+                  auto V = TaylorImpl::potential( q );
+                  auto J = TaylorImpl::jacobian( q );
+                  auto H = TaylorImpl::hessian( q );
 #endif
                   
                   auto result = V;
@@ -181,8 +181,8 @@ namespace waveblocks
             }
         };
       }
-      template <class EvalImpl, template <int, int> class Basis, int N, int D>
-      using LocalQuadratic = localQuadratic::Standard<EvalImpl, Basis, N, D>;
+      template <template <int, int> class Basis, int N, int D>
+      using LocalQuadratic = localQuadratic::Standard<Taylor<Basis,N,D>, Basis, N, D>;
     }
   }
 }

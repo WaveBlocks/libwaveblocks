@@ -10,7 +10,7 @@ namespace waveblocks
   {
     namespace modules
     {
-      namespace evaluation
+      namespace jacobian
       {
         /**
        * \brief Abstract class for potential evaluation
@@ -33,25 +33,24 @@ namespace waveblocks
           using Self = Abstract<Subtype, Basis, N, D>;
           IMPORT_TYPES_FROM( Basis, N, D );
           
-          potential_evaluation_type evaluate_at( const CVector<D> &arg ) const {
-            return static_cast<const Subtype*>(this)->evaluate_at_implementation( arg );
+          
+          jacobian_evaluation_type evaluate_jacobian_at( const CVector<D> &arg ) const {
+            return static_cast<const Subtype*>(this)->evaluate_jacobian_at_implementation( arg );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
-          grid_out<potential_evaluation_type> evaluate(
+          grid_out<jacobian_evaluation_type> evaluate_jacobian(
             const grid_in<CVector<D> > &args ) const {
             return utilities::evaluate_function_in_grid < CVector<D>,
-                   potential_evaluation_type,
+                   jacobian_evaluation_type,
                    grid_in,
                    grid_out,
                    function_t > (
-                     std::bind( &Self::evaluate_at, this, std::placeholders::_1 ), args );
+                     std::bind( &Self::evaluate_jacobian_at, this, std::placeholders::_1 ),
+                     args );
           }
-          
-          
-          
-        };
+      };
         
         /**
          * \brief Helper class for easier template specialization
@@ -66,70 +65,47 @@ namespace waveblocks
         template <int N, int D>
         struct BasisSpecific {
             struct Canonical
-                : Abstract<BasisSpecific<N, D>::Canonical, bases::Canonical, N, D> {
+                : Abstract<Canonical, bases::Canonical, N, D> {
                 
                 IMPORT_TYPES_FROM( bases::Canonical, N, D );
                 
               protected:
-                potential_type potential;
-                hessian_type hessian;
+                jacobian_type jacobian;
                 
               public:
-                Canonical( potential_type potential,
-                           hessian_type hessian )
-                  : potential( potential ),  hessian( hessian ){}
+                Canonical(jacobian_type jacobian)
+                  : jacobian( jacobian ) {}
                   
               public:
-                potential_evaluation_type evaluate_at_implementation(
+                jacobian_evaluation_type evaluate_jacobian_at_implementation(
                   const CVector<D> &arg ) const {
                   return utilities::evaluate_function_matrix < N,
                          GMatrix,
                          CVector<D>,
-                         potential_return_type,
-                         function_t > ( potential, arg );
-                }
-                
-                
-                hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return utilities::evaluate_function_matrix < N,
-                         GMatrix,
-                         CVector<D>,
-                         hessian_return_type,
-                         function_t > ( hessian, arg );
+                         jacobian_return_type,
+                         function_t > ( jacobian, arg );
                 }
             };
             
-            struct Eigen : Abstract<BasisSpecific<N, D>::Eigen, bases::Eigen, N, D> {
+            struct Eigen : Abstract<Eigen, bases::Eigen, N, D> {
             
                 IMPORT_TYPES_FROM( bases::Eigen, N, D );
                 
               protected:
-                potential_type potential;
-                hessian_type hessian;
+                jacobian_type jacobian;
                 
               public:
-                Eigen( potential_type potential,
-                       hessian_type hessian )
-                  : potential( potential ),  hessian( hessian ) {}
+                Eigen(jacobian_type jacobian)
+                  : jacobian( jacobian ) {}
                   
               public:
-                potential_evaluation_type evaluate_at_implementation(
+                jacobian_evaluation_type evaluate_jacobian_at_implementation(
                   const CVector<D> &arg ) const {
                   return utilities::evaluate_function_vector < N,
                          GVector,
                          CVector<D>,
-                         potential_return_type,
-                         function_t > ( potential, arg );
-                }
-                
-                hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return utilities::evaluate_function_vector < N,
-                         GVector,
-                         CVector<D>,
-                         hessian_return_type,
-                         function_t > ( hessian, arg );
+                         jacobian_return_type,
+                         function_t > ( jacobian, arg );
                 }
             };
         };
@@ -142,24 +118,20 @@ namespace waveblocks
                 IMPORT_TYPES_FROM( Basis, 1, D );
                 
               protected:
-                potential_type potential;
-                hessian_type hessian;
+                jacobian_type jacobian;
                 
               public:
-                General( potential_type potential,
-                         hessian_type hessian )
-                  : potential( potential ), hessian( hessian ) {}
+                General( 
+                         jacobian_type jacobian)
+                   : jacobian( jacobian ){}
                   
               public:
-                potential_evaluation_type evaluate_at_implementation(
+                
+                jacobian_evaluation_type evaluate_jacobian_at_implementation(
                   const CVector<D> &arg ) const {
-                  return potential( arg );
+                  return jacobian( arg );
                 }
                 
-                hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return hessian( arg );
-                }
             };
             
             using Canonical = General<bases::Canonical>;
@@ -185,7 +157,7 @@ namespace waveblocks
       }
       
       template <template <int, int> class Basis, int N, int D>
-      using Evaluation = evaluation::Standard<Basis, N, D>;
+      using Jacobian = jacobian::Standard<Basis, N, D>;
     }
   }
 }

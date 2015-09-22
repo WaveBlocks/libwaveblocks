@@ -10,7 +10,7 @@ namespace waveblocks
   {
     namespace modules
     {
-      namespace evaluation
+      namespace hessian
       {
         /**
        * \brief Abstract class for potential evaluation
@@ -33,23 +33,23 @@ namespace waveblocks
           using Self = Abstract<Subtype, Basis, N, D>;
           IMPORT_TYPES_FROM( Basis, N, D );
           
-          potential_evaluation_type evaluate_at( const CVector<D> &arg ) const {
-            return static_cast<const Subtype*>(this)->evaluate_at_implementation( arg );
+          
+          hessian_evaluation_type evaluate_hessian_at( const CVector<D> &arg ) const {
+            return static_cast<const Subtype*>(this)->evaluate_hessian_at_implementation( arg );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
-          grid_out<potential_evaluation_type> evaluate(
+          grid_out<hessian_evaluation_type> evaluate_hessian(
             const grid_in<CVector<D> > &args ) const {
             return utilities::evaluate_function_in_grid < CVector<D>,
-                   potential_evaluation_type,
+                   hessian_evaluation_type,
                    grid_in,
                    grid_out,
                    function_t > (
-                     std::bind( &Self::evaluate_at, this, std::placeholders::_1 ), args );
+                     std::bind( &Self::evaluate_hessian_at, this, std::placeholders::_1 ),
+                     args );
           }
-          
-          
           
         };
         
@@ -71,23 +71,14 @@ namespace waveblocks
                 IMPORT_TYPES_FROM( bases::Canonical, N, D );
                 
               protected:
-                potential_type potential;
                 hessian_type hessian;
                 
               public:
-                Canonical( potential_type potential,
+                Canonical( 
                            hessian_type hessian )
-                  : potential( potential ),  hessian( hessian ){}
+                  :  hessian( hessian ){}
                   
               public:
-                potential_evaluation_type evaluate_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return utilities::evaluate_function_matrix < N,
-                         GMatrix,
-                         CVector<D>,
-                         potential_return_type,
-                         function_t > ( potential, arg );
-                }
                 
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
@@ -105,23 +96,14 @@ namespace waveblocks
                 IMPORT_TYPES_FROM( bases::Eigen, N, D );
                 
               protected:
-                potential_type potential;
                 hessian_type hessian;
                 
               public:
-                Eigen( potential_type potential,
+                Eigen( 
                        hessian_type hessian )
-                  : potential( potential ),  hessian( hessian ) {}
+                  :  hessian( hessian ) {}
                   
               public:
-                potential_evaluation_type evaluate_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return utilities::evaluate_function_vector < N,
-                         GVector,
-                         CVector<D>,
-                         potential_return_type,
-                         function_t > ( potential, arg );
-                }
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
                   const CVector<D> &arg ) const {
@@ -142,19 +124,14 @@ namespace waveblocks
                 IMPORT_TYPES_FROM( Basis, 1, D );
                 
               protected:
-                potential_type potential;
                 hessian_type hessian;
                 
               public:
-                General( potential_type potential,
+                General( 
                          hessian_type hessian )
-                  : potential( potential ), hessian( hessian ) {}
+                  : hessian( hessian ) {}
                   
               public:
-                potential_evaluation_type evaluate_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return potential( arg );
-                }
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
                   const CVector<D> &arg ) const {
@@ -185,7 +162,7 @@ namespace waveblocks
       }
       
       template <template <int, int> class Basis, int N, int D>
-      using Evaluation = evaluation::Standard<Basis, N, D>;
+      using Hessian = hessian::Standard<Basis, N, D>;
     }
   }
 }
