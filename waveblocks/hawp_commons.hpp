@@ -205,7 +205,8 @@ public:
     /**
      * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at complex grid nodes \f$ x \in \gamma \f$.
      *
-     * Notice that this function does not include the global phase
+     * Notice that this function does not include the prefactor
+     * \f$ \frac{1}{\sqrt{det(Q)}} \f$ nor the global phase
      * \f$ \exp{(\frac{iS}{\varepsilon^2})} \f$.
      *
      * \param grid
@@ -225,7 +226,8 @@ public:
     /**
      * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at real grid nodes \f$ x \in \gamma \f$.
      *
-     * Notice that this function does not include the global phase
+     * Notice that this function does not include the prefactor
+     * \f$ \frac{1}{\sqrt{det(Q)}} \f$ nor the global phase
      * \f$ \exp{(\frac{iS}{\varepsilon^2})} \f$.
      *
      * \param rgrid
