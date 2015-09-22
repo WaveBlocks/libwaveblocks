@@ -239,18 +239,27 @@ public:
         return evaluate(cgrid);
     }
 
+//     virtual HaWpBasisVector<Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const
+//     {
+//         return create_evaluator<Eigen::Dynamic>().reduce(coefficients());
+//     }
+
     /**
      * \brief Computes the prefactor \f$ \frac{1}{\sqrt{det(Q)}} \f$.
      */
     complex_t prefactor() const
     {
-        return real_t(1)/this->paramaters().sqrt_detQ();;
+        return real_t(1)/this->paramaters().sqrt_detQ();
     }
 
-//     virtual HaWpBasisVector<Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const
-//     {
-//         return create_evaluator<Eigen::Dynamic>().reduce(coefficients());
-//     }
+    /**
+     * \brief Computes the global phase factor \f$ \exp(\frac{i S}{\varepsilon^2}) \f$.
+     */
+    complex_t phasefactor() const
+    {
+        complex_t S = parameters().S;
+        return std::exp(complex_t(0.0, 1.0) * S / eps() / eps() );
+    }
 };
 
 
