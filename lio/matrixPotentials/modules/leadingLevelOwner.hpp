@@ -35,7 +35,12 @@ namespace waveblocks
         Owned& get_leading_level() {
           return owned;
         }
-        Standard(Owned toOwn) : owned(toOwn) {}
+        const Owned& get_leading_level() const {
+          return owned;
+        }
+            
+        template<class... T>
+        Standard(T... args) :owned(args...){}  
       };
 
       

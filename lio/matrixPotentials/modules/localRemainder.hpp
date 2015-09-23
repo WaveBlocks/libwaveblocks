@@ -54,7 +54,7 @@ namespace waveblocks
                         typename LocQuadraticImpl::potential_type lead_pot,
                         typename LocQuadraticImpl::jacobian_type lead_jac,
                         typename LocQuadraticImpl::hessian_type lead_hess )
-              : EvalImpl(pot), LeadingLevelOwner<LocQuadraticImpl>( LocQuadraticImpl(lead_pot, lead_jac, lead_hess )) {}
+              : EvalImpl(pot), LeadingLevelOwner<LocQuadraticImpl>( lead_pot, lead_jac, lead_hess ) {}
 
               
             local_quadratic_evaluation_type evaluate_local_remainder_at_implementation(

@@ -69,7 +69,7 @@ namespace waveblocks
                 
                 IMPORT_TYPES_FROM( bases::Canonical, N, D );
                 
-              protected:
+              private:
                 jacobian_type jacobian;
                 
               public:
@@ -91,7 +91,7 @@ namespace waveblocks
             
                 IMPORT_TYPES_FROM( bases::Eigen, N, D );
                 
-              protected:
+              private:
                 jacobian_type jacobian;
                 
               public:
@@ -117,7 +117,7 @@ namespace waveblocks
             
                 IMPORT_TYPES_FROM( Basis, 1, D );
                 
-              protected:
+              private:
                 jacobian_type jacobian;
                 
               public:
