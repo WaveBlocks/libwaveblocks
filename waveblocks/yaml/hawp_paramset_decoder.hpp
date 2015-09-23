@@ -23,10 +23,10 @@ public:
     {
         HaWpParamSet<D> params;
 
-        params.setq(decode_rvector(config["q"]));
-        params.setp(decode_rvector(config["p"]));
-        params.setQ(decode_cmatrix(config["Q"]));
-        params.setP(decode_cmatrix(config["P"]));
+        params.q(decode_rvector(config["q"]));
+        params.p(decode_rvector(config["p"]));
+        params.Q(decode_cmatrix(config["Q"]));
+        params.P(decode_cmatrix(config["P"]));
 
 //         if (config["sqrt_detQ"]) {
 //             params.sqrt_detQ = config["sqrt_detQ"].as<std::complex<double> >();

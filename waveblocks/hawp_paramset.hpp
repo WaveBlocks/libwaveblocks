@@ -99,37 +99,37 @@ public:
     }
 
     /** \brief Get the parameter \f$ q \f$ */
-    inline RMatrix<D,1> const& getq() const {return q_;}
+    inline RMatrix<D,1> const& q() const {return q_;}
 
     /** \brief Get the parameter \f$ p \f$ */
-    inline RMatrix<D,1> const& getp() const {return p_;}
+    inline RMatrix<D,1> const& p() const {return p_;}
 
     /** \brief Get the parameter \f$ Q \f$ */
-    inline CMatrix<D,D> const& getQ() const {return Q_;}
+    inline CMatrix<D,D> const& Q() const {return Q_;}
 
     /** \brief Get the parameter \f$ P \f$ */
-    inline CMatrix<D,D> const& getP() const {return P_;}
+    inline CMatrix<D,D> const& P() const {return P_;}
 
     /** \brief Get the parameter \f$ S \f$ */
-    inline complex_t const& getS() const {return S_;}
+    inline complex_t const& S() const {return S_;}
 
     // Undocumented
-    inline complex_t const getsdQ() const {return sqrt_detQ_();}
+    inline complex_t const sdQ() const {return sqrt_detQ_();}
 
     /** \brief Set the parameter \f$ q \f$ */
-    inline void setq(const RMatrix<D,1> qnew) {q_ = qnew;}
+    inline void q(const RMatrix<D,1> qnew) {q_ = qnew;}
 
     /** \brief Set the parameter \f$ p \f$ */
-    inline void setp(const RMatrix<D,1> pnew) {p_ = pnew;}
+    inline void p(const RMatrix<D,1> pnew) {p_ = pnew;}
 
     /** \brief Set the parameter \f$ Q \f$ */
-    inline void setQ(const CMatrix<D,D> Qnew) {Q_ = Qnew; resync();}
+    inline void Q(const CMatrix<D,D> Qnew) {Q_ = Qnew; resync();}
 
     /** \brief Set the parameter \f$ P \f$ */
-    inline void setP(const CMatrix<D,D> Pnew) {P_ = Pnew;}
+    inline void P(const CMatrix<D,D> Pnew) {P_ = Pnew;}
 
     /** \brief Set the parameter \f$ S \f$ */
-    inline void setS(const complex_t Snew) {S_ = Snew;}
+    inline void S(const complex_t Snew) {S_ = Snew;}
 
     /* Undocumented
      * Compute the continuous square root of \f$ \det Q \f$ after an update
@@ -185,12 +185,12 @@ std::ostream &operator<<(std::ostream &out, const HaWpParamSet<D> &parameters)
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n     ", "[", "]");
 
     out << "HaWpParamSet {\n";
-    out << "  q: " << parameters.getq().format(CleanFmt) << '\n';
-    out << "  p: " << parameters.getp().format(CleanFmt) << '\n';
-    out << "  Q: " << parameters.getQ().format(CleanFmt) << '\n';
-    out << "  P: " << parameters.getP().format(CleanFmt) << '\n';
-    out << "  S: " << parameters.getS() << '\n';
-    out << "  sqrt(detQ): " << parameters.getsdQ() << '\n';
+    out << "  q: " << parameters.q().format(CleanFmt) << '\n';
+    out << "  p: " << parameters.p().format(CleanFmt) << '\n';
+    out << "  Q: " << parameters.Q().format(CleanFmt) << '\n';
+    out << "  P: " << parameters.P().format(CleanFmt) << '\n';
+    out << "  S: " << parameters.S() << '\n';
+    out << "  sqrt(detQ): " << parameters.sdQ() << '\n';
     out << "  compatible(): " << (parameters.compatible() ? "yes" : "no") << '\n';
     out << "}" << std::endl;
     return out;
