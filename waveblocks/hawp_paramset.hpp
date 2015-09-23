@@ -27,32 +27,32 @@ template<dim_t D>
 struct HaWpParamSet
 {
 private:
-    RMatrix<D,1> q, p;
-    CMatrix<D,D> Q, P;
-    complex_t S;
-    ContinuousSqrt<real_t> sqrt_detQ;
+    RMatrix<D,1> q_, p_;
+    CMatrix<D,D> Q_, P_;
+    complex_t S_;
+    ContinuousSqrt<real_t> sqrt_detQ_;
 
 public:
     /** Construct a Hagedorn parameter set with default values.
      */
     HaWpParamSet()
-        : q(RMatrix<D,1>::Zero())
-        , p(RMatrix<D,1>::Zero())
-        , Q(CMatrix<D,D>::Identity())
-        , P(CMatrix<D,D>::Identity()*complex_t(0,1))
-        , S(complex_t(0,0))
-        , sqrt_detQ(1)
+        : q_(RMatrix<D,1>::Zero())
+        , p_(RMatrix<D,1>::Zero())
+        , Q_(CMatrix<D,D>::Identity())
+        , P_(CMatrix<D,D>::Identity()*complex_t(0,1))
+        , S_(complex_t(0,0))
+        , sqrt_detQ_(1)
     { }
 
     /** Construct a Hagedorn parameter set by copying from another one.
      */
     HaWpParamSet(const HaWpParamSet &that)
-        : q(that.q)
-        , p(that.p)
-        , Q(that.Q)
-        , P(that.P)
-        , S(that.S)
-        , sqrt_detQ(that.sqrt_detQ)
+        : q_(that.q_)
+        , p_(that.p_)
+        , Q_(that.Q_)
+        , P_(that.P_)
+        , S_(that.S_)
+        , sqrt_detQ_(that.sqrt_detQ_)
     { }
 
     /** Construct a Hagedorn parameter set with explicit values.
@@ -62,12 +62,12 @@ public:
                  const CMatrix<D,D> &Q,
                  const CMatrix<D,D> &P,
                  const complex_t &S)
-        : q(q)
-        , p(p)
-        , Q(Q)
-        , P(P)
-        , S(S)
-        , sqrt_detQ(std::sqrt(Q.determinant()))
+        : q_(q)
+        , p_(p)
+        , Q_(Q)
+        , P_(P)
+        , S_(S)
+        , sqrt_detQ_(std::sqrt(Q_.determinant()))
     { }
 
     // Undocumented
@@ -77,65 +77,65 @@ public:
                  const CMatrix<D,D> &P,
                  const complex_t &S,
                  ContinuousSqrt<real_t> sqrt_detQ)
-        : q(q)
-        , p(p)
-        , Q(Q)
-        , P(P)
-        , S(S)
-        , sqrt_detQ(sqrt_detQ)
+        : q_(q)
+        , p_(p)
+        , Q_(Q)
+        , P_(P)
+        , S_(S)
+        , sqrt_detQ_(sqrt_detQ)
     { }
 
     /** Construct a Hagedorn parameter set by assigning from another one.
      */
     HaWpParamSet &operator=(const HaWpParamSet &that)
     {
-        q = that.q;
-        p = that.p;
-        Q = that.Q;
-        P = that.P;
-        S = that.S;
-        sqrt_detQ = that.sqrt_detQ;
+        q_ = that.q_;
+        p_ = that.p_;
+        Q_ = that.Q_;
+        P_ = that.P_;
+        S_ = that.S_;
+        sqrt_detQ_ = that.sqrt_detQ_;
         return *this;
     }
 
     /** \brief Get the parameter \f$ q \f$ */
-    inline RMatrix<D,1> const& getq() const {return q;}
+    inline RMatrix<D,1> const& getq() const {return q_;}
 
     /** \brief Get the parameter \f$ p \f$ */
-    inline RMatrix<D,1> const& getp() const {return p;}
+    inline RMatrix<D,1> const& getp() const {return p_;}
 
     /** \brief Get the parameter \f$ Q \f$ */
-    inline CMatrix<D,D> const& getQ() const {return Q;}
+    inline CMatrix<D,D> const& getQ() const {return Q_;}
 
     /** \brief Get the parameter \f$ P \f$ */
-    inline CMatrix<D,D> const& getP() const {return P;}
+    inline CMatrix<D,D> const& getP() const {return P_;}
 
     /** \brief Get the parameter \f$ S \f$ */
-    inline complex_t const& getS() const {return S;}
+    inline complex_t const& getS() const {return S_;}
 
     // Undocumented
-    inline complex_t const getsdQ() const {return sqrt_detQ();}
+    inline complex_t const getsdQ() const {return sqrt_detQ_();}
 
     /** \brief Set the parameter \f$ q \f$ */
-    inline void setq(const RMatrix<D,1> qnew) {q = qnew;}
+    inline void setq(const RMatrix<D,1> qnew) {q_ = qnew;}
 
     /** \brief Set the parameter \f$ p \f$ */
-    inline void setp(const RMatrix<D,1> pnew) {p = pnew;}
+    inline void setp(const RMatrix<D,1> pnew) {p_ = pnew;}
 
     /** \brief Set the parameter \f$ Q \f$ */
-    inline void setQ(const CMatrix<D,D> Qnew) {Q = Qnew; resync();}
+    inline void setQ(const CMatrix<D,D> Qnew) {Q_ = Qnew; resync();}
 
     /** \brief Set the parameter \f$ P \f$ */
-    inline void setP(const CMatrix<D,D> Pnew) {P = Pnew;}
+    inline void setP(const CMatrix<D,D> Pnew) {P_ = Pnew;}
 
     /** \brief Set the parameter \f$ S \f$ */
-    inline void setS(const complex_t Snew) {S = Snew;}
+    inline void setS(const complex_t Snew) {S_ = Snew;}
 
     /* Undocumented
      * Compute the continuous square root of \f$ \det Q \f$ after an update
      * of the \f$ Q \f$ parameter.
      */
-    inline void resync() {sqrt_detQ = ContinuousSqrt<real_t>(std::sqrt(Q.determinant()));}
+    inline void resync() {sqrt_detQ_ = ContinuousSqrt<real_t>(std::sqrt(Q_.determinant()));}
 
     /**
      * Check the compatibility relations
@@ -148,8 +148,8 @@ public:
     {
         const double tol = 1e-10;
 
-        CMatrix<D,D> C1 = Q.adjoint()*P - P.adjoint()*Q - CMatrix<D,D>::Identity()*complex_t(0,2);
-        CMatrix<D,D> C2 = Q.transpose()*P - P.transpose()*Q;
+        CMatrix<D,D> C1 = Q_.adjoint()*P_ - P_.adjoint()*Q_ - CMatrix<D,D>::Identity()*complex_t(0,2);
+        CMatrix<D,D> C2 = Q_.transpose()*P_ - P_.transpose()*Q_;
 
         return C1.template lpNorm<1>() < tol && C2.template lpNorm<1>() < tol;
     }
@@ -166,10 +166,10 @@ public:
     mix(const HaWpParamSet<D>& other) const
     {
         // Mix the parameters
-        CMatrix<D,D> Gr = P * Q.inverse();
-        CMatrix<D,D> Gc = other.P * other.Q.inverse();
+        CMatrix<D,D> Gr = P_ * Q_.inverse();
+        CMatrix<D,D> Gc = other.P_ * other.Q_.inverse();
         RMatrix<D,D> G = (Gc - Gr.adjoint()).imag();
-        RMatrix<D,1> g = (Gc*other.q - Gr.adjoint()*q).imag();
+        RMatrix<D,1> g = (Gc*other.q_ - Gr.adjoint()*q_).imag();
         RMatrix<D,1> q0 = G.inverse() * g;
         RMatrix<D,D> Q0 = 0.5 * G;
         // We can not avoid the matrix root
