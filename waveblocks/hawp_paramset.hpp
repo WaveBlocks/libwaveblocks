@@ -27,8 +27,7 @@ template<dim_t D>
 struct HaWpParamSet
 {
 private:
-    RMatrix<D,1> q;
-    RMatrix<D,1> p;
+    RMatrix<D,1> q, p;
     CMatrix<D,D> Q, P;
     complex_t S;
     ContinuousSqrt<real_t> sqrt_detQ;
@@ -71,6 +70,7 @@ public:
         , sqrt_detQ(std::sqrt(Q.determinant()))
     { }
 
+    // Undocumented
     HaWpParamSet(const RMatrix<D,1> &q,
                  const RMatrix<D,1> &p,
                  const CMatrix<D,D> &Q,
@@ -113,6 +113,9 @@ public:
     /** \brief Get the parameter \f$ S \f$ */
     inline complex_t const& getS() const {return S;}
 
+    // Undocumented
+    inline complex_t const getsdQ() const {return sqrt_detQ();}
+
     /** \brief Set the parameter \f$ q \f$ */
     inline void setq(const RMatrix<D,1> qnew) {q = qnew;}
 
@@ -128,15 +131,11 @@ public:
     /** \brief Set the parameter \f$ S \f$ */
     inline void setS(const complex_t Snew) {S = Snew;}
 
-    /**
+    /* Undocumented
      * Compute the continuous square root of \f$ \det Q \f$ after an update
      * of the \f$ Q \f$ parameter.
      */
-    inline void resync()
-    {
-        // TODO: Find a better way to do this.
-        sqrt_detQ = ContinuousSqrt<real_t>(std::sqrt(Q.determinant()));
-    }
+    inline void resync() {sqrt_detQ = ContinuousSqrt<real_t>(std::sqrt(Q.determinant()));}
 
     /**
      * Check the compatibility relations
@@ -169,15 +168,12 @@ public:
         // Mix the parameters
         CMatrix<D,D> Gr = P * Q.inverse();
         CMatrix<D,D> Gc = other.P * other.Q.inverse();
-
         RMatrix<D,D> G = (Gc - Gr.adjoint()).imag();
         RMatrix<D,1> g = (Gc*other.q - Gr.adjoint()*q).imag();
         RMatrix<D,1> q0 = G.inverse() * g;
         RMatrix<D,D> Q0 = 0.5 * G;
-
         // We can not avoid the matrix root
         RMatrix<D,D> Qs = Q0.sqrt().inverse();
-
         // Assign (q0, Qs)
         return {q0,Qs};
     }
@@ -189,12 +185,12 @@ std::ostream &operator<<(std::ostream &out, const HaWpParamSet<D> &parameters)
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n     ", "[", "]");
 
     out << "HaWpParamSet {\n";
-    out << "  q: " << parameters.q.format(CleanFmt) << '\n';
-    out << "  p: " << parameters.p.format(CleanFmt) << '\n';
-    out << "  Q: " << parameters.Q.format(CleanFmt) << '\n';
-    out << "  P: " << parameters.P.format(CleanFmt) << '\n';
-    out << "  S: " << parameters.S << '\n';
-    out << "  sqrt(detQ): " << parameters.sqrt_detQ() << '\n';
+    out << "  q: " << parameters.getq().format(CleanFmt) << '\n';
+    out << "  p: " << parameters.getp().format(CleanFmt) << '\n';
+    out << "  Q: " << parameters.getQ().format(CleanFmt) << '\n';
+    out << "  P: " << parameters.getP().format(CleanFmt) << '\n';
+    out << "  S: " << parameters.getS() << '\n';
+    out << "  sqrt(detQ): " << parameters.getsdQ() << '\n';
     out << "  compatible(): " << (parameters.compatible() ? "yes" : "no") << '\n';
     out << "}" << std::endl;
     return out;
