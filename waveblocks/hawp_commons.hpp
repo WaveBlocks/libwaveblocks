@@ -252,7 +252,7 @@ public:
      */
     complex_t prefactor() const
     {
-        return real_t(1) / this->parameters().getsdQ();
+        return real_t(1) / this->parameters().sdQ();
     }
 
     /**
@@ -260,7 +260,7 @@ public:
      */
     complex_t phasefactor() const
     {
-        return std::exp(complex_t(0,1) * this->parameters().getS() / eps() / eps());
+        return std::exp(complex_t(0,1) * this->parameters().S() / eps() / eps());
     }
 };
 

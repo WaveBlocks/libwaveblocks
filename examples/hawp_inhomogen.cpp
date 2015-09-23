@@ -42,10 +42,10 @@ int main(int argc, char* argv[])
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
         wavepacket[c].shape() = shape_enums[c];
         wavepacket[c].parameters() = HaWpParamSet<D>{};
-        wavepacket[c].parameters().setp(RMatrix<D,1>::Random());
-        wavepacket[c].parameters().setq(RMatrix<D,1>::Random());
-        wavepacket[c].parameters().setP(CMatrix<D,D>::Random());
-        wavepacket[c].parameters().setQ(CMatrix<D,D>::Random());
+        wavepacket[c].parameters().p(RMatrix<D,1>::Random());
+        wavepacket[c].parameters().q(RMatrix<D,1>::Random());
+        wavepacket[c].parameters().P(CMatrix<D,D>::Random());
+        wavepacket[c].parameters().Q(CMatrix<D,D>::Random());
 
         std::size_t n_basis_shapes = shape_enums[c]->n_entries();
 
