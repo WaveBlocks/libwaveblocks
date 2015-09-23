@@ -52,9 +52,9 @@ int main(int argc, char* argv[])
     // (3) Define standard parameters
     wp.parameters() = HaWpParamSet<D>{};
 
-    wp.parameters().setQ(wp.parameters().getQ() / 2);
-    wp.parameters().setP(wp.parameters().getP() * 2);
-    //wp.parameters().setS(complex_t(1,0));
+    wp.parameters().Q(wp.parameters().Q() / 2);
+    wp.parameters().P(wp.parameters().P() * 2);
+    wp.parameters().S(complex_t(1,0));
 
     // (4) Define basis shape
     HyperCubicShape<D> shape(12);
