@@ -16,7 +16,7 @@
 namespace waveblocks {
 
 /**
- * \brief This class represents the Hagedorn parameter set \f$ \Pi = {q, p, Q, P, S} \f$.
+ * \brief This class represents the Hagedorn parameter set \f$ \Pi = \{q, p, Q, P, S\} \f$.
  *
  * The first two parameters \f$ q \f$ and \f$ p \f$ are \f$ D \f$ dimensional
  * real-valued vectors. The second two \f$ Q \f$ and \f$ P \f$ are complex
@@ -95,11 +95,41 @@ struct HaWpParamSet
         return *this;
     }
 
+    /** \brief Get the parameter \f$ q \f$ */
+    inline RMatrix<D,1> const& getq() const {return q;}
+
+    /** \brief Get the parameter \f$ p \f$ */
+    inline RMatrix<D,1> const& getp() const {return p;}
+
+    /** \brief Get the parameter \f$ Q \f$ */
+    inline CMatrix<D,D> const& getQ() const {return Q;}
+
+    /** \brief Get the parameter \f$ P \f$ */
+    inline CMatrix<D,D> const& getP() const {return P;}
+
+    /** \brief Get the parameter \f$ S \f$ */
+    inline complex_t const& getS() const {return S;}
+
+    /** \brief Set the parameter \f$ q \f$ */
+    inline void setq(const RMatrix<D,1> qnew) {q = qnew;}
+
+    /** \brief Set the parameter \f$ p \f$ */
+    inline void setp(const RMatrix<D,1> pnew) {p = pnew;}
+
+    /** \brief Set the parameter \f$ Q \f$ */
+    inline void setQ(const CMatrix<D,D> Qnew) {Q = Qnew; resync();}
+
+    /** \brief Set the parameter \f$ P \f$ */
+    inline void setP(const CMatrix<D,D> Pnew) {P = Pnew;}
+
+    /** \brief Set the parameter \f$ S \f$ */
+    inline void setS(const complex_t Snew) {S = Snew;}
+
     /**
      * Compute the continuous square root of \f$ \det Q \f$ after an update
      * of the \f$ Q \f$ parameter.
      */
-    void resync()
+    inline void resync()
     {
         // TODO: Find a better way to do this.
         sqrt_detQ = ContinuousSqrt<real_t>(std::sqrt(Q.determinant()));
