@@ -111,8 +111,6 @@ public:
      */
     std::complex<T> operator()(std::complex<T> input)
     {
-        const T range = 0.25*pi<T>(); // 0.5*pi allows all input values
-        
         if (empty_) {
             state_ = 0.5*std::arg(input); // choose principal solution
             empty_ = false;
