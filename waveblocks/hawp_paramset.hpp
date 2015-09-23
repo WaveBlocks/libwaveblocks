@@ -26,11 +26,14 @@ namespace waveblocks {
 template<dim_t D>
 struct HaWpParamSet
 {
-    RMatrix<D,1> q, p;
+private:
+    RMatrix<D,1> q;
+    RMatrix<D,1> p;
     CMatrix<D,D> Q, P;
     complex_t S;
     ContinuousSqrt<real_t> sqrt_detQ;
 
+public:
     /** Construct a Hagedorn parameter set with default values.
      */
     HaWpParamSet()

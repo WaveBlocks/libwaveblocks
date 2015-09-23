@@ -52,9 +52,9 @@ public:
      */
     std::array< std::vector<complex_t>, std::size_t(D) > apply(const std::vector<complex_t>& base_coeffs) const
     {
-        const auto & p = parameters_->p;
-        const auto & P = parameters_->P;
-        
+        RMatrix<D,1> const& p = parameters_->getp();
+        CMatrix<D,D> const& P = parameters_->getP();
+
         Eigen::Matrix<complex_t,D,D> Pbar = P.conjugate();
         
         std::array< std::vector<complex_t>, std::size_t(D) > grad_coeffs;
