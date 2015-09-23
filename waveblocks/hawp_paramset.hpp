@@ -7,6 +7,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
 
 #include "basic_types.hpp"
 #include "continuous_sqrt.hpp"
