@@ -3,6 +3,7 @@
 #include "matrixPotentials/bases.hpp"
 #include "types.hpp"
 #include "utilities/evaluations.hpp"
+#include <iostream>
 
 namespace waveblocks
 {
@@ -34,6 +35,7 @@ namespace waveblocks
           IMPORT_TYPES_FROM( Basis, N, D );
           
           potential_evaluation_type evaluate_at( const CVector<D> &arg ) const {
+
             return static_cast<const Subtype*>(this)->evaluate_at_implementation( arg );
           }
           
@@ -70,14 +72,12 @@ namespace waveblocks
                 
                 IMPORT_TYPES_FROM( bases::Canonical, N, D );
                 
-              protected:
+              private:
                 potential_type potential;
-                hessian_type hessian;
                 
               public:
-                Canonical( potential_type potential,
-                           hessian_type hessian )
-                  : potential( potential ),  hessian( hessian ){}
+                Canonical( potential_type potential)
+                  : potential( potential ){}
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
@@ -89,29 +89,18 @@ namespace waveblocks
                          function_t > ( potential, arg );
                 }
                 
-                
-                hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return utilities::evaluate_function_matrix < N,
-                         GMatrix,
-                         CVector<D>,
-                         hessian_return_type,
-                         function_t > ( hessian, arg );
-                }
             };
             
             struct Eigen : Abstract<BasisSpecific<N, D>::Eigen, bases::Eigen, N, D> {
             
                 IMPORT_TYPES_FROM( bases::Eigen, N, D );
                 
-              protected:
+              private:
                 potential_type potential;
-                hessian_type hessian;
                 
               public:
-                Eigen( potential_type potential,
-                       hessian_type hessian )
-                  : potential( potential ),  hessian( hessian ) {}
+                Eigen( potential_type potential)
+                  : potential( potential ) {}
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
@@ -123,14 +112,7 @@ namespace waveblocks
                          function_t > ( potential, arg );
                 }
                 
-                hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return utilities::evaluate_function_vector < N,
-                         GVector,
-                         CVector<D>,
-                         hessian_return_type,
-                         function_t > ( hessian, arg );
-                }
+              
             };
         };
         
@@ -141,14 +123,13 @@ namespace waveblocks
             
                 IMPORT_TYPES_FROM( Basis, 1, D );
                 
-              protected:
+              private:
                 potential_type potential;
-                hessian_type hessian;
                 
               public:
-                General( potential_type potential,
-                         hessian_type hessian )
-                  : potential( potential ), hessian( hessian ) {}
+                General( potential_type potential )
+                  : potential( potential ) {
+                    }
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
@@ -156,10 +137,6 @@ namespace waveblocks
                   return potential( arg );
                 }
                 
-                hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
-                  return hessian( arg );
-                }
             };
             
             using Canonical = General<bases::Canonical>;

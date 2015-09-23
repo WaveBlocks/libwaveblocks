@@ -88,13 +88,13 @@ namespace waveblocks
           using potential_evaluation_type = CVector<N>;
           using jacobian_evaluation_type = GVector<CVector<D>, N>;
           using hessian_evaluation_type = GVector<CMatrix<D, D>, N>;
-          using local_quadratic_evaluation_type = void;
+          using local_quadratic_evaluation_type = CVector<N>;
 
           
           using potential_return_type = complex_t;
           using jacobian_return_type = CVector<D>;
           using hessian_return_type = CMatrix<D, D>;
-          using local_quadratic_return_type = void;
+          using local_quadratic_return_type = complex_t;
 
         };
       };
@@ -131,12 +131,12 @@ namespace waveblocks
           using potential_evaluation_type = complex_t;
           using jacobian_evaluation_type = CVector<D>;
           using hessian_evaluation_type = CMatrix<D, D>;
-          using local_quadratic_evaluation_type = void;
+          using local_quadratic_evaluation_type = complex_t;
           
           using potential_return_type = complex_t;
           using jacobian_return_type = CVector<D>;
           using hessian_return_type = CMatrix<D, D>;
-          using local_quadratic_return_type = void;
+          using local_quadratic_return_type = complex_t;
 
         };
       };

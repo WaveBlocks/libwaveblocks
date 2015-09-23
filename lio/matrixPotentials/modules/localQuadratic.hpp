@@ -43,7 +43,7 @@ namespace waveblocks
             potential_evaluation_type evaluate_local_quadratic_at(
               const CVector<D> &arg,
               const CVector<D> &position ) const {
-              return static_cast<const Subtype*>(this)->local_quadratic( position )( arg );
+              return static_cast<const Subtype*>(this)->evaluate_local_quadratic_at_implementation( position, arg );
             }
             
             template < template <typename...> class grid_in = std::vector,
@@ -71,7 +71,7 @@ namespace waveblocks
           public:
             IMPORT_TYPES_FROM( Basis, N, D );
 
-          protected:
+          private:
             local_quadratic_type local_quadratic;
           public:
             Standard( potential_type potential,
@@ -91,17 +91,17 @@ namespace waveblocks
                   // Takes care of
                   // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda
 #if defined(__clang__)
-                  auto V = TaylorImpl::potential( q );
-                  auto J = TaylorImpl::jacobian( q );
-                  auto H = TaylorImpl::hessian( q );
+                  auto V = TaylorImpl::evaluate_at(q );
+                  auto J = TaylorImpl::evaluate_jacobian_at(q );
+                  auto H = TaylorImpl::evaluate_hessian_at(q );
 #elif defined(__GNUC__) || defined(__GNUG__)
-                  auto V = this->potential( q );
-                  auto J = this->jacobian( q );
-                  auto H = this->hessian( q );
+                  auto V = this->evaluate_at(q );
+                  auto J = this->evaluate_jacobian_at(q );
+                  auto H = this->evaluate_hessian_at(q );
 #else
-                  auto V = TaylorImpl::potential( q );
-                  auto J = TaylorImpl::jacobian( q );
-                  auto H = TaylorImpl::hessian( q );
+                  auto V = TaylorImpl::evaluate_at(q );
+                  auto J = TaylorImpl::evaluate_jacobian_at(q );
+                  auto H = TaylorImpl::evaluate_hessian_at(q );
 #endif                      
                       auto result = V;
                       
@@ -122,6 +122,12 @@ namespace waveblocks
                 return result_matrix;
               };
             }
+            potential_evaluation_type evaluate_local_quadratic_at_implementation(
+              const CVector<D> &arg,
+              const CVector<D> &position ) const {
+              return local_quadratic( position )( arg );
+            }
+            
         };
         
         template <class TaylorImpl, template <int, int> class Basis, int D>
@@ -134,7 +140,7 @@ namespace waveblocks
         {
           public:
             IMPORT_TYPES_FROM( Basis, 1, D );
-          protected:
+          private:
             local_quadratic_type local_quadratic;            
           public:
             Standard( potential_type potential,
@@ -146,24 +152,24 @@ namespace waveblocks
             
             void calculate_local_quadratic_implementation() {
               local_quadratic = [ this ]( CVector<D> q ) {
-                return [ this ,q ]( CVector<D> x ) {
-                
+                return [ this , q ]( CVector<D> x ) {
+
                   // Takes care of
                   // http://stackoverflow.com/questions/19850648/error-when-calling-base-member-function-from-within-a-lambda
 #if defined(__clang__)
-                  auto V = TaylorImpl::potential( q );
-                  auto J = TaylorImpl::jacobian( q );
-                  auto H = TaylorImpl::hessian( q );
+                  auto V = TaylorImpl::evaluate_at( q );
+                  auto J = TaylorImpl::evaluate_jacobian_at(q );
+                  auto H = TaylorImpl::evaluate_hessian_at(q );
 #elif defined(__GNUC__) || defined(__GNUG__)
-                  auto V = this->potential( q );
-                  auto J = this->jacobian( q );
-                  auto H = this->hessian( q );
+                  auto V = this->evaluate_at(q );
+                  auto J = this->evaluate_jacobian_at(q );
+                  auto H = this->evaluate_hessian_at(q );
 #else
-                  auto V = TaylorImpl::potential( q );
-                  auto J = TaylorImpl::jacobian( q );
-                  auto H = TaylorImpl::hessian( q );
+                  auto V = TaylorImpl::evaluate_at(q );
+                  auto J = TaylorImpl::evaluate_jacobian_at(q );
+                  auto H = TaylorImpl::evaluate_hessian_at(q );
 #endif
-                  
+
                   auto result = V;
                   
                   for ( int i = 0; i < D; ++i ) {
@@ -179,6 +185,11 @@ namespace waveblocks
                 };
               };
             }
+          potential_evaluation_type evaluate_local_quadratic_at_implementation(
+            const CVector<D> &arg,
+            const CVector<D> &position ) const {
+            return local_quadratic( position )(arg);
+          }
         };
       }
       template <template <int, int> class Basis, int N, int D>

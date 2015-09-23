@@ -1,3 +1,4 @@
+
 #pragma once
 #include "macros.hpp"
 #include "matrixPotentials/bases.hpp"
@@ -70,7 +71,7 @@ namespace waveblocks
                 
                 IMPORT_TYPES_FROM( bases::Canonical, N, D );
                 
-              protected:
+              private:
                 hessian_type hessian;
                 
               public:
@@ -95,7 +96,7 @@ namespace waveblocks
             
                 IMPORT_TYPES_FROM( bases::Eigen, N, D );
                 
-              protected:
+              private:
                 hessian_type hessian;
                 
               public:
@@ -123,7 +124,7 @@ namespace waveblocks
             
                 IMPORT_TYPES_FROM( Basis, 1, D );
                 
-              protected:
+              private:
                 hessian_type hessian;
                 
               public:

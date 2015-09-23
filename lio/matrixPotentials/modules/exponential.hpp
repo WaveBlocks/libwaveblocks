@@ -92,6 +92,20 @@ namespace waveblocks
             return result;
           }
         };
+
+        template <class EvalImpl, template <int, int> class Basis, int D>
+        struct Standard<EvalImpl, Basis, 1, D> : public Abstract<Standard<EvalImpl, Basis, 1, D>, Basis, 1, D>,
+          public EvalImpl {
+          IMPORT_TYPES_FROM( Basis, 1, D );
+          
+          potential_evaluation_type evaluate_exponential_at_implementation(
+            const CVector<D> &arg,
+            real_t factor ) const {
+            // Compute matrix
+            auto values = evaluate_at( arg );
+            return std::exp(factor * values);
+          }
+        };
       }
       
       template <class EvalImpl, template <int, int> class Basis, int N, int D>

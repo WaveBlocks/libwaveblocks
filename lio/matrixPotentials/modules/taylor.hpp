@@ -41,7 +41,7 @@ namespace waveblocks
           
           template <template <typename...> class Tuple = std::tuple>
           Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at( const CVector<D> &g ) const {
-            static_cast<const Subtype*>(this)->taylor_at_implementation(g);
+            return static_cast<const Subtype*>(this)->taylor_at_implementation(g);
           }
           
           template < template <typename...> class Tuple = std::tuple,
