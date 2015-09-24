@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(waveblocks)
 
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake_modules")
+
 add_definitions(
   -std=c++11
   -Wall
@@ -57,6 +59,13 @@ find_package(HDF5 COMPONENTS CXX)
 if (HDF5_FOUND)
   include_directories(${HDF5_INCLUDE_DIR})
   set(LINK_LIBS ${LINK_LIBS} ${HDF5_LIBRARIES})
+endif()
+
+
+find_package(YamlCpp)
+if (YAMLCPP_FOUND)
+  include_directories(${YAMLCPP_INCLUDE_DIR})
+  set(LINK_LIBS "${LINK_LIBS};${YAMLCPP_LIBRARY}")
 endif()
 
 
