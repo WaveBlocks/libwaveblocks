@@ -163,18 +163,17 @@ public:
      * \return The mixed parameters \f$ q_0 \f$ and \f$ Q_0 \f$.
      */
     std::pair< RMatrix<D,1>, RMatrix<D,D> >
-    mix(const HaWpParamSet<D>& other) const
+    mix(const HaWpParamSet<D>& ket) const
     {
         // Mix the parameters
-        CMatrix<D,D> Gr = P_ * Q_.inverse();
-        CMatrix<D,D> Gc = other.P_ * other.Q_.inverse();
-        RMatrix<D,D> G = (Gc - Gr.adjoint()).imag();
-        RMatrix<D,1> g = (Gc*other.q_ - Gr.adjoint()*q_).imag();
+        CMatrix<D,D> Gbra = P_ * Q_.inverse();
+        CMatrix<D,D> Gket = ket.P_ * ket.Q_.inverse();
+        RMatrix<D,D> G = (Gket - Gbra.adjoint()).imag();
+        RMatrix<D,1> g = (Gket*ket.q_ - Gbra.adjoint()*q_).imag();
         RMatrix<D,1> q0 = G.inverse() * g;
         RMatrix<D,D> Q0 = 0.5 * G;
         // We can not avoid the matrix root
         RMatrix<D,D> Qs = Q0.sqrt().inverse();
-        // Assign (q0, Qs)
         return {q0,Qs};
     }
 };
