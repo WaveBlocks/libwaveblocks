@@ -8,13 +8,14 @@
 #include "shape_hypercubic.hpp"
 #include "hawp_paramset.hpp"
 #include <iostream>
-
+#include <fstream>
 
 
 using namespace waveblocks;
 int main() {
   const int N = 1;
   const int D = 2;
+  const int B = 2;
 
   const real_t T = 12;
   const real_t dt = 0.01;
@@ -33,9 +34,9 @@ int main() {
   // Setting up the wavepacket
   ShapeEnumerator<D, MultiIndex> enumerator;
   ShapeEnum<D, MultiIndex> shape_enum =
-    enumerator.generate(HyperCubicShape<D>(N));
+    enumerator.generate(HyperCubicShape<D>(B));
   HaWpParamSet<D> param_set(q,p,Q,P);
-  std::vector<complex_t> coeffs(std::pow(N, D), 1.0);
+  std::vector<complex_t> coeffs(std::pow(B, D), 1.0);
   InhomogeneousHaWp<D,MultiIndex> packet(N);
   auto& component = packet.component(0);
 
@@ -52,7 +53,7 @@ int main() {
   typename InhomogenousLeadingLevel<N,D>::potential_type leading_level = potential;
   typename InhomogenousLeadingLevel<N,D>::jacobian_type leading_jac =
     [D](CVector<D> x) {
-      return 0.5*CVector<D>{x[0], x[1]};
+      return CVector<D>{0.5*x[0], 0.5*x[1]};;
     };
   typename InhomogenousLeadingLevel<N,D>::hessian_type leading_hess =
     [D](CVector<D> x) {
@@ -69,18 +70,28 @@ int main() {
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
-  for (auto& coeff: coeffs){
-  std::cout <<coeff << " ";}
-  std::cout << std::endl;
+
+  // Preparing the file
+  std::ofstream csv;
+  csv.open ("harmonic_2D.out");
+  csv << "t, p, q, P, Q, S";
+
+  
+  csv << 0 << "," << param_set.p << "," << param_set.q << "," << param_set.P << "," << param_set.Q << "," << S << std::endl;
   
   // Propagation
-  for (int t = 0; t < T; t += dt) {
+  for (real_t t = 0; t < T; t += dt) {
     propagator.propagate(packet,dt,V,S);
+    const auto& params = packet.component(0).parameters();
+    csv << t << "," << params.p << "," <<
+     params.q << "," << params.P << "," <<
+     params.Q << "," << S  << std::endl;
   }
-  for (auto& coeff: packet.component(0).coefficients()){
-  std::cout <<coeff << " ";}
   
-  std::cout << std::endl;
+  
+
+  csv.close();
+
 
   
   
