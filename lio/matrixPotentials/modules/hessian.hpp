@@ -35,15 +35,15 @@ namespace waveblocks
           IMPORT_TYPES_FROM( Basis, N, D );
           
           
-          hessian_evaluation_type evaluate_hessian_at( const CVector<D> &arg ) const {
+          hessian_evaluation_type evaluate_hessian_at( const argument_type &arg ) const {
             return static_cast<const Subtype*>(this)->evaluate_hessian_at_implementation( arg );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<hessian_evaluation_type> evaluate_hessian(
-            const grid_in<CVector<D> > &args ) const {
-            return utilities::evaluate_function_in_grid < CVector<D>,
+            const grid_in<argument_type > &args ) const {
+            return utilities::evaluate_function_in_grid < argument_type,
                    hessian_evaluation_type,
                    grid_in,
                    grid_out,
@@ -83,10 +83,10 @@ namespace waveblocks
                 
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
+                  const argument_type &arg ) const {
                   return utilities::evaluate_function_matrix < N,
                          GMatrix,
-                         CVector<D>,
+                         argument_type,
                          hessian_return_type,
                          function_t > ( hessian, arg );
                 }
@@ -107,10 +107,10 @@ namespace waveblocks
               public:
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
+                  const argument_type &arg ) const {
                   return utilities::evaluate_function_vector < N,
                          GVector,
-                         CVector<D>,
+                         argument_type,
                          hessian_return_type,
                          function_t > ( hessian, arg );
                 }
@@ -135,7 +135,7 @@ namespace waveblocks
               public:
                 
                 hessian_evaluation_type evaluate_hessian_at_implementation(
-                  const CVector<D> &arg ) const {
+                  const argument_type &arg ) const {
                   return hessian( arg );
                 }
             };

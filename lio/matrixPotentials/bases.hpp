@@ -1,6 +1,6 @@
 #pragma once
 #define IMPORT_TYPES_FROM(B, N, D)                                             \
-  using argument_type = typename B<N, D>::argument_type \ 
+  using argument_type = typename B<N, D>::argument_type; \
   using potential_type = typename B<N, D>::potential_type;                     \
   using jacobian_type = typename B<N, D>::jacobian_type;                       \
   using hessian_type = typename B<N, D>::hessian_type;                         \
@@ -68,9 +68,9 @@ namespace waveblocks
           using hessian_evaluation_type = GMatrix<CMatrix<D, D>, N, N>;
           using local_quadratic_evaluation_type = CMatrix<N,N>;
           
-          using potential_return_type = real_t;
-          using jacobian_return_type = RVector<D>;
-          using hessian_return_type = RMatrix<D, D>;
+          using potential_return_type = complex_t;
+          using jacobian_return_type = CVector<D>;
+          using hessian_return_type = CMatrix<D, D>;
           using local_quadratic_return_type = complex_t;
         };
         
@@ -93,6 +93,46 @@ namespace waveblocks
 
         };
       };
+      
+      template <int N>
+      struct Basis<N,1> {
+        struct Canonical {
+          using argument_type = complex_t;
+          using potential_type = GMatrix<c_to_c, N, N>;
+          using jacobian_type = GMatrix<c_to_c, N, N>;
+          using hessian_type = GMatrix<c_to_c, N, N>;
+          
+          using potential_evaluation_type = CMatrix<N, N>;
+          using jacobian_evaluation_type = CMatrix<N, N>;
+          using hessian_evaluation_type = CMatrix<N, N>;
+          using local_quadratic_evaluation_type = CMatrix<N,N>;
+          
+          using potential_return_type = complex_t;
+          using jacobian_return_type = complex_t;
+          using hessian_return_type = complex_t;
+          using local_quadratic_return_type = complex_t;
+        };
+        
+        struct Eigen {
+          using argument_type = complex_t;
+          using potential_type = GVector<c_to_c, N>;
+          using jacobian_type = GVector<c_to_c, N>;
+          using hessian_type = GVector<c_to_c, N>;
+          
+          using potential_evaluation_type = CVector<N>;
+          using jacobian_evaluation_type = CVector<N>;
+          using hessian_evaluation_type = CVector<N>;
+          using local_quadratic_evaluation_type = CVector<N>;
+
+          
+          using potential_return_type = complex_t;
+          using jacobian_return_type = complex_t;
+          using hessian_return_type = complex_t;
+          using local_quadratic_return_type = complex_t;
+
+        };
+      };
+      
       template <int D>
       struct Basis<1, D> {
         struct Canonical {
@@ -108,8 +148,33 @@ namespace waveblocks
 
           
           using potential_return_type = complex_t;
-          using jacobian_return_type = RVector<D>;
-          using hessian_return_type = RMatrix<D, D>;
+          using jacobian_return_type = CVector<D>;
+          using hessian_return_type = CMatrix<D, D>;
+          using local_quadratic_return_type = complex_t;
+
+        };
+        
+        using Eigen = Canonical;
+
+      };
+
+      template <>
+      struct Basis<1, 1> {
+        struct Canonical {
+          using argument_type = complex_t;
+          using potential_type = c_to_c;
+          using jacobian_type = c_to_c;
+          using hessian_type = c_to_c;
+          
+          using potential_evaluation_type = complex_t;
+          using jacobian_evaluation_type = complex_t;
+          using hessian_evaluation_type = complex_t;
+          using local_quadratic_evaluation_type = complex_t;
+
+          
+          using potential_return_type = complex_t;
+          using jacobian_return_type = complex_t;
+          using hessian_return_type = complex_t;
           using local_quadratic_return_type = complex_t;
 
         };
