@@ -1,4 +1,5 @@
 #include <iostream>
+#include <Eigen/Core>
 #include <waveblocks/hawp_paramset.hpp>
 
 
