@@ -62,6 +62,14 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+
+find_package(HDF5 COMPONENTS CXX)
+if (HDF5_FOUND)
+  include_directories(${HDF5_INCLUDE_DIR})
+  set(LINK_LIBS ${LINK_LIBS} ${HDF5_LIBRARIES})
+endif()
+
+
 add_subdirectory(test)
 add_subdirectory(examples)
 add_subdirectory(waveblocks/misc)
