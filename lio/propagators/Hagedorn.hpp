@@ -36,7 +36,7 @@ namespace waveblocks
         // 2.
           
           // leading levels
-          const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q); // QUADRATIC REMAINDER?
+          const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q);
           params.p -= delta_t*std::get<1>(leading_level_taylor).real();
           params.P -= delta_t*std::get<2>(leading_level_taylor);
           S[i++] -= delta_t*std::get<0>(leading_level_taylor);
@@ -170,7 +170,6 @@ namespace waveblocks
 
       // Build matrix
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> F = ip.build_matrix(packet.component(0),packet.component(0),op);
-
       auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
       
       // Exponential

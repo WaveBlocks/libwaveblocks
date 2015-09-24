@@ -3,7 +3,6 @@
 #include "matrixPotentials/bases.hpp"
 #include "types.hpp"
 #include "utilities/evaluations.hpp"
-#include <iostream>
 
 namespace waveblocks
 {
