@@ -59,7 +59,8 @@ int main() {
     [D](CVector<D> x) {
       return 0.5*CMatrix<D,D>::Identity();
     };
-
+  RMatrix<1,1> x; x[0] = 12;
+  real_t y = x;
     
     
   InhomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);

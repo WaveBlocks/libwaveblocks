@@ -21,17 +21,17 @@ namespace waveblocks
           IMPORT_TYPES_FROM( bases::Canonical, N, D );
 
 
-          local_quadratic_evaluation_type evaluate_local_remainder_at( const CVector<D> &arg,
-              const CVector<D> &q ) const {
+          local_quadratic_evaluation_type evaluate_local_remainder_at( const argument_type &arg,
+              const argument_type &q ) const {
             return static_cast<const Subtype*>(this)->evaluate_local_remainder_at_implementation( arg, q );
           }
           
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<local_quadratic_evaluation_type > evaluate_local_remainder(
-            const grid_in<CVector<D> > &args,
-            const CVector<D> &q ) const {
-            return utilities::evaluate_function_in_grid < CVector<D>,
+            const grid_in<argument_type > &args,
+            const argument_type &q ) const {
+            return utilities::evaluate_function_in_grid < argument_type,
                    local_quadratic_evaluation_type,
                    grid_in,
                    grid_out,
@@ -58,8 +58,8 @@ namespace waveblocks
 
               
             local_quadratic_evaluation_type evaluate_local_remainder_at_implementation(
-              const CVector<D> &arg,
-              const CVector<D> &q ) const {
+              const argument_type &arg,
+              const argument_type &q ) const {
               auto u = LeadingLevelOwner<LocQuadraticImpl>::get_leading_level().evaluate_local_quadratic_at( arg, q );
               return DiagDifference::apply(
                        EvalImpl::evaluate_at( arg ), u );

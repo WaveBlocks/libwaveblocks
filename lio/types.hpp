@@ -68,6 +68,8 @@ namespace waveblocks
   
   template <int D>
   using cD_to_rDxD = function_t<RMatrix<D, D>( CVector<D> )>;
+
+  using c_to_c = function_t<complex_t(complex_t)>;
   
   template <int D>
   using cD_to_c = function_t<complex_t( CVector<D> )>;

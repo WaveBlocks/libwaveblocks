@@ -40,15 +40,15 @@ namespace waveblocks
           
           
           template <template <typename...> class Tuple = std::tuple>
-          Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at( const CVector<D> &g ) const {
+          Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at( const argument_type &g ) const {
             return static_cast<const Subtype*>(this)->taylor_at_implementation(g);
           }
           
           template < template <typename...> class Tuple = std::tuple,
                    template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
-          grid_out< Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>>taylor( const grid_in<CVector<D> > &args ) const {
-            return utilities::evaluate_function_in_grid < CVector<D>,
+          grid_out< Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>>taylor( const grid_in<argument_type > &args ) const {
+            return utilities::evaluate_function_in_grid < argument_type,
                    Tuple<>,
                    grid_in,
                    grid_out,
@@ -78,7 +78,7 @@ namespace waveblocks
                   
               public:
                 template <template <typename...> class Tuple = std::tuple>
-                Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const CVector<D> &g ) const {
+                Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &g ) const {
                              return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
                      EvalImpl::evaluate_at( g ), JacImpl::evaluate_jacobian_at( g ), HessImpl::evaluate_hessian_at( g ) );
                 };

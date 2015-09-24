@@ -33,7 +33,7 @@ namespace waveblocks
           using Self = Abstract<Subtype, Basis, N, D>;
           IMPORT_TYPES_FROM( Basis, N, D );
           
-          potential_evaluation_type evaluate_at( const CVector<D> &arg ) const {
+          potential_evaluation_type evaluate_at( const argument_type &arg ) const {
 
             return static_cast<const Subtype*>(this)->evaluate_at_implementation( arg );
           }
@@ -41,8 +41,8 @@ namespace waveblocks
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<potential_evaluation_type> evaluate(
-            const grid_in<CVector<D> > &args ) const {
-            return utilities::evaluate_function_in_grid < CVector<D>,
+            const grid_in<argument_type > &args ) const {
+            return utilities::evaluate_function_in_grid < argument_type,
                    potential_evaluation_type,
                    grid_in,
                    grid_out,
@@ -80,10 +80,10 @@ namespace waveblocks
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
-                  const CVector<D> &arg ) const {
+                  const argument_type &arg ) const {
                   return utilities::evaluate_function_matrix < N,
                          GMatrix,
-                         CVector<D>,
+                         argument_type,
                          potential_return_type,
                          function_t > ( potential, arg );
                 }
@@ -103,10 +103,10 @@ namespace waveblocks
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
-                  const CVector<D> &arg ) const {
+                  const argument_type &arg ) const {
                   return utilities::evaluate_function_vector < N,
                          GVector,
-                         CVector<D>,
+                         argument_type,
                          potential_return_type,
                          function_t > ( potential, arg );
                 }
@@ -132,7 +132,7 @@ namespace waveblocks
                   
               public:
                 potential_evaluation_type evaluate_at_implementation(
-                  const CVector<D> &arg ) const {
+                  const argument_type &arg ) const {
                   return potential( arg );
                 }
                 
