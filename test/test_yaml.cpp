@@ -2,8 +2,12 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
+#include <Eigen/Core>
+
 #include <waveblocks/basic_types.hpp>
 #include <waveblocks/yaml/complex.hpp>
+
+#include <waveblocks/yaml/matrix.hpp>
 
 using namespace waveblocks;
 
@@ -24,14 +28,25 @@ int main(int argc, char* argv[])
     // Create a new yaml document
     std::cout << "Creating a yaml file:" << std::endl;
 
-    const complex_t cn = complex_t(2, 3);
-
     YAML::Node anode;
+
+    const complex_t cn = complex_t(2, 3);
     anode["cN"] = cn;
 
+    CMatrix<3,3> q;
+    q <<  1,2,3,
+          4,5,6,
+          7,8,9;
+    anode["q"] = q;
+
+    YAML::Node root;
+    root["part0"] = config;
+    root["part1"] = anode;
+
     YAML::Emitter out;
-    out << config;
-    out << anode;
+    out.SetIndent(4);
+    //out.SetMapStyle(YAML::Flow);
+    out << root;
 
     std::cout << out.c_str() << std::endl;
 
