@@ -14,4 +14,7 @@ target_link_libraries(test_yaml waveblocks-static ${LINK_LIBS})
 add_executable(test_yaml_eigen test_yaml_eigen.cpp)
 target_link_libraries(test_yaml_eigen waveblocks-static ${LINK_LIBS})
 
+add_executable(test_yaml_pi test_yaml_pi.cpp)
+target_link_libraries(test_yaml_pi waveblocks-static ${LINK_LIBS})
+
 add_executable(test_innerproduct test_innerproduct.cpp)
