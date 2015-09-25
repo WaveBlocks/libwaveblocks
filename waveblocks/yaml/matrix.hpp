@@ -3,37 +3,30 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "../basic_types.hpp"
-
 
 namespace YAML {
-    template<int D>
-    struct convert<Eigen::Matrix<waveblocks::complex_t,D,D> > {
+    template<class S, int R, int C>
+    struct convert<Eigen::Matrix<S,R,C>> {
 
-        static Node encode(const Eigen::Matrix<waveblocks::complex_t,D,D> & rhs) {
-            YAML::Node node;
-            for (int i = 0; i < D; i++) {
-                YAML::Node row;
-                for (int j = 0; j < D; j++) {
-                    row[j] = rhs(i,j);
+        static Node encode(const Eigen::Matrix<S,R,C> & M) {
+            YAML::Node matrixnode;
+            for (int r = 0; r < R; r++) {
+                YAML::Node rownode;
+                for (int c = 0; c < C; c++) {
+                    rownode[c] = M(r,c);
                 }
-                node[i] = row;
+                matrixnode[r] = rownode;
             }
-            return node;
+            return matrixnode;
         }
 
-        static bool decode(const Node& node, Eigen::Matrix<waveblocks::complex_t,D,D> & rhs) {
-            if (node.size() != D)
-                throw std::runtime_error("encountered matrix column dimension != parameter set dimensionality");
-
-            for (waveblocks::dim_t i = 0; i < D; i++) {
-                YAML::Node const& row = node[i];
-
-                if (row.size() != D)
-                    throw std::runtime_error("encountered matrix row dimension != parameter set dimensionality");
-
-                for (waveblocks::dim_t j = 0; j < D; j++) {
-                    rhs(i,j) = row[j].as<waveblocks::complex_t>();
+        static bool decode(const Node& matrixnode, Eigen::Matrix<S,R,C> & M) {
+            if (matrixnode.size() != R) throw std::runtime_error("Matrix row size mismatch.");
+            for (int r = 0; r < R; r++) {
+                YAML::Node const& rownode = matrixnode[r];
+                if (rownode.size() != C) throw std::runtime_error("Matrix col size mismatch.");
+                for (int c = 0; c < C; c++) {
+                    M(r,c) = rownode[c].as<S>();
                 }
             }
         }
