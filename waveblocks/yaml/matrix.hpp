@@ -21,14 +21,15 @@ namespace YAML {
         }
 
         static bool decode(const Node& matrixnode, Eigen::Matrix<S,R,C> & M) {
-            if (matrixnode.size() != M.rows()) throw std::runtime_error("Matrix row size mismatch.");
+            if (matrixnode.size() != (std::size_t)M.rows()) throw std::runtime_error("Matrix row size mismatch.");
             for (int r = 0; r < M.rows(); r++) {
                 YAML::Node const& rownode = matrixnode[r];
-                if (rownode.size() != M.cols()) throw std::runtime_error("Matrix col size mismatch.");
+                if (rownode.size() != (std::size_t)M.cols()) throw std::runtime_error("Matrix col size mismatch.");
                 for (int c = 0; c < M.cols(); c++) {
                     M(r,c) = rownode[c].as<S>();
                 }
             }
+            return true;
         }
     };
 }
