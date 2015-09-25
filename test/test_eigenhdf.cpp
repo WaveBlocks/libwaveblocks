@@ -1,6 +1,6 @@
 #include <iostream>
 #include <Eigen/Core>
-#include "eigen3-hdf5.hpp"
+#include <waveblocks/hdf5/eigen3-hdf5.hpp>
 
 
 void save_matrix(const Eigen::Matrix3d & mat)
