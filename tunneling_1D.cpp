@@ -14,23 +14,22 @@
 using namespace waveblocks;
 int main() {
   const int N = 1;
-  const int D = 2;
-  const int K = 3;
-  const real_t sigma_x = 0.5;
-  const real_t sigma_y = 0.5;
+  const int D = 1;
+  const int K = 12;
+  
+  const real_t sigma = 0.05;
+  const real_t T = 70;
+  const real_t dt = 0.005;
 
-  const real_t T = 12;
-  const real_t dt = 0.01;
-
-  const real_t eps = 0.1;
+  const real_t eps = 0.1530417681822;
 
   using MultiIndex = TinyMultiIndex<unsigned short, D>;
-  
+
   // The parameter set of the initial wavepacket
-  CMatrix<D,D> Q = CMatrix<D,D>::Identity();
-  CMatrix<D,D> P = complex_t(0,1)*CMatrix<D,D>::Identity();
-  RVector<D> q = {-3.0,0.0};
-  RVector<D> p = {0.0,0.5};
+  CMatrix<D,D> Q; Q(0,0) = 3.5355339059327;
+  CMatrix<D,D> P; P(0,0) = complex_t(0,0.2828427124746);
+  RVector<D> q; q[0] = -7.5589045088306;
+  RVector<D> p; p[0] = 0.2478854736792;
   complex_t S = 0.;
 
   // Setting up the wavepacket
@@ -48,35 +47,31 @@ int main() {
   packet.coefficients() = coeffs;
 
   // Defining the potential
-  typename CanonicalBasis<N,D>::potential_type potential = [sigma_x,sigma_y](CVector<D> x) {
-    return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
+  typename CanonicalBasis<N,D>::potential_type potential = [sigma](complex_t x) {
+    return 0.25 * sigma * std::pow(x,4);
   };
   typename ScalarLeadingLevel<D>::potential_type leading_level = potential;
   typename ScalarLeadingLevel<D>::jacobian_type leading_jac =
-    [D,sigma_x,sigma_y](CVector<D> x) {
-      return CVector<D>{sigma_x*x[0], sigma_y*x[1]};;
+    [sigma](complex_t x) {
+      return sigma*x*x*x;
     };
   typename ScalarLeadingLevel<D>::hessian_type leading_hess =
-    [D,sigma_x,sigma_y](CVector<D> x) {
-      CMatrix<D,D> res;
-      res(0,0) = sigma_x;
-      res(1,1) = sigma_y;
-      return res;
+    [sigma](complex_t x) {
+      return 3*sigma*x*x;
     };
     
     
   ScalarMatrixPotential<D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
-  using TQR = waveblocks::TensorProductQR < waveblocks::GaussHermiteQR<3>,
-              waveblocks::GaussHermiteQR<4>>;
+  using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<4>>;
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
 
   // Preparing the file
   std::ofstream csv;
-  csv.open ("harmonic_2D.out");
+  csv.open ("tunneling_1D.out");
   csv << "t, p, q, P, Q, S";
 
   
