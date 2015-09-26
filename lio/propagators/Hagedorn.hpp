@@ -129,8 +129,6 @@ namespace waveblocks
       ) {
         
         // 1.
-        int i = 0;
-        
         auto& params = packet.parameters();
         params.q += 0.5 * delta_t * params.p;
         params.Q +=  0.5 * delta_t * params.P;
@@ -148,7 +146,7 @@ namespace waveblocks
         
         typename TQR::NodeMatrix nodes;
         typename TQR::WeightVector weights;
-        waveblocks::HomogeneousInnerProduct<D, MultiIndex, TQR> ip;
+        waveblocks::InhomogeneousInnerProduct<D, MultiIndex, TQR> ip;
 
         
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
@@ -166,12 +164,12 @@ namespace waveblocks
             int j_size = packet.component(j).coefficients().size();
             // Set up operator
             auto op =
-                [&V, i, j] (const CMatrix<D,Eigen::Dynamic> &nodes, const CMatrix<D,1> &pos) // Do you want real or complex positions??? (You want real...)
+                [&V, i, j] (const CMatrix<D,Eigen::Dynamic> &nodes, const RMatrix<D,1> &pos) // Do you want real or complex positions??? (You want real...)
             {
                 const dim_t n_nodes = nodes.cols();
                 CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
                 for(int l = 0; l < n_nodes; ++l) {
-                  result(0, l) = V.evaluate_local_remainder_at(nodes.template block<D, 1>(0, l), pos)(i,j); // SUUUUPER INEFFICIENT. COMPUTE NxN Matrix when we only want one entry...
+                  result(0, l) = V.evaluate_local_remainder_at(nodes.template block<D, 1>(0, l), complex_t(1,0)*pos)(i,j); // SUUUUPER INEFFICIENT. COMPUTE NxN Matrix when we only want one entry...
                 }
                 return result;
             };
@@ -215,15 +213,14 @@ namespace waveblocks
         }
         
         // 4.
-        auto& params = packet.parameters();
+        params = packet.parameters();
         params.q += 0.5 * delta_t * params.p;
         params.Q +=  0.5 * delta_t * params.P;
         S += 0.25 * delta_t * params.p.dot(params.p);
         }
-      }
-    };
+      };
 
-   template <int N class MultiIndex, class TQR>
+   template <int N, class MultiIndex, class TQR>
     struct Hagedorn<N,1,MultiIndex,TQR> {
       static void propagate( waveblocks::InhomogeneousHaWp<1,MultiIndex> &packet,
                       const real_t &delta_t,
@@ -252,7 +249,7 @@ namespace waveblocks
         
         typename TQR::NodeMatrix nodes;
         typename TQR::WeightVector weights;
-        waveblocks::InhomogeneousInnerProduct<D, MultiIndex, TQR> ip;
+        waveblocks::InhomogeneousInnerProduct<1, MultiIndex, TQR> ip;
 
         
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
@@ -336,8 +333,6 @@ namespace waveblocks
       ) {
         
         // 1.
-        int i = 0;
-        
         auto& params = packet.parameters();
         params.q[0] += 0.5 * delta_t * params.p[0];
         params.Q[0] +=  0.5 * delta_t * params.P[0];
@@ -355,7 +350,7 @@ namespace waveblocks
         
         typename TQR::NodeMatrix nodes;
         typename TQR::WeightVector weights;
-        waveblocks::HomogeneousInnerProduct<D, MultiIndex, TQR> ip;
+        waveblocks::HomogeneousInnerProduct<1, MultiIndex, TQR> ip;
 
         
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
@@ -422,13 +417,12 @@ namespace waveblocks
         }
         
         // 4.
-        auto& params = packet.parameters();
+        params = packet.parameters();
         params.q[0] += 0.5 * delta_t * params.p[0];
         params.Q[0] +=  0.5 * delta_t * params.P[0];
         S += 0.25 * delta_t * params.p.dot(params.p);
         }
-      }
-    };
+      };
 
     template<int D, class MultiIndex, class TQR>
     struct Hagedorn<1,D,MultiIndex,TQR>
@@ -464,18 +458,18 @@ namespace waveblocks
       
       // Set up operator
       auto op =
-          [&V] (const CMatrix<D,Eigen::Dynamic> &nodes, const CMatrix<D,1> &pos)  -> CMatrix<1,Eigen::Dynamic>// Do you want real or complex positions??? (You want real...)
+          [&V] (const CMatrix<D,Eigen::Dynamic> &nodes, const RMatrix<D,1> &pos)  -> CMatrix<1,Eigen::Dynamic>// Do you want real or complex positions??? (You want real...)
       {
           const dim_t n_nodes = nodes.cols();
           CMatrix<1,Eigen::Dynamic> result(n_nodes);
           for(int l = 0; l < n_nodes; ++l) {
-            result(0, l) = V.evaluate_local_remainder_at(nodes.template block<D, 1>(0, l), pos);
+            result(0, l) = V.evaluate_local_remainder_at(nodes.template block<D, 1>(0, l), complex_t(1,0) * pos);
           }
           return result;
       };
 
       // Build matrix
-      CMatrix<Eigen::Dynamic,Eigen::Dynamic> F = ip.build_matrix(packet, op);
+      CMatrix<Eigen::Dynamic,Eigen::Dynamic> F = ip.build_matrix(packet, packet, op);
       auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
       
       // Exponential
@@ -525,7 +519,7 @@ namespace waveblocks
 
 
         // leading levels
-        const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]]); // QUADRATIC REMAINDER?
+        const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]); // QUADRATIC REMAINDER?
         params.p[0] -= delta_t*std::get<1>(leading_level_taylor).real();
         params.P[0] -= delta_t*std::get<2>(leading_level_taylor);
         S -= delta_t*std::get<0>(leading_level_taylor);
@@ -535,7 +529,7 @@ namespace waveblocks
 
       typename TQR::NodeMatrix nodes;
       typename TQR::WeightVector weights;
-      waveblocks::InhomogeneousInnerProduct<D, MultiIndex, TQR> ip;
+      waveblocks::HomogeneousInnerProduct<1, MultiIndex, TQR> ip;
     
       
       // Set up operator
@@ -545,7 +539,7 @@ namespace waveblocks
           const dim_t n_nodes = nodes.cols();
           CMatrix<1,Eigen::Dynamic> result(n_nodes);
           for(int l = 0; l < n_nodes; ++l) {
-            result(0, l) = V.evaluate_local_remainder_at(nodes(0, l), pos[0]]);
+            result(0, l) = V.evaluate_local_remainder_at(nodes(0, l), pos[0]);
           }
           return result;
       };

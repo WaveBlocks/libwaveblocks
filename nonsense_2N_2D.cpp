@@ -13,7 +13,7 @@
 
 using namespace waveblocks;
 int main() {
-  const int N = 1;
+  const int N = 2;
   const int D = 2;
   const int K = 3;
   const real_t sigma_x = 0.5;
@@ -39,33 +39,56 @@ int main() {
     enumerator.generate(HyperCubicShape<D>(K));
   HaWpParamSet<D> param_set(q,p,Q,P);
   std::vector<complex_t> coeffs(std::pow(K, D), 1.0);
-  ScalarHaWp<D,MultiIndex> packet;
+  HomogeneousHaWp<D,MultiIndex> packet(N);
 
 
   packet.eps() = eps;
   packet.parameters() = param_set;
-  packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
-  packet.coefficients() = coeffs;
+
+  packet.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+  packet.component(0).coefficients() = coeffs;
+
+  packet.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+  packet.component(1).coefficients() = coeffs;
 
   // Defining the potential
-  typename CanonicalBasis<N,D>::potential_type potential = [sigma_x,sigma_y](CVector<D> x) {
+  typename CanonicalBasis<N,D>::potential_type potential;
+
+  potential(0,0) = [sigma_x,sigma_y,N](CVector<D> x) {
     return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
   };
-  typename ScalarLeadingLevel<D>::potential_type leading_level = potential;
-  typename ScalarLeadingLevel<D>::jacobian_type leading_jac =
-    [D,sigma_x,sigma_y](CVector<D> x) {
-      return CVector<D>{sigma_x*x[0], sigma_y*x[1]};;
-    };
-  typename ScalarLeadingLevel<D>::hessian_type leading_hess =
-    [D,sigma_x,sigma_y](CVector<D> x) {
+
+  potential(0,1) = [sigma_x,sigma_y,N](CVector<D> x) {
+    return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
+  };
+  potential(1,0) = [sigma_x,sigma_y,N](CVector<D> x) {
+    return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
+  };
+  potential(1,1) = [sigma_x,sigma_y,N](CVector<D> x) {
+    return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
+  };
+  
+  typename HomogenousLeadingLevel<N,D>::potential_type leading_level;
+  leading_level = [sigma_x,sigma_y,N](CVector<D> x) {
+    return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
+  };
+
+ 
+  typename HomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
+  leading_jac = [D,sigma_x,sigma_y,N](CVector<D> x) {
+      return  CVector<D>{sigma_x*x[0], sigma_y*x[1]};
+  };
+
+  typename HomogenousLeadingLevel<N,D>::hessian_type leading_hess;
+  leading_hess = 
+    [D,sigma_x,sigma_y,N](CVector<D> x) {
       CMatrix<D,D> res;
       res(0,0) = sigma_x;
       res(1,1) = sigma_y;
       return res;
     };
     
-    
-  ScalarMatrixPotential<D> V(potential,leading_level,leading_jac,leading_hess);
+  HomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
   using TQR = waveblocks::TensorProductQR < waveblocks::GaussHermiteQR<3>,
