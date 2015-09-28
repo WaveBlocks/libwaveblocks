@@ -1,14 +1,15 @@
-#include "propagators/Hagedorn.hpp"
-#include "matrixPotentials/potentials.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "types.hpp"
-#include "hawp_commons.hpp"
-#include "tiny_multi_index.hpp"
-#include "shape_enumerator.hpp"
-#include "shape_hypercubic.hpp"
-#include "hawp_paramset.hpp"
 #include <iostream>
 #include <fstream>
+
+#include "waveblocks/propagators/Hagedorn.hpp"
+#include "waveblocks/matrixPotentials/potentials.hpp"
+#include "waveblocks/matrixPotentials/bases.hpp"
+#include "waveblocks/types.hpp"
+#include "waveblocks/hawp_commons.hpp"
+#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/shape_enumerator.hpp"
+#include "waveblocks/shape_hypercubic.hpp"
+#include "waveblocks/hawp_paramset.hpp"
 
 
 using namespace waveblocks;
@@ -75,13 +76,13 @@ int main() {
 
  
   typename HomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
-  leading_jac = [D,sigma_x,sigma_y,N](CVector<D> x) {
-      return  CVector<D>{sigma_x*x[0], sigma_y*x[1]};
+  leading_jac = [sigma_x,sigma_y,N](CVector<D> x) {
+    return CVector<D>{sigma_x*x[0], sigma_y*x[1]};
   };
 
   typename HomogenousLeadingLevel<N,D>::hessian_type leading_hess;
-  leading_hess = 
-    [D,sigma_x,sigma_y,N](CVector<D> x) {
+  leading_hess =
+    [sigma_x,sigma_y,N](CVector<D> x) {
       CMatrix<D,D> res;
       res(0,0) = sigma_x;
       res(1,1) = sigma_y;
