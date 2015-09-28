@@ -71,7 +71,7 @@ int main() {
 
 
   // Preparing the file
-  utilities::Storage<ScalarHaWp<D,MultiIndex>> writer("tunneling_1D.out");
+  utilities::PacketWriter<ScalarHaWp<D,MultiIndex>> writer("tunneling_1D.out");
 
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
