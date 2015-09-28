@@ -109,6 +109,7 @@ void test1DGaussHermiteOperator()
     auto op =
         [] (CMatrixDN nodes, CMatrixD1 pos) -> CMatrix1N
     {
+        (void)pos;
         const dim_t n_nodes = nodes.cols();
         CMatrix1N result(1, n_nodes);
         for(int i = 0; i < n_nodes; ++i) result(0, i) = i+1;
