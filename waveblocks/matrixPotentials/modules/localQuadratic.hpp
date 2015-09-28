@@ -1,8 +1,8 @@
 #pragma once
-#include "macros.hpp"
-#include "types.hpp"
-#include "utilities/evaluations.hpp"
-#include "matrixPotentials/modules/taylor.hpp"
+#include "../../macros.hpp"
+#include "../../types.hpp"
+#include "../../utilities/evaluations.hpp"
+#include "taylor.hpp"
 
 namespace waveblocks
 {
@@ -14,13 +14,13 @@ namespace waveblocks
       {
          /**
          * \brief Abstract class for local quadratic evaluation
-         * 
+         *
          * A matrix potential inheriting an implementation of this module
          * can evaluate the local quadratic approximation of its' potential
          * elementwise
-         * 
+         *
          * This makes use of the CRTPattern
-         * 
+         *
          * \tparam Subtype The type extending this interface (used for static polymorphism)
          * \tparam Basis
          * Which basis (bases::Eigen or bases::Canonical) the potential is given in

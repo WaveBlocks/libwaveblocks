@@ -1,10 +1,10 @@
 #pragma once
-#include "macros.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "matrixPotentials/modules/localQuadratic.hpp"
-#include "matrixPotentials/modules/leadingLevelOwner.hpp"
-#include "types.hpp"
-#include "utilities/evaluations.hpp"
+#include "../../macros.hpp"
+#include "../bases.hpp"
+#include "localQuadratic.hpp"
+#include "leadingLevelOwner.hpp"
+#include "../../types.hpp"
+#include "../../utilities/evaluations.hpp"
 
 namespace waveblocks
 {
@@ -115,7 +115,7 @@ namespace waveblocks
         }
         
 
-       
+
 
         template<class EvalImpl, class LocQuadraticImpl, int N, int D>
         using Homogenous = General<typename helper::DiagonalDifference<LocQuadraticImpl,N,D>::Homogenous,EvalImpl,LocQuadraticImpl,N,D>;
@@ -124,7 +124,7 @@ namespace waveblocks
         using Inhomogenous = General<typename helper::DiagonalDifference<LocQuadraticImpl,N,D>::Inhomogenous,EvalImpl,LocQuadraticImpl,N,D>;
         
       }
-    
+
       template<int N, int D>
       using Homogenous = localRemainder::Homogenous<Evaluation<bases::Canonical<N,D>>,LocalQuadratic<bases::Eigen<1,D>>,N,D>;
 

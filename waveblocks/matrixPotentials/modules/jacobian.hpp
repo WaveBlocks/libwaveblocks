@@ -1,8 +1,8 @@
 #pragma once
-#include "macros.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "types.hpp"
-#include "utilities/evaluations.hpp"
+#include "../../macros.hpp"
+#include "../bases.hpp"
+#include "../../types.hpp"
+#include "../../utilities/evaluations.hpp"
 
 namespace waveblocks
 {
@@ -14,12 +14,12 @@ namespace waveblocks
       {
         /**
        * \brief Abstract class for potential evaluation
-       * 
+       *
        * A matrix potential inheriting an implementation of this module
        * can evaluate its potential, jacobian and hessian in one or multiple points
-       * 
+       *
        * This makes use of the CRTPattern
-       * 
+       *
        * \tparam Subtype The type extending this interface (used for static polymorphism)
        * \tparam Basis
        * Which basis (bases::Eigen or bases::Canonical) the potential is given in
@@ -56,7 +56,7 @@ namespace waveblocks
          * \brief Helper class for easier template specialization
          * 
          * This wraps concrete implementations of the Abstract base class
-         * 
+         *
          * \tparam N
          * Number of levels (dimension of square matrix when evaluated)
          * \tparam D

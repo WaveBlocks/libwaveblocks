@@ -1,0 +1,51 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.pyc
+
+# Profiling
+profiling/
+
+# Compiled Latex Files
+*.log
+*.toc
+*.pytxcode
+*.synctex.gz
+*.aux
+*.lopytx
+*.pdf
+*.pdf_tex
+
+# Output files
+*.png
+*.csv
+
+# build files
+build/
+test/.ipynb_checkpoints/
+scratch/
+.kdev4/
+*.kdev4
+Session.vim
+
+# 
+main.cpp
+*~

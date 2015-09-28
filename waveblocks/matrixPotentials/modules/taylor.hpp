@@ -1,11 +1,11 @@
 #pragma once
-#include "macros.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "types.hpp"
-#include "utilities/evaluations.hpp"
-#include "matrixPotentials/modules/evaluation.hpp"
-#include "matrixPotentials/modules/jacobian.hpp"
-#include "matrixPotentials/modules/hessian.hpp"
+#include "../../macros.hpp"
+#include "../bases.hpp"
+#include "../../types.hpp"
+#include "../../utilities/evaluations.hpp"
+#include "evaluation.hpp"
+#include "jacobian.hpp"
+#include "hessian.hpp"
 
 #include <tuple>
 
@@ -19,12 +19,12 @@ namespace waveblocks
       {
         /**
        * \brief Abstract class for potential evaluation
-       * 
+       *
        * A matrix potential inheriting an implementation of this module
        * can evaluate its potential, jacobian and hessian in one or multiple points
-       * 
+       *
        * This makes use of the CRTPattern
-       * 
+       *
        * \tparam Subtype The type extending this interface (used for static polymorphism)
        * \tparam Basis
        * Which basis (bases::Eigen or bases::Canonical) the potential is given in
@@ -37,13 +37,13 @@ namespace waveblocks
         struct Abstract {
           using Self = Abstract<Subtype, Basis>;
           IMPORT_TYPES_FROM( Basis)
-          
-          
+
+
           template <template <typename...> class Tuple = std::tuple>
           Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at( const argument_type &g ) const {
             return static_cast<const Subtype*>(this)->taylor_at_implementation(g);
           }
-          
+
           template < template <typename...> class Tuple = std::tuple,
                    template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
@@ -56,12 +56,12 @@ namespace waveblocks
                      std::bind( &Self::taylor_at, this, std::placeholders::_1 ), args );
           }
         };
-        
+
         /**
          * \brief Helper class for easier template specialization
-         * 
+         *
          * This wraps concrete implementations of the Abstract base class
-         * 
+         *
          * \tparam N
          * Number of levels (dimension of square matrix when evaluated)
          * \tparam D
@@ -75,7 +75,7 @@ namespace waveblocks
                 Standard(potential_type potential,
                       jacobian_type jacobian,
                       hessian_type hessian) : EvalImpl(potential), JacImpl(jacobian), HessImpl(hessian) {}
-                  
+
               public:
                 template <template <typename...> class Tuple = std::tuple>
                 Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &g ) const {
@@ -84,8 +84,8 @@ namespace waveblocks
                 }
             };
         }
-        
-      
+
+
       template <class Basis>
       using Taylor = taylor::Standard<Evaluation<Basis>, Jacobian<Basis>, Hessian<Basis>, Basis>;
     }

@@ -1,4 +1,3 @@
-
 #pragma once
 #include "macros.hpp"
 #include "matrixPotentials/bases.hpp"
@@ -15,12 +14,12 @@ namespace waveblocks
       {
         /**
        * \brief Abstract class for potential evaluation
-       * 
+       *
        * A matrix potential inheriting an implementation of this module
        * can evaluate its potential, jacobian and hessian in one or multiple points
-       * 
+       *
        * This makes use of the CRTPattern
-       * 
+       *
        * \tparam Subtype The type extending this interface (used for static polymorphism)
        * \tparam Basis
        * Which basis (bases::Eigen or bases::Canonical) the potential is given in
@@ -33,12 +32,12 @@ namespace waveblocks
         struct Abstract {
           using Self = Abstract<Subtype, Basis>;
           IMPORT_TYPES_FROM( Basis)
-          
-          
+
+
           hessian_evaluation_type evaluate_hessian_at( const argument_type &arg ) const {
             return static_cast<const Subtype*>(this)->evaluate_hessian_at_implementation( arg );
           }
-          
+
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<hessian_evaluation_type> evaluate_hessian(
@@ -51,14 +50,14 @@ namespace waveblocks
                      std::bind( &Self::evaluate_hessian_at, this, std::placeholders::_1 ),
                      args );
           }
-          
+
         };
-        
+
         /**
          * \brief Helper class for easier template specialization
-         * 
+         *
          * This wraps concrete implementations of the Abstract base class
-         * 
+         *
          * \tparam N
          * Number of levels (dimension of square matrix when evaluated)
          * \tparam D
@@ -66,20 +65,20 @@ namespace waveblocks
          */
         template <class Basis>
         struct Standard : Abstract<Standard<Basis>, Basis> {
-                
+
                 IMPORT_TYPES_FROM( Basis)
-                
+
               private:
                 hessian_type hessian;
-                
+
               public:
                 Standard( 
                            hessian_type hessian )
                   :  hessian( hessian ){}
-                  
+
               public:
-                
-                
+
+
                 hessian_evaluation_type evaluate_hessian_at_implementation(
                   const argument_type &arg ) const {
                   return utilities::FunctionMatrixEvaluator< Basis::number_of_levels,
@@ -90,8 +89,8 @@ namespace waveblocks
                          function_t >::apply( hessian, arg );
                 }
             };
-            
-        
+
+
         
       }
       

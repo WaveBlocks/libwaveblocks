@@ -1,8 +1,8 @@
 #pragma once
 #include "bases.hpp"
-#include "matrixPotentials/modules/localRemainder.hpp"
-#include "matrixPotentials/modules/evaluation.hpp"
-#include "matrixPotentials/modules/exponential.hpp"
+#include "modules/localRemainder.hpp"
+#include "modules/evaluation.hpp"
+#include "modules/exponential.hpp"
 
 namespace waveblocks
 {
@@ -42,6 +42,6 @@ namespace waveblocks
 
   template<int D>
   using ScalarLeadingLevel = HomogenousLeadingLevel<1,D>;
-  
-  
+
+
 }

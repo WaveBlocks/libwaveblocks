@@ -1,14 +1,13 @@
 #include <vector>
 #include <iostream>
-#include "types.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "matrixPotentials/potentials.hpp"
-#include "hawp_commons.hpp"
-#include "inhomogeneous_inner_product.hpp"
-#include "homogeneous_inner_product.hpp"
-#include "tensor_product_qr.hpp"
-#include "gauss_hermite_qr.hpp"
-#include "utilities/MatrixToGrid.hpp"
+#include "../types.hpp"
+#include "../matrixPotentials/bases.hpp"
+#include "../matrixPotentials/potentials.hpp"
+#include "../hawp_commons.hpp"
+#include "../inhomogeneous_inner_product.hpp"
+#include "../homogeneous_inner_product.hpp"
+#include "../tensor_product_qr.hpp"
+#include "../gauss_hermite_qr.hpp"
 
 
 

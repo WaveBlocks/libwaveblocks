@@ -1,8 +1,8 @@
 #pragma once
-#include "macros.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "types.hpp"
-#include "utilities/evaluations.hpp"
+#include "../../macros.hpp"
+#include "../../types.hpp"
+#include "../bases.hpp"
+#include "../../utilities/evaluations.hpp"
 
 namespace waveblocks
 {
@@ -14,12 +14,12 @@ namespace waveblocks
       {
         /**
        * \brief Abstract class for potential evaluation
-       * 
+       *
        * A matrix potential inheriting an implementation of this module
        * can evaluate its potential, jacobian and hessian in one or multiple points
-       * 
+       *
        * This makes use of the CRTPattern
-       * 
+       *
        * \tparam Subtype The type extending this interface (used for static polymorphism)
        * \tparam Basis
        * Which basis (bases::Eigen or bases::Canonical) the potential is given in
@@ -32,12 +32,12 @@ namespace waveblocks
         struct Abstract {
           using Self = Abstract<Subtype, Basis>;
           IMPORT_TYPES_FROM( Basis)
-          
+
           potential_evaluation_type evaluate_at( const argument_type &arg ) const {
 
             return static_cast<const Subtype*>(this)->evaluate_at_implementation( arg );
           }
-          
+
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<potential_evaluation_type> evaluate(
