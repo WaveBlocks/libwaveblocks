@@ -35,10 +35,10 @@ namespace waveblocks
     using ScalarMatrixPotential = matrixPotentials::potentials::ScalarMatrixPotential<D>;
 
   template<int N, int D>
-  using InhomogenousLeadingLevel = matrixPotentials::modules::LocalQuadratic<matrixPotentials::bases::Eigen,N,D>;
+  using InhomogenousLeadingLevel = matrixPotentials::modules::LocalQuadratic<matrixPotentials::bases::Eigen<N,D>>;
 
   template<int N, int D>
-  using HomogenousLeadingLevel = matrixPotentials::modules::LocalQuadratic<matrixPotentials::bases::Eigen,1,D>;
+  using HomogenousLeadingLevel = matrixPotentials::modules::LocalQuadratic<matrixPotentials::bases::Eigen<1,D>>;
 
   template<int D>
   using ScalarLeadingLevel = HomogenousLeadingLevel<1,D>;

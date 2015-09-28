@@ -33,10 +33,10 @@ namespace waveblocks
        * \tparam D
        * Dimension of argument space
        */
-        template <class Subtype, template <int, int> class Basis, int N, int D>
+        template <class Subtype, class Basis>
         struct Abstract {
-          using Self = Abstract<Subtype, Basis, N, D>;
-          IMPORT_TYPES_FROM( Basis, N, D );
+          using Self = Abstract<Subtype, Basis>;
+          IMPORT_TYPES_FROM( Basis);
           
           
           template <template <typename...> class Tuple = std::tuple>
@@ -67,9 +67,9 @@ namespace waveblocks
          * \tparam D
          * Dimension of argument space
          */
-        template <class EvalImpl, class JacImpl, class HessImpl, template<int,int> class Basis, int N, int D>
-        struct Standard : public Abstract<Standard<EvalImpl, JacImpl, HessImpl, Basis, N, D>, Basis, N, D>, public EvalImpl, public JacImpl, public HessImpl {
-                IMPORT_TYPES_FROM( Basis, N, D );
+        template <class EvalImpl, class JacImpl, class HessImpl, class Basis>
+        struct Standard : public Abstract<Standard<EvalImpl, JacImpl, HessImpl, Basis>, Basis>, public EvalImpl, public JacImpl, public HessImpl {
+                IMPORT_TYPES_FROM( Basis);
                 
               public:
                 Standard(potential_type potential,
@@ -86,8 +86,8 @@ namespace waveblocks
         };
         
       
-      template <template <int, int> class Basis, int N, int D>
-      using Taylor = taylor::Standard<Evaluation<Basis,N,D>, Jacobian<Basis,N,D>, Hessian<Basis,N,D>, Basis, N, D>;
+      template <class Basis>
+      using Taylor = taylor::Standard<Evaluation<Basis>, Jacobian<Basis>, Hessian<Basis>, Basis>;
     }
   }
 }

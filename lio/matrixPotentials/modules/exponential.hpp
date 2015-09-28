@@ -29,11 +29,11 @@ namespace waveblocks
          * \tparam D
          * Dimension of argument space
          */
-        template <class Subtype, template <int, int> class Basis, int N, int D>
+        template <class Subtype, class Basis>
         class Abstract
         {
-            using Self = Abstract<Subtype, Basis, N, D>;
-            IMPORT_TYPES_FROM( Basis, N, D );
+            using Self = Abstract<Subtype, Basis>;
+            IMPORT_TYPES_FROM( Basis);
             
             potential_evaluation_type evaluate_exponential_at( const argument_type &arg,
                 const real_t &factor = 1 ) const {
@@ -73,10 +73,10 @@ namespace waveblocks
          * \tparam D
          * Dimension of argument space
          */
-        template <class EvalImpl, template <int, int> class Basis, int N, int D>
-        struct Standard : public Abstract<Standard<EvalImpl, Basis, N, D>, Basis, N, D>,
+        template <class EvalImpl, class Basis>
+        struct Standard : public Abstract<Standard<EvalImpl, Basis>, Basis>,
           public EvalImpl {
-          IMPORT_TYPES_FROM( Basis, N, D );
+          IMPORT_TYPES_FROM( Basis);
           
           potential_evaluation_type evaluate_exponential_at_implementation(
             const argument_type &arg,
@@ -93,10 +93,11 @@ namespace waveblocks
           }
         };
 
-        template <class EvalImpl, template <int, int> class Basis, int D>
-        struct Standard<EvalImpl, Basis, 1, D> : public Abstract<Standard<EvalImpl, Basis, 1, D>, Basis, 1, D>,
+        template <class EvalImpl, template <int, int> class B, int D>
+        struct Standard<EvalImpl, B<1, D>> : public Abstract<Standard<EvalImpl, B<1,D>>, B<1,D>>,
           public EvalImpl {
-          IMPORT_TYPES_FROM( Basis, 1, D );
+            using Basis = B<1,D>;
+          IMPORT_TYPES_FROM( Basis);
           
           potential_evaluation_type evaluate_exponential_at_implementation(
             const argument_type &arg,
@@ -108,8 +109,8 @@ namespace waveblocks
         };
       }
       
-      template <class EvalImpl, template <int, int> class Basis, int N, int D>
-      using Exponential = exponential::Standard<Evaluation<Basis,N,D>, Basis, N, D>;
+      template <class EvalImpl, class Basis>
+      using Exponential = exponential::Standard<Evaluation<Basis>, Basis>;
     }
   }
 }

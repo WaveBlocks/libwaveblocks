@@ -1,5 +1,7 @@
 #pragma once
 #include "types.hpp"
+#include "tiny_multi_index.hpp"
+
 
 namespace waveblocks
 {
@@ -29,7 +31,7 @@ namespace waveblocks
         
       public:
         MatrixToGridIterator( MatrixToGrid<Matrix> &adaptor, int i )
-          : g( adaptor ), i( i ) const {}
+          : g( adaptor ), i( i ) {}
         bool operator!=( MatrixToGridIterator<Matrix> other ) const {
           return other.i != i;
         }
@@ -65,7 +67,7 @@ namespace waveblocks
           return M;
         }
         
-        MatrixToGrid( const Matrix &matrix ) : matrix( matrix ) const {}
+        MatrixToGrid( const Matrix &matrix ) : matrix( matrix ) {}
         
         grid_element_type operator[]( int i ) const {
           return matrix.template block<N, 1>( 0, i );
@@ -106,7 +108,7 @@ namespace waveblocks
       Grid<grid_element_type<Matrix> > result( M );
       auto it = result.begin();
       
-      for ( int i = 0; i < M; ++i ) const {
+      for ( int i = 0; i < M; ++i ) {
         *it = m.template block<N, 1>( 0, i );
         ++it;
       }
@@ -133,11 +135,86 @@ namespace waveblocks
       Matrix m;
       auto it = g.begin();
       
-      for ( int i = 0; it != g.end(); ++i, ++it ) const {
-        m.block<N, 1>( 0, i ) = *it;
+      for ( int i = 0; it != g.end(); ++i, ++it ) {
+        m.template block<N, 1>( 0, i ) = *it;
       }
       
       return m;
     }
+
+    template<class Packet>
+    struct PacketToCoefficients {
+      static CVector<Eigen::Dynamic> to(const Packet& packet) {
+
+        // Compute size
+        int size = 0;
+        for (const auto& component: packet.components()) {
+          size += component.coefficients().size();
+        }
+
+        // Allocate memory
+        CVector<Eigen::Dynamic> coefficients;
+        coefficients.resize(size);
+
+        // Copy
+        int j_offset = 0;
+        for(auto& component : packet.components()) {
+          int j_size = component.coefficients().size();
+            for (int j = 0; j < j_size; ++j) {
+              coefficients[j+j_offset] = component.coefficients()[j];
+            }
+          j_offset += j_size;
+        }
+
+        return coefficients;
+      }
+
+      static void from(const CVector<Eigen::Dynamic>& coefficients, Packet& packet) {
+
+        // Compute size
+        int size = 0;
+        for (const auto& component: packet.components()) {
+          size += component.coefficients().size();
+        }
+
+        // Copy
+        int j_offset = 0;
+        for(auto& component : packet.components()) {
+          int j_size = component.coefficients().size();
+            for (int j = 0; j < j_size; ++j) {
+              component.coefficients()[j] = coefficients[j+j_offset];
+            }
+          j_offset += j_size;
+        }
+      }
+    };
+    
+    template<int D, class MultiIndex>
+    struct PacketToCoefficients<ScalarHaWp<D,MultiIndex>> {
+      static CVector<Eigen::Dynamic> to(const ScalarHaWp<D,MultiIndex>& packet) {
+        // Compute size
+        int size = packet.coefficients().size();
+
+        // Allocate memory
+        CVector<Eigen::Dynamic> coefficients;
+        coefficients.resize(size);
+
+        // Copy
+        for (int j = 0; j < size; ++j) {
+          coefficients[j] = packet.coefficients()[j];
+        }
+        return coefficients;
+      }
+
+      static void from(const CVector<Eigen::Dynamic>& coefficients, ScalarHaWp<D,MultiIndex>& packet) {
+        // Compute size
+        int size = packet.coefficients().size();
+
+        // Copy
+        for (int j = 0; j < size; ++j) {
+          packet.coefficients()[j] = coefficients[j];
+        }
+      }
+    };
   }
 }

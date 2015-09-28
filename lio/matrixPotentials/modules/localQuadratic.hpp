@@ -29,10 +29,10 @@ namespace waveblocks
          * \tparam D
          * Dimension of argument space
          */
-        template <class Subtype, template <int, int> class Basis, int N, int D>
+        template <class Subtype, class Basis>
         struct Abstract {
-            using Self = Abstract<Subtype, Basis, N, D>;
-            IMPORT_TYPES_FROM( Basis, N, D );
+            using Self = Abstract<Subtype, Basis>;
+            IMPORT_TYPES_FROM( Basis);
             
             
           public:
@@ -60,12 +60,12 @@ namespace waveblocks
             }
         };
         
-        template <class TaylorImpl, template <int, int> class Basis, int N, int D>
-        class Standard : public Abstract<Standard<TaylorImpl, Basis, N, D>, Basis, N, D>,
+        template <class TaylorImpl, class Basis>
+        class Standard : public Abstract<Standard<TaylorImpl, Basis>, Basis>,
         public TaylorImpl
         {
         public:
-          IMPORT_TYPES_FROM( Basis, N, D );
+          IMPORT_TYPES_FROM( Basis);
 
         public:
           Standard( potential_type potential,
@@ -84,19 +84,19 @@ namespace waveblocks
             auto J_mat = TaylorImpl::evaluate_jacobian_at(q );
             auto H_mat = TaylorImpl::evaluate_hessian_at(q );
 
-            for ( int l = 0; l < N; ++l ) {
-              for ( int m = 0; m < N; ++m )  {
+            for ( int l = 0; l < Basis::number_of_levels; ++l ) {
+              for ( int m = 0; m < Basis::number_of_columns; ++m )  {
                 const auto& V = V_mat(l,m);
                 const auto& J = J_mat(l,m);
                 const auto& H = H_mat(l,m);
 
                 auto result = V;
 
-                for ( int i = 0; i < D; ++i ) {
+                for ( int i = 0; i < Basis::argument_dimension; ++i ) {
                   auto xmqi = x[i] - q[i];
                   result += J[i] * ( xmqi );
 
-                  for ( int j = 0; j < D; ++j ) {
+                  for ( int j = 0; j < Basis::argument_dimension; ++j ) {
                     result += 0.5 * xmqi * H( i, j ) * ( x[j] - q[j] );
                   }
                 }
@@ -109,12 +109,13 @@ namespace waveblocks
           }
         };
 
-        template <class TaylorImpl, template <int, int> class Basis, int N>
-        class Standard<TaylorImpl, Basis, N, 1> : public Abstract<Standard<TaylorImpl, Basis, N, 1>, Basis, N, 1>,
+        template <class TaylorImpl, template <int, int, int> class B, int N, int C>
+        class Standard<TaylorImpl, B<N, 1, C>> : public Abstract<Standard<TaylorImpl, B<N,1, C>>, B<N,1, C>>,
         public TaylorImpl
         {
         public:
-          IMPORT_TYPES_FROM( Basis, N, 1);
+          using Basis = B<N,1, C>;
+          IMPORT_TYPES_FROM( Basis);
 
         public:
           Standard( potential_type potential,
@@ -134,8 +135,8 @@ namespace waveblocks
             auto J_mat = TaylorImpl::evaluate_jacobian_at(q );
             auto H_mat = TaylorImpl::evaluate_hessian_at(q );
 
-            for ( int l = 0; l < N; ++l ) {
-              for ( int m = 0; m < N; ++m )  {
+            for ( int l = 0; l < Basis::number_of_levels; ++l ) {
+              for ( int m = 0; m < Basis::number_of_columns; ++m )  {
                 const auto& V = V_mat(l,m);
                 const auto& J = J_mat(l,m);
                 const auto& H = H_mat(l,m);
@@ -151,16 +152,13 @@ namespace waveblocks
 
         
         
-        template <class TaylorImpl, template <int, int> class Basis, int D>
-        class Standard<TaylorImpl, Basis, 1, D> : public Abstract <
-          Standard<TaylorImpl, Basis, 1, D>,
-          Basis,
-          1,
-          D > ,
-        public TaylorImpl
+        template <class TaylorImpl, template <int, int, int> class B, int D, int C>
+        class Standard<TaylorImpl, B<1, D,C>> : public Abstract <
+          Standard<TaylorImpl, B<1,D,C>>, B<1,D,C> >,        public TaylorImpl
         {
           public:
-            IMPORT_TYPES_FROM( Basis, 1, D );
+            using Basis = B<1,D,C>;
+            IMPORT_TYPES_FROM( Basis);
 
             Standard( potential_type potential,
                       jacobian_type jacobian,
@@ -190,12 +188,13 @@ namespace waveblocks
           }
         };
 
-        template <class TaylorImpl, template <int, int> class Basis>
-        class Standard<TaylorImpl, Basis, 1, 1> : public Abstract<Standard<TaylorImpl, Basis, 1, 1>, Basis, 1, 1>,
+        template <class TaylorImpl, template <int, int, int> class B, int C>
+        class Standard<TaylorImpl, B<1,1,C>> : public Abstract<Standard<TaylorImpl, B<1, 1,C>>, B<1, 1,C>>,
         public TaylorImpl
         {
         public:
-          IMPORT_TYPES_FROM( Basis, 1, 1);
+          using Basis = B<1,1,C>;
+          IMPORT_TYPES_FROM( Basis);
 
         public:
           Standard( potential_type potential,
@@ -220,8 +219,8 @@ namespace waveblocks
 
         };
       }
-      template <template <int, int> class Basis, int N, int D>
-      using LocalQuadratic = localQuadratic::Standard<Taylor<Basis,N,D>, Basis, N, D>;
+      template <class Basis>
+      using LocalQuadratic = localQuadratic::Standard<Taylor<Basis>, Basis>;
     }
   }
 }

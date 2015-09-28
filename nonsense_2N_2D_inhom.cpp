@@ -7,7 +7,6 @@
 #include "shape_enumerator.hpp"
 #include "shape_hypercubic.hpp"
 #include "hawp_paramset.hpp"
-#include "eigenhdf.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -32,7 +31,7 @@ int main() {
   CMatrix<D,D> P = complex_t(0,1)*CMatrix<D,D>::Identity();
   RVector<D> q = {-3.0,0.0};
   RVector<D> p = {0.0,0.5};
-  complex_t S = 0.;
+  CVector<N> S;
 
   // Setting up the wavepacket
   ShapeEnumerator<D, MultiIndex> enumerator;
@@ -40,15 +39,16 @@ int main() {
     enumerator.generate(HyperCubicShape<D>(K));
   HaWpParamSet<D> param_set(q,p,Q,P);
   std::vector<complex_t> coeffs(std::pow(K, D), 1.0);
-  HomogeneousHaWp<D,MultiIndex> packet(N);
+  InhomogeneousHaWp<D,MultiIndex> packet(N);
 
 
   packet.eps() = eps;
-  packet.parameters() = param_set;
+  packet.component(0).parameters() = param_set;
 
   packet.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
   packet.component(0).coefficients() = coeffs;
 
+  packet.component(1).parameters() = param_set;
   packet.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
   packet.component(1).coefficients() = coeffs;
 
@@ -69,27 +69,31 @@ int main() {
     return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
   };
   
-  typename HomogenousLeadingLevel<N,D>::potential_type leading_level;
-  leading_level = [sigma_x,sigma_y,N](CVector<D> x) {
+  typename InhomogenousLeadingLevel<N,D>::potential_type leading_level;
+  leading_level(0) = [sigma_x,sigma_y,N](CVector<D> x) {
     return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
   };
 
  
-  typename HomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
-  leading_jac = [D,sigma_x,sigma_y,N](CVector<D> x) {
+  typename InhomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
+  leading_jac(0) = [D,sigma_x,sigma_y,N](CVector<D> x) {
       return  CVector<D>{sigma_x*x[0], sigma_y*x[1]};
   };
 
-  typename HomogenousLeadingLevel<N,D>::hessian_type leading_hess;
-  leading_hess = 
+  typename InhomogenousLeadingLevel<N,D>::hessian_type leading_hess;
+  leading_hess(0) = 
     [D,sigma_x,sigma_y,N](CVector<D> x) {
       CMatrix<D,D> res;
       res(0,0) = sigma_x;
       res(1,1) = sigma_y;
       return res;
     };
+
+    leading_level(1) = leading_level(0);
+    leading_jac(1) = leading_jac(0);
+    leading_hess(1) = leading_hess(0);
     
-  HomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
+  InhomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
   using TQR = waveblocks::TensorProductQR < waveblocks::GaussHermiteQR<3>,
@@ -97,15 +101,10 @@ int main() {
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
-
-  // Preparing the file
-  
+  //~ store(0,packet,S);
   
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
     propagator.propagate(packet,dt,V,S);
   }
-  
-  
-
 }

@@ -18,7 +18,8 @@ namespace waveblocks
         template <class Subtype, int N, int D>
         struct Abstract {
           using Self = Abstract<Subtype, N, D>;
-          IMPORT_TYPES_FROM( bases::Canonical, N, D );
+          using Basis = bases::Canonical<N,D>;
+          IMPORT_TYPES_FROM(Basis);
 
 
           local_quadratic_evaluation_type evaluate_local_remainder_at( const argument_type &arg,
@@ -46,7 +47,8 @@ namespace waveblocks
         template <class DiagDifference, class EvalImpl, class LocQuadraticImpl, int N, int D>
         class General : public Abstract<General<DiagDifference, EvalImpl, LocQuadraticImpl, N, D>, N, D>, public EvalImpl, public LeadingLevelOwner<LocQuadraticImpl>
         {
-            IMPORT_TYPES_FROM( bases::Canonical, N, D );
+            using Basis = bases::Canonical<N,D>;
+            IMPORT_TYPES_FROM( Basis);
                       
           public:
 
@@ -71,7 +73,8 @@ namespace waveblocks
         {       
           template <class LocQuadImpl, int N, int D>
           struct DiagonalDifference {
-            IMPORT_TYPES_FROM( bases::Canonical, N, D );
+            using Basis = bases::Canonical<N,D>;
+            IMPORT_TYPES_FROM( Basis);
 
             struct Inhomogenous {
               static local_quadratic_evaluation_type apply(const potential_evaluation_type& V, const typename LocQuadImpl::local_quadratic_evaluation_type &u ) {
@@ -99,7 +102,8 @@ namespace waveblocks
           
           template <class LocQuadImpl, int D>
           struct DiagonalDifference<LocQuadImpl,1,D> {
-            IMPORT_TYPES_FROM( bases::Canonical, 1, D );
+            using Basis = bases::Canonical<1,D>;
+            IMPORT_TYPES_FROM( Basis);
 
             struct Homogenous {
               static local_quadratic_evaluation_type apply(const potential_evaluation_type& V, const typename LocQuadImpl::local_quadratic_evaluation_type &u ) {
@@ -122,10 +126,10 @@ namespace waveblocks
       }
     
       template<int N, int D>
-      using Homogenous = localRemainder::Homogenous<Evaluation<bases::Canonical,N,D>,LocalQuadratic<bases::Eigen,1,D>,N,D>;
+      using Homogenous = localRemainder::Homogenous<Evaluation<bases::Canonical<N,D>>,LocalQuadratic<bases::Eigen<1,D>>,N,D>;
 
       template<int N, int D>
-      using Inhomogenous = localRemainder::Inhomogenous<Evaluation<bases::Canonical,N,D>,LocalQuadratic<bases::Eigen,N,D>,N,D>;
+      using Inhomogenous = localRemainder::Inhomogenous<Evaluation<bases::Canonical<N,D>>,LocalQuadratic<bases::Eigen<N,D>>,N,D>;
       
     }
   }

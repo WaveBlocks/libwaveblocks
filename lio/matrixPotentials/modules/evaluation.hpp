@@ -28,10 +28,10 @@ namespace waveblocks
        * \tparam D
        * Dimension of argument space
        */
-        template <class Subtype, template <int, int> class Basis, int N, int D>
+        template <class Subtype, class Basis>
         struct Abstract {
-          using Self = Abstract<Subtype, Basis, N, D>;
-          IMPORT_TYPES_FROM( Basis, N, D );
+          using Self = Abstract<Subtype, Basis>;
+          IMPORT_TYPES_FROM( Basis);
           
           potential_evaluation_type evaluate_at( const argument_type &arg ) const {
 
@@ -64,104 +64,31 @@ namespace waveblocks
          * \tparam D
          * Dimension of argument space
          */
-        template <int N, int D>
-        struct BasisSpecific {
-            struct Canonical
-                : Abstract<BasisSpecific<N, D>::Canonical, bases::Canonical, N, D> {
-                
-                IMPORT_TYPES_FROM( bases::Canonical, N, D );
-                
-              private:
-                potential_type potential;
-                
-              public:
-                Canonical( potential_type potential)
-                  : potential( potential ){}
-                  
-              public:
-                potential_evaluation_type evaluate_at_implementation(
-                  const argument_type &arg ) const {
-                  return utilities::evaluate_function_matrix < N,
-                         GMatrix,
-                         argument_type,
-                         potential_return_type,
-                         function_t > ( potential, arg );
-                }
-                
-            };
+        template <class Basis>
+        struct Standard : Abstract<Standard<Basis>, Basis> {
+          IMPORT_TYPES_FROM( Basis);
+
+          private:
+          potential_type potential;
+
+          public:
+          Standard( potential_type potential)
+            : potential( potential ){}
             
-            struct Eigen : Abstract<BasisSpecific<N, D>::Eigen, bases::Eigen, N, D> {
-            
-                IMPORT_TYPES_FROM( bases::Eigen, N, D );
-                
-              private:
-                potential_type potential;
-                
-              public:
-                Eigen( potential_type potential)
-                  : potential( potential ) {}
-                  
-              public:
-                potential_evaluation_type evaluate_at_implementation(
-                  const argument_type &arg ) const {
-                  return utilities::evaluate_function_vector < N,
-                         GVector,
-                         argument_type,
-                         potential_return_type,
-                         function_t > ( potential, arg );
-                }
-                
-              
-            };
+          public:
+          potential_evaluation_type evaluate_at_implementation(
+            const argument_type &arg ) const {
+            return utilities::FunctionMatrixEvaluator < Basis::number_of_levels, Basis::number_of_columns,
+                   GMatrix,
+                   argument_type,
+                   potential_return_type,
+                   function_t >::apply( potential, arg );
+          }
         };
-        
-        template <int D>
-        struct BasisSpecific<1, D> {
-            template <template <int, int> class Basis>
-            struct General : Abstract<BasisSpecific<1, D>::General<Basis>, Basis, 1, D> {
-            
-                IMPORT_TYPES_FROM( Basis, 1, D );
-                
-              private:
-                potential_type potential;
-                
-              public:
-                General( potential_type potential )
-                  : potential( potential ) {
-                    }
-                  
-              public:
-                potential_evaluation_type evaluate_at_implementation(
-                  const argument_type &arg ) const {
-                  return potential( arg );
-                }
-                
-            };
-            
-            using Canonical = General<bases::Canonical>;
-            using Eigen = General<bases::Eigen>;
-        };
-        
-        // templated typedef with specialization
-        template <template <int, int> class Basis, int N, int D>
-        struct _HELPER;
-        
-        template <int N, int D>
-        struct _HELPER<bases::Canonical, N, D> {
-          using type = typename BasisSpecific<N, D>::Canonical;
-        };
-        
-        template <int N, int D>
-        struct _HELPER<bases::Eigen, N, D> {
-          using type = typename BasisSpecific<N, D>::Eigen;
-        };
-        
-        template <template <int, int> class Basis, int N, int D>
-        using Standard = typename _HELPER<Basis, N, D>::type;
       }
       
-      template <template <int, int> class Basis, int N, int D>
-      using Evaluation = evaluation::Standard<Basis, N, D>;
+      template <class Basis>
+      using Evaluation = evaluation::Standard<Basis>;
     }
   }
 }
