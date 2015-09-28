@@ -8,3 +8,9 @@ add_executable(hawp_homogen hawp_homogen.cpp)
 add_executable(hawp_inhomogen hawp_inhomogen.cpp)
 
 add_executable(hawp_eval hawp_eval.cpp)
+
+add_executable(harmonic_2D harmonic_2D.cpp)
+
+add_executable(nonsense_2N_2D nonsense_2N_2D.cpp)
+
+add_executable(tunneling_1D tunneling_1D.cpp)
