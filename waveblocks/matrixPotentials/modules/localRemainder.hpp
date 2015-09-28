@@ -18,7 +18,7 @@ namespace waveblocks
         template <class Subtype, int N, int D>
         struct Abstract {
           using Self = Abstract<Subtype, N, D>;
-          IMPORT_TYPES_FROM( bases::Canonical, N, D );
+          IMPORT_TYPES_FROM( bases::Canonical, N, D )
 
 
           local_quadratic_evaluation_type evaluate_local_remainder_at( const argument_type &arg,
@@ -46,7 +46,7 @@ namespace waveblocks
         template <class DiagDifference, class EvalImpl, class LocQuadraticImpl, int N, int D>
         class General : public Abstract<General<DiagDifference, EvalImpl, LocQuadraticImpl, N, D>, N, D>, public EvalImpl, public LeadingLevelOwner<LocQuadraticImpl>
         {
-            IMPORT_TYPES_FROM( bases::Canonical, N, D );
+            IMPORT_TYPES_FROM( bases::Canonical, N, D )
 
           public:
 
@@ -71,7 +71,7 @@ namespace waveblocks
         {
           template <class LocQuadImpl, int N, int D>
           struct DiagonalDifference {
-            IMPORT_TYPES_FROM( bases::Canonical, N, D );
+            IMPORT_TYPES_FROM( bases::Canonical, N, D )
 
             struct Inhomogenous {
               static local_quadratic_evaluation_type apply(const potential_evaluation_type& V, const typename LocQuadImpl::local_quadratic_evaluation_type &u ) {
@@ -99,7 +99,7 @@ namespace waveblocks
 
           template <class LocQuadImpl, int D>
           struct DiagonalDifference<LocQuadImpl,1,D> {
-            IMPORT_TYPES_FROM( bases::Canonical, 1, D );
+            IMPORT_TYPES_FROM( bases::Canonical, 1, D )
 
             struct Homogenous {
               static local_quadratic_evaluation_type apply(const potential_evaluation_type& V, const typename LocQuadImpl::local_quadratic_evaluation_type &u ) {

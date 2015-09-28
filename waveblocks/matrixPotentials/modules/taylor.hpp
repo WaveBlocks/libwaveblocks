@@ -36,7 +36,7 @@ namespace waveblocks
         template <class Subtype, template <int, int> class Basis, int N, int D>
         struct Abstract {
           using Self = Abstract<Subtype, Basis, N, D>;
-          IMPORT_TYPES_FROM( Basis, N, D );
+          IMPORT_TYPES_FROM( Basis, N, D )
 
 
           template <template <typename...> class Tuple = std::tuple>
@@ -69,7 +69,7 @@ namespace waveblocks
          */
         template <class EvalImpl, class JacImpl, class HessImpl, template<int,int> class Basis, int N, int D>
         struct Standard : public Abstract<Standard<EvalImpl, JacImpl, HessImpl, Basis, N, D>, Basis, N, D>, public EvalImpl, public JacImpl, public HessImpl {
-                IMPORT_TYPES_FROM( Basis, N, D );
+                IMPORT_TYPES_FROM( Basis, N, D )
 
               public:
                 Standard(potential_type potential,
@@ -81,9 +81,9 @@ namespace waveblocks
                 Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &g ) const {
                              return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
                      EvalImpl::evaluate_at( g ), JacImpl::evaluate_jacobian_at( g ), HessImpl::evaluate_hessian_at( g ) );
-                };
+                }
             };
-        };
+        }
 
 
       template <template <int, int> class Basis, int N, int D>

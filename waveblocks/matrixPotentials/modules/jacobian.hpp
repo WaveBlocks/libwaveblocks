@@ -31,7 +31,7 @@ namespace waveblocks
         template <class Subtype, template <int, int> class Basis, int N, int D>
         struct Abstract {
           using Self = Abstract<Subtype, Basis, N, D>;
-          IMPORT_TYPES_FROM( Basis, N, D );
+          IMPORT_TYPES_FROM( Basis, N, D )
 
 
           jacobian_evaluation_type evaluate_jacobian_at( const argument_type &arg ) const {
@@ -67,7 +67,7 @@ namespace waveblocks
             struct Canonical
                 : Abstract<Canonical, bases::Canonical, N, D> {
 
-                IMPORT_TYPES_FROM( bases::Canonical, N, D );
+                IMPORT_TYPES_FROM( bases::Canonical, N, D )
 
               private:
                 jacobian_type jacobian;
@@ -89,7 +89,7 @@ namespace waveblocks
 
             struct Eigen : Abstract<Eigen, bases::Eigen, N, D> {
 
-                IMPORT_TYPES_FROM( bases::Eigen, N, D );
+                IMPORT_TYPES_FROM( bases::Eigen, N, D )
 
               private:
                 jacobian_type jacobian;
@@ -115,7 +115,7 @@ namespace waveblocks
             template <template <int, int> class Basis>
             struct General : Abstract<BasisSpecific<1, D>::General<Basis>, Basis, 1, D> {
 
-                IMPORT_TYPES_FROM( Basis, 1, D );
+                IMPORT_TYPES_FROM( Basis, 1, D )
 
               private:
                 jacobian_type jacobian;
