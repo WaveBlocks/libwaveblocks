@@ -1,13 +1,13 @@
 #include <vector>
 #include <iostream>
-#include "types.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "matrixPotentials/potentials.hpp"
-#include "hawp_commons.hpp"
-#include "inhomogeneous_inner_product.hpp"
-#include "homogeneous_inner_product.hpp"
-#include "tensor_product_qr.hpp"
-#include "gauss_hermite_qr.hpp"
+#include "../types.hpp"
+#include "../matrixPotentials/bases.hpp"
+#include "../matrixPotentials/potentials.hpp"
+#include "../hawp_commons.hpp"
+#include "../inhomogeneous_inner_product.hpp"
+#include "../homogeneous_inner_product.hpp"
+#include "../tensor_product_qr.hpp"
+#include "../gauss_hermite_qr.hpp"
 
 
 
@@ -23,17 +23,17 @@ namespace waveblocks
                       const InhomogenousMatrixPotential<N, D> &V,
                       CVector<N> &S
       ) {
-        
+
         // 1.
         int i = 0;
         for (auto& component : packet.components()) {
-          
+
           auto& params = component.parameters();
           params.q += 0.5 * delta_t * params.p;
           params.Q +=  0.5 * delta_t * params.P;
           S[i] += 0.25 * delta_t * params.p.dot(params.p);
         // 2.
-          
+
           // leading levels
           const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q);
           params.p -= delta_t*std::get<1>(leading_level_taylor).real();
@@ -42,12 +42,12 @@ namespace waveblocks
         }
         // 3.
         // Set up quadrature
-        
+
         typename TQR::NodeMatrix nodes;
         typename TQR::WeightVector weights;
         waveblocks::InhomogeneousInnerProduct<D, MultiIndex, TQR> ip;
 
-        
+
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
         int size = 0;
         for (auto& component : packet.components()) {
@@ -81,11 +81,11 @@ namespace waveblocks
         }
 
         auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
-        
+
         // Exponential
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
         (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
-        
+
         // Put all coefficients into a vector
         CVector<Eigen::Dynamic> coefficients;
         coefficients.resize(size);
@@ -97,10 +97,10 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // Compute product
         coefficients = expM * coefficients;
-        
+
         j_offset = 0;
         // Unpack coefficients
         for(auto& component: packet.components()) {
@@ -110,11 +110,11 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // 4.
         i = 0;
         for (auto& component : packet.components()) {
-          
+
           auto& params = component.parameters();
           params.q += 0.5 * delta_t * params.p;
           params.Q +=  0.5 * delta_t * params.P;
@@ -127,28 +127,28 @@ namespace waveblocks
                       const HomogenousMatrixPotential<N, D> &V,
                       complex_t &S
       ) {
-        
+
         // 1.
         auto& params = packet.parameters();
         params.q += 0.5 * delta_t * params.p;
         params.Q +=  0.5 * delta_t * params.P;
         S += 0.25 * delta_t * params.p.dot(params.p);
         // 2.
-          
+
         // leading levels
         const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q);
         params.p -= delta_t*std::get<1>(leading_level_taylor).real();
         params.P -= delta_t*std::get<2>(leading_level_taylor);
         S -= delta_t*std::get<0>(leading_level_taylor);
-        
+
         // 3.
         // Set up quadrature
-        
+
         typename TQR::NodeMatrix nodes;
         typename TQR::WeightVector weights;
         waveblocks::InhomogeneousInnerProduct<D, MultiIndex, TQR> ip;
 
-        
+
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
         int size = 0;
         for (auto& component : packet.components()) {
@@ -182,11 +182,11 @@ namespace waveblocks
         }
 
         auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
-        
+
         // Exponential
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
         (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
-        
+
         // Put all coefficients into a vector
         CVector<Eigen::Dynamic> coefficients;
         coefficients.resize(size);
@@ -198,10 +198,10 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // Compute product
         coefficients = expM * coefficients;
-        
+
         j_offset = 0;
         // Unpack coefficients
         for(auto& component: packet.components()) {
@@ -211,7 +211,7 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // 4.
         params = packet.parameters();
         params.q += 0.5 * delta_t * params.p;
@@ -227,17 +227,17 @@ namespace waveblocks
                       const InhomogenousMatrixPotential<N, 1> &V,
                       CVector<N> &S
       ) {
-        
+
         // 1.
         int i = 0;
         for (auto& component : packet.components()) {
-          
+
           auto& params = component.parameters();
           params.q[0] += 0.5 * delta_t * params.p[0];
           params.Q[0] +=  0.5 * delta_t * params.P[0];
           S[i] += 0.25 * delta_t * params.p.dot(params.p);
         // 2.
-          
+
           // leading levels
           const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]);
           params.p -= delta_t*std::get<1>(leading_level_taylor).real();
@@ -246,12 +246,12 @@ namespace waveblocks
         }
         // 3.
         // Set up quadrature
-        
+
         typename TQR::NodeMatrix nodes;
         typename TQR::WeightVector weights;
         waveblocks::InhomogeneousInnerProduct<1, MultiIndex, TQR> ip;
 
-        
+
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
         int size = 0;
         for (auto& component : packet.components()) {
@@ -285,11 +285,11 @@ namespace waveblocks
         }
 
         auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
-        
+
         // Exponential
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
         (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
-        
+
         // Put all coefficients into a vector
         CVector<Eigen::Dynamic> coefficients;
         coefficients.resize(size);
@@ -301,10 +301,10 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // Compute product
         coefficients = expM * coefficients;
-        
+
         j_offset = 0;
         // Unpack coefficients
         for(auto& component: packet.components()) {
@@ -314,11 +314,11 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // 4.
         i = 0;
         for (auto& component : packet.components()) {
-          
+
           auto& params = component.parameters();
           params.q[0] += 0.5 * delta_t * params.p[0];
           params.Q[0] +=  0.5 * delta_t * params.P[0];
@@ -331,28 +331,28 @@ namespace waveblocks
                       const HomogenousMatrixPotential<N, 1> &V,
                       complex_t &S
       ) {
-        
+
         // 1.
         auto& params = packet.parameters();
         params.q[0] += 0.5 * delta_t * params.p[0];
         params.Q[0] +=  0.5 * delta_t * params.P[0];
         S += 0.25 * delta_t * params.p.dot(params.p);
         // 2.
-          
+
         // leading levels
         const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]);
         params.p[0] -= delta_t*std::get<1>(leading_level_taylor).real();
         params.P[0] -= delta_t*std::get<2>(leading_level_taylor);
         S -= delta_t*std::get<0>(leading_level_taylor);
-        
+
         // 3.
         // Set up quadrature
-        
+
         typename TQR::NodeMatrix nodes;
         typename TQR::WeightVector weights;
         waveblocks::HomogeneousInnerProduct<1, MultiIndex, TQR> ip;
 
-        
+
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
         int size = 0;
         for (auto& component : packet.components()) {
@@ -386,11 +386,11 @@ namespace waveblocks
         }
 
         auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
-        
+
         // Exponential
         CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
         (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
-        
+
         // Put all coefficients into a vector
         CVector<Eigen::Dynamic> coefficients;
         coefficients.resize(size);
@@ -402,10 +402,10 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // Compute product
         coefficients = expM * coefficients;
-        
+
         j_offset = 0;
         // Unpack coefficients
         for(auto& component: packet.components()) {
@@ -415,7 +415,7 @@ namespace waveblocks
             }
           j_offset += j_size;
         }
-        
+
         // 4.
         params = packet.parameters();
         params.q[0] += 0.5 * delta_t * params.p[0];
@@ -433,7 +433,7 @@ namespace waveblocks
                     complex_t &S
     ) {
 
-      
+
       // 1.
         auto& params = packet.parameters();
         params.q += 0.5 * delta_t * params.p;
@@ -454,8 +454,8 @@ namespace waveblocks
       typename TQR::NodeMatrix nodes;
       typename TQR::WeightVector weights;
       waveblocks::InhomogeneousInnerProduct<D, MultiIndex, TQR> ip;
-    
-      
+
+
       // Set up operator
       auto op =
           [&V] (const CMatrix<D,Eigen::Dynamic> &nodes, const RMatrix<D,1> &pos)  -> CMatrix<1,Eigen::Dynamic>// Do you want real or complex positions??? (You want real...)
@@ -471,11 +471,11 @@ namespace waveblocks
       // Build matrix
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> F = ip.build_matrix(packet, packet, op);
       auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
-      
+
       // Exponential
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
       (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
-      
+
       // Put all coefficients into a vector
       CVector<Eigen::Dynamic> coefficients;
       int size = packet.coefficients().size();
@@ -483,18 +483,18 @@ namespace waveblocks
       for (int j = 0; j < size; ++j) {
         coefficients[j] = packet.coefficients()[j];
       }
-      
+
       // Compute product
       coefficients = expM * coefficients;
-      
+
       // Unpack coefficients
       int j_size = packet.coefficients().size();
       for (int j = 0; j < j_size; ++j) {
         packet.coefficients()[j] = coefficients[j];
       }
-      
+
       // 4.
-        
+
         params.q += 0.5 * delta_t * params.p;
         params.Q +=  0.5 * delta_t * params.P;
         S += 0.25 * delta_t * params.p.dot(params.p);
@@ -509,7 +509,7 @@ namespace waveblocks
                     complex_t &S
     ) {
 
-      
+
       // 1.
         auto& params = packet.parameters();
         params.q[0] += 0.5 * delta_t * params.p[0];
@@ -530,8 +530,8 @@ namespace waveblocks
       typename TQR::NodeMatrix nodes;
       typename TQR::WeightVector weights;
       waveblocks::HomogeneousInnerProduct<1, MultiIndex, TQR> ip;
-    
-      
+
+
       // Set up operator
       auto op =
           [&V] (const CMatrix<1,Eigen::Dynamic> &nodes, const CMatrix<1,1> &pos)  -> CMatrix<1,Eigen::Dynamic>// Do you want real or complex positions??? (You want real...)
@@ -547,11 +547,11 @@ namespace waveblocks
       // Build matrix
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> F = ip.build_matrix(packet, op);
       auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
-      
+
       // Exponential
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
       (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
-      
+
       // Put all coefficients into a vector
       CVector<Eigen::Dynamic> coefficients;
       int size = packet.coefficients().size();
@@ -559,18 +559,18 @@ namespace waveblocks
       for (int j = 0; j < size; ++j) {
         coefficients[j] = packet.coefficients()[j];
       }
-      
+
       // Compute product
       coefficients = expM * coefficients;
-      
+
       // Unpack coefficients
       int j_size = packet.coefficients().size();
       for (int j = 0; j < j_size; ++j) {
         packet.coefficients()[j] = coefficients[j];
       }
-      
+
       // 4.
-        
+
         params.q[0] += 0.5 * delta_t * params.p[0];
         params.Q[0] +=  0.5 * delta_t * params.P[0];
         S += 0.25 * delta_t * params.p.dot(params.p);
