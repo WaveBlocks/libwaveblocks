@@ -120,6 +120,7 @@ public:
 private:
     static CMatrix1N default_op(const CMatrixDN& nodes, const CMatrixD1& pos)
     {
+        (void)pos;
         return CMatrix1N::Ones(1, nodes.cols());
     }
 };
