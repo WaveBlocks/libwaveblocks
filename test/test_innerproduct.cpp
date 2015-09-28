@@ -7,7 +7,6 @@
 
 #include "waveblocks/basic_types.hpp"
 #include "waveblocks/gauss_hermite_qr.hpp"
-#include "waveblocks/hawp.hpp"
 #include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/homogeneous_inner_product.hpp"
