@@ -1,4 +1,4 @@
-FLAGS = -std=c++11 -lm -lstdc++ -I lio -I eigen/ -I raoul/waveblocks -I ben/waveblocks -g -I . -I eigen3-hdf5
+FLAGS = -std=c++11 -lm -lstdc++ -I lio -I eigen/ -I raoul/waveblocks -I ben/waveblocks -g -I . -I eigen3-hdf5 -lhdf5 -lhdf5_cpp
 
 harmonic_2D: harmonic_2D.cpp
 	clang -o harmonic_2D harmonic_2D.cpp $(FLAGS)

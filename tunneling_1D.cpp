@@ -7,8 +7,8 @@
 #include "shape_enumerator.hpp"
 #include "shape_hypercubic.hpp"
 #include "hawp_paramset.hpp"
+#include "utilities/eigenhdf.hpp"
 #include <iostream>
-#include <fstream>
 
 
 using namespace waveblocks;
@@ -70,27 +70,16 @@ int main() {
 
 
   // Preparing the file
-  std::ofstream csv;
-  csv.open ("tunneling_1D.out");
-  csv << "t, p, q, P, Q, S";
+  utilities::Storage<ScalarHaWp<D,MultiIndex>> writer("tunneling_1D.out");
 
-  
-  csv << 0 << "," << param_set.p << "," << param_set.q << "," << param_set.P << "," << param_set.Q << "," << S << std::endl;
-  
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
+    writer.store_packet(t,packet,S);
     propagator.propagate(packet,dt,V,S);
-    const auto& params = packet.parameters();
-    csv << t << "," << params.p << "," <<
-     params.q << "," << params.P << "," <<
-     params.Q << "," << S  << std::endl;
   }
+
+  writer.store_packet(T,packet,S);
   
-  
-
-  csv.close();
-
-
   
   
 
