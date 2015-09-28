@@ -32,7 +32,7 @@ namespace waveblocks
         template <class Subtype, class Basis>
         struct Abstract {
           using Self = Abstract<Subtype, Basis>;
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
           
           
           hessian_evaluation_type evaluate_hessian_at( const argument_type &arg ) const {
@@ -67,7 +67,7 @@ namespace waveblocks
         template <class Basis>
         struct Standard : Abstract<Standard<Basis>, Basis> {
                 
-                IMPORT_TYPES_FROM( Basis);
+                IMPORT_TYPES_FROM( Basis)
                 
               private:
                 hessian_type hessian;

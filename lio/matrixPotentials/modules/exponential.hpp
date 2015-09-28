@@ -33,7 +33,7 @@ namespace waveblocks
         class Abstract
         {
             using Self = Abstract<Subtype, Basis>;
-            IMPORT_TYPES_FROM( Basis);
+            IMPORT_TYPES_FROM( Basis)
             
             potential_evaluation_type evaluate_exponential_at( const argument_type &arg,
                 const real_t &factor = 1 ) const {
@@ -76,7 +76,7 @@ namespace waveblocks
         template <class EvalImpl, class Basis>
         struct Standard : public Abstract<Standard<EvalImpl, Basis>, Basis>,
           public EvalImpl {
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
           
           potential_evaluation_type evaluate_exponential_at_implementation(
             const argument_type &arg,
@@ -97,7 +97,7 @@ namespace waveblocks
         struct Standard<EvalImpl, B<1, D>> : public Abstract<Standard<EvalImpl, B<1,D>>, B<1,D>>,
           public EvalImpl {
             using Basis = B<1,D>;
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
           
           potential_evaluation_type evaluate_exponential_at_implementation(
             const argument_type &arg,

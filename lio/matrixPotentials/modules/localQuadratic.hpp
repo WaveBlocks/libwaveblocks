@@ -32,7 +32,7 @@ namespace waveblocks
         template <class Subtype, class Basis>
         struct Abstract {
             using Self = Abstract<Subtype, Basis>;
-            IMPORT_TYPES_FROM( Basis);
+            IMPORT_TYPES_FROM( Basis)
             
             
           public:
@@ -65,7 +65,7 @@ namespace waveblocks
         public TaylorImpl
         {
         public:
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
 
         public:
           Standard( potential_type potential,
@@ -115,7 +115,7 @@ namespace waveblocks
         {
         public:
           using Basis = B<N,1, C>;
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
 
         public:
           Standard( potential_type potential,
@@ -158,7 +158,7 @@ namespace waveblocks
         {
           public:
             using Basis = B<1,D,C>;
-            IMPORT_TYPES_FROM( Basis);
+            IMPORT_TYPES_FROM( Basis)
 
             Standard( potential_type potential,
                       jacobian_type jacobian,
@@ -194,7 +194,7 @@ namespace waveblocks
         {
         public:
           using Basis = B<1,1,C>;
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
 
         public:
           Standard( potential_type potential,

@@ -31,7 +31,7 @@ namespace waveblocks
         template <class Subtype, class Basis>
         struct Abstract {
           using Self = Abstract<Subtype, Basis>;
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
           
           potential_evaluation_type evaluate_at( const argument_type &arg ) const {
 
@@ -66,7 +66,7 @@ namespace waveblocks
          */
         template <class Basis>
         struct Standard : Abstract<Standard<Basis>, Basis> {
-          IMPORT_TYPES_FROM( Basis);
+          IMPORT_TYPES_FROM( Basis)
 
           private:
           potential_type potential;
