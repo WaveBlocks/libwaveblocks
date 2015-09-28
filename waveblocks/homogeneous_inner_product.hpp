@@ -11,7 +11,6 @@
 #include <unsupported/Eigen/MatrixFunctions>
 
 #include "basic_types.hpp"
-#include "hawp.hpp"
 #include "hawp_commons.hpp"
 
 namespace waveblocks {
