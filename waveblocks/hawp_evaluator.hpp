@@ -236,8 +236,8 @@ public:
     {
         HaWpBasisVector<N> complete_basis(enumeration_->n_entries(), npts_);
         //HaWpBasisVector<N> complete_basis = HaWpBasisVector<N>::Zero(enumeration_->n_entries(), npts_);
-        std::cout << "complete_basis (init):\n" << complete_basis << "\n";
-        std::cout << "complete_basis.shape: " << complete_basis.rows() << ", " << complete_basis.cols() << "\n";
+        //~ std::cout << "complete_basis (init):\n" << complete_basis << "\n";
+        //~ std::cout << "complete_basis.shape: " << complete_basis.rows() << ", " << complete_basis.cols() << "\n";
         
         HaWpBasisVector<N> prev_basis(0,npts_);
         HaWpBasisVector<N> curr_basis(0,npts_);
@@ -253,7 +253,7 @@ public:
             
             std::size_t offset = enumeration_->slice(islice+1).offset();
 
-            std::cout << "offset: " << offset << ", next_basis.rows: " << next_basis.rows() << "\n";
+            //~ std::cout << "offset: " << offset << ", next_basis.rows: " << next_basis.rows() << "\n";
             
             complete_basis.block(offset, 0, next_basis.rows(), npts_) = next_basis;
         }
