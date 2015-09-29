@@ -212,7 +212,7 @@ public:
     template<int N>
     CArray<1,N> evaluate(CMatrix<D,N> const& grid) const
     {
-        if (this->shape()->n_entries() != coefficients().size())
+        if (this->shape()->n_entries() != (std::size_t)coefficients().size())
             throw std::runtime_error("shape.size() != coefficients.size()");
 
         return this->template create_evaluator<N>(grid).reduce(coefficients());
