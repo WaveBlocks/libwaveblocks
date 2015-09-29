@@ -78,6 +78,8 @@ namespace waveblocks
           public EvalImpl {
           IMPORT_TYPES_FROM( Basis)
 
+          Standard(potential_type pot) : EvalImpl(pot){}
+
           potential_evaluation_type evaluate_exponential_at_implementation(
             const argument_type &arg,
             real_t factor ) const {
@@ -99,6 +101,8 @@ namespace waveblocks
             using Basis = B<1,D>;
           IMPORT_TYPES_FROM( Basis)
 
+          Standard(potential_type pot) : EvalImpl(pot){}
+
           potential_evaluation_type evaluate_exponential_at_implementation(
             const argument_type &arg,
             real_t factor ) const {
@@ -109,7 +113,7 @@ namespace waveblocks
         };
       }
 
-      template <class EvalImpl, class Basis>
+      template <class Basis>
       using Exponential = exponential::Standard<Evaluation<Basis>, Basis>;
     }
   }
