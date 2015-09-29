@@ -1,8 +1,8 @@
 #include <iostream>
 #include <sstream>
 #include <Eigen/Core>
-#include "eigen3-hdf5.hpp"
-#include "types.hpp"
+#include "../hdf5/eigen3-hdf5.hpp"
+#include "../types.hpp"
 
 namespace waveblocks {
   namespace utilities {
