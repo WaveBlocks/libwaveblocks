@@ -1,6 +1,7 @@
 #ifndef WAVEBLOCKS_GRADIENT_OPERATOR_HPP
 #define WAVEBLOCKS_GRADIENT_OPERATOR_HPP
 
+#include "basic_types.hpp"
 #include "hawp_commons.hpp"
 #include "hawp_gradient_evaluator.hpp"
 
@@ -61,7 +62,7 @@ public:
          * \brief Grants writeable access to the coefficients \f$ c \f$
          * of the wavepacket.
          */
-        std::vector<complex_t> & coefficients()
+        Coefficients & coefficients()
         {
             return coefficients_;
         }
@@ -70,15 +71,15 @@ public:
          * \brief Grants read-only access to the coefficients \f$ c \f$
          * of the wavepacket.
          */
-        std::vector<complex_t> const& coefficients() const
+        Coefficients const& coefficients() const
         {
             return coefficients_;
         }
         
     private:
         HaWpGradient const * const owner_;
-        
-        std::vector<complex_t> coefficients_;
+
+        Coefficients coefficients_;
     };
     
     HaWpGradient()
@@ -313,8 +314,8 @@ public:
         gradwp.shape() = wp.extended_shape();
         
         HaWpGradientEvaluator<D,MultiIndex> evaluator(wp.eps(), &wp.parameters(), wp.shape().get(), gradwp.shape().get());
-        std::array< std::vector<complex_t>, std::size_t(D) > coeffs_result = evaluator.apply(wp.coefficients());
-        
+        std::array<Coefficients, std::size_t(D) > coeffs_result = evaluator.apply(wp.coefficients());
+
         for (dim_t c = 0; c < D; c++) {
             gradwp[c].coefficients() = std::move(coeffs_result[c]);
         }

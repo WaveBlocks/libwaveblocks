@@ -269,7 +269,7 @@ public:
      * Complex 2D-Array of shape \f$ (1 \times N) \f$,
      * where \f$ N \f$ is the number of quadrature points.
      */
-    CArray<1,N> reduce(const std::vector<complex_t>& coefficients) const
+    CArray<1,N> reduce(const Coefficients& coefficients) const
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         KahanSum< CArray<1,N> > psi( CArray<1,N>::Zero(1,npts_) );
