@@ -145,4 +145,9 @@ static const int argument_dimension = 1;
       };
     }
   }
+  template<int N, int D>
+  using CanonicalBasis = matrixPotentials::bases::Canonical<N,D>;
+
+  template<int N, int D>
+  using EigenBasis = matrixPotentials::bases::Eigen<N,D>;
 }

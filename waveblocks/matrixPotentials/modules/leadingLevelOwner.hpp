@@ -45,10 +45,9 @@ namespace waveblocks
 
       
       }
-      template<class Owned>
-      using LeadingLevelOwner = leadingLevelOwner::Standard<Owned>;
-
     }
   }
+ template<class Owned>
+      using LeadingLevelOwner = matrixPotentials::modules::leadingLevelOwner::Standard<Owned>;
 }
 
