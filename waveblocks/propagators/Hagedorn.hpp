@@ -20,7 +20,7 @@ namespace waveblocks
                         const real_t &delta_t,
                         complex_t &S) {
       params.q += 0.5 * delta_t * params.p;
-      params.Q +=  0.5 * delta_t * params.P;
+      params.Q += 0.5 * delta_t * params.P;
       S += 0.25 * delta_t * params.p.dot(params.p);
     }
   };
@@ -30,7 +30,7 @@ namespace waveblocks
                         const real_t &delta_t,
                         complex_t &S) {
       params.q[0] += 0.5 * delta_t * params.p[0];
-      params.Q[0] +=  0.5 * delta_t * params.P[0];
+      params.Q[0] += 0.5 * delta_t * params.P[0];
       S += 0.25 * delta_t * params.p.dot(params.p);
     }
   };
@@ -39,31 +39,30 @@ namespace waveblocks
   struct Step2 {
     static void inhomogenous(int i, const InhomogenousMatrixPotential<N, D> &V, HaWpParamSet<D> &params, const real_t &delta_t, complex_t &S) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q); // inefficient since all levels are evaluated for each q
-          params.p -= delta_t*std::get<1>(leading_level_taylor)[i].real();
-          params.P -= delta_t*std::get<2>(leading_level_taylor)[i];
+          params.p -= delta_t * std::get<1>(leading_level_taylor)[i].real();
+          params.P -= delta_t * std::get<2>(leading_level_taylor)[i] * params.Q;
           S -= delta_t*std::get<0>(leading_level_taylor)[i];
     }
     static void homogenous(const HomogenousMatrixPotential<N, D> &V, HaWpParamSet<D> &params, const real_t &delta_t, complex_t &S) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q);
-          params.p -= delta_t*std::get<1>(leading_level_taylor).real();
-          params.P -= delta_t*std::get<2>(leading_level_taylor);
+          params.p -= delta_t * std::get<1>(leading_level_taylor).real();
+          params.P -= delta_t * std::get<2>(leading_level_taylor) * params.Q;
           S -= delta_t*std::get<0>(leading_level_taylor);
     }
-    
   };
 
   template<int N>
   struct Step2<N,1> {
     static void inhomogenous(int i, const InhomogenousMatrixPotential<N, 1> &V, HaWpParamSet<1> &params, const real_t &delta_t, complex_t &S) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]); // inefficient since all levels are evaluated for each q
-          params.p[0] -= delta_t*std::get<1>(leading_level_taylor)[i].real();
-          params.P[0] -= delta_t*std::get<2>(leading_level_taylor)[i];
+          params.p[0] -= delta_t * std::get<1>(leading_level_taylor)[i].real();
+          params.P[0] -= delta_t * std::get<2>(leading_level_taylor)[i] * params.Q[0];
           S -= delta_t*std::get<0>(leading_level_taylor)[i];
     }
     static void homogenous(const HomogenousMatrixPotential<N, 1> &V, HaWpParamSet<1> &params, const real_t &delta_t, complex_t &S) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]);
-          params.p[0] -= delta_t*std::get<1>(leading_level_taylor).real();
-          params.P[0] -= delta_t*std::get<2>(leading_level_taylor);
+          params.p[0] -= delta_t * std::get<1>(leading_level_taylor).real();
+          params.P[0] -= delta_t * std::get<2>(leading_level_taylor) * params.Q[0];
           S -= delta_t*std::get<0>(leading_level_taylor);
     }
     
@@ -176,8 +175,9 @@ namespace waveblocks
                         const real_t &delta_t,
                         complex_t &S) {
       params.q += 0.5 * delta_t * params.p;
-      params.Q +=  0.5 * delta_t * params.P;
-      S += 0.25 * delta_t * params.p.dot(params.p);}
+      params.Q += 0.5 * delta_t * params.P;
+      S += 0.25 * delta_t * params.p.dot(params.p);
+    }
   };
 
   template<int N>
@@ -186,8 +186,9 @@ namespace waveblocks
                         const real_t &delta_t,
                         complex_t &S){
       params.q[0] += 0.5 * delta_t * params.p[0];
-      params.Q[0] +=  0.5 * delta_t * params.P[0];
-      S += 0.25 * delta_t * params.p.dot(params.p);}
+      params.Q[0] += 0.5 * delta_t * params.P[0];
+      S += 0.25 * delta_t * params.p.dot(params.p);
+    }
   };
     
   
