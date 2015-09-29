@@ -26,6 +26,7 @@ template<int N>
 using HaWpBasisVector = CArray<Eigen::Dynamic, N>;
 
 
+using Coefficients = std::vector<complex_t>;
 }
 
 #endif
