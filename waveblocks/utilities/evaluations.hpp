@@ -13,7 +13,7 @@ namespace waveblocks
              class R,
              template <typename...> class F = std::function >
    struct FunctionMatrixEvaluator {
-    static M<R, N, C> apply( M<F<R( A )>, N, C> mf, A arg )
+    static M<R, N, C> apply( const M<F<R( A )>  , N, C>& mf, const A& arg )
     {
       M<R, N, C> m;
       
@@ -28,7 +28,7 @@ namespace waveblocks
     template<template <typename...> class G_in = std::vector,
              template <typename...> class G_out = G_in>
     static G_out<M<R, N, C> >
-     in_grid( M<F<R( A )>, N, C> mf,
+     in_grid( const M<F<R( A )>, N, C>& mf,
         G_in<A> g )
     {
       G_out<M<R, N, C> > result( g.size() );
@@ -49,10 +49,10 @@ namespace waveblocks
        class R,
        template <typename...> class F>
   struct FunctionMatrixEvaluator<1,1,M,A,R,F> {
-      static R apply(F<R(A)> f, A arg) {
+      static R apply(const F<R(A)>& f, const A& arg) {
         return f(arg);
       }
-      static  M<R, 1,1> apply( M<F<R( A )>, 1,1 > mf, A arg )
+      static  M<R, 1,1> apply(const M<F<R( A )>, 1,1 >& mf, const A& arg )
     {
       M<R, 1, 1> m;
           m( 0,0 ) = mf( 0,0 )( arg );
@@ -63,8 +63,8 @@ namespace waveblocks
      template<   template <typename...> class G_in = std::vector,
              template <typename...> class G_out = G_in>
     static G_out<M<R, 1,1> >
-     in_grid( M<F<R( A )>, 1,1> mf,
-        G_in<A> g )
+     in_grid(const M<F<R( A )>, 1,1>& mf,
+        const G_in<A>& g )
     {
       G_out<M<R, 1,1> > result( g.size() );
       auto it = result.begin();
@@ -80,8 +80,8 @@ namespace waveblocks
       template<  template <typename...> class G_in = std::vector,
              template <typename...> class G_out = G_in>
     static G_out<R >
-     in_grid( F<R( A )> mf,
-        G_in<A> g )
+     in_grid( const F<R( A )>& mf,
+        const G_in<A>& g )
     {
       G_out<R > result( g.size() );
       auto it = result.begin();
@@ -126,7 +126,7 @@ namespace waveblocks
              template <typename...> class G_in = std::vector,
              template <typename...> class G_out = G_in,
              template <typename...> class F = std::function >
-    G_out<R> evaluate_function_in_grid( F<R( A )> f, G_in<A> g )
+    G_out<R> evaluate_function_in_grid( const F<R( A )>& f, const G_in<A>& g )
     {
       G_out<R> result( g.size() );
       auto it = result.begin();
