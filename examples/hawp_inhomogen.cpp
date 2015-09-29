@@ -49,8 +49,8 @@ int main(int argc, char* argv[])
         wavepacket[c].parameters().Q = CMatrix<D,D>::Random();
         
         std::size_t n_basis_shapes = shape_enums[c]->n_entries();
-        
-        std::vector<complex_t> coeffs(n_basis_shapes);
+
+        Coefficients coeffs(n_basis_shapes);
         for (std::size_t i = 0; i < n_basis_shapes; i++) {
             coeffs[i] = std::exp(complex_t(0,i))/std::sqrt(n_basis_shapes);
         }
