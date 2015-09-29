@@ -207,8 +207,6 @@ namespace waveblocks
             const argument_type &x,
             const argument_type &q ) const {
             auto xmq = x - q;
-
-            potential_evaluation_type result_matrix;
             
             auto V = TaylorImpl::evaluate_at(q );
             auto J = TaylorImpl::evaluate_jacobian_at(q );
