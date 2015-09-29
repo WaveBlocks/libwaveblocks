@@ -8,6 +8,12 @@ add_definitions(
   -Wno-deprecated-declarations
   -Wextra
   -pedantic
+  -Ofast # 03 and some optimization not valid for all standard-compliant programs (such as -ffast-math
+  -fprofile-use # conditions optimizations on a profiling run
+  -static # statically links library calls
+  -ftree-loop-if-convert-stores # rewrites conditional writes in loops to unconiditional ones 
+  -ftree-loop-distribution # distributes loops for better cache usage
+  
   )
 
 add_library(waveblocks-static STATIC
