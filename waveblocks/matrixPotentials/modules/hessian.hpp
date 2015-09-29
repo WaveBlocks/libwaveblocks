@@ -1,8 +1,7 @@
 #pragma once
-#include "macros.hpp"
-#include "matrixPotentials/bases.hpp"
-#include "types.hpp"
-#include "utilities/evaluations.hpp"
+#include "../bases.hpp"
+#include "../../types.hpp"
+#include "../../utilities/evaluations.hpp"
 
 namespace waveblocks
 {

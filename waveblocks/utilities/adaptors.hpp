@@ -1,6 +1,6 @@
 #pragma once
-#include "types.hpp"
-#include "tiny_multi_index.hpp"
+#include "../types.hpp"
+#include "../tiny_multi_index.hpp"
 
 
 namespace waveblocks
@@ -36,7 +36,7 @@ namespace waveblocks
           return other.i != i;
         }
         
-        void operator++() const {
+        void operator++() {
           ++i;
         }
         grid_element_type operator*() const {
