@@ -16,15 +16,14 @@ struct helper<1,T> {
   static const typename std::remove_reference<decltype(std::declval<T>()[0])>::type& apply(const T& in) {return in[0];}
 };
 
-
 template<class Potential, int D, class MultiIndex, class TQR>
 real_t potential_energy(const ScalarHaWp<D, MultiIndex>& packet, const Potential& V) {
   HomogeneousInnerProduct<D, MultiIndex, TQR> ip;
-  return ip.quadrature(packet, [&V] (const CMatrix<D,Eigen::Dynamic>& nodes, const CMatrix<D,1>& pos) -> CMatrix<1,Eigen::Dynamic> {
+  return ip.quadrature(packet, [&V] (const CMatrix<D,Eigen::Dynamic>& nodes, const CMatrix<D,1>&) -> CMatrix<1,Eigen::Dynamic> {
     const dim_t n_nodes = nodes.cols();
     CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
     for(int i = 0; i < n_nodes; ++i)  {
-      result(0,i) = V.evaluate_at(helper<D,CMatrix<D,1>>::apply(pos));
+      result(0,i) = V.evaluate_at(HelperArg<D>::first(nodes,i));
     }
     return result;
   }).real();
