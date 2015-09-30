@@ -75,7 +75,8 @@ int main() {
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(HyperCubicShape<D>(K));
     HaWpParamSet<D> param_set(q,p,Q,P);
-    Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
+    Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
+    coeffs[0] = 1.0;
     ScalarHaWp<D,MultiIndex> packet;
 
     packet.eps() = eps;
