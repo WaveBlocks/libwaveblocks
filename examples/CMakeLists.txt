@@ -12,6 +12,9 @@ add_executable(hawp_eval hawp_eval.cpp)
 add_executable(harmonic_2D harmonic_2D.cpp)
 target_link_libraries(harmonic_2D ${LINK_LIBS})
 
+add_executable(anharmonic_1D anharmonic_1D.cpp)
+target_link_libraries(anharmonic_1D ${LINK_LIBS})
+
 add_executable(nonsense_2N_2D nonsense_2N_2D.cpp)
 
 add_executable(tunneling_1D tunneling_1D.cpp)
