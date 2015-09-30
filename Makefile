@@ -138,6 +138,19 @@ test_cont_sqrt/fast:
 .PHONY : test_cont_sqrt/fast
 
 #=============================================================================
+# Target rules for targets named test_eigenhdf
+
+# Build rule for target.
+test_eigenhdf: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_eigenhdf
+.PHONY : test_eigenhdf
+
+# fast build rule for target.
+test_eigenhdf/fast:
+	$(MAKE) -f test/CMakeFiles/test_eigenhdf.dir/build.make test/CMakeFiles/test_eigenhdf.dir/build
+.PHONY : test_eigenhdf/fast
+
+#=============================================================================
 # Target rules for targets named test_innerproduct
 
 # Build rule for target.
@@ -287,6 +300,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... waveblocks-static"
 	@echo "... test_cont_sqrt"
+	@echo "... test_eigenhdf"
 	@echo "... test_innerproduct"
 	@echo "... harmonic_2D"
 	@echo "... hawp_eval"

@@ -114,7 +114,7 @@ int main() {
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
       real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
-      real_t potential = potential_energy<ScalarMatrixPotential<D>,D,MultiIndex, TQR>(packet,V);
+      real_t potential = potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
       real_t total = kinetic+potential;
       std::cout << t << "," << potential << "," << kinetic << ", "<< total << std::endl;
       std::cout << packet.parameters() << std::endl;
