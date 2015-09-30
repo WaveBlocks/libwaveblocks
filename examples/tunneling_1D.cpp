@@ -12,8 +12,7 @@
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/utilities/packetWriter.hpp"
-#include "waveblocks/hawp_gradient_operator.hpp"
-#include "waveblocks/hawp_gradient_evaluator.hpp"
+#include "waveblocks/utilities/energy.hpp"
 
 
 using namespace waveblocks;
@@ -51,34 +50,6 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
   }
 };
 
-using MultiIndex = TinyMultiIndex<unsigned short, 1>;
-
-template<class Potential>
-real_t potential_energy(const ScalarHaWp<1, MultiIndex>& packet, const Potential& V) {
-  using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<4>>;
-  HomogeneousInnerProduct<1, MultiIndex, TQR> ip;
-  return ip.quadrature(packet, [&V] (CMatrix<1,Eigen::Dynamic> nodes, CMatrix<1,1> pos) -> CMatrix<1,Eigen::Dynamic> {
-    const dim_t n_nodes = nodes.cols();
-    CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
-    for(int i = 0; i < n_nodes; ++i)  {
-      result(0,i) = V.evaluate_at(pos[0]);
-    }
-    return result;
-  }).real();
-}
-
-real_t kinetic_energy(const ScalarHaWp<1, MultiIndex>& packet) {
-  HaWpGradientOperator<1,MultiIndex> nabla;
-  HaWpGradient<1,MultiIndex> gradwp = nabla(packet);
-  complex_t result(0,0);
-  for (size_t i = 0 ; i < gradwp.n_components(); ++i) {
-    for (const auto& c : gradwp.component(i).coefficients()) {
-      result += std::conj(c) * c;
-    }
-  }
-  return result.real();
-}
-
 
 
 int main() {
@@ -90,6 +61,8 @@ int main() {
     const real_t dt = 0.005;
 
     const real_t eps = 0.1530417681822;
+
+    using MultiIndex = TinyMultiIndex<unsigned short, D>;
 
 
     // The parameter set of the initial wavepacket
@@ -140,12 +113,11 @@ int main() {
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
-        std::cout << t << std::endl;
+        std::cout << t << ", "<< std::cout << kinetic_energy<D,MultiIndex>(packet) << ", " << potential_energy<Remain,D,MultiIndex,TQR>(packet,V); 
 
         writer.store_packet(t,packet,S);
         propagator.propagate(packet,dt,V,S);
-        std::cout << kinetic_energy(packet) << "," << potential_energy(packet,V); 
-        //~ std::cout << packet.parameters() << std::endl;
+        std::cout << packet.parameters() << std::endl;
     }
 
     writer.store_packet(T,packet,S);
