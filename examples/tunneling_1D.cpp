@@ -113,11 +113,13 @@ int main() {
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
-        std::cout << t << ", "<< std::cout << kinetic_energy<D,MultiIndex>(packet) << ", " << potential_energy<Remain,D,MultiIndex,TQR>(packet,V); 
-
-        writer.store_packet(t,packet,S);
-        propagator.propagate(packet,dt,V,S);
-        std::cout << packet.parameters() << std::endl;
+      real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
+      real_t potential = potential_energy<ScalarMatrixPotential<D>,D,MultiIndex, TQR>(packet,V);
+      real_t total = kinetic+potential;
+      std::cout << t << "," << potential << "," << kinetic << ", "<< total << std::endl;
+      std::cout << packet.parameters() << std::endl;
+      writer.store_packet(t,packet,S);
+      propagator.propagate(packet,dt,V,S);
     }
 
     writer.store_packet(T,packet,S);
