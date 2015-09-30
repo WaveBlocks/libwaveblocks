@@ -45,7 +45,7 @@ int main() {
   ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(HyperCubicShape<D>(K));
 
   // Gaussian Wavepacket phi_00 with c_00 = 1
-  Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
+  Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
   coeffs(0,0) = 1.0;
   Coefficients coefforig = Coefficients(coeffs);
 

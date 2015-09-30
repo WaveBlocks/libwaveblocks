@@ -32,6 +32,8 @@ grid(True)
 figure()
 plot(EPot[:,0,0], 'b-')
 plot(EKin[:,0,0],'r-')
+plot(EKin[:,0,0] + EPot[:,0,0], 'm-+')
+
 grid(True)
 show()
 

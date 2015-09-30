@@ -164,6 +164,19 @@ test_innerproduct/fast:
 .PHONY : test_innerproduct/fast
 
 #=============================================================================
+# Target rules for targets named anharmonic_1D
+
+# Build rule for target.
+anharmonic_1D: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 anharmonic_1D
+.PHONY : anharmonic_1D
+
+# fast build rule for target.
+anharmonic_1D/fast:
+	$(MAKE) -f examples/CMakeFiles/anharmonic_1D.dir/build.make examples/CMakeFiles/anharmonic_1D.dir/build
+.PHONY : anharmonic_1D/fast
+
+#=============================================================================
 # Target rules for targets named harmonic_2D
 
 # Build rule for target.
@@ -302,6 +315,7 @@ help:
 	@echo "... test_cont_sqrt"
 	@echo "... test_eigenhdf"
 	@echo "... test_innerproduct"
+	@echo "... anharmonic_1D"
 	@echo "... harmonic_2D"
 	@echo "... hawp_eval"
 	@echo "... hawp_homogen"

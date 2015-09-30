@@ -116,11 +116,10 @@ int main() {
       real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
       real_t potential = potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
       real_t total = kinetic+potential;
+      writer.store_energies(t,potential,kinetic);
       std::cout << t << "," << potential << "," << kinetic << ", "<< total << std::endl;
       std::cout << packet.parameters() << std::endl;
       writer.store_packet(t,packet,S);
       propagator.propagate(packet,dt,V,S);
     }
-
-    writer.store_packet(T,packet,S);
 }
