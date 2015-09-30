@@ -16,13 +16,13 @@
 #include "waveblocks/utilities/energy.hpp"
 
 using namespace waveblocks;
-
 int main() {
   const int N = 1;
   const int D = 2;
-  const int K = 5;
+  const int K = 20;
   const real_t sigma_x = 0.5;
   const real_t sigma_y = 0.5;
+  const real_t tol = 1e-10;
 
   const real_t T = 12;
   const real_t dt = 0.01;
@@ -89,6 +89,13 @@ int main() {
     real_t potential = potential_energy<ScalarMatrixPotential<D>,D,MultiIndex, TQR>(packet,V);
     real_t total = kinetic+potential;
     std::cout << t << "," << potential << "," << kinetic << ", "<< total << std::endl;
+    bool flag = true;
+    for (int i = 0; i < std::pow(K,D); ++i) {
+      auto diff = packet.coefficients()[i] - complex_t(1,0);
+      if (diff.real() > tol || diff.imag() > tol)
+        flag = false;
+      }
+    std::cout << "coefficients constant? " << (flag ? "yes" : "no") << std::endl;
     std::cout << packet.parameters() << std::endl;
   }
 }
