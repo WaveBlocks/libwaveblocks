@@ -13,7 +13,6 @@ struct helper {
 
 template<class T>
 struct helper<1,T> {
-  // probably the most complicated way of doing this without gaining much generality... 
   static const typename std::remove_reference<decltype(std::declval<T>()[0])>::type& apply(const T& in) {return in[0];}
 };
 

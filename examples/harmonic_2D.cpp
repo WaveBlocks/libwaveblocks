@@ -88,7 +88,7 @@ int main() {
     real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
     real_t potential = potential_energy<ScalarMatrixPotential<D>,D,MultiIndex, TQR>(packet,V);
     real_t total = kinetic+potential;
-    std::cout << t << "," << potential << "," << kinetic << ", "<< total << std::endl;
+    std::cout << t << ", " << potential << ", " << kinetic << ", "<< total << std::endl;
     bool flag = true;
     for (int i = 0; i < std::pow(K,D); ++i) {
       auto diff = packet.coefficients()[i] - complex_t(1,0);
