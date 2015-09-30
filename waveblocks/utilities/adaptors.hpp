@@ -191,29 +191,12 @@ namespace waveblocks
     
     template<int D, class MultiIndex>
     struct PacketToCoefficients<ScalarHaWp<D,MultiIndex>> {
-      static CVector<Eigen::Dynamic> to(const ScalarHaWp<D,MultiIndex>& packet) {
-        // Compute size
-        int size = packet.coefficients().size();
-
-        // Allocate memory
-        CVector<Eigen::Dynamic> coefficients;
-        coefficients.resize(size);
-
-        // Copy
-        for (int j = 0; j < size; ++j) {
-          coefficients[j] = packet.coefficients()[j];
-        }
-        return coefficients;
+      static const CVector<Eigen::Dynamic>& to(const ScalarHaWp<D,MultiIndex>& packet) {
+        return packet.coefficients();
       }
 
       static void from(const CVector<Eigen::Dynamic>& coefficients, ScalarHaWp<D,MultiIndex>& packet) {
-        // Compute size
-        int size = packet.coefficients().size();
-
-        // Copy
-        for (int j = 0; j < size; ++j) {
-          packet.coefficients()[j] = coefficients[j];
-        }
+          packet.coefficients() = coefficients;
       }
     };
   }
