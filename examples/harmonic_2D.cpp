@@ -85,7 +85,7 @@ int main() {
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
   // Preparing the file
-  utilities::PacketWriter<ScalarHaWp<D,MultiIndex>> writer("harmonic_2D.out");
+  utilities::PacketWriter<ScalarHaWp<D,MultiIndex>> writer("harmonic_2D.hdf5");
 
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
@@ -94,10 +94,9 @@ int main() {
     propagator.propagate(packet,dt,V,S);
     writer.store_packet(t,packet,S);
 
-    real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
-    real_t potential = potential_energy<ScalarMatrixPotential<D>,D,MultiIndex, TQR>(packet,V);
-    real_t total = kinetic + potential;
-    std::cout << "Energies: " << potential << ", " << kinetic << ", " << total << std::endl;
+    real_t ekin = kinetic_energy<D,MultiIndex>(packet);
+    real_t epot = potential_energy<ScalarMatrixPotential<D>,D,MultiIndex, TQR>(packet,V);
+    writer.store_energies(t,epot,ekin);
 
     // Assure constant coefficients
     auto diff = (packet.coefficients() - coefforig).array().abs();

@@ -25,6 +25,10 @@ namespace waveblocks {
         void store_packet(const double& t, const Packet& packet, const Phase& S) {
           static_cast<Subtype*>(this)->store_packet_implementation(t,packet,S);
         }
+
+        void store_energies(const double& time, const real_t& epot, const real_t& ekin) {
+          static_cast<Subtype*>(this)->store_energies_implementation(time,epot,ekin);
+        }
         
         template<class M>
         void save_matrix(const M& mat, const std::string& matrix_name)
@@ -41,7 +45,8 @@ namespace waveblocks {
 
         template<class T>
         void save_scalar(const T& x, const std::string& scalar_name) {
-            EigenHDF5::save_scalar_attribute(file,scalar_name,x);
+            GMatrix<T,1,1> m; m[0] = x;
+            EigenHDF5::save(file,scalar_name,m);
         }
 
     };
@@ -72,6 +77,13 @@ namespace waveblocks {
 
         // eps
         Super::save_scalar(packet.eps(), "eps@" + t);
+      }
+
+      void store_energies_implementation(const double& time, const real_t& epot, const real_t& ekin) {
+        std::string t = toString<double>(time);
+        Super::save_scalar(epot, "Epot@" + t);
+        Super::save_scalar(ekin, "Ekin@" + t);
+        Super::save_scalar(epot+ekin, "Etot@" + t);
       }
     };
     }
