@@ -39,6 +39,6 @@ real_t kinetic_energy(const ScalarHaWp<D, MultiIndex>& packet) {
   for (size_t i = 0 ; i < gradwp.n_components(); ++i) {
       result += gradwp.component(i).coefficients().dot(gradwp.component(i).coefficients());
     }
-  return result.real();
+  return 0.5 * result.real();
 }
 }
