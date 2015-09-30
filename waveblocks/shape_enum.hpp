@@ -214,8 +214,8 @@ public:
      */
     std::array<std::size_t,D> find_backward_neighbours(const MultiIndex& _index) const
     {
-        std::array<std::size_t,D> ordinals{}; //zero initialize
-        
+        auto ordinals = std::array<std::size_t,D>(); //zero initialize
+
         MultiIndex index(_index);
         
         std::less< MultiIndex > comp;
