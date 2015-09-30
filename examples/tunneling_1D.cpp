@@ -103,7 +103,7 @@ int main() {
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(HyperCubicShape<D>(K));
     HaWpParamSet<D> param_set(q,p,Q,P);
-    std::vector<complex_t> coeffs(std::pow(K, D), 1.);
+    Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
     ScalarHaWp<D,MultiIndex> packet;
 
     packet.eps() = eps;

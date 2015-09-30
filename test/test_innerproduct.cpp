@@ -37,7 +37,7 @@ void test1DGaussHermite()
         enumerator.generate(HyperCubicShape<D>(N));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    std::vector<complex_t> coeffs(N, 1.0);
+    Coefficients coeffs = Coefficients::Ones(N,1);
 
     // Print QR nodes and weights.
     std::cout << "nodes: {";
@@ -86,7 +86,7 @@ void test1DGaussHermiteOperator()
         enumerator.generate(HyperCubicShape<D>(N));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    std::vector<complex_t> coeffs(N, 1.0);
+    Coefficients coeffs = Coefficients::Ones(N, 1);
 
     // Print QR nodes and weights.
     std::cout << "nodes: {";
@@ -140,7 +140,7 @@ void test3DGaussHermite()
         enumerator.generate(HyperCubicShape<D>(N));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    std::vector<complex_t> coeffs(std::pow(N, D), 1.0);
+    Coefficients coeffs = Coefficients::Ones(std::pow(N, D),1);
     ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
@@ -194,8 +194,8 @@ void test1DInhomog()
     ShapeEnum<D, MultiIndex> shape_enum2 =
         enumerator.generate(HyperCubicShape<D>(N2));
     HaWpParamSet<D> param_set1, param_set2;
-    std::vector<complex_t> coeffs1(N1, 1.0);
-    std::vector<complex_t> coeffs2(N2, 1.4);
+    Coefficients coeffs1 = Coefficients::Ones(N1,1);
+    Coefficients coeffs2 = Coefficients::Constant(N2,1, 1.4);
 
     ScalarHaWp<D, MultiIndex> packet1;
     packet1.eps() = eps;
