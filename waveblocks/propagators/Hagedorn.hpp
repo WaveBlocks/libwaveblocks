@@ -182,11 +182,9 @@ namespace waveblocks
     struct Hagedorn {
       template<class Potential>
       static void propagate(InhomogeneousHaWp<D,MultiIndex> &packet,
-                      const real_t &delta_t,
-                      const Potential &V,
-                      CVector<N> &S
-      ) {
-        
+                            const real_t &delta_t,
+                            const Potential &V,
+                            CVector<N> &S) {
         int i = 0;
         for (auto& component : packet.components()) {
 
@@ -206,11 +204,10 @@ namespace waveblocks
       }
 
       template<class Potential>
-      static void propagate_homogeneous( HomogeneousHaWp<D,MultiIndex> &packet,
-                      const real_t &delta_t,
-                      const Potential &V,
-                      complex_t &S
-      ) {
+      static void propagate(HomogeneousHaWp<D,MultiIndex> &packet,
+                            const real_t &delta_t,
+                            const Potential &V,
+                            complex_t &S) {
         auto& params = packet.parameters();
         Step1<N,D>::apply(params, delta_t, S);
         Step2<N,D>::homogenous(V,params,delta_t,S);
@@ -223,9 +220,9 @@ namespace waveblocks
     struct Hagedorn<1,D,MultiIndex,TQR> {
       template<class Potential>
       static void propagate(ScalarHaWp<D, MultiIndex> &packet,
-        const real_t &delta_t,
-        const Potential &V,
-        complex_t &S) {
+                            const real_t &delta_t,
+                            const Potential &V,
+                            complex_t &S) {
           auto& params = packet.parameters();
           Step1<1,D>::apply(params, delta_t, S);
           Step2<1,D>::homogenous(V,params,delta_t,S);
