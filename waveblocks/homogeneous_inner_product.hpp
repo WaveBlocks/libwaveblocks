@@ -54,44 +54,27 @@ public:
      *   default returns a vector of ones
      */
     CMatrixNN build_matrix(const AbstractScalarHaWpBasis<D, MultiIndex>& packet,
-            const op_t& op=default_op)
-        const
-    {
+                           const op_t& op=default_op) const {
         const dim_t n_nodes = QR::number_nodes();
-        const CMatrixD1& q = complex_t(1, 0) * packet.parameters().q;
+        const CMatrixD1& q = complex_t(1,0) * packet.parameters().q;
         const CMatrixDD& Q = packet.parameters().Q;
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
-        const CMatrixDN cnodes = complex_t(1, 0) * nodes;
-        const CMatrix1N cweights = complex_t(1, 0) * weights;
+        const CMatrixDN cnodes = complex_t(1,0) * nodes;
+        const CMatrix1N cweights = complex_t(1,0) * weights;
 
         // Compute affine transformation.
-        CMatrix<D,D> Qs = (Q * Q.adjoint()).sqrt();
-        //auto Qs = (Q * Q.adjoint()).sqrt();
-
-        //std::cout << "Qshom (0)? [" << (CMatrix<D,D>)((Q * Q.adjoint()).sqrt()) << "]" << std::endl << std::endl;
-        //std::cout << "Qshom (1)? [" << CMatrix<D,D>(Qs) << "]" << std::endl << std::endl;
-        //std::cout << "Qshom (1)? [" << (CMatrix<D,D>)Qs << "]" << std::endl << std::endl;
+        CMatrixDD Qs = (Q * Q.adjoint()).sqrt();
 
         // Transform nodes.
         CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
 
         // Apply operator.
         CMatrix1N values = op(transformed_nodes, q);
-        std::cout << "qhom? [" << q << "]"<<std::endl << std::endl;
-        std::cout << "Qshom (2)? [" << Qs << "]" << std::endl << std::endl;
+        Eigen::Array<complex_t, 1, Eigen::Dynamic> factor = std::pow(packet.eps(), D) * cweights.array() * values.array();
 
-        Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
-            std::pow(packet.eps(), D) * cweights.array() * values.array();
-        //std::cout << "factor: " << factor << std::endl;
-
-        HaWpBasisVector<Eigen::Dynamic> bases =
-            packet.evaluate_basis(transformed_nodes);
-        //std::cout << "bases(:,0):\n" << bases.col(0) << std::endl;
-
-        //std::cout << "factor: " << factor.rows() << " x " << factor.cols() << "\n";
-        //std::cout << "bases: " << bases.rows() << " x " << bases.cols() << "\n";
+        HaWpBasisVector<Eigen::Dynamic> bases = packet.evaluate_basis(transformed_nodes);
 
         // Build matrix.
         const dim_t N = bases.rows();
@@ -111,15 +94,10 @@ public:
     }
 
     complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet,
-            const op_t& op=default_op)
-        const
-    {
+                         const op_t& op=default_op) const {
         const auto M = build_matrix(packet, op);
         // Quadrature with wavepacket coefficients, c^H M c.
-        const CMatrixN1 coeffs = CMatrixN1::Map(
-                packet.coefficients().data(), packet.coefficients().size());
-        //std::cout << "\nM: " << M.rows() << " x " << M.cols() << "\n";
-        //std::cout << "c: " << coeffs.rows() << " x " << coeffs.cols() << "\n";
+        const CMatrixN1 coeffs = CMatrixN1::Map(packet.coefficients().data(), packet.coefficients().size());
         return coeffs.adjoint() * M * coeffs;
     }
 
