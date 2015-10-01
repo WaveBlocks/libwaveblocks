@@ -19,6 +19,7 @@ struct HaWpParamSet
 {
     RMatrix<D,1> q, p;
     CMatrix<D,D> Q, P;
+    complex_t S;
     ContinuousSqrt<real_t> sqrt_detQ;
     
     HaWpParamSet()
@@ -26,6 +27,7 @@ struct HaWpParamSet
         , p(RMatrix<D,1>::Zero())
         , Q(CMatrix<D,D>::Identity())
         , P(CMatrix<D,D>::Identity()*complex_t(0.0, 1.0))
+        , S(complex_t(1,0))
         , sqrt_detQ() //detQ = 1.0 => sqrt(detQ) = 1.0
     { }
     
@@ -34,14 +36,16 @@ struct HaWpParamSet
         , p(that.p)
         , Q(that.Q)
         , P(that.P)
+        , S(that.S)
         , sqrt_detQ(that.sqrt_detQ)
     { }
     
-    HaWpParamSet(const RMatrix<D,1> &q, const RMatrix<D,1> &p, const CMatrix<D,D> &Q, const CMatrix<D,D> &P)
+    HaWpParamSet(const RMatrix<D,1> &q, const RMatrix<D,1> &p, const CMatrix<D,D> &Q, const CMatrix<D,D> &P, complex_t S)
         : q(q)
         , p(p)
         , Q(Q)
         , P(P)
+        , S(S)
         , sqrt_detQ( std::sqrt(Q.determinant()) ) //choose 1st root
     { }
     
@@ -59,6 +63,7 @@ struct HaWpParamSet
         p = that.p;
         Q = that.Q;
         P = that.P;
+        S = that.S;
         sqrt_detQ = that.sqrt_detQ;
         return *this;
     }

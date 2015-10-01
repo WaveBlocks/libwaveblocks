@@ -46,6 +46,8 @@ public:
         const CMatrixDD& Qc = packet.parameters().Q;
         const CMatrixDD& Pr = pacbra.parameters().P;
         const CMatrixDD& Pc = packet.parameters().P;
+        const complex_t S_bra = pacbra.parameters().S;
+        const complex_t S_ket = packet.parameters().S;
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
@@ -61,6 +63,9 @@ public:
         auto Q0 = 0.5 * r;
         auto Qs = Q0.sqrt().inverse();
 
+
+
+
         // Transform nodes.
         CMatrixDN transformed_nodes = complex_t(1, 0) *
             q0.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
@@ -70,8 +75,8 @@ public:
 
         Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
             std::pow(packet.eps(), D) * cweights.array() * values.array() *
-            Qs.determinant();
-        //std::cout << "factor: " << factor << std::endl;
+              Qs.determinant();
+        //std::cout << "factor: " << Qs.determinant() << std::endl;
 
         HaWpBasisVector<Eigen::Dynamic> basisr =
             pacbra.evaluate_basis(transformed_nodes);
@@ -96,8 +101,10 @@ public:
         }
 
         // TODO: Phase calculation ("S" parameter?)
-
-        return result;
+        auto phase = std::exp(
+          complex_t(0,1)/std::pow(packet.eps(),2) * (S_ket - std::conj(S_bra)));
+        std::cout << phase << std::endl;
+        return phase * result;
     }
 
     complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& pacbra,

@@ -17,58 +17,56 @@ namespace waveblocks
   template<int N, int D>
   struct Step1 {
     static void apply(HaWpParamSet<D>& params,
-                        const real_t &delta_t,
-                        complex_t &S) {
+                        const real_t &delta_t) {
       params.q += 0.5 * delta_t * params.p;
       params.Q += 0.5 * delta_t * params.P;
-      S += 0.25 * delta_t * params.p.dot(params.p);
+      params.S += 0.25 * delta_t * params.p.dot(params.p);
     }
   };
   template<int N>
   struct Step1<N,1> {
     static void apply(HaWpParamSet<1>& params,
-                        const real_t &delta_t,
-                        complex_t &S) {
+                        const real_t &delta_t) {
       params.q[0] += 0.5 * delta_t * params.p[0];
       params.Q[0] += 0.5 * delta_t * params.P[0];
-      S += 0.25 * delta_t * params.p.dot(params.p);
+      params.S += 0.25 * delta_t * params.p.dot(params.p);
     }
   };
 
   template<int N, int D>
   struct Step2 {
     template<class Potential>
-    static void inhomogenous(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t, complex_t &S) {
+    static void inhomogenous(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q); // inefficient since all levels are evaluated for each q
           params.p -= delta_t * std::get<1>(leading_level_taylor)[i].real();
           params.P -= delta_t * std::get<2>(leading_level_taylor)[i] * params.Q;
-          S -= delta_t*std::get<0>(leading_level_taylor)[i];
+          params.S -= delta_t*std::get<0>(leading_level_taylor)[i];
     }
     template<class Potential>
-    static void homogenous(const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t, complex_t &S) {
+    static void homogenous(const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q);
           params.p -= delta_t * std::get<1>(leading_level_taylor).real();
           params.P -= delta_t * std::get<2>(leading_level_taylor) * params.Q;
-          S -= delta_t*std::get<0>(leading_level_taylor);
+          params.S -= delta_t*std::get<0>(leading_level_taylor);
     }
   };
 
   template<int N>
   struct Step2<N,1> {
         template<class Potential>
-    static void inhomogenous(int i, const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t, complex_t &S) {
+    static void inhomogenous(int i, const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]); // inefficient since all levels are evaluated for each q
           params.p[0] -= delta_t * std::get<1>(leading_level_taylor)[i].real();
           params.P[0] -= delta_t * std::get<2>(leading_level_taylor)[i] * params.Q[0];
-          S -= delta_t*std::get<0>(leading_level_taylor)[i];
+          params.S -= delta_t*std::get<0>(leading_level_taylor)[i];
     }
         template<class Potential>
 
-    static void homogenous(const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t, complex_t &S) {
+    static void homogenous(const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
       const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q[0]);
           params.p[0] -= delta_t * std::get<1>(leading_level_taylor).real();
           params.P[0] -= delta_t * std::get<2>(leading_level_taylor) * params.Q[0];
-          S -= delta_t*std::get<0>(leading_level_taylor);
+          params.S -= delta_t*std::get<0>(leading_level_taylor);
     }
     
   };
@@ -183,14 +181,13 @@ namespace waveblocks
       template<class Potential>
       static void propagate(InhomogeneousHaWp<D,MultiIndex> &packet,
                             const real_t &delta_t,
-                            const Potential &V,
-                            CVector<N> &S) {
+                            const Potential &V) {
         int i = 0;
         for (auto& component : packet.components()) {
 
           auto& params = component.parameters();
-          Step1<N,D>::apply(params,delta_t,S[i]);
-          Step2<N,D>::inhomogenous(i,V,params,delta_t,S[i]);
+          Step1<N,D>::apply(params,delta_t);
+          Step2<N,D>::inhomogenous(i,V,params,delta_t);
           i++;
         }
         Step3<InhomogeneousHaWp<D,MultiIndex>,Potential,N,D,MultiIndex,TQR>::apply(packet, V, delta_t);
@@ -198,7 +195,7 @@ namespace waveblocks
         i = 0;
         for (auto& component : packet.components()) {
           auto& params = component.parameters();
-          Step1<N,D>::apply(params,delta_t,S[i]);
+          Step1<N,D>::apply(params,delta_t);
           i++;
         }
       }
@@ -206,13 +203,13 @@ namespace waveblocks
       template<class Potential>
       static void propagate(HomogeneousHaWp<D,MultiIndex> &packet,
                             const real_t &delta_t,
-                            const Potential &V,
-                            complex_t &S) {
+                            const Potential &V
+                           ) {
         auto& params = packet.parameters();
-        Step1<N,D>::apply(params, delta_t, S);
-        Step2<N,D>::homogenous(V,params,delta_t,S);
+        Step1<N,D>::apply(params, delta_t);
+        Step2<N,D>::homogenous(V,params,delta_t);
         Step3<HomogeneousHaWp<D,MultiIndex>,Potential,N,D,MultiIndex,TQR>::apply(packet, V, delta_t);
-        Step1<N,D>::apply(params,delta_t,S);
+        Step1<N,D>::apply(params,delta_t);
 
         }
     };
@@ -221,13 +218,12 @@ namespace waveblocks
       template<class Potential>
       static void propagate(ScalarHaWp<D, MultiIndex> &packet,
                             const real_t &delta_t,
-                            const Potential &V,
-                            complex_t &S) {
+                            const Potential &V) {
           auto& params = packet.parameters();
-          Step1<1,D>::apply(params, delta_t, S);
-          Step2<1,D>::homogenous(V,params,delta_t,S);
+          Step1<1,D>::apply(params, delta_t);
+          Step2<1,D>::homogenous(V,params,delta_t);
           Step3<ScalarHaWp<D,MultiIndex>,Potential,1,D,MultiIndex,TQR>::apply(packet, V, delta_t);
-          Step1<1,D>::apply(params,delta_t,S);
+          Step1<1,D>::apply(params,delta_t);
         }
     };
   }

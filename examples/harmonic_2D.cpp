@@ -39,14 +39,14 @@ int main() {
   RVector<D> q = {-3.0, 0.0};
   RVector<D> p = { 0.0, 0.5};
   complex_t S = 0.;
-  HaWpParamSet<D> param_set(q,p,Q,P);
+  HaWpParamSet<D> param_set(q,p,Q,P,S);
 
   // Basis shape
   ShapeEnumerator<D, MultiIndex> enumerator;
   ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(HyperCubicShape<D>(K));
 
   // Gaussian Wavepacket phi_00 with c_00 = 1
-  Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
+  Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
   coeffs[0] = 1.0;
   Coefficients coefforig = Coefficients(coeffs);
 
@@ -92,8 +92,8 @@ int main() {
   for (real_t t = 0; t < T; t += dt) {
     std::cout << "Time: " << t << std::endl;
 
-    propagator.propagate(packet,dt,V,S);
-    writer.store_packet(t,packet,S);
+    propagator.propagate(packet,dt,V);
+    writer.store_packet(t,packet);
 
     real_t ekin = kinetic_energy<D,MultiIndex>(packet);
     real_t epot = potential_energy<ScalarMatrixPotential<D>,D,MultiIndex, TQR>(packet,V);

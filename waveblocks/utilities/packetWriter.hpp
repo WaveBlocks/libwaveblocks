@@ -14,7 +14,7 @@ namespace waveblocks {
         return strs.str();
       }
       
-     template<class Subtype, class Packet, class Phase>
+     template<class Subtype, class Packet>
       class Abstract {
       std::string file_name;
       H5::H5File file;
@@ -22,8 +22,8 @@ namespace waveblocks {
         Abstract(const std::string& file_name) : file_name(file_name), file(file_name, H5F_ACC_TRUNC) {}
         ~Abstract() {file.close();}
 
-        void store_packet(const double& t, const Packet& packet, const Phase& S) {
-          static_cast<Subtype*>(this)->store_packet_implementation(t,packet,S);
+        void store_packet(const double& t, const Packet& packet) {
+          static_cast<Subtype*>(this)->store_packet_implementation(t,packet);
         }
 
         void store_energies(const double& time, const real_t& epot, const real_t& ekin) {
@@ -55,13 +55,12 @@ namespace waveblocks {
     class Standard;
 
     template<int D, class MultiIndex>
-    struct Standard<ScalarHaWp<D,MultiIndex>> : public Abstract<Standard<ScalarHaWp<D,MultiIndex>>,ScalarHaWp<D,MultiIndex>, complex_t> {
-      using Phase = complex_t;
+    struct Standard<ScalarHaWp<D,MultiIndex>> : public Abstract<Standard<ScalarHaWp<D,MultiIndex>>,ScalarHaWp<D,MultiIndex>> {
       using Packet = ScalarHaWp<D,MultiIndex>;
-      using Super = Abstract<Standard<ScalarHaWp<D,MultiIndex>>,ScalarHaWp<D,MultiIndex>, Phase>;
+      using Super = Abstract<Standard<ScalarHaWp<D,MultiIndex>>,ScalarHaWp<D,MultiIndex>>;
       Standard(const std::string& file_name) : Super(file_name) {}
     
-      void store_packet_implementation(const double& time, const Packet& packet, const Phase& S) {
+      void store_packet_implementation(const double& time, const Packet& packet) {
         
         std::string t = toString<double>(time);
         // coefficients
@@ -73,7 +72,7 @@ namespace waveblocks {
         Super::save_matrix(params.p, "p@" + t);
         Super::save_matrix(params.Q, "Q@" + t);
         Super::save_matrix(params.P, "P@" + t);
-        Super::save_scalar(S, "S@" + t);
+        Super::save_scalar(params.S, "S@" + t);
 
         // eps
         Super::save_scalar(packet.eps(), "eps@" + t);
