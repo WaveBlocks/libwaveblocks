@@ -62,7 +62,8 @@ public:
         auto q0 = r.inverse() * s;
         auto Q0 = 0.5 * r;
         auto Qs = Q0.sqrt().inverse();
-
+        std::cout << "q0 [" << q0 << "]"<<std::endl << std::endl;
+        std::cout << "Qs [" << Qs << "]"<<std::endl << std::endl;
 
 
 
@@ -102,8 +103,8 @@ public:
 
         // TODO: Phase calculation ("S" parameter?)
         auto phase = std::exp(
-          complex_t(0,1)/std::pow(packet.eps(),2) * (S_ket - std::conj(S_bra)));
-        std::cout << phase << std::endl;
+          complex_t(0,1) * (S_ket - std::conj(S_bra))/std::pow(packet.eps(),2));
+          
         return phase * result;
     }
 

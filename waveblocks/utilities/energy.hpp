@@ -47,7 +47,6 @@ namespace waveblocks {
     complex_t result(0,0);
     for (size_t i = 0 ; i < gradwp.n_components(); ++i) {
         result += gradwp.component(i).coefficients().dot(gradwp.component(i).coefficients());
-        std::cout<< gradwp.component(i).coefficients().rows() << ", " << gradwp.component(i).coefficients().cols() << std::endl;
     }
     return 0.5 * result.real();
   }

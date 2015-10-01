@@ -75,6 +75,8 @@ public:
 
         // Apply operator.
         CMatrix1N values = op(transformed_nodes, q);
+        std::cout << "q [" << q << "]"<<std::endl << std::endl;
+        std::cout << "Qs [" << Qs << "]" << std::endl << std::endl;
 
         Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
             std::pow(packet.eps(), D) * cweights.array() * values.array();

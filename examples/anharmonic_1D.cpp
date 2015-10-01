@@ -65,16 +65,16 @@ int main() {
 
 
     // The parameter set of the initial wavepacket
-    CMatrix<D,D> Q; Q(0,0) = 3.5355339059327;
-    CMatrix<D,D> P; P(0,0) = complex_t(0,0.2828427124746);
-    RVector<D> q; q[0] = -7.5589045088306;
-    RVector<D> p; p[0] = 0.2478854736792;
+    CMatrix<D,D> Q; Q(0,0) = 1;
+    CMatrix<D,D> P; P(0,0) = complex_t(0,1);
+    RVector<D> q; q[0] = 0.;
+    RVector<D> p; p[0] = 0.5;
     complex_t S = 0.0;
 
     // Setting up the wavepacket
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(HyperCubicShape<D>(K));
-    HaWpParamSet<D> param_set(q,p,Q,P);
+    HaWpParamSet<D> param_set(q,p,Q,P,S);
     Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
     coeffs[0] = 1.0;
     ScalarHaWp<D,MultiIndex> packet;
@@ -87,7 +87,7 @@ int main() {
     Remain V;
     
     // Quadrature rules
-    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<4>>;
+    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<25>>;
 
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
@@ -102,7 +102,7 @@ int main() {
       writer.store_energies(t,potential,kinetic);
       std::cout << "Time: " << t << std::endl;
       std::cout << packet.parameters() << std::endl;
-      writer.store_packet(t,packet,S);
-      propagator.propagate(packet,dt,V,S);
+      writer.store_packet(t,packet);
+      propagator.propagate(packet,dt,V);
     }
 }
