@@ -20,8 +20,7 @@ int main() {
   const int N = 1;
   const int D = 2;
   const int K = 5;
-  const int L = 25;
-  //~ const int L = 9;
+
   const real_t sigma_x = 0.5;
   const real_t sigma_y = 0.5;
 
@@ -48,8 +47,7 @@ int main() {
 
   // Gaussian Wavepacket phi_00 with c_00 = 1
   Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
-  for (int i = 0; i < L; ++i) {coeffs[i] = 0.5;}
-
+  coeffs[0] = 1.0;
   Coefficients coefforig = Coefficients(coeffs);
 
   // Assemble packet
@@ -81,8 +79,8 @@ int main() {
 
   // Quadrature rules
   using TQR = waveblocks::TensorProductQR<
-      waveblocks::GaussHermiteQR<3>,
-      waveblocks::GaussHermiteQR<4>>;
+      waveblocks::GaussHermiteQR<5>,
+      waveblocks::GaussHermiteQR<5>>;
 
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
