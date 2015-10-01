@@ -40,12 +40,13 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
                     const complex_t &q ) const {
     const real_t sigma = 0.038088;
     const auto xmq = x - q;
-    
+
+    const auto V = sigma * 0.25 * std::pow(q,4);
     const  auto J = sigma*std::pow(q,3);
-    const auto H = sigma*3*x*x;
+    const auto H = sigma*3*q*q;
 
 
-    return -J*xmq - 0.5*xmq*H*xmq;
+    return sigma*0.25*std::pow(x,4) -V -J*xmq - 0.5*xmq*H*xmq;
   }
 };
 
@@ -87,7 +88,7 @@ int main() {
     Remain V;
     
     // Quadrature rules
-    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<25>>;
+    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<34>>;
 
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
