@@ -19,18 +19,16 @@ using namespace waveblocks;
 struct Level : public matrixPotentials::modules::taylor::Abstract<Level,CanonicalBasis<1,1>> {
   template <template <typename...> class Tuple = std::tuple>
   Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &x ) const {
-        const real_t sigma = 0.038088;
                return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
-       sigma* 0.25*std::pow(x,4),
-        sigma*std::pow(x,3),
-         sigma*3*x*x);
+       1.0 + std::pow(x,4),
+        4.*std::pow(x,3),
+         12.*x*x);
   }
 };
 
 struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potential,CanonicalBasis<1,1>> {
   complex_t evaluate_at_implementation(const complex_t& x) const {
-            const real_t sigma = 0.038088;
-    return        sigma* 0.25*std::pow(x,4);
+    return 1. + std::pow(x,4);
 
   }
 };
@@ -38,15 +36,14 @@ struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potent
 struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remain, 1,1>, public Potential, public LeadingLevelOwner<Level> {
   complex_t evaluate_local_remainder_at( const complex_t &x,
                     const complex_t &q ) const {
-    const real_t sigma = 0.038088;
     const auto xmq = x - q;
 
-    const auto V = sigma * 0.25 * std::pow(q,4);
-    const  auto J = sigma*std::pow(q,3);
-    const auto H = sigma*3*q*q;
+    const auto V = std::pow(q,4);
+    const  auto J = 4.*std::pow(q,3);
+    const auto H = 12.*q*q;
 
 
-    return sigma*0.25*std::pow(x,4) -V -J*xmq - 0.5*xmq*H*xmq;
+    return std::pow(x,4) -V -J*xmq - 0.5*xmq*H*xmq;
   }
 };
 
@@ -57,10 +54,10 @@ int main() {
     const int D = 1;
     const int K = 30;
 
-    const real_t T = 12;
+    const real_t T = 6;
     const real_t dt = 0.01;
 
-    const real_t eps = 0.1530417681822;
+    const real_t eps = 0.1;
 
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
 
@@ -69,7 +66,7 @@ int main() {
     CMatrix<D,D> Q; Q(0,0) = 1;
     CMatrix<D,D> P; P(0,0) = complex_t(0,1);
     RVector<D> q; q[0] = 0.;
-    RVector<D> p; p[0] = 0.5;
+    RVector<D> p; p[0] = 1.0;
     complex_t S = 0.0;
 
     // Setting up the wavepacket

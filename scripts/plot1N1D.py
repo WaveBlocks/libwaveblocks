@@ -4,7 +4,7 @@ from matplotlib.pyplot import *
 import h5py as hdf
 F = hdf.File("anharmonic_1D.hdf5", "r")
 dt = 0.01
-T = 12
+T = 6
 time = linspace(0, T, T/dt+1)
 f = lambda x: ('%f' % x).rstrip('0').rstrip('.')
 
