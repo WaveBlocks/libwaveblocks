@@ -67,16 +67,20 @@ public:
         const CMatrix1N cweights = complex_t(1, 0) * weights;
 
         // Compute affine transformation.
-        auto Qs = (Q * Q.adjoint()).inverse().sqrt().inverse();
+        CMatrix<D,D> Qs = (Q * Q.adjoint()).sqrt();
+        //auto Qs = (Q * Q.adjoint()).sqrt();
+
+        //std::cout << "Qshom (0)? [" << (CMatrix<D,D>)((Q * Q.adjoint()).sqrt()) << "]" << std::endl << std::endl;
+        //std::cout << "Qshom (1)? [" << CMatrix<D,D>(Qs) << "]" << std::endl << std::endl;
+        //std::cout << "Qshom (1)? [" << (CMatrix<D,D>)Qs << "]" << std::endl << std::endl;
 
         // Transform nodes.
-        CMatrixDN transformed_nodes =
-            q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
+        CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
 
         // Apply operator.
         CMatrix1N values = op(transformed_nodes, q);
-        std::cout << "q [" << q << "]"<<std::endl << std::endl;
-        std::cout << "Qs [" << Qs << "]" << std::endl << std::endl;
+        std::cout << "qhom? [" << q << "]"<<std::endl << std::endl;
+        std::cout << "Qshom (2)? [" << Qs << "]" << std::endl << std::endl;
 
         Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
             std::pow(packet.eps(), D) * cweights.array() * values.array();

@@ -138,7 +138,7 @@ namespace waveblocks
           const dim_t n_nodes = nodes.cols();
           CMatrix<1,Eigen::Dynamic> result(n_nodes);
           for(int l = 0; l < n_nodes; ++l) {
-            result(0, l) = V.evaluate_local_remainder_at(HelperArg<D>::first(nodes,l), HelperArg<D>::second( pos));
+            result(0, l) = V.evaluate_local_remainder_at(HelperArg<D>::first(nodes,l), HelperArg<D>::second(pos));
           }
           return result;
       };
@@ -156,8 +156,8 @@ namespace waveblocks
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
       HelperF<Packet,Potential,IP,N,D>::build(F, packet, V);
 
-      auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
-      
+      auto M = -delta_t *  complex_t(0,1) / (packet.eps()*packet.eps()) * F;
+
       // Exponential
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
       (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );

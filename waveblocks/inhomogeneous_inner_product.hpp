@@ -55,15 +55,25 @@ public:
         const CMatrix1N cweights = complex_t(1, 0) * weights;
 
         // Mix parameters, compute affine transformation.
-        auto Gr = Pr * Qr.inverse();
-        auto Gc = Pc * Qc.inverse();
-        auto r = (Gc - Gr.adjoint()).imag();
-        auto s = ((Gc * qc) - (Gr.adjoint() * qr)).imag();
-        auto q0 = r.inverse() * s;
-        auto Q0 = 0.5 * r;
-        auto Qs = Q0.sqrt().inverse();
-        std::cout << "q0 [" << q0 << "]"<<std::endl << std::endl;
-        std::cout << "Qs [" << Qs << "]"<<std::endl << std::endl;
+        CMatrix<D,D> Gr = Pr * Qr.inverse();
+        CMatrix<D,D> Gc = Pc * Qc.inverse();
+        RMatrix<D,D> r = (Gc - Gr.adjoint()).imag();
+        RMatrix<D,1> s = ((Gc * qc) - (Gr.adjoint() * qr)).imag();
+        RMatrix<D,1> q0 = r.inverse() * s;
+        RMatrix<D,D> Q0 = 0.5 * r;
+        RMatrix<D,D> Qs = Q0.sqrt().inverse();
+
+        auto PIket = packet.parameters();
+        auto PIbra = pacbra.parameters();
+
+        auto PImix = PIbra.mix(PIket);
+
+        std::cout << "qmix: " << std::get<0>(PImix) << std::endl;
+        std::cout << "Qmix: " << std::get<1>(PImix) << std::endl;
+
+        std::cout << "q0? [" << q0 << "]"<<std::endl << std::endl;
+        std::cout << "Qs? [" << Qs << "]"<<std::endl << std::endl;
+
 
 
 
