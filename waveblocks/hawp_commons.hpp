@@ -241,7 +241,7 @@ public:
      */
     complex_t prefactor() const
     {
-        return real_t(1)/this->paramaters().sqrt_detQ();;
+        return real_t(1)/this->parameters().sqrt_detQ();;
     }
     
 //     virtual HaWpBasisVector<Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const
