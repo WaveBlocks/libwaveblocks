@@ -66,7 +66,7 @@ public:
 
         // Compute affine transformation.
         CMatrixDD Qs = (Q * Q.adjoint()).sqrt();
-
+        std::cout << "Qhom " << Q<<std::endl; 
         // Transform nodes.
         CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
 

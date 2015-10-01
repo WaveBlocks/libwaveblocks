@@ -34,8 +34,8 @@ public:
     {
     }
 
-    CMatrixNN build_matrix(const AbstractScalarHaWpBasis<D, MultiIndex>& pacbra,
-            const AbstractScalarHaWpBasis<D, MultiIndex>& packet,
+    CMatrixNN build_matrix(const AbstractScalarHaWp<D, MultiIndex>& pacbra,
+            const AbstractScalarHaWp<D, MultiIndex>& packet,
             const op_t& op=default_op)
         const
     {
@@ -63,6 +63,7 @@ public:
         RMatrix<D,D> Q0 = 0.5 * r;
         RMatrix<D,D> Qs = Q0.sqrt().inverse();
 
+        
         auto PIket = packet.parameters();
         auto PIbra = pacbra.parameters();
 
@@ -74,9 +75,7 @@ public:
         std::cout << "q0? [" << q0 << "]"<<std::endl << std::endl;
         std::cout << "Qs? [" << Qs << "]"<<std::endl << std::endl;
 
-
-
-
+        std::cout << "Qr " << Qr << std::endl;
         // Transform nodes.
         CMatrixDN transformed_nodes = complex_t(1, 0) *
             q0.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
@@ -86,8 +85,7 @@ public:
 
         Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
             std::pow(packet.eps(), D) * cweights.array() * values.array() *
-              Qs.determinant();
-        //std::cout << "factor: " << Qs.determinant() << std::endl;
+              Q0.determinant() /(std::sqrt(Qr.determinant())*std::sqrt(Qc.determinant()));
 
         HaWpBasisVector<Eigen::Dynamic> basisr =
             pacbra.evaluate_basis(transformed_nodes);
