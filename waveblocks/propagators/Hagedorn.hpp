@@ -91,9 +91,10 @@ namespace waveblocks
     }
   };
 
-  template<class Packet, class Potential, class IP, int N, int D, class MultiIndex, class TQR>
+  template<class Packet, class Potential, class IP, int N, int D>
   struct HelperF {
-    static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const IP &ip, const Potential& V) {
+    static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential& V) {
+      IP ip;
         int size = 0;
         for (auto& component : packet.components()) {
           size += component.coefficients().size();
@@ -128,33 +129,32 @@ namespace waveblocks
     }
   };
 
-  template<class Packet, class Potential, class IP,int D, class MultiIndex, class TQR>
-  struct HelperF<Packet,Potential,IP,1,D,MultiIndex,TQR> {
-    static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const IP &ip, const Potential &V) {
+  template<class Packet, class Potential, class IP,int D>
+  struct HelperF<Packet,Potential,IP,1,D> {
+    static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential &V) {
+      IP ip;
       auto op =
-          [&V] (const CMatrix<D,Eigen::Dynamic> &nodes, const RMatrix<D,1> &pos) {
+          [&V] (const CMatrix<D,Eigen::Dynamic> &nodes, const CMatrix<D,1> &pos) {
           const dim_t n_nodes = nodes.cols();
           CMatrix<1,Eigen::Dynamic> result(n_nodes);
           for(int l = 0; l < n_nodes; ++l) {
-            result(0, l) = V.evaluate_local_remainder_at(HelperArg<D>::first(nodes,l), HelperArg<D>::second(complex_t(1,0)* pos));
+            result(0, l) = V.evaluate_local_remainder_at(HelperArg<D>::first(nodes,l), HelperArg<D>::second( pos));
           }
           return result;
       };
 
       // Build matrix
-      F = ip.build_matrix(packet, packet, op);
+      F = ip.build_matrix(packet, op);
     }
   };
     
-  template<class Packet, class Potential, int N, int D, class MultiIndex, class TQR>
+  template<class Packet, class Potential, int N, int D, class IP>
   struct Step3 {
-    using IP = InhomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     static void apply(Packet &packet, const Potential& V, const real_t& delta_t) {
-      InhomogeneousInnerProduct<D, MultiIndex, TQR> ip;
 
       CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
-      HelperF<Packet,Potential,InhomogeneousInnerProduct<D, MultiIndex, TQR>,N,D,MultiIndex,TQR>::build(F, packet, ip, V);
+      HelperF<Packet,Potential,IP,N,D>::build(F, packet, V);
 
       auto M = -delta_t * ( complex_t( 0, 1 ) / packet.eps() ) * F;
       
@@ -190,7 +190,7 @@ namespace waveblocks
           Step2<N,D>::inhomogenous(i,V,params,delta_t);
           i++;
         }
-        Step3<InhomogeneousHaWp<D,MultiIndex>,Potential,N,D,MultiIndex,TQR>::apply(packet, V, delta_t);
+        Step3<InhomogeneousHaWp<D,MultiIndex>,Potential,N,D,InhomogeneousInnerProduct<D,MultiIndex,TQR>>::apply(packet, V, delta_t);
         
         i = 0;
         for (auto& component : packet.components()) {
@@ -208,7 +208,7 @@ namespace waveblocks
         auto& params = packet.parameters();
         Step1<N,D>::apply(params, delta_t);
         Step2<N,D>::homogenous(V,params,delta_t);
-        Step3<HomogeneousHaWp<D,MultiIndex>,Potential,N,D,MultiIndex,TQR>::apply(packet, V, delta_t);
+        Step3<HomogeneousHaWp<D,MultiIndex>,Potential,N,D,InhomogeneousInnerProduct<D,MultiIndex,TQR>>::apply(packet, V, delta_t);
         Step1<N,D>::apply(params,delta_t);
 
         }
@@ -222,7 +222,7 @@ namespace waveblocks
           auto& params = packet.parameters();
           Step1<1,D>::apply(params, delta_t);
           Step2<1,D>::homogenous(V,params,delta_t);
-          Step3<ScalarHaWp<D,MultiIndex>,Potential,1,D,MultiIndex,TQR>::apply(packet, V, delta_t);
+          Step3<ScalarHaWp<D,MultiIndex>,Potential,1,D,HomogeneousInnerProduct<D,MultiIndex,TQR>>::apply(packet, V, delta_t);
           Step1<1,D>::apply(params,delta_t);
         }
     };
