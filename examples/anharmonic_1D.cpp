@@ -52,7 +52,7 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
 int main() {
     const int N = 1;
     const int D = 1;
-    const int K = 30;
+    const int K = 128;
 
     const real_t T = 6;
     const real_t dt = 0.01;
@@ -83,9 +83,9 @@ int main() {
     packet.coefficients() = coeffs;
 
     Remain V;
-    
+
     // Quadrature rules
-    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<34>>;
+    using TQR = waveblocks::TensorProductQR<waveblocks::GaussHermiteQR<K+4>>;
 
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
@@ -95,12 +95,17 @@ int main() {
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
+      propagator.propagate(packet,dt,V);
+
+      std::cout << "----------------------------" << std::endl;
+      std::cout << "Time: " << t << std::endl;
+      std::cout << packet.parameters() << std::endl;
+
       real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
       real_t potential = potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
       writer.store_energies(t,potential,kinetic);
-      std::cout << "Time: " << t << std::endl;
-      std::cout << packet.parameters() << std::endl;
+      std::cout << "............................" << std::endl;
       writer.store_packet(t,packet);
-      propagator.propagate(packet,dt,V);
+
     }
 }
