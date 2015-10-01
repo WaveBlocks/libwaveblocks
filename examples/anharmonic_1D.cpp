@@ -19,8 +19,7 @@ using namespace waveblocks;
 struct Level : public matrixPotentials::modules::taylor::Abstract<Level,CanonicalBasis<1,1>> {
     template <template <typename...> class Tuple = std::tuple>
         Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &x ) const {
-        return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
-                                                                                                 1.0 + std::pow(x,4),
+        return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(1.0 + std::pow(x,4),
                                                                                                  4.0*std::pow(x,3),
                                                                                                  12.0*x*x);
     }
@@ -36,9 +35,11 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
     complex_t evaluate_local_remainder_at( const complex_t &x,
                                            const complex_t &q ) const {
         const auto xmq = x - q;
+        const auto V = 1.0 + std::pow(x,4);
+        const auto U = 1.0 + std::pow(q,4);
         const auto J = 4.0*std::pow(q,3);
-        const auto H = 12.0*x*x;
-        return -J*xmq - 0.5*xmq*H*xmq;
+        const auto H = 12.0*q*q;
+        return V - U - J*xmq - 0.5*xmq*H*xmq;
     }
 };
 
