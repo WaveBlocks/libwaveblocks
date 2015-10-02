@@ -64,18 +64,18 @@ public:
         RMatrix<D,D> Qs = Q0.sqrt().inverse();
 
         
-        auto PIket = packet.parameters();
-        auto PIbra = pacbra.parameters();
-
-        auto PImix = PIbra.mix(PIket);
-
-        std::cout << "qmix: " << std::get<0>(PImix) << std::endl;
-        std::cout << "Qmix: " << std::get<1>(PImix) << std::endl;
-
-        std::cout << "q0? [" << q0 << "]"<<std::endl << std::endl;
-        std::cout << "Qs? [" << Qs << "]"<<std::endl << std::endl;
-
-        std::cout << "Qr " << Qr << std::endl;
+        //~ auto PIket = packet.parameters();
+        //~ auto PIbra = pacbra.parameters();
+//~ 
+        //~ auto PImix = PIbra.mix(PIket);
+//~ 
+        //~ std::cout << "qmix: " << std::get<0>(PImix) << std::endl;
+        //~ std::cout << "Qmix: " << std::get<1>(PImix) << std::endl;
+//~ 
+        //~ std::cout << "q0? [" << q0 << "]"<<std::endl << std::endl;
+        //~ std::cout << "Qs? [" << Qs << "]"<<std::endl << std::endl;
+//~ 
+        //~ std::cout << "Qr " << Qr << std::endl;
         // Transform nodes.
         CMatrixDN transformed_nodes = complex_t(1, 0) *
             q0.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
@@ -85,8 +85,8 @@ public:
 
         Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
             std::pow(packet.eps(), D) * cweights.array() * values.array() *
-              Q0.determinant() /(std::sqrt(Qr.determinant())*std::sqrt(Qc.determinant()));
-
+              Qs.determinant() * pacbra.prefactor() * packet.prefactor();
+              
         HaWpBasisVector<Eigen::Dynamic> basisr =
             pacbra.evaluate_basis(transformed_nodes);
         HaWpBasisVector<Eigen::Dynamic> basisc =
