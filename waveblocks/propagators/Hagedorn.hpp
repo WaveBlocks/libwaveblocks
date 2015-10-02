@@ -21,6 +21,9 @@ namespace waveblocks
       params.q += 0.5 * delta_t * params.p;
       params.Q += 0.5 * delta_t * params.P;
       params.S += 0.25 * delta_t * params.p.dot(params.p);
+
+      // Keep sqrt_detQ consistent
+      params.sqrt_detQ(std::sqrt(params.Q.determinant()));
     }
   };
   template<int N>
@@ -30,6 +33,9 @@ namespace waveblocks
       params.q[0] += 0.5 * delta_t * params.p[0];
       params.Q[0] += 0.5 * delta_t * params.P[0];
       params.S += 0.25 * delta_t * params.p.dot(params.p);
+
+      // Keep sqrt_detQ consistent
+      params.sqrt_detQ(std::sqrt(params.Q[0]));
     }
   };
 
