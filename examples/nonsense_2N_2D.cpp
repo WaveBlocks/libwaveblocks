@@ -32,13 +32,12 @@ int main() {
   CMatrix<D,D> P = complex_t(0,1)*CMatrix<D,D>::Identity();
   RVector<D> q = {-3.0,0.0};
   RVector<D> p = {0.0,0.5};
-  complex_t S = 0.;
 
   // Setting up the wavepacket
   ShapeEnumerator<D, MultiIndex> enumerator;
   ShapeEnum<D, MultiIndex> shape_enum =
     enumerator.generate(HyperCubicShape<D>(K));
-  HaWpParamSet<D> param_set(q,p,Q,P);
+  HaWpParamSet<D> param_set(q,p,Q,P,0.0);
   Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
   HomogeneousHaWp<D,MultiIndex> packet(N);
 
@@ -103,7 +102,7 @@ int main() {
   
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
-    propagator.propagate(packet,dt,V,S);
+    propagator.propagate(packet,dt,V);
   }
   
   
