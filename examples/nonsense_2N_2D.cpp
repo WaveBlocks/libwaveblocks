@@ -81,7 +81,7 @@ int main() {
 
   typename HomogenousLeadingLevel<N,D>::hessian_type leading_hess;
   leading_hess =
-    [sigma_x,sigma_y,N](CVector<D> x) {
+      [sigma_x,sigma_y,N](CVector<D> /*x*/) {
       CMatrix<D,D> res;
       res(0,0) = sigma_x;
       res(1,1) = sigma_y;

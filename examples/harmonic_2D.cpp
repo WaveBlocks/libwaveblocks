@@ -66,7 +66,7 @@ int main() {
         return CVector<D>{sigma_x*x[0], sigma_y*x[1]};
     };
     typename ScalarLeadingLevel<D>::hessian_type leading_hess =
-        [sigma_x,sigma_y](CVector<D>) {
+        [sigma_x,sigma_y](CVector<D> /*x*/) {
         CMatrix<D,D> res;
         res(0,0) = sigma_x;
         res(1,1) = sigma_y;
