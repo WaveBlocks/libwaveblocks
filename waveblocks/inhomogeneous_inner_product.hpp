@@ -25,6 +25,7 @@ public:
     using CMatrixD1 = CMatrix<D, 1>;
     using CMatrixDD = CMatrix<D, D>;
     using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
+    using RMatrixDD = RMatrix<D, D>;
     using RMatrixD1 = RMatrix<D, 1>;
     using NodeMatrix = typename QR::NodeMatrix;
     using WeightVector = typename QR::WeightVector;
@@ -35,68 +36,38 @@ public:
     }
 
     CMatrixNN build_matrix(const AbstractScalarHaWp<D, MultiIndex>& pacbra,
-            const AbstractScalarHaWp<D, MultiIndex>& packet,
-            const op_t& op=default_op)
-        const
-    {
+                           const AbstractScalarHaWp<D, MultiIndex>& packet,
+                           const op_t& op=default_op) const {
         const dim_t n_nodes = QR::number_nodes();
-        const CMatrixD1& qr = complex_t(1, 0) * pacbra.parameters().q;
-        const CMatrixD1& qc = complex_t(1, 0) * packet.parameters().q;
-        const CMatrixDD& Qr = pacbra.parameters().Q;
-        const CMatrixDD& Qc = packet.parameters().Q;
-        const CMatrixDD& Pr = pacbra.parameters().P;
-        const CMatrixDD& Pc = packet.parameters().P;
         const complex_t S_bra = pacbra.parameters().S;
         const complex_t S_ket = packet.parameters().S;
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
-        const CMatrixDN cnodes = complex_t(1, 0) * nodes;
-        const CMatrix1N cweights = complex_t(1, 0) * weights;
+        const CMatrixDN cnodes = nodes.template cast<complex_t>();
+        const CMatrix1N cweights = weights.template cast<complex_t>();
 
-        // Mix parameters, compute affine transformation.
-        CMatrix<D,D> Gr = Pr * Qr.inverse();
-        CMatrix<D,D> Gc = Pc * Qc.inverse();
-        RMatrix<D,D> r = (Gc - Gr.adjoint()).imag();
-        RMatrix<D,1> s = ((Gc * qc) - (Gr.adjoint() * qr)).imag();
-        RMatrix<D,1> q0 = r.inverse() * s;
-        RMatrix<D,D> Q0 = 0.5 * r;
-        RMatrix<D,D> Qs = Q0.sqrt().inverse();
+        // Mix parameters and compute affine transformation
+        std::pair<RMatrixD1, RMatrixDD> PImix = pacbra.parameters().mix(packet.parameters());
+        const RMatrixD1& q0 = std::get<0>(PImix);
+        const RMatrixDD& Qs = std::get<1>(PImix);
 
-        
-        //~ auto PIket = packet.parameters();
-        //~ auto PIbra = pacbra.parameters();
-//~ 
-        //~ auto PImix = PIbra.mix(PIket);
-//~ 
-        //~ std::cout << "qmix: " << std::get<0>(PImix) << std::endl;
-        //~ std::cout << "Qmix: " << std::get<1>(PImix) << std::endl;
-//~ 
-        //~ std::cout << "q0? [" << q0 << "]"<<std::endl << std::endl;
-        //~ std::cout << "Qs? [" << Qs << "]"<<std::endl << std::endl;
-//~ 
-        //~ std::cout << "Qr " << Qr << std::endl;
-        // Transform nodes.
-        CMatrixDN transformed_nodes = complex_t(1, 0) *
-            q0.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
+        // Transform nodes
+        const CMatrixDN transformed_nodes = q0.template cast<complex_t>().replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
 
-        // Apply operator.
-        CMatrix1N values = op(transformed_nodes, q0);
+        // Apply operator
+        const CMatrix1N values = op(transformed_nodes, q0);
 
-        Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
-            std::pow(packet.eps(), D) * cweights.array() * values.array() *
-              Qs.determinant() * pacbra.prefactor() * packet.prefactor();
-              
-        HaWpBasisVector<Eigen::Dynamic> basisr =
-            pacbra.evaluate_basis(transformed_nodes);
-        HaWpBasisVector<Eigen::Dynamic> basisc =
-            packet.evaluate_basis(transformed_nodes);
-        //std::cout << "bases(:,0):\n" << bases.col(0) << std::endl;
+        // Prefactor
+        const Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
+            std::conj(pacbra.prefactor()) * packet.prefactor() * Qs.determinant() *
+            std::pow(packet.eps(), D) * cweights.array() * values.array();
 
-        //std::cout << "factor: " << factor.rows() << " x " << factor.cols() << "\n";
-        //std::cout << "bases: " << bases.rows() << " x " << bases.cols() << "\n";
+        // Evaluate basis
+        const HaWpBasisVector<Eigen::Dynamic> basisr = pacbra.evaluate_basis(transformed_nodes);
+        const HaWpBasisVector<Eigen::Dynamic> basisc = packet.evaluate_basis(transformed_nodes);
 
-        // Build matrix.
+        // Build matrix
         CMatrixNN result = CMatrixNN::Zero(basisr.rows(), basisc.rows());
         for(dim_t i = 0; i < basisr.rows(); ++i)
         {
@@ -109,26 +80,18 @@ public:
             }
         }
 
-        // TODO: Phase calculation ("S" parameter?)
-        auto phase = std::exp(
-          complex_t(0,1) * (S_ket - std::conj(S_bra))/std::pow(packet.eps(),2));
-          
+        // Global phase
+        const complex_t phase = std::exp(complex_t(0,1) * (S_ket - std::conj(S_bra)) / std::pow(packet.eps(),2));
         return phase * result;
     }
 
     complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& pacbra,
-            const AbstractScalarHaWp<D, MultiIndex>& packet,
-            const op_t& op=default_op)
-        const
-    {
+                         const AbstractScalarHaWp<D, MultiIndex>& packet,
+                         const op_t& op=default_op) const {
         const auto M = build_matrix(pacbra, packet, op);
         // Quadrature with wavepacket coefficients, c^H M c.
-        const CMatrixN1 coeffs_bra = CMatrixN1::Map(
-                pacbra.coefficients().data(), pacbra.coefficients().size());
-        const CMatrixN1 coeffs_ket = CMatrixN1::Map(
-                packet.coefficients().data(), packet.coefficients().size());
-        //std::cout << "\nM: " << M.rows() << " x " << M.cols() << "\n";
-        //std::cout << "c: " << coeffs.rows() << " x " << coeffs.cols() << "\n";
+        const CMatrixN1 coeffs_bra = CMatrixN1::Map(pacbra.coefficients().data(), pacbra.coefficients().size());
+        const CMatrixN1 coeffs_ket = CMatrixN1::Map(packet.coefficients().data(), packet.coefficients().size());
         return coeffs_bra.adjoint() * M * coeffs_ket;
     }
 
