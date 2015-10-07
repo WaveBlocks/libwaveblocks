@@ -75,7 +75,7 @@ public:
         #pragma omp parallel
         {
             dim_t j, k;
-            #pragma omp for private (j, k)
+            #pragma omp for private (j, k), schedule(static)
             for(dim_t i = 0; i < NR; ++i)
                 {
                     for(j = 0; j < NC; ++j)
