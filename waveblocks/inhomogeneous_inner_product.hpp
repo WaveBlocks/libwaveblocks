@@ -68,10 +68,13 @@ public:
         const HaWpBasisVector<Eigen::Dynamic> basisc = packet.evaluate_basis(transformed_nodes);
 
         // Build matrix
-        CMatrixNN result = CMatrixNN::Zero(basisr.rows(), basisc.rows());
-        for(dim_t i = 0; i < basisr.rows(); ++i)
+        const dim_t NR = basisr.rows();
+        const dim_t NC = basisc.rows();
+        CMatrixNN result = CMatrixNN::Zero(NR, NC);
+
+        for(dim_t i = 0; i < NR; ++i)
         {
-            for(dim_t j = 0; j < basisc.rows(); ++j)
+            for(dim_t j = 0; j < NC; ++j)
             {
                 for(dim_t k = 0; k < n_nodes; ++k)
                 {
