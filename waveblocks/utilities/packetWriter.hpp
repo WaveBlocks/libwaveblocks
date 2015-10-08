@@ -5,14 +5,14 @@
 #include "../types.hpp"
 
 namespace waveblocks {
-  namespace utilities {
-    namespace packetWriter {
-      template<class T>
+        template<class T>
       std::string toString(T in) {
         std::ostringstream strs;
         strs << in;
         return strs.str();
       }
+  namespace utilities {
+    namespace packetWriter {
       
      template<class Subtype, class Packet>
       class Abstract {
