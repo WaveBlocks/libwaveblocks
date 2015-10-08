@@ -11,42 +11,37 @@
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/hawp_paramset.hpp"
+#include "waveblocks/observables/energy.hpp"
 #include "waveblocks/utilities/packetWriter.hpp"
-#include "waveblocks/utilities/energy.hpp"
 
 
 using namespace waveblocks;
 struct Level : public matrixPotentials::modules::taylor::Abstract<Level,CanonicalBasis<1,1>> {
-  template <template <typename...> class Tuple = std::tuple>
-  Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &x ) const {
-               return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
-       1.0 + std::pow(x,4),
-        4.*std::pow(x,3),
-         12.*x*x);
-  }
+    template <template <typename...> class Tuple = std::tuple>
+        Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &x ) const {
+        return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(1.0 + std::pow(x,4),
+                                                                                                 4.0*std::pow(x,3),
+                                                                                                 12.0*x*x);
+    }
 };
 
 struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potential,CanonicalBasis<1,1>> {
-  complex_t evaluate_at_implementation(const complex_t& x) const {
-    return 1. + std::pow(x,4);
-
-  }
+    complex_t evaluate_at_implementation(const complex_t& x) const {
+        return 1.0 + std::pow(x,4);
+    }
 };
 
 struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remain, 1,1>, public Potential, public LeadingLevelOwner<Level> {
-  complex_t evaluate_local_remainder_at( const complex_t &x,
-                    const complex_t &q ) const {
-    const auto xmq = x - q;
-
-    const auto V = std::pow(q,4);
-    const auto J = 4.*std::pow(q,3);
-    const auto H = 12.*q*q;
-
-
-    return std::pow(x,4) -V -J*xmq - 0.5*xmq*H*xmq;
-  }
+    complex_t evaluate_local_remainder_at( const complex_t &x,
+                                           const complex_t &q ) const {
+        const auto xmq = x - q;
+        const auto V = 1.0 + std::pow(x,4);
+        const auto U = 1.0 + std::pow(q,4);
+        const auto J = 4.0*std::pow(q,3);
+        const auto H = 12.0*q*q;
+        return V - U - J*xmq - 0.5*xmq*H*xmq;
+    }
 };
-
 
 
 int main() {
@@ -61,11 +56,10 @@ int main() {
 
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
 
-
     // The parameter set of the initial wavepacket
-    CMatrix<D,D> Q; Q(0,0) = 1;
+    CMatrix<D,D> Q; Q(0,0) = 1.0;
     CMatrix<D,D> P; P(0,0) = complex_t(0,1);
-    RVector<D> q; q[0] = 0.;
+    RVector<D> q; q[0] = 0.0;
     RVector<D> p; p[0] = 1.0;
     complex_t S = 0.0;
 
@@ -95,17 +89,18 @@ int main() {
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
-      propagator.propagate(packet,dt,V);
+        std::cout << "Time: " << t << std::endl;
 
-      std::cout << "----------------------------" << std::endl;
-      std::cout << "Time: " << t << std::endl;
-      std::cout << packet.parameters() << std::endl;
+        // Propagate
+        propagator.propagate(packet,dt,V);
+        std::cout << packet.parameters() << std::endl;
+        writer.store_packet(t,packet);
 
-      real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
-      real_t potential = potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
-      writer.store_energies(t,potential,kinetic);
-      std::cout << "............................" << std::endl;
-      writer.store_packet(t,packet);
-
+        // Compute energies
+        real_t ekin = kinetic_energy<D,MultiIndex>(packet);
+        real_t epot = potential_energy<Remain,D,MultiIndex,TQR>(packet,V);
+        real_t etot = ekin + epot;
+        std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << etot << std::endl;
+        writer.store_energies(t,epot,ekin);
     }
 }

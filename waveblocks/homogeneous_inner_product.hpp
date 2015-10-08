@@ -53,43 +53,53 @@ public:
      *   nodal points \f$x\f$ and position \f$q\f$;
      *   default returns a vector of ones
      */
-    CMatrixNN build_matrix(const AbstractScalarHaWpBasis<D, MultiIndex>& packet,
+    CMatrixNN build_matrix(const AbstractScalarHaWp<D, MultiIndex>& packet,
                            const op_t& op=default_op) const {
         const dim_t n_nodes = QR::number_nodes();
-        const CMatrixD1& q = complex_t(1,0) * packet.parameters().q;
+        const CMatrixD1& q = packet.parameters().q.template cast<complex_t>();
         const CMatrixDD& Q = packet.parameters().Q;
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
-        const CMatrixDN cnodes = complex_t(1,0) * nodes;
-        const CMatrix1N cweights = complex_t(1,0) * weights;
+        const CMatrixDN cnodes = nodes.template cast<complex_t>();
+        const CMatrix1N cweights = weights.template cast<complex_t>();
 
-        // Compute affine transformation.
-        CMatrixDD Qs = (Q * Q.adjoint()).sqrt();
-        //~ std::cout << "Qhom " << Q<<std::endl; 
-        // Transform nodes.
-        CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
+        // Compute affine transformation
+        const CMatrixDD Qs = (Q * Q.adjoint()).sqrt();
 
-        // Apply operator.
-        CMatrix1N values = op(transformed_nodes, q);
-        Eigen::Array<complex_t, 1, Eigen::Dynamic> factor = std::pow(packet.eps(), D) * cweights.array() * values.array();
+        // Transform nodes
+        const CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
 
-        HaWpBasisVector<Eigen::Dynamic> bases = packet.evaluate_basis(transformed_nodes);
+        // Apply operator
+        const CMatrix1N values = op(transformed_nodes, q);
 
-        // Build matrix.
+        // Prefactor
+        const Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
+            // std::conj(packet.prefactor()) * packet.prefactor() * Qs.determinant() = 1
+            std::pow(packet.eps(), D) * cweights.array() * values.array();
+
+        // Evaluate basis
+        const HaWpBasisVector<Eigen::Dynamic> bases = packet.evaluate_basis(transformed_nodes);
+
+        // Build matrix
         const dim_t N = bases.rows();
         CMatrixNN result = CMatrixNN::Zero(N, N);
-        for(dim_t i = 0; i < N; ++i)
-        {
-            for(dim_t j = 0; j < N; ++j)
-            {
-                for(dim_t k = 0; k < n_nodes; ++k)
-                {
-                    result(i, j) += factor(k) * conj(bases(i, k)) * bases(j, k);
-                }
-            }
-        }
 
+        #pragma omp parallel for schedule(guided)
+        for(dim_t i = 0; i < N; ++i)
+            {
+                for(dim_t j = 0; j < N; ++j)
+                    {
+                        complex_t resij = 0.0;
+                        for(dim_t k = 0; k < n_nodes; ++k)
+                            {
+                                resij += factor(k) * conj(bases(i, k)) * bases(j, k);
+                            }
+                        result(i, j) = resij;
+                    }
+            }
+
+        // Global phase cancels out
         return result;
     }
 
