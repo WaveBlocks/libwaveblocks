@@ -72,21 +72,19 @@ public:
         const dim_t NC = basisc.rows();
         CMatrixNN result = CMatrixNN::Zero(NR, NC);
 
-        #pragma omp parallel
-        {
-            dim_t j, k;
-            #pragma omp for private (j, k), schedule(static)
-            for(dim_t i = 0; i < NR; ++i)
-                {
-                    for(j = 0; j < NC; ++j)
-                        {
-                            for(k = 0; k < n_nodes; ++k)
-                                {
-                                    result(i, j) += factor(k) * conj(basisr(i, k)) * basisc(j, k);
-                                }
-                        }
-                }
-        }
+        #pragma omp parallel for schedule(static)
+        for(dim_t i = 0; i < NR; ++i)
+            {
+                for(dim_t j = 0; j < NC; ++j)
+                    {
+                        complex_t resij = 0.0;
+                        for(dim_t k = 0; k < n_nodes; ++k)
+                            {
+                                resij += factor(k) * conj(basisr(i, k)) * basisc(j, k);
+                            }
+                        result(i, j) = resij;
+                    }
+            }
 
         // Global phase
         const complex_t phase = std::exp(complex_t(0,1) * (S_ket - std::conj(S_bra)) / std::pow(packet.eps(),2));

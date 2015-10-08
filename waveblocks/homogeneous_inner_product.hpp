@@ -85,21 +85,19 @@ public:
         const dim_t N = bases.rows();
         CMatrixNN result = CMatrixNN::Zero(N, N);
 
-        #pragma omp parallel
-        {
-            dim_t j, k;
-            #pragma omp for private (j, k), schedule(static)
-            for(dim_t i = 0; i < N; ++i)
-                {
-                    for(j = 0; j < N; ++j)
-                        {
-                            for(k = 0; k < n_nodes; ++k)
-                                {
-                                    result(i, j) += factor(k) * conj(bases(i, k)) * bases(j, k);
-                                }
-                        }
-                }
-        }
+        #pragma omp parallel for schedule(guided)
+        for(dim_t i = 0; i < N; ++i)
+            {
+                for(dim_t j = 0; j < N; ++j)
+                    {
+                        complex_t resij = 0.0;
+                        for(dim_t k = 0; k < n_nodes; ++k)
+                            {
+                                resij += factor(k) * conj(bases(i, k)) * bases(j, k);
+                            }
+                        result(i, j) = resij;
+                    }
+            }
 
         // Global phase cancels out
         return result;
