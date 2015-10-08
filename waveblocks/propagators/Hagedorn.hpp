@@ -120,6 +120,8 @@ namespace waveblocks
             {
                 const dim_t n_nodes = nodes.cols();
                 CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
+                
+                #pragma omp parallel for schedule(guided)
                 for(int l = 0; l < n_nodes; ++l) {
                   result(0, l) = V.evaluate_local_remainder_at(HelperArg<D>::first(nodes,l), HelperArg<D>::second(complex_t(1, 0) * pos))(i,j); // SUUUUPER INEFFICIENT. COMPUTE NxN Matrix when we only want one entry...
                 }
