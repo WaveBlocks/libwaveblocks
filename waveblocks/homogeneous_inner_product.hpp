@@ -32,6 +32,7 @@ public:
     using CMatrixD1 = CMatrix<D, 1>;
     using CMatrixDD = CMatrix<D, D>;
     using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
+    using CDiagonalNN = Eigen::DiagonalMatrix<complex_t, Eigen::Dynamic>;
     using NodeMatrix = typename QR::NodeMatrix;
     using WeightVector = typename QR::WeightVector;
     using op_t = std::function<CMatrix1N(CMatrixDN,CMatrixD1)>;
@@ -61,39 +62,27 @@ public:
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
-        const CMatrixDN cnodes = nodes.template cast<complex_t>();
-        const CMatrix1N cweights = weights.template cast<complex_t>();
 
         // Compute affine transformation
         const CMatrixDD Qs = (Q * Q.adjoint()).sqrt();
 
         // Transform nodes
-        const CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
+        const CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * nodes);
 
         // Apply operator
         const CMatrix1N values = op(transformed_nodes, q);
 
         // Prefactor
-        const Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
+        const CMatrix1N factor =
             // std::conj(packet.prefactor()) * packet.prefactor() * Qs.determinant() = 1
-            std::pow(packet.eps(), D) * cweights.array() * values.array();
+            std::pow(packet.eps(), D) * weights.array() * values.array();
 
         // Evaluate basis
-        const HaWpBasisVector<Eigen::Dynamic> bases = packet.evaluate_basis(transformed_nodes);
+        const CMatrixNN basis = packet.evaluate_basis(transformed_nodes);
 
         // Build matrix
-        const dim_t N = bases.rows();
-        CMatrixNN result = CMatrixNN::Zero(N, N);
-        for(dim_t i = 0; i < N; ++i)
-        {
-            for(dim_t j = 0; j < N; ++j)
-            {
-                for(dim_t k = 0; k < n_nodes; ++k)
-                {
-                    result(i, j) += factor(k) * conj(bases(i, k)) * bases(j, k);
-                }
-            }
-        }
+        const CDiagonalNN Dfactor(factor);
+        const CMatrixNN result = basis.matrix().conjugate() * Dfactor * basis.matrix().transpose();
 
         // Global phase cancels out
         return result;
