@@ -42,11 +42,12 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
     const real_t sigma = 0.038088;
     const real_t a =     0.944858;
     const auto xmq = x - q;
-    
+
+    const auto V = sigma / std::pow(std::cosh(q/a),2);
     const  auto J = - (2.0*sigma*std::tanh(q/a)) / (a*std::pow(std::cosh(q/a),2));
     const auto H = (2*sigma*std::cosh(2.0*q/a) - 4*sigma) / (a*a*std::pow(std::cosh(q/a),4));
 
-    return -J*xmq - 0.5*xmq*H*xmq;
+    return (sigma / std::pow(std::cosh(x/a),2)) - V -J*xmq - 0.5*xmq*H*xmq;
   }
 };
 
@@ -75,8 +76,9 @@ int main() {
     // Setting up the wavepacket
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(HyperCubicShape<D>(K));
-    HaWpParamSet<D> param_set(q,p,Q,P);
-    Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
+    HaWpParamSet<D> param_set(q,p,Q,P,S);
+    Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
+    coeffs[0] = 1.;
     ScalarHaWp<D,MultiIndex> packet;
 
     packet.eps() = eps;
@@ -103,23 +105,29 @@ int main() {
     Remain V;
     
     // Quadrature rules
-    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<4>>;
+    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<K+4>>;
 
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
     // Preparing the file
-    utilities::PacketWriter<ScalarHaWp<D,MultiIndex>> writer("tunneling_1D.out");
-
+    using Writer = utilities::PacketWriter<ScalarHaWp<D,MultiIndex>>;
+    Writer writer("tunneling_1D_0.hdf5");
+    int numBlock = 0;
+    int nSteps = 0;
+    int maxSteps = 1000;
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
+      std::cout << "Time: " << t << std::endl;
       real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
       real_t potential = potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
-      real_t total = kinetic+potential;
+      if (nSteps == maxSteps) {
+        writer = Writer("tunneling_1D_" + toString(++numBlock) + ".hdf5");
+        nSteps = 0;
+      }
       writer.store_energies(t,potential,kinetic);
-      std::cout << t << "," << potential << "," << kinetic << ", "<< total << std::endl;
-      std::cout << packet.parameters() << std::endl;
-      writer.store_packet(t,packet,S);
-      propagator.propagate(packet,dt,V,S);
+      writer.store_packet(t,packet);
+      nSteps++;
+      propagator.propagate(packet,dt,V);
     }
 }

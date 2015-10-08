@@ -39,7 +39,7 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
     const auto xmq = x - q;
 
     const auto V = std::pow(q,4);
-    const  auto J = 4.*std::pow(q,3);
+    const auto J = 4.*std::pow(q,3);
     const auto H = 12.*q*q;
 
 
