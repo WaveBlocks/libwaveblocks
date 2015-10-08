@@ -84,10 +84,6 @@ public:
         const CDiagonalNN Dfactor(factor);
         const CMatrixNN result = basis.matrix().conjugate() * Dfactor * basis.matrix().transpose();
 
-        #pragma omp parallel for schedule(guided)
-                        complex_t resij = 0.0;
-                        result(i, j) = resij;
-
         // Global phase cancels out
         return result;
     }
