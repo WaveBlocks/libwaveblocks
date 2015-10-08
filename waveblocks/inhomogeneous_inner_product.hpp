@@ -27,6 +27,7 @@ public:
     using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
     using RMatrixDD = RMatrix<D, D>;
     using RMatrixD1 = RMatrix<D, 1>;
+    using CDiagonalNN = Eigen::DiagonalMatrix<complex_t, Eigen::Dynamic>;
     using NodeMatrix = typename QR::NodeMatrix;
     using WeightVector = typename QR::WeightVector;
     using op_t = std::function<CMatrix1N(CMatrixDN,RMatrixD1)>;
@@ -44,8 +45,6 @@ public:
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();
-        const CMatrixDN cnodes = nodes.template cast<complex_t>();
-        const CMatrix1N cweights = weights.template cast<complex_t>();
 
         // Mix parameters and compute affine transformation
         std::pair<RMatrixD1, RMatrixDD> PImix = pacbra.parameters().mix(packet.parameters());
@@ -53,32 +52,23 @@ public:
         const RMatrixDD& Qs = std::get<1>(PImix);
 
         // Transform nodes
-        const CMatrixDN transformed_nodes = q0.template cast<complex_t>().replicate(1, n_nodes) + packet.eps() * (Qs * cnodes);
+        const CMatrixDN transformed_nodes = q0.template cast<complex_t>().replicate(1, n_nodes) + packet.eps() * (Qs.template cast<complex_t>() * nodes);
 
         // Apply operator
         const CMatrix1N values = op(transformed_nodes, q0);
 
         // Prefactor
-        const Eigen::Array<complex_t, 1, Eigen::Dynamic> factor =
+        const CMatrix1N factor =
             std::conj(pacbra.prefactor()) * packet.prefactor() * Qs.determinant() *
-            std::pow(packet.eps(), D) * cweights.array() * values.array();
+            std::pow(packet.eps(), D) * weights.array() * values.array();
 
         // Evaluate basis
-        const HaWpBasisVector<Eigen::Dynamic> basisr = pacbra.evaluate_basis(transformed_nodes);
-        const HaWpBasisVector<Eigen::Dynamic> basisc = packet.evaluate_basis(transformed_nodes);
+        const CMatrixNN basisr = pacbra.evaluate_basis(transformed_nodes);
+        const CMatrixNN basisc = packet.evaluate_basis(transformed_nodes);
 
         // Build matrix
-        CMatrixNN result = CMatrixNN::Zero(basisr.rows(), basisc.rows());
-        for(dim_t i = 0; i < basisr.rows(); ++i)
-        {
-            for(dim_t j = 0; j < basisc.rows(); ++j)
-            {
-                for(dim_t k = 0; k < n_nodes; ++k)
-                {
-                    result(i, j) += factor(k) * conj(basisr(i, k)) * basisc(j, k);
-                }
-            }
-        }
+        const CDiagonalNN Dfactor(factor);
+        const CMatrixNN result = basisr.matrix().conjugate() * Dfactor * basisc.matrix().transpose();
 
         // Global phase
         const complex_t phase = std::exp(complex_t(0,1) * (S_ket - std::conj(S_bra)) / std::pow(packet.eps(),2));
