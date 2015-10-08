@@ -108,10 +108,12 @@ namespace waveblocks
         F.resize(size,size);
         
         int i_offset = 0;
+        #pragma omp parallel for schedule(guided)
         for (int i = 0; i < N; ++i){
           int i_size = packet.component(i).coefficients().size();
           int j_offset = 0;
-
+          
+          #pragma omp parallel for schedule(guided)
           for (int j = 0; j < N; ++j) {
             int j_size = packet.component(j).coefficients().size();
             // Set up operator
