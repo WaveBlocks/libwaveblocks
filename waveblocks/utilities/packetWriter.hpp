@@ -52,7 +52,7 @@ namespace waveblocks {
     };
 
     template<class Packet>
-    class Standard;
+    struct Standard;
 
     template<int D, class MultiIndex>
     struct Standard<ScalarHaWp<D,MultiIndex>> : public Abstract<Standard<ScalarHaWp<D,MultiIndex>>,ScalarHaWp<D,MultiIndex>> {
