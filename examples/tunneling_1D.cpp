@@ -43,7 +43,6 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
         const real_t a =     0.944858;
         const auto xmq = x - q;
 
-    const auto V = sigma / std::pow(std::cosh(q/a),2);
         const auto V = sigma / std::pow(std::cosh(x/a),2);
         const auto U = sigma / std::pow(std::cosh(q/a),2);
         const auto J = - (2.0*sigma*std::tanh(q/a)) / (a*std::pow(std::cosh(q/a),2));
