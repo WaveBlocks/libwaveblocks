@@ -11,31 +11,24 @@
 #include "../utilities/adaptors.hpp"
 
 
-
 namespace waveblocks
 {
     template<int N, int D>
     struct Step1 {
         static void apply(HaWpParamSet<D>& params,
                           const real_t &delta_t) {
-            const auto& newq = params.q() + 0.5 * delta_t * params.p();
-            const auto& newQ = params.Q() + 0.5 * delta_t * params.P();
-            const auto& newS = params.S() + 0.25 * delta_t * params.p().dot(params.p());
-            params.q(newq);
-            params.Q(newQ);
-            params.S(newS);
+            params.updateq( 0.5 * delta_t * params.p() );
+            params.updateQ( 0.5 * delta_t * params.P() );
+            params.updateS( 0.25 * delta_t * params.p().dot(params.p()) );
         }
     };
     template<int N>
     struct Step1<N,1> {
         static void apply(HaWpParamSet<1>& params,
                           const real_t &delta_t) {
-            const auto& newq = params.q() + 0.5 * delta_t * params.p();
-            const auto& newQ = params.Q() + 0.5 * delta_t * params.P();
-            const auto& newS = params.S() + 0.25 * delta_t * params.p().dot(params.p());
-            params.q(newq);
-            params.Q(newQ);
-            params.S(newS);
+            params.updateq( 0.5 * delta_t * params.p() );
+            params.updateQ( 0.5 * delta_t * params.P() );
+            params.updateS( 0.25 * delta_t * params.p().dot(params.p()) );
         }
     };
 
@@ -45,22 +38,16 @@ namespace waveblocks
         static void inhomogenous(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
             // inefficient since all levels are evaluated for each q
             const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
-            const auto& newp = params.p() - delta_t * std::get<1>(leading_level_taylor)[i].real();
-            const auto& newP = params.P() - delta_t * std::get<2>(leading_level_taylor)[i] * params.Q();
-            const auto& newS = params.S() - delta_t * std::get<0>(leading_level_taylor)[i];
-            params.p(newp);
-            params.P(newP);
-            params.S(newS);
+            params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() );
+            params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
+            params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
         }
         template<class Potential>
         static void homogenous(const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
             const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
-            const auto& newp = params.p() - delta_t * std::get<1>(leading_level_taylor).real();
-            const auto& newP = params.P() - delta_t * std::get<2>(leading_level_taylor) * params.Q();
-            const auto& newS = params.S() - delta_t * std::get<0>(leading_level_taylor);
-            params.p(newp);
-            params.P(newP);
-            params.S(newS);
+            params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() );
+            params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
+            params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
         }
     };
 
@@ -70,22 +57,16 @@ namespace waveblocks
         static void inhomogenous(int i, const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
             // inefficient since all levels are evaluated for each q
             const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
-            const auto& newp = params.p().array() - delta_t * std::get<1>(leading_level_taylor)[i].real();
-            const auto& newP = params.P()         - delta_t * std::get<2>(leading_level_taylor)[i] * params.Q();
-            const auto& newS = params.S()         - delta_t * std::get<0>(leading_level_taylor)[i];
-            params.p(newp);
-            params.P(newP);
-            params.S(newS);
+            params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() * RMatrix<1,1>::Identity() );
+            params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
+            params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
         }
         template<class Potential>
         static void homogenous(const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
             const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
-            const auto& newp = params.p().array() - delta_t * std::get<1>(leading_level_taylor).real();
-            const auto& newP = params.P()         - delta_t * std::get<2>(leading_level_taylor) * params.Q();
-            const auto& newS = params.S()         - delta_t * std::get<0>(leading_level_taylor);
-            params.p(newp);
-            params.P(newP);
-            params.S(newS);
+            params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() * RMatrix<1,1>::Identity() );
+            params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
+            params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
         }
     };
 
