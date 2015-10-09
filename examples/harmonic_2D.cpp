@@ -58,16 +58,16 @@ int main() {
 
     // Defining the potential
     typename CanonicalBasis<N,D>::potential_type potential =
-        [sigma_x,sigma_y](CVector<D> x) {
+        [D,sigma_x,sigma_y](CVector<D> x) {
         return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
     };
     typename ScalarLeadingLevel<D>::potential_type leading_level = potential;
     typename ScalarLeadingLevel<D>::jacobian_type leading_jac =
-        [sigma_x,sigma_y](CVector<D> x) {
+        [D,sigma_x,sigma_y](CVector<D> x) {
         return CVector<D>{sigma_x*x[0], sigma_y*x[1]};
     };
     typename ScalarLeadingLevel<D>::hessian_type leading_hess =
-        [sigma_x,sigma_y](CVector<D> /*x*/) {
+        [D,sigma_x,sigma_y](CVector<D> /*x*/) {
         CMatrix<D,D> res;
         res(0,0) = sigma_x;
         res(1,1) = sigma_y;
