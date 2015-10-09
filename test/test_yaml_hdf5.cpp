@@ -38,10 +38,10 @@ int main(int argc, char* argv[])
     // TODO: Better API for saving grouped stuff
     auto group = H5::Group(file.createGroup("/PI"));
 
-    EigenHDF5::save(group, "q", PI.q);
-    EigenHDF5::save(group, "p", PI.p);
-    EigenHDF5::save(group, "Q", PI.Q);
-    EigenHDF5::save(group, "P", PI.P);
+    EigenHDF5::save(group, "q", PI.q());
+    EigenHDF5::save(group, "p", PI.p());
+    EigenHDF5::save(group, "Q", PI.Q());
+    EigenHDF5::save(group, "P", PI.P());
 
     file.close();
 }
