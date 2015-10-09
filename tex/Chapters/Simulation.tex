@@ -15,9 +15,9 @@ To verify the implementation, I applied it to a 2D harmonic oscillator as well a
 The computation attempts to find solutions to the time-dependent Schr\"odinger equation in
 the semi-classical scaling:
 \begin{equation}
-i \epsilon \frac{\partial}{\partial t}\Psi(\mathbf{x},t) = H \Psi(\mathbf{x},t)
+i \varepsilon \frac{\partial}{\partial t}\Psi(\mathbf{x},t) = H \Psi(\mathbf{x},t)
 \end{equation}
-where $H = T + V$ and $T = \sum\limits_{j=0}^N \epsilon^2 \frac{\partial^2}{\partial \mathbf{x}_j}^2$ and $V$ is a potential.
+where $H = T + V$ and $T = -\sum\limits_{j=1}^D \varepsilon^2 \frac{\partial^2}{\partial \mathbf{x}^2_j}$ and $V$ is a potential.
 
 \subsection{Harmonic Oscillator}
 Consider a 2D harmonic potential.
@@ -25,7 +25,7 @@ A Gaussian Hagedorn wavepacket with $5$ cubic shape basis functions with the fol
 \begin{center}
  \begin{tabular}{|c c c c c c|} 
  \hline
- q & p & Q & P & S & $\epsilon$\\ [0.5ex] 
+ q & p & Q & P & S & $\varepsilon$\\ [0.5ex] 
  \hline
  $\begin{pmatrix}
  -3\\
@@ -71,7 +71,7 @@ A Gaussian Hagedorn wavepacket with $128$ cubic shape basis functions with the f
 \begin{center}
  \begin{tabular}{|c c c c c c|} 
  \hline
- q & p & Q & P & S & $\epsilon$\\ [0.5ex] 
+ q & p & Q & P & S & $\varepsilon$\\ [0.5ex] 
  \hline
  0 & 1 & 1 & i & 0 & 0.1\\ 
  \hline
@@ -121,7 +121,7 @@ A Gaussian Hagedorn wavepacket with $512$ cubic shape basis functions with the f
 \begin{center}
  \begin{tabular}{|c c c c c c|} 
  \hline
- q & p & Q & P & S & $\epsilon$\\ [0.5ex] 
+ q & p & Q & P & S & $\varepsilon$\\ [0.5ex] 
  \hline
  -7.5589045088306 & 0.2478854736792 & 3.5355339059327 & 0.2828427124746i & 0 & 0.02342\\ 
  \hline
