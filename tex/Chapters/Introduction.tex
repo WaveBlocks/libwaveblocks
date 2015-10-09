@@ -1,0 +1,102 @@
+% Chapter Template
+
+\chapter{Introduction and Motivation} % Main chapter title
+
+\label{Introduction} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+\lhead{Chapter 1. \emph{Introduction}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+A number of projects aim to port \texttt{WaveBlocksND} (see \cite{waveblocksnd}) from a python implementation to a \texttt{C++} implementation. My task was the porting of the functionality responsible for handling matrix potentials and the Hagedorn propagator. In this report I will outline the desired functionality and elaborate on my design decisions leading to the current template-heavy implementation.
+
+\section{Background}
+\texttt{WaveBlocksND} is a python library to simulate the time-dependent behavior of semiclassical wavepackets on energy surfaces. These energy surfaces are described by matrix potentials $V$ : $\mathbb{R}^D \rightarrow \mathbb{R}^{N\times N}$. The simulation is advanced using a propagator which updates the parameters of a given wavepacket given $V$ and a timestep $dt$. One such propagator is the Hagedorn propagator (see \cite{FGL_semiclassical_dynamics}, \cite{H_ladder_operators}).
+The following sections give a quick recapitulation of the relevant operations and properties required from these matrix potentials in \texttt{WaveBlocksND} (see \cite{B_master_thesis}).
+
+\subsection{Matrix Potentials}
+Consider matrix valued mappings from real space $\mathcal{C} : \mathbb{R}^D \rightarrow \mathbb{R}^{N\times N}$ \footnote{For certain set-ups it might be easier to consider complex matrix valued functions but the following statements can still be applied easily in that case as well.}. One can write these mappings in the form of a matrix parameterized with an $\mathbb{R}^D$ vector as follows:
+
+\begin{equation}
+\mathcal{C}(v) =  \begin{pmatrix}
+  c_{1,1}(v) & c_{1,2}(v) & \cdots & c_{1,N}(v) \\
+  c_{2,1}(v) & c_{2,2}(v) & \cdots & c_{2,N}(v) \\
+  \vdots  & \vdots  & \ddots & \vdots  \\
+  c_{N,1}(v) & c_{N,2}(v) & \cdots & c_{N,N}(v)
+ \end{pmatrix}
+ \label{eqn:matrixOfFunctions}
+\end{equation}
+
+where $c_{i,j} : \mathbb{R}^D \rightarrow \mathbb{R}$.
+
+\subsection{Derivatives}
+Using formulation \ref{eqn:matrixOfFunctions}, one can define the Jacobian of $\mathcal{C}$ as:
+\begin{equation}
+\begin{bmatrix}
+  Dc_{1,1}(v) & Dc_{1,2}(v) & \cdots & Dc_{1,N}(v) \\
+  Dc_{2,1}(v) & Dc_{2,2}(v) & \cdots & Dc_{2,N}(v) \\
+  \vdots  & \vdots  & \ddots & \vdots  \\
+  Dc_{N,1}(v) & Dc_{N,2}(v) & \cdots & Dc_{N,N}(v)
+ \end{bmatrix}
+ \label{eqn:matrixOfJacobians}
+\end{equation}
+
+where the use of the square brackets indicates that we are merely thinking of the matrix as a container rather than the mathematical object.
+
+The Hessian of $\mathcal{C}$ can be defined accordingly.
+
+\subsection{Quadratic Approximation}
+The quadratic approximation $Q[f]: \mathbb{R}^D \rightarrow \mathbb{R}$ of a function $f: \mathbb{R}^D \rightarrow \mathbb{R}$ around some point $q \in \mathbb{R}^D$ is written as
+\begin{equation}
+Q[f](x) = f(q) + Df(q) \cdot (x-q) + {1 \over 2}(x-q)^T \cdot D^2f(q) \cdot (x-q)
+\label{eqn:oneDimQuadratic}
+\end{equation}
+
+Similarly to the derivatives one can also express the element-wise quadratic approximation $Q[\mathcal{C}]$ of $\mathcal{C}$ as:
+\begin{equation}
+\begin{bmatrix}
+  Q[c_{1,1}](v) & Q[c_{1,2}](v) & \cdots & Q[c_{1,N}](v) \\
+  Q[c_{2,1}](v) & Q[c_{2,2}](v) & \cdots & Q[c_{2,N}](v) \\
+  \vdots  & \vdots  & \ddots & \vdots  \\
+  Q[c_{N,1}](v) & Q[c_{N,2}](v) & \cdots & Q[c_{N,N}](v)
+ \end{bmatrix}
+ \label{eqn:matrixOfQuadratics}
+\end{equation}
+
+
+\subsection{Eigenvalues}
+While in principle, one can compute the eigenvalues and eigenvectors of $\mathcal{C}(x)$ point-wise as $\lambda_i(x)$ and $v_i(x)$ and then define the mapping
+$\mathcal{D} : \mathbb{R}^D \rightarrow \mathbb{C}^{N\times N}$ as:
+\begin{equation}
+\mathcal{D}(x) = \begin{pmatrix}
+  \lambda_1(x) & 0 & \cdots & 0 \\
+  0& \lambda_2(x) & \cdots & 0 \\
+  \vdots  & \vdots  & \ddots & \vdots  \\
+  0 & 0 & \cdots & \lambda_N(x)
+ \end{pmatrix}
+ \label{eqn:diag}
+\end{equation}
+
+Furthermore, one can define the mapping $\mathcal{V} : \mathbb{R}^D \rightarrow \mathbb{C}^{N \times N}$ as:
+\begin{equation}
+\mathcal{V}(x) = \begin{pmatrix}
+  v_1(x) & v_2(x) & \cdots & v_N(x)
+ \end{pmatrix}
+ \label{eqn:eigenTransform}
+\end{equation}
+
+one has to take care that the ordering of these \textit{eigenfunctions} does not change across evaluation points.
+Since my implementation ignores this problem by forcing the user to provide the \textit{eigenfunctions} explicitly if he or she desires to use them, there is no need to go into further detail.
+
+\subsubsection{Derivatives and Quadratic Remainder}
+The derivatives and quadratic approximations are defined for $\mathcal{D}$ analogously to $\mathcal{C}$.
+
+\subsection{Quadratic Remainder}
+The quadratic remainder $R[f]: \mathbb{R}^D \rightarrow \mathbb{R}$ of a real valued function $f: \mathbb{R}^D \rightarrow \mathbb{R}$ around some point $q \in \mathbb{R}^D$ is simply defined as $R[f](x) = f(x) - Q[f](x)$.
+However, the quadratic remainder of a matrix potential $\mathcal{C}$ is not defined point-wise for the purposes of \texttt{WaveBlocksND} but as follows (see \cite{B_master_thesis}):
+
+\begin{equation}
+R[\mathcal{C}](x) = \mathcal{C}(x) - Q[\mathcal{L}(x)]
+\label{eqn:quadRemainder}
+\end{equation}
+where either $\mathcal{L}(x) = \lambda_l(x)I$ for some \textit{leading level} $\chi$ or in the homogeneous case or $\mathcal{L} = \mathcal{D}$.
+
+

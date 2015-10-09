@@ -19,10 +19,10 @@ template<dim_t D, class MultiIndex>
 class HaWpCoefficientsLoader
 {
 public:
-    std::vector<complex_t> operator()(std::shared_ptr<ShapeEnum<D,MultiIndex> > shape, std::string filename)
+    Coefficients operator()(std::shared_ptr<ShapeEnum<D,MultiIndex> > shape, std::string filename)
     {
-        std::vector<complex_t> coeffs(shape->n_entries());
-        
+        Coefficients coeffs(shape->n_entries());
+
         std::vector<int> occurrences(coeffs.size());
         
         CoefficientsFileParser parser(filename, D, 1);

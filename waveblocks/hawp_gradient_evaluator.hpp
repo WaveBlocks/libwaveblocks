@@ -50,16 +50,16 @@ public:
      * The i-th entry of the array contains the coefficients of the i-th component
      * \f$ \frac{\partial \Phi}{\partial x_i} \f$.
      */
-    std::array< std::vector<complex_t>, std::size_t(D) > apply(const std::vector<complex_t>& base_coeffs) const
+    std::array<Coefficients, std::size_t(D) > apply(const Coefficients& base_coeffs) const
     {
         const auto & p = parameters_->p;
         const auto & P = parameters_->P;
         
         Eigen::Matrix<complex_t,D,D> Pbar = P.conjugate();
-        
-        std::array< std::vector<complex_t>, std::size_t(D) > grad_coeffs;
+
+        std::array<Coefficients, std::size_t(D) > grad_coeffs;
         for (dim_t d = 0; d < D; d++) {
-            grad_coeffs[d] = std::vector<complex_t>(grad_enum_->n_entries());
+            grad_coeffs[d] = Coefficients(grad_enum_->n_entries());
         }
         
         //iterate over each slice [i = index of current slice]

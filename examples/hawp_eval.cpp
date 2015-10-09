@@ -97,8 +97,8 @@ int main(int argc, char* argv[])
     wp.shape() = enumerator.enumerate(shape);
     
     std::size_t bsize = wp.shape()->n_entries();
-    wp.coefficients() = std::vector<complex_t>(bsize);
-    
+    wp.coefficients() = Coefficients(bsize);
+
     // (4) Define "random" coefficients
     std::vector<MultiIndex> order(bsize);
     for (int islice = 0; islice < wp.shape()->n_slices(); islice++) {

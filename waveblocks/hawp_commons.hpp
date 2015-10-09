@@ -196,8 +196,8 @@ public:
      * \brief Grants read-only access to the coefficients \f$ \{c_k\} \f$ 
      * for all \f$ k \in \mathfrak{K} \f$ of this wavepacket.
      */
-    virtual std::vector<complex_t> const& coefficients() const = 0;
-    
+    virtual Coefficients const& coefficients() const = 0;
+
     /**
      * \brief Evaluates this wavepacket \f$ \Phi(x) \f$ at complex grid nodes \f$ x \in \gamma \f$.
      * 
@@ -212,10 +212,10 @@ public:
     template<int N>
     CArray<1,N> evaluate(CMatrix<D,N> const& grid) const
     {
-        if (this->shape()->n_entries() != coefficients().size())
+        if (this->shape()->n_entries() != (std::size_t)coefficients().size())
             throw std::runtime_error("shape.size() != coefficients.size()");
-        
-        return this->template create_evaluator<N>(grid).reduce( coefficients() );
+
+        return this->template create_evaluator<N>(grid).reduce(coefficients());
     }
     
     /**
@@ -241,7 +241,7 @@ public:
      */
     complex_t prefactor() const
     {
-        return real_t(1)/this->paramaters().sqrt_detQ();;
+        return real_t(1)/this->parameters().sqrt_detQ();;
     }
     
 //     virtual HaWpBasisVector<Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const
@@ -307,12 +307,12 @@ public:
      * \brief Grants writeable access to the coefficients \f$ c \f$
      * of the wavepacket.
      */
-    std::vector<complex_t> & coefficients()
+    Coefficients & coefficients()
     {
         return coefficients_;
     }
-    
-    std::vector<complex_t> const& coefficients() const override
+
+    Coefficients const& coefficients() const override
     {
         return coefficients_;
     }
@@ -321,8 +321,8 @@ private:
     double eps_;
     HaWpParamSet<D> parameters_;
     ShapeEnumSharedPtr<D, MultiIndex> shape_;
-    std::vector<complex_t> coefficients_;
-    
+    Coefficients coefficients_;
+
 }; // class ScalarHaWp
 
 /**
@@ -414,12 +414,12 @@ public:
          * \brief Grants writeable access to the coefficients of this 
          * wavepacket component.
          */
-        std::vector<complex_t> & coefficients()
+        Coefficients & coefficients()
         {
             return coefficients_;
         }
-        
-        std::vector<complex_t> const& coefficients() const override
+
+        Coefficients const& coefficients() const override
         {
             return coefficients_;
         }
@@ -428,7 +428,7 @@ public:
         HomogeneousHaWp const* const owner_;
         
         ShapeEnumSharedPtr<D, MultiIndex> shape_;
-        std::vector<complex_t> coefficients_;
+        Coefficients coefficients_;
     };
     
     HomogeneousHaWp(std::size_t n)
@@ -759,12 +759,12 @@ public:
          * \brief Grants writeable access to the coefficients of this 
          * wavepacket component.
          */
-        std::vector<complex_t> & coefficients()
+        Coefficients & coefficients()
         {
             return coefficients_;
         }
-        
-        std::vector<complex_t> const& coefficients() const override
+
+        Coefficients const& coefficients() const override
         {
             return coefficients_;
         }
@@ -774,7 +774,7 @@ public:
         
         HaWpParamSet<D> parameters_;
         ShapeEnumSharedPtr<D, MultiIndex> shape_;
-        std::vector<complex_t> coefficients_;
+        Coefficients coefficients_;
     };
     
     InhomogeneousHaWp(std::size_t n)

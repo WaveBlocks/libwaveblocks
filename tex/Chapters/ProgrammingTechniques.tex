@@ -1,0 +1,170 @@
+% Chapter Template
+
+\chapter{Programming Techniques} % Main chapter title
+
+\label{progtech} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+\lhead{Chapter 2. \emph{Programming Techniques}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+In this chapter, I outline some programming techniques and the issues tackled with them during the design of the code.
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+\section{A static approach to abstract base classes}
+In this section, I quickly outline a common technique to obtain some of the functionality that virtual function calls provide without incurring the runtime costs associated with such calls.
+
+\subsection{Curiously recurring template pattern (CRTP)}
+CRTP (term coined in \cite{C_CRTP}) is a template pattern where a class template \texttt{B} expecting a class as parameter exists and next a class \texttt{D} is defined to inherit from an instantiation of \texttt{B} with the subtype \texttt{D} as argument.
+
+\begin{lstlisting}[language=C++]
+template<class Subtype>
+struct Base {};
+
+struct Derived : Base<Derived> {};
+\end{lstlisting}
+
+\subsection{Static Polymorphism}
+Static polymorphism\footnote{See for example the Wikipedia article \url{https://en.wikipedia.org/wiki/Template_metaprogramming\#Static_polymorphism}} is an attempt to simulate some behavior of dynamic polymorphism (such as virtual functions) without the run-time costs associated. To achieve this one can make use of the CRTP. 
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++]
+template<class Subtype>
+struct Base {
+	int foo(int x) {
+    	return static_cast<Subtype*>(this)->foo_implementation();
+    }
+    int bar(int x) {
+    	return foo(x)+1;
+    }
+};
+
+struct Derived : Base<Derived> {
+	int foo_implementation(int x) { return x;}
+};
+
+struct OtherDerived : Base<OtherDerived> {
+	int foo_implementation(int x) { return 2*x;}
+};
+\end{lstlisting}
+\end{minipage}
+
+
+In the example above we can see that there now is an interface \texttt{Base} indicating which functions are available and two implementations \texttt{Derived} and \texttt{OtherDerived} which implement the interface in different manners.
+Note that \texttt{Derived} and \texttt{OtherDerived} are not subtypes of the same class as each template instantiation defines its own base class. We therefore lose the flexibility of choosing the implementation at runtime but gain the speed-up of statically linking to the implementation.
+
+This really becomes useful when we want an abstract base class to provide some general functionality and then introduce specializations without the cost of having virtual function calls. 
+
+In the above example both implementations inherit the common functionality \texttt{bar} from their respective base class while defining their own implementation of \texttt{foo}.
+
+\section{Multiple Inheritance and Linearization}
+\texttt{C++} allows a class to inherit from multiple base classes. While this means that we can easily combine implementations it is not without disadvantages.\footnote{The elaborations in this section are largely based on  Chapters "Multiple Inheritance" and "Linearization" of the  lecture "Concepts of Object Oriented Programming" by Prof. Peter M\"uller. See the lecture notes at \url{https://www1.ethz.ch/pminf/education/courses/coop}.} I particularly wish to discuss a problem arising from diamond shaped inheritance.
+\subsection{Problem}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++]
+struct A {
+    virtual int bar(int x) {
+    	return x+1;
+    }
+};
+
+class B1 : public A {
+};
+
+class B2 : public A {
+};
+
+class C : public B1, public B2 {
+	int foo() {
+		return bar(2); // Which bar?
+    }
+};
+\end{lstlisting}
+\end{minipage}
+An ambiguity arises with multiple inheritance whenever two or more of the base classes share a base class. In the example above, one has to explicitly select either \texttt{B1::bar} or \texttt{B2::bar} in the example above. Alternatively, one can  make the inheritance from \texttt{A} \texttt{virtual}. While this isn't without issue itself (especially since it requires foresight from the writers of \texttt{B1} and \texttt{B2} to inherit only virtually), my main concern here was the virtual inheritance itself since I wanted to avoid runtime penalties at all costs.
+
+\subsection{Solution}
+A common trick is to simply template the middle classes on their super class and forcing the writer of the child class \texttt{C} to choose the linearization order when inheriting\footnote{This somewhat emulates the linearization of traits as in Scala.}. While \texttt{B1} and \texttt{B2} can now inherit from \texttt{A} it is also possible to linearize the diamond shaped inheritance to single inheritance. While this solution certainly isn't without issues of its own\footnote{See again Prof. Peter M\"uller's lecture "Concepts of Object Oriented Programming" and its discussion of Scala traits as an example.}, I found it quite useful.
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++]
+struct A {
+    virtual int bar(int x) {
+    	return x+1;
+    }
+};
+
+template<class Super>
+class B1 : public Super {
+};
+
+template<class Super>
+class B2 : public Super {
+};
+
+class C : public B1<B2<A>> {
+	int foo() {
+		return bar(2); // Which bar? Last override!
+    }
+};
+\end{lstlisting}
+\end{minipage}
+
+\subsection{Application}
+I make use of multiple inheritance to create a collection of modules which can be mixed and matched to provide only the functionality required to the class. To avoid diamond shaped inheritance every implementation that needs to inherit from some other implementation is templated on its super class. As an example of the mixing of modules consider a user that wants to create a potential only to evaluate it in some points and a user that wishes to also evaluate the derivatives. Both can make use of the same implementation for evaluation which requires both users to specify the potential. However, only the user that wishes to mix in (via inheritance) the functionality to also evaluate the derivatives is required to provide these during construction. This allows the users to easily create classes which only require and offer the functionality they desire. 
+
+\section{Partial specializations}
+\texttt{C++} does not allow partial specialization of template functions. It does, however, allow partial specialization of template classes. Therefore, a well known trick is to use a static member function of a template class, to effectively emulate partial specializations of functions.
+
+\begin{minipage}{\textwidth}
+\begin{lstlisting}[language=C++]
+template<int N, int D>
+int bar() {return 0;}
+
+template<int N>
+int bar<N,1>(){return 1;} // not allowed
+
+template<int N, int D>
+struct A {
+	static int foo(){return 0;}
+};
+
+template<int N>
+struct A<N,1> {
+	static int foo(){return 1;} // allowed
+};
+
+int main() {
+	A<2,2>::foo(); // 0
+	A<2,1>::foo(); // 1
+}
+\end{lstlisting}
+\end{minipage}
+
+\section{Template specialization and template aliases}
+During the coding I came across one strange issue related to template aliases which stumped me so much that I had to resort to asking a question on \url{stackoverflow.com}\footnote{The following description of the issue is very similar to the one I submitted to \url{http://stackoverflow.com/questions/32723988/alias-of-class-template} and the explanation of the issue is adapted from the accepted answer \url{http://stackoverflow.com/a/32724096/3139931} by user 'Barry'.}.
+
+Consider an alias template \texttt{A}. Now let \texttt{B} be an alias template of \texttt{A}.
+In the code below these class templates are used as template arguments for a struct \texttt{C} which is only specialized for one of the templates (\texttt{A}). \texttt{clang -std=c++11} exits with \texttt{error: implicit instantiation of undefined template 'C<B>'} indicating that another specialization for \texttt{B} is needed.
+\begin{lstlisting}[language=C++]
+template<int N>
+using A = int;
+
+template<int N>
+using B = A<N>;
+
+template<template<int> class I>
+struct C;
+
+template<>
+struct C<A> {};
+
+int main() {
+  C<A> c;
+  C<B> d; // clang error: implicit instantiation
+}
+\end{lstlisting}
+It is strange that - despite not allowing specializations of aliases and therefore guaranteeing that both aliases will \textit{behave} the same - \texttt{A} and \texttt{B} are treated as different class templates because the standard only guarantees that \texttt{A<X>} and \texttt{B<X>} are the same for every class \texttt{X}. Logically we should then be able to assume that \texttt{A} and \texttt{B} are in fact the same since they behave exactly the same but there are no guarantees from the standard (and \texttt{clang} for example does treat them as two different templates). This is CWG issue \#1286\footnote{\url{http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html\#1286}}
+
+Concretely, this problem means that we initially could not use an alias template for the really wordy typenames \texttt{matrixPotentials::bases::Canonical} and \texttt{matrixPotentials::bases::Eigen} since some implementations used to be specialized on those templates and would not have been guaranteed to be specialized on an alias template of these typenames. To spare the user from typing this wordy symbol one could either move them out of their nested namespaces, resort to using a macro or refactor the code to remove any templates specialized on a template themselves. I opted for the refactoring. Unfortunately, this issue does now restrict any future implementations from specializing on these basis templates.
+
+

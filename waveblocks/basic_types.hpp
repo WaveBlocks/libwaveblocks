@@ -25,7 +25,7 @@ using RArray = Eigen::Array<real_t,R,C>;
 template<int N>
 using HaWpBasisVector = CArray<Eigen::Dynamic, N>;
 
-
+using Coefficients = Eigen::Matrix<complex_t, Eigen::Dynamic, 1>;
 }
 
 #endif
