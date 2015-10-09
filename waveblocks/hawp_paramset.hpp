@@ -117,19 +117,34 @@ public:
     inline complex_t const sdQ() const {return sqrt_detQ_();}
 
     /** \brief Set the parameter \f$ q \f$ */
-    inline void q(const RMatrix<D,1> qnew) {q_ = qnew;}
+    inline void q(const RMatrix<D,1>& qnew) {q_ = qnew;}
 
     /** \brief Set the parameter \f$ p \f$ */
-    inline void p(const RMatrix<D,1> pnew) {p_ = pnew;}
+    inline void p(const RMatrix<D,1>& pnew) {p_ = pnew;}
 
     /** \brief Set the parameter \f$ Q \f$ */
-    inline void Q(const CMatrix<D,D> Qnew) {Q_ = Qnew; resync();}
+    inline void Q(const CMatrix<D,D>& Qnew) {Q_ = Qnew; resync();}
 
     /** \brief Set the parameter \f$ P \f$ */
-    inline void P(const CMatrix<D,D> Pnew) {P_ = Pnew;}
+    inline void P(const CMatrix<D,D>& Pnew) {P_ = Pnew;}
 
     /** \brief Set the parameter \f$ S \f$ */
-    inline void S(const complex_t Snew) {S_ = Snew;}
+    inline void S(const complex_t& Snew) {S_ = Snew;}
+
+    /** \brief Update the parameter \f$ q \f$ */
+    inline void updateq(const RMatrix<D,1>& qnew) {q_ += qnew;}
+
+    /** \brief Update the parameter \f$ p \f$ */
+    inline void updatep(const RMatrix<D,1>& pnew) {p_ += pnew;}
+
+    /** \brief Update the parameter \f$ Q \f$ */
+    inline void updateQ(const CMatrix<D,D>& Qnew) {Q_ += Qnew; resync();}
+
+    /** \brief Update the parameter \f$ P \f$ */
+    inline void updateP(const CMatrix<D,D>& Pnew) {P_ += Pnew;}
+
+    /** \brief Update the parameter \f$ S \f$ */
+    inline void updateS(const complex_t& Snew) {S_ += Snew;}
 
     /* Undocumented
      * Compute the continuous square root of \f$ \det Q \f$ after an update
