@@ -4,6 +4,7 @@ project(waveblocks)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake_modules")
 
+# GCC
 add_definitions(
   -std=c++11
   -Wall
@@ -13,10 +14,21 @@ add_definitions(
   -Ofast # 03 and some optimization not valid for all standard-compliant programs (such as -ffast-math
   -fprofile-use # conditions optimizations on a profiling run
   -static # statically links library calls
-  -ftree-loop-if-convert-stores # rewrites conditional writes in loops to unconiditional ones 
+  -ftree-loop-if-convert-stores # rewrites conditional writes in loops to unconiditional ones
   -ftree-loop-distribution # distributes loops for better cache usage
-  
   )
+
+# Clang
+#add_definitions(
+#  -std=c++11
+#  -Wall
+#  -Wno-deprecated-declarations
+#  -Wextra
+#  -pedantic
+#  -Ofast # 03 and some optimization not valid for all standard-compliant programs (such as -ffast-math
+#  -static # statically links library calls
+#  -fopenmp
+#  )
 
 add_library(waveblocks-static STATIC
   waveblocks/csv/coefficients_file_parser.cpp
