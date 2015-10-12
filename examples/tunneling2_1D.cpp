@@ -23,14 +23,16 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
         const real_t a =     0.944858;
 
         const double d = 3.0;
+        const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
+        const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
 
         return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
-          sigma / std::pow(std::cosh((x-d)/a),2) +
-          sigma / std::pow(std::cosh((x+d)/a),2),
-          -(2*sigma * std::tanh((x-d)/a) / std::pow(std::cosh((x-d)/a), 2))
-          -(2*sigma * std::tanh((x+d)/a) / std::pow(std::cosh((x+d)/a), 2)),
-          (2*sigma*std::cosh(2.0*(x-d)/a) - 4*sigma) / (a*a*std::pow(std::cosh((x-d)/a),4)) +
-          (2*sigma*std::cosh(2.0*(x+d)/a) - 4*sigma) / (a*a*std::pow(std::cosh((x+d)/a),4))
+          sigma / cxmd +
+          sigma / cxpd,
+          -(2*sigma * std::tanh((x-d)/a) / cxmd)
+          -(2*sigma * std::tanh((x+d)/a) / cxpd),
+          (2*sigma*std::cosh(2.0*(x-d)/a) - 4*sigma) / (a*a*cxmd*cxmd) +
+          (2*sigma*std::cosh(2.0*(x+d)/a) - 4*sigma) / (a*a*cxpd*cxpd)
                                                                                                  );
     }
 };
@@ -41,10 +43,12 @@ struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potent
         const real_t a =     0.944858;
 
         const double d = 3.0;
+        const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
+        const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
 
         return
-            sigma / std::pow(std::cosh((x-d)/a),2) +
-            sigma / std::pow(std::cosh((x+d)/a),2);
+            sigma / cxmd +
+            sigma / cxpd;
     }
 };
 
@@ -56,19 +60,23 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
         const auto xmq = x - q;
 
         const double d = 3.0;
+        const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
+        const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
+        const complex_t cqmd = std::pow(std::cosh((q-d)/a),2);
+        const complex_t cqpd = std::pow(std::cosh((q+d)/a),2);
 
         const auto V =
-            sigma / std::pow(std::cosh((x-d)/a),2) +
-            sigma / std::pow(std::cosh((x+d)/a),2);
+            sigma / cxmd +
+            sigma / cxpd;
         const auto U =
-            sigma / std::pow(std::cosh((q-d)/a),2) +
-            sigma / std::pow(std::cosh((q+d)/a),2);
+            sigma / cqmd +
+            sigma / cqpd;
         const auto J =
-            -(2*sigma * std::tanh((q-d)/a) / std::pow(std::cosh((q-d)/a), 2))
-            -(2*sigma * std::tanh((q+d)/a) / std::pow(std::cosh((q+d)/a), 2));
+            -(2*sigma * std::tanh((q-d)/a) / cqmd)
+            -(2*sigma * std::tanh((q+d)/a) / cqpd);
         const auto H =
-            (2*sigma*std::cosh(2.0*(q-d)/a) - 4*sigma) / (a*a*std::pow(std::cosh((q-d)/a),4)) +
-            (2*sigma*std::cosh(2.0*(q+d)/a) - 4*sigma) / (a*a*std::pow(std::cosh((q+d)/a),4));
+            (2*sigma*std::cosh(2.0*(q-d)/a) - 4*sigma) / (a*a*cqmd*cqmd) +
+            (2*sigma*std::cosh(2.0*(q+d)/a) - 4*sigma) / (a*a*cqpd*cqpd);
 
         return V - U - J*xmq - 0.5*xmq*H*xmq;
     }
