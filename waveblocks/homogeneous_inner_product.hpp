@@ -50,7 +50,7 @@ public:
      *
      * \param packet wavepacket \f$\phi\f$
      * \param op operator \f$f(x, q) : \mathbb{C}^{D \times N} \times
-     *   \mathbb{C}^D \rightarrow \mathbb{C}^N\f$ which is evaluated at the
+     *   \mathbb{R}^D \rightarrow \mathbb{C}^N\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$;
      *   default returns a vector of ones
      */
@@ -88,6 +88,12 @@ public:
         return result;
     }
 
+    /**
+     * \brief Perform quadrature.
+     *
+     * Evaluates the scalar \f$\langle \phi | f | \phi \rangle\f$.
+     * See build_matrix() for the parameters.
+     */
     complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet,
                          const op_t& op=default_op) const {
         const auto M = build_matrix(packet, op);

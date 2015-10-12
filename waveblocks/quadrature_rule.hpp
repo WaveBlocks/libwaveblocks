@@ -6,6 +6,11 @@
 
 namespace waveblocks {
 
+/**
+ * \brief Node and weight values for a 1D quadrature rule.
+ *
+ * Should only be used internally.
+ */
 struct QuadratureRule
 {
     const size_t order;
