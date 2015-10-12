@@ -77,7 +77,7 @@ void test1DGaussHermiteOperator()
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
     using QR = GaussHermiteQR<order>;
     using CMatrix1N = CMatrix<1, Eigen::Dynamic>;
-    using CMatrixD1 = CMatrix<D, 1>;
+    using RMatrixD1 = RMatrix<D, 1>;
     using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
 
     // Set up sample 1D wavepacket.
@@ -107,7 +107,7 @@ void test1DGaussHermiteOperator()
     // Use an operator that returns a sequence 1, 2, ..., number_nodes.
     HomogeneousInnerProduct<D, MultiIndex, QR> ip;
     auto op =
-        [] (CMatrixDN nodes, CMatrixD1 pos) -> CMatrix1N
+        [] (CMatrixDN nodes, RMatrixD1 pos) -> CMatrix1N
     {
         (void)pos;
         const dim_t n_nodes = nodes.cols();
@@ -141,11 +141,14 @@ void test3DGaussHermite()
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     Coefficients coeffs = Coefficients::Ones(std::pow(N, D),1);
+    for(int i = 0; i < coeffs.size(); ++i) coeffs[i] = i+1;
     ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
     packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
+    std::cout << "Coefficients:\n";
+    std::cout << coeffs << "\n";
 
     //const dim_t order = 4;
     //using QR = GaussHermiteQR<order>;
@@ -224,8 +227,8 @@ int main()
 {
     //test1DGaussHermite();
     //test1DGaussHermiteOperator();
-    //test3DGaussHermite();
-    test1DInhomog();
+    test3DGaussHermite();
+    //test1DInhomog();
 
     return 0;
 }

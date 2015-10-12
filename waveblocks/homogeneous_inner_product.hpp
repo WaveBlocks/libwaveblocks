@@ -32,10 +32,11 @@ public:
     using CMatrixD1 = CMatrix<D, 1>;
     using CMatrixDD = CMatrix<D, D>;
     using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
+    using RMatrixD1 = RMatrix<D, 1>;
     using CDiagonalNN = Eigen::DiagonalMatrix<complex_t, Eigen::Dynamic>;
     using NodeMatrix = typename QR::NodeMatrix;
     using WeightVector = typename QR::WeightVector;
-    using op_t = std::function<CMatrix1N(CMatrixDN,CMatrixD1)>;
+    using op_t = std::function<CMatrix1N(CMatrixDN,RMatrixD1)>;
 
     HomogeneousInnerProduct()
     {
@@ -48,8 +49,8 @@ public:
      * an operator \f$f\f$.
      * The coefficients of the wavepacket are ignored.
      *
-     * \param packet wavepacket \f$\phi\f$
-     * \param op operator \f$f(x, q) : \mathbb{C}^{D \times N} \times
+     * \param[in] packet wavepacket \f$\phi\f$
+     * \param[in] op operator \f$f(x, q) : \mathbb{C}^{D \times N} \times
      *   \mathbb{R}^D \rightarrow \mathbb{C}^N\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$;
      *   default returns a vector of ones
@@ -70,7 +71,7 @@ public:
         const CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * nodes);
 
         // Apply operator
-        const CMatrix1N values = op(transformed_nodes, q);
+        const CMatrix1N values = op(transformed_nodes, packet.parameters().q());
 
         // Prefactor
         const CMatrix1N factor =
@@ -103,7 +104,7 @@ public:
     }
 
 private:
-    static CMatrix1N default_op(const CMatrixDN& nodes, const CMatrixD1& pos)
+    static CMatrix1N default_op(const CMatrixDN& nodes, const RMatrixD1& pos)
     {
         (void)pos;
         return CMatrix1N::Ones(1, nodes.cols());
