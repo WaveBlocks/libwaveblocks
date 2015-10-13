@@ -14,172 +14,155 @@
 
 namespace waveblocks
 {
-    template<int N, int D>
-    struct Step1 {
-        static void apply(HaWpParamSet<D>& params,
-                          const real_t &delta_t) {
-            params.updateq( 0.5 * delta_t * params.p() );
-            params.updateQ( 0.5 * delta_t * params.P() );
-            params.updateS( 0.25 * delta_t * params.p().dot(params.p()) );
-        }
-    };
-    template<int N>
-    struct Step1<N,1> {
-        static void apply(HaWpParamSet<1>& params,
-                          const real_t &delta_t) {
-            params.updateq( 0.5 * delta_t * params.p() );
-            params.updateQ( 0.5 * delta_t * params.P() );
-            params.updateS( 0.25 * delta_t * params.p().dot(params.p()) );
-        }
-    };
-
-    template<int N, int D>
-    struct Step2 {
-        template<class Potential>
-        static void inhomogenous(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
-            // inefficient since all levels are evaluated for each q
-            const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
-            params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() );
-            params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
-            params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
-        }
-        template<class Potential>
-        static void homogenous(const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
-            const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
-            params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() );
-            params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
-            params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
-        }
-    };
-
-    template<int N>
-    struct Step2<N,1> {
-        template<class Potential>
-        static void inhomogenous(int i, const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
-            // inefficient since all levels are evaluated for each q
-            const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
-            params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() * RMatrix<1,1>::Identity() );
-            params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
-            params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
-        }
-        template<class Potential>
-        static void homogenous(const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
-            const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
-            params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() * RMatrix<1,1>::Identity() );
-            params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
-            params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
-        }
-    };
-
-  template<int D>
-  struct HelperArg {
-    static CMatrix<D,1> first(const CMatrix<D,Eigen::Dynamic>& nodes, int l) {
-      return nodes.template block<D,1>(0,l);
-    }
-    static const CMatrix<D,1>& second(const CMatrix<D,1> &pos) {
-      return pos;
-    }
-  };
-
-  template<>
-  struct HelperArg<1> {
-    static const complex_t& first(const CMatrix<1,Eigen::Dynamic>& nodes, int l) {
-      return nodes(0,l);
-    }
-    static const complex_t& second(const CMatrix<1,1> &pos) {
-      return pos[0];
-    }
-  };
-
-  template<class Packet, class Potential, class IP, int N, int D>
-  struct HelperF {
-    static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential& V) {
-      IP ip;
-        int size = 0;
-        for (auto& component : packet.components()) {
-          size += component.coefficients().size();
-        }
-        F.resize(size,size);
-        
-        int i_offset = 0;
-        #pragma omp parallel for schedule(guided)
-        for (int i = 0; i < N; ++i){
-          int i_size = packet.component(i).coefficients().size();
-          int j_offset = 0;
-          
-          #pragma omp parallel for schedule(guided)
-          for (int j = 0; j < N; ++j) {
-            int j_size = packet.component(j).coefficients().size();
-            // Set up operator
-            auto op =
-                [&V, i, j] (const CMatrix<D,Eigen::Dynamic> &nodes, const RMatrix<D,1> &pos)
-            {
-                const dim_t n_nodes = nodes.cols();
-                CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
-                
-                #pragma omp parallel for schedule(guided)
-                for(int l = 0; l < n_nodes; ++l) {
-                  result(0, l) = V.evaluate_local_remainder_at(HelperArg<D>::first(nodes,l), HelperArg<D>::second(complex_t(1, 0) * pos))(i,j); // SUUUUPER INEFFICIENT. COMPUTE NxN Matrix when we only want one entry...
-                }
-                return result;
-            };
-
-            // Build matrix
-            F.block(i_offset,j_offset,i_size,j_size) = ip.build_matrix( packet.component(i), packet.component(j), op );
-            j_offset += j_size;
+  namespace propagators {
+    namespace helper {
+      using utilities::Squeeze;
+      using utilities::PacketToCoefficients;
+      
+      template<int N, int D>
+      struct Step1 {
+          static void apply(HaWpParamSet<D>& params,
+                            const real_t &delta_t) {
+              params.updateq( 0.5 * delta_t * params.p() );
+              params.updateQ( 0.5 * delta_t * params.P() );
+              params.updateS( 0.25 * delta_t * params.p().dot(params.p()) );
           }
-          i_offset += i_size;
-        }
-    }
-  };
-
-  template<class Packet, class Potential, class IP,int D>
-  struct HelperF<Packet,Potential,IP,1,D> {
-    static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential &V) {
-      IP ip;
-      auto op =
-          [&V] (const CMatrix<D,Eigen::Dynamic> &nodes, const CMatrix<D,1> &pos) {
-          const dim_t n_nodes = nodes.cols();
-          CMatrix<1,Eigen::Dynamic> result(n_nodes);
-          for(int l = 0; l < n_nodes; ++l) {
-            result(0, l) = V.evaluate_local_remainder_at(HelperArg<D>::first(nodes,l), HelperArg<D>::second(pos));
-          }
-          return result;
       };
 
-      // Build matrix
-      F = ip.build_matrix(packet, op);
+      template<int N, int D>
+      struct Step2 {
+          template<class Potential>
+          static void inhomogenous(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
+              // inefficient since all levels are evaluated for each q
+              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
+              params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() );
+              params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
+              params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
+          }
+          template<class Potential>
+          static void homogenous(const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
+              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
+              params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() );
+              params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
+              params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
+          }
+      };
+
+      template<int N>
+      struct Step2<N,1> {
+          template<class Potential>
+          static void inhomogenous(int i, const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
+              // inefficient since all levels are evaluated for each q
+              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
+              params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() * RMatrix<1,1>::Identity() );
+              params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
+              params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
+          }
+          template<class Potential>
+          static void homogenous(const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
+              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
+              params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() * RMatrix<1,1>::Identity() );
+              params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
+              params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
+          }
+      };
+
+
+      template<class Packet, class Potential, class IP, int N, int D>
+      struct HelperF {
+        static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential& V) {
+          IP ip;
+            int size = 0;
+            for (auto& component : packet.components()) {
+              size += component.coefficients().size();
+            }
+            F.resize(size,size);
+            
+            int i_offset = 0;
+            #pragma omp parallel for schedule(guided)
+            for (int i = 0; i < N; ++i){
+              int i_size = packet.component(i).coefficients().size();
+              int j_offset = 0;
+              
+              #pragma omp parallel for schedule(guided)
+              for (int j = 0; j < N; ++j) {
+                int j_size = packet.component(j).coefficients().size();
+                // Set up operator
+                auto op =
+                    [&V, i, j] (const CMatrix<D,Eigen::Dynamic> &nodes, const RMatrix<D,1> &pos)
+                {
+                    const dim_t n_nodes = nodes.cols();
+                    CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
+                    
+                    #pragma omp parallel for schedule(guided)
+                    for(int l = 0; l < n_nodes; ++l) {
+                      result(0, l) = V.evaluate_local_remainder_at(Squeeze<D, CMatrix<D,Eigen::Dynamic>>::apply(nodes,l), Squeeze<D, CVector<D>>::apply(complex_t(1, 0) * pos))(i,j); // SUUUUPER INEFFICIENT. COMPUTE NxN Matrix when we only want one entry...
+                    }
+                    return result;
+                };
+
+                // Build matrix
+                F.block(i_offset,j_offset,i_size,j_size) = ip.build_matrix( packet.component(i), packet.component(j), op );
+                j_offset += j_size;
+              }
+              i_offset += i_size;
+            }
+        }
+      };
+
+      template<class Packet, class Potential, class IP,int D>
+      struct HelperF<Packet,Potential,IP,1,D> {
+        static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential &V) {
+          IP ip;
+          auto op =
+              [&V] (const CMatrix<D,Eigen::Dynamic> &nodes, const CMatrix<D,1> &pos) {
+              const dim_t n_nodes = nodes.cols();
+              CMatrix<1,Eigen::Dynamic> result(n_nodes);
+
+              #pragma omp parallel for schedule(guided)
+              for(int l = 0; l < n_nodes; ++l) {
+                result(0, l) = V.evaluate_local_remainder_at(Squeeze<D, CMatrix<D,Eigen::Dynamic>>::apply(nodes,l), Squeeze<D, CVector<D>>::apply(pos));
+              }
+              return result;
+          };
+
+          // Build matrix
+          F = ip.build_matrix(packet, op);
+        }
+      };
+        
+      template<class Packet, class Potential, int N, int D, class IP>
+      struct Step3 {
+
+        static void apply(Packet &packet, const Potential& V, const real_t& delta_t) {
+
+          CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
+          HelperF<Packet,Potential,IP,N,D>::build(F, packet, V);
+
+          auto M = -delta_t *  complex_t(0,1) / (packet.eps()*packet.eps()) * F;
+
+          // Exponential
+          CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
+          (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
+          
+          // Put all coefficients into a vector
+          CVector<Eigen::Dynamic> coefficients = PacketToCoefficients<Packet>::to(packet);
+
+          // Compute product
+          coefficients = expM * coefficients;
+          
+          PacketToCoefficients<Packet>::from(coefficients, packet);
+        }
+      };
+
     }
-  };
-    
-  template<class Packet, class Potential, int N, int D, class IP>
-  struct Step3 {
 
-    static void apply(Packet &packet, const Potential& V, const real_t& delta_t) {
-
-      CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
-      HelperF<Packet,Potential,IP,N,D>::build(F, packet, V);
-
-      auto M = -delta_t *  complex_t(0,1) / (packet.eps()*packet.eps()) * F;
-
-      // Exponential
-      CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
-      (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
       
-      // Put all coefficients into a vector
-      CVector<Eigen::Dynamic> coefficients = utilities::PacketToCoefficients<Packet>::to(packet);
-
-      // Compute product
-      coefficients = expM * coefficients;
-      
-      utilities::PacketToCoefficients<Packet>::from(coefficients, packet);
-    }
-  };
-
-    
   
-  namespace propagators
-  {
+    using helper::Step1;
+    using helper::Step2;
+    using helper::Step3;
+
     template <int N, int D, class MultiIndex, class TQR>
     struct Hagedorn {
       template<class Potential>
