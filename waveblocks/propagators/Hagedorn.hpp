@@ -9,6 +9,7 @@
 #include "../tensor_product_qr.hpp"
 #include "../gauss_hermite_qr.hpp"
 #include "../utilities/adaptors.hpp"
+#include "../utilities/squeeze.hpp"
 
 
 namespace waveblocks
