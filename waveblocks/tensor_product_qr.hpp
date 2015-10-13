@@ -12,6 +12,13 @@
 
 namespace waveblocks {
 
+
+/**
+ * \brief Structure providing weighted nodes for Tensor Product quadrature.
+ *
+ * \tparam RULES list of other quadrature rules to use as components of the
+ *   tensor product.
+ */
 template <class... RULES>
 struct TensorProductQR
 {
@@ -20,6 +27,13 @@ struct TensorProductQR
     using NodeMatrix = Eigen::Matrix<real_t,D,Eigen::Dynamic>;
     using WeightVector = Eigen::Matrix<real_t,1,Eigen::Dynamic>;
 
+
+    /**
+     * \brief Returns the number of nodes for the given order.
+     *
+     * In the case of TensorProductQR, this is the product of the numbers of
+     * nodes of the constituent quadrature rules (RULES).
+     */
     static dim_t number_nodes()
     {
         dim_t result = 1;
@@ -30,6 +44,9 @@ struct TensorProductQR
         return result;
     }
 
+    /**
+     * \brief Returns the quadrature nodes and weights.
+     */
     static std::tuple<const NodeMatrix,const WeightVector> nodes_and_weights()
     {
         const dim_t dim = D;
