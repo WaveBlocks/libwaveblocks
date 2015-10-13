@@ -79,10 +79,10 @@ int main() {
     Remain V;
 
     // Quadrature rules
-    using TQR = waveblocks::TensorProductQR<waveblocks::GaussHermiteQR<K+4>>;
+    using QR = waveblocks::GaussHermiteQR<K+4>;
 
     // Defining the propagator
-    propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
+    propagators::Hagedorn<N,D,MultiIndex,QR> propagator;
 
     // Preparing the file
     utilities::PacketWriter<ScalarHaWp<D,MultiIndex>> writer("anharmonic_1D.hdf5");
@@ -98,7 +98,7 @@ int main() {
 
         // Compute energies
         real_t ekin = kinetic_energy<D,MultiIndex>(packet);
-        real_t epot = potential_energy<Remain,D,MultiIndex,TQR>(packet,V);
+        real_t epot = potential_energy<Remain,D,MultiIndex,QR>(packet,V);
         real_t etot = ekin + epot;
         std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << etot << std::endl;
         writer.store_energies(t,epot,ekin);
