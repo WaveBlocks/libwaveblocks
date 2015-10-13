@@ -18,6 +18,7 @@ namespace waveblocks
     namespace helper {
       using utilities::Squeeze;
       using utilities::PacketToCoefficients;
+      using utilities::Unsqueeze;
       
       template<int N, int D>
       struct Step1 {
@@ -34,39 +35,19 @@ namespace waveblocks
           template<class Potential>
           static void inhomogenous(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
               // inefficient since all levels are evaluated for each q
-              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
-              params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() );
+              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * Squeeze<D,RVector<D>>::apply(params.q()));
+              params.updatep( -delta_t * Unsqueeze<D,RVector<D>>::apply(std::get<1>(leading_level_taylor)[i].real()));
               params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
               params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
           }
           template<class Potential>
           static void homogenous(const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
-              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q());
-              params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() );
+              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * Squeeze<D,RVector<D>>::apply(params.q()));
+              params.updatep( -delta_t * Unsqueeze<D,RVector<D>>::apply(std::get<1>(leading_level_taylor).real()));
               params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
               params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
           }
       };
-
-      template<int N>
-      struct Step2<N,1> {
-          template<class Potential>
-          static void inhomogenous(int i, const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
-              // inefficient since all levels are evaluated for each q
-              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
-              params.updatep( -delta_t * std::get<1>(leading_level_taylor)[i].real() * RMatrix<1,1>::Identity() );
-              params.updateP( -delta_t * std::get<2>(leading_level_taylor)[i] * params.Q() );
-              params.updateS( -delta_t * std::get<0>(leading_level_taylor)[i] );
-          }
-          template<class Potential>
-          static void homogenous(const Potential &V, HaWpParamSet<1> &params, const real_t &delta_t) {
-              const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * params.q()[0]);
-              params.updatep( -delta_t * std::get<1>(leading_level_taylor).real() * RMatrix<1,1>::Identity() );
-              params.updateP( -delta_t * std::get<2>(leading_level_taylor) * params.Q() );
-              params.updateS( -delta_t * std::get<0>(leading_level_taylor) );
-          }
-      };
-
 
       template<class Packet, class Potential, class IP, int N, int D>
       struct HelperF {

@@ -25,5 +25,21 @@ namespace waveblocks {
         return nodes(0,l);
       }
     };
+
+    template<int D, class T>
+    struct Unsqueeze {
+      static const T& apply(const T& t) {
+        return t;
+      }
+    };
+
+    template<class T>
+    struct Unsqueeze<1,T> {
+      static T apply(const typename std::remove_reference<decltype(std::declval<T>()[0])>::type& t) {
+        T result;
+        result[0] = t;
+        return result;
+      }
+    };
   }
 }
