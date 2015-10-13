@@ -22,7 +22,7 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
 
-        const double d = 3.0;
+        const double d = 2.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
 
@@ -42,7 +42,7 @@ struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potent
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
 
-        const double d = 3.0;
+        const double d = 2.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
 
@@ -59,7 +59,7 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
         const real_t a =     0.944858;
         const auto xmq = x - q;
 
-        const double d = 3.0;
+        const double d = 2.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
         const complex_t cqmd = std::pow(std::cosh((q-d)/a),2);
