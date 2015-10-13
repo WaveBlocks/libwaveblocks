@@ -43,7 +43,6 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
         const real_t a =     0.944858;
         const auto xmq = x - q;
 
-    const auto V = sigma / std::pow(std::cosh(q/a),2);
         const auto V = sigma / std::pow(std::cosh(x/a),2);
         const auto U = sigma / std::pow(std::cosh(q/a),2);
         const auto J = - (2.0*sigma*std::tanh(q/a)) / (a*std::pow(std::cosh(q/a),2));
@@ -94,14 +93,11 @@ int main() {
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
     // Preparing the file
-    using Writer = utilities::PacketWriter<ScalarHaWp<D,MultiIndex>>;
-    Writer writer("tunneling_1D_0.hdf5");
-    int numBlock = 0;
-    int nSteps = 0;
-    int maxSteps = 1000;
+    utilities::PacketWriter<ScalarHaWp<D,MultiIndex>> writer("tunneling_1D.hdf5");
+
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
-      std::cout << "Time: " << t << std::endl;
+        std::cout << "Time: " << t << std::endl;
 
         // Propagate
         propagator.propagate(packet,dt,V);
@@ -111,16 +107,9 @@ int main() {
         // Compute energies
         real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
         real_t potential = potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
-      if (nSteps == maxSteps) {
-        writer = Writer("tunneling_1D_" + toString(++numBlock) + ".hdf5");
-        nSteps = 0;
-      }
-      std::cout << "E: (p,k,t) " << potential << ", " << kinetic << ", " << total << std::endl;
-      std::cout << potential << "," << kinetic << ", "<< total << std::endl;
-      
-      writer.store_energies(t,potential,kinetic);
-      writer.store_packet(t,packet);
-      nSteps++;
-      propagator.propagate(packet,dt,V);
+        real_t total = kinetic+potential;
+        std::cout << "E: (p,k,t) " << potential << ", " << kinetic << ", " << total << std::endl;
+        std::cout << potential << "," << kinetic << ", "<< total << std::endl;
+        writer.store_energies(t,potential,kinetic);
     }
 }

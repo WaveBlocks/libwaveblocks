@@ -40,8 +40,8 @@ public:
                            const AbstractScalarHaWp<D, MultiIndex>& packet,
                            const op_t& op=default_op) const {
         const dim_t n_nodes = QR::number_nodes();
-        const complex_t S_bra = pacbra.parameters().S;
-        const complex_t S_ket = packet.parameters().S;
+        const complex_t S_bra = pacbra.parameters().S();
+        const complex_t S_ket = packet.parameters().S();
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();

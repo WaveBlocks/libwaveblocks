@@ -83,16 +83,20 @@ int main(int argc, char* argv[])
     wp.eps() = 0.9;
     
     // (3) Define "random" parameters
-    wp.parameters() = HaWpParamSet<D>{};
+    RMatrix<D,1> q = RMatrix<D,1>::Zero();
+    RMatrix<D,1> p = RMatrix<D,1>::Zero();
+    CMatrix<D,D> Q = CMatrix<D,D>::Identity();
+    CMatrix<D,D> P = CMatrix<D,D>::Identity()*complex_t(0,1);
     for (int i = 0; i < D; i++) {
-        wp.parameters().p(i,0) += 0.1*std::sin(0.9*i);
-        wp.parameters().q(i,0) += 0.1*std::cos(0.8*i);
+        p(i,0) += 0.1*std::sin(0.9*i);
+        q(i,0) += 0.1*std::cos(0.8*i);
         for (int j = 0; j < D; j++) {
-            wp.parameters().P(i,j) += 0.1*std::exp(complex_t(0,0.7*(i*D+j)));
-            wp.parameters().Q(i,j) += 0.1*std::exp(complex_t(0,0.6*(i*D+j)));
+            P(i,j) += 0.1*std::exp(complex_t(0,0.7*(i*D+j)));
+            Q(i,j) += 0.1*std::exp(complex_t(0,0.6*(i*D+j)));
         }
     }
-    
+    wp.parameters() = HaWpParamSet<D>(q,p,Q,P,0);
+
     ShapeEnumerator<D,MultiIndex> enumerator;
     wp.shape() = enumerator.enumerate(shape);
     

@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project(waveblocks)
 
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake_modules")
+
+# GCC
 add_definitions(
   -std=c++11
   -Wall
@@ -11,10 +14,21 @@ add_definitions(
   -Ofast # 03 and some optimization not valid for all standard-compliant programs (such as -ffast-math
   -fprofile-use # conditions optimizations on a profiling run
   -static # statically links library calls
-  -ftree-loop-if-convert-stores # rewrites conditional writes in loops to unconiditional ones 
+  -ftree-loop-if-convert-stores # rewrites conditional writes in loops to unconiditional ones
   -ftree-loop-distribution # distributes loops for better cache usage
-  
   )
+
+# Clang
+#add_definitions(
+#  -std=c++11
+#  -Wall
+#  -Wno-deprecated-declarations
+#  -Wextra
+#  -pedantic
+#  -Ofast # 03 and some optimization not valid for all standard-compliant programs (such as -ffast-math
+#  -static # statically links library calls
+#  -fopenmp
+#  )
 
 add_library(waveblocks-static STATIC
   waveblocks/csv/coefficients_file_parser.cpp
@@ -57,6 +71,13 @@ find_package(HDF5 COMPONENTS CXX)
 if (HDF5_FOUND)
   include_directories(${HDF5_INCLUDE_DIR})
   set(LINK_LIBS ${LINK_LIBS} ${HDF5_LIBRARIES})
+endif()
+
+
+find_package(YamlCpp)
+if (YAMLCPP_FOUND)
+  include_directories(${YAMLCPP_INCLUDE_DIR})
+  set(LINK_LIBS "${LINK_LIBS};${YAMLCPP_LIBRARY}")
 endif()
 
 

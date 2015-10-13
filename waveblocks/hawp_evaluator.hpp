@@ -96,8 +96,8 @@ public:
         , npts_(x.cols())
         , sqrt_()
     {
-        auto & q = parameters_->q;
-        auto & Q = parameters_->Q;
+        RMatrix<D,1> const& q = parameters_->q();
+        CMatrix<D,D> const& Q = parameters_->Q();
 
         // precompute ...
         dx_ = x.colwise() - q.template cast<complex_t>();
@@ -125,8 +125,8 @@ public:
      */
     CArray1N seed() const
     {
-        auto & P = parameters_->P;
-        auto & p = parameters_->p;
+        RMatrix<D,1> const& p = parameters_->p();
+        CMatrix<D,D> const& P = parameters_->P();
 
         CMatrixDN P_Qinv_dx = P*Qinv_dx_;
 

@@ -45,10 +45,11 @@ int main(int argc, char* argv[])
     
     wavepacket.eps() = 0.9;
     wavepacket.parameters() = HaWpParamSet<D>{};
-    wavepacket.parameters().p = RMatrix<D,1>::Random();
-    wavepacket.parameters().q = RMatrix<D,1>::Random();
-    wavepacket.parameters().P = CMatrix<D,D>::Random();
-    wavepacket.parameters().Q = CMatrix<D,D>::Random();
+    wavepacket.parameters().p(RMatrix<D,1>::Random());
+    wavepacket.parameters().q(RMatrix<D,1>::Random());
+    wavepacket.parameters().P(CMatrix<D,D>::Random());
+    wavepacket.parameters().Q(CMatrix<D,D>::Random());
+
     for (std::size_t c = 0; c < wavepacket.n_components(); c++) {
         wavepacket[c].shape() = shape_enums[c];
         

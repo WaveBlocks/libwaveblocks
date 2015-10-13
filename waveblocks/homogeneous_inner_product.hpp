@@ -57,8 +57,8 @@ public:
     CMatrixNN build_matrix(const AbstractScalarHaWp<D, MultiIndex>& packet,
                            const op_t& op=default_op) const {
         const dim_t n_nodes = QR::number_nodes();
-        const CMatrixD1& q = packet.parameters().q.template cast<complex_t>();
-        const CMatrixDD& Q = packet.parameters().Q;
+        const CMatrixD1& q = packet.parameters().q().template cast<complex_t>();
+        const CMatrixDD& Q = packet.parameters().Q();
         NodeMatrix nodes;
         WeightVector weights;
         std::tie(nodes, weights) = QR::nodes_and_weights();

@@ -52,7 +52,7 @@ namespace waveblocks {
     };
 
     template<class Packet>
-    class Standard;
+    struct Standard;
 
     template<int D, class MultiIndex>
     struct Standard<ScalarHaWp<D,MultiIndex>> : public Abstract<Standard<ScalarHaWp<D,MultiIndex>>,ScalarHaWp<D,MultiIndex>> {
@@ -68,11 +68,11 @@ namespace waveblocks {
         
         //
         const auto& params = packet.parameters();
-        Super::save_matrix(params.q, "q@" + t);
-        Super::save_matrix(params.p, "p@" + t);
-        Super::save_matrix(params.Q, "Q@" + t);
-        Super::save_matrix(params.P, "P@" + t);
-        Super::save_scalar(params.S, "S@" + t);
+        Super::save_matrix(params.q(), "q@" + t);
+        Super::save_matrix(params.p(), "p@" + t);
+        Super::save_matrix(params.Q(), "Q@" + t);
+        Super::save_matrix(params.P(), "P@" + t);
+        Super::save_scalar(params.S(), "S@" + t);
 
         // eps
         Super::save_scalar(packet.eps(), "eps@" + t);

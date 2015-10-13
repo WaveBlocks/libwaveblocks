@@ -22,12 +22,12 @@ public:
     HaWpParamSet<D> operator()(YAML::Node const& config)
     {
         HaWpParamSet<D> params;
-        
-        params.p = decode_rvector(config["p"]);
-        params.q = decode_rvector(config["q"]);
-        params.P = decode_cmatrix(config["P"]);
-        params.Q = decode_cmatrix(config["Q"]);
-        
+
+        params.q(decode_rvector(config["q"]));
+        params.p(decode_rvector(config["p"]));
+        params.Q(decode_cmatrix(config["Q"]));
+        params.P(decode_cmatrix(config["P"]));
+
 //         if (config["sqrt_detQ"]) {
 //             params.sqrt_detQ = config["sqrt_detQ"].as<std::complex<double> >();
 //         }
