@@ -174,7 +174,7 @@ public:
      * from the bra and the ket wavepackets \f$ \Phi\left[\Pi_i\right] \f$
      * and \f$ \Phi^\prime\left[\Pi_j\right] \f$.
      *
-     * \param other The parameter set \f$ \Pi_j \f$ from the ket part wavepacket.
+     * \param ket The parameter set \f$ \Pi_j \f$ from the ket part wavepacket.
      * \return The mixed parameters \f$ q_0 \f$ and \f$ Q_0 \f$.
      */
     std::pair< RMatrix<D,1>, RMatrix<D,D> >
