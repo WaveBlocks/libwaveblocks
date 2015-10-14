@@ -49,7 +49,7 @@ Figure \ref{fig:dia} shows the class diagram of the standard implementations of 
 \label{fig:dia}
 \end{figure}
 \section{Hagedorn Propagator}
-The Hagedorn propagator is implemented as a template class templated on the number of levels $N$, the dimension $D$, as well as the class texttt{MultiIndex}, used for indexing the wavepacket, and the class \texttt{TQR}, which defines the tensor quadrature rule.
+The Hagedorn propagator is implemented as a template class templated on the number of levels $N$, the dimension $D$, as well as the class \texttt{MultiIndex}, used for indexing the wavepacket, and the class \texttt{TQR}, which defines the tensor quadrature rule.
 It offers the static method propagate which is overloaded for homogeneous and inhomogeneous wavepackets and specialized for scalar wavepackets. 
 The propagator needs different implementations for $N=1$, $N>1$, $D=1$, $D>1$ as well as different implementations for homogeneous and inhomogeneous wavepackets. However, there exists a lot of overlap in these implementations which I make heavy use of by delegating non-overlapping parts to partially specialized template functions. As an example we can see that for the first step the inhomogeneous case simply iterates over all components and applies the same operation to the parameter set of the Hagedorn wavepacket propagated as the homogeneous case does. Similarly, there are only a few lines of code that need to be adjusted when dealing with $D=1$.
 

@@ -194,7 +194,7 @@
 %	defined as \examname above so you cite it as \examname
 %----------------------------------------------------------------------------------------
 
-\thesistitle{Porting WaveBlocksND matrix potential functionality to C++} % Your thesis title - this is used in the title and abstract
+\thesistitle{Porting WaveBlocksND Matrix Potential Functionality to C++} % Your thesis title - this is used in the title and abstract
 %-------------------------------------------------  
 \supervisor{Dr. Vasile \textsc{Gradinaru}} % You supervisor's name - this is used in the title page
 \advisor{Raoul \textsc{Bourquin}} 

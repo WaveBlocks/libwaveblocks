@@ -31,7 +31,7 @@ Static polymorphism\footnote{See for example the Wikipedia article \url{https://
 template<class Subtype>
 struct Base {
 	int foo(int x) {
-    	return static_cast<Subtype*>(this)->foo_implementation();
+    	return static_cast<Subtype*>(this)->foo_implementation(x);
     }
     int bar(int x) {
     	return foo(x)+1;
@@ -57,7 +57,7 @@ This really becomes useful when we want an abstract base class to provide some g
 In the above example both implementations inherit the common functionality \texttt{bar} from their respective base class while defining their own implementation of \texttt{foo}.
 
 \section{Multiple Inheritance and Linearization}
-\texttt{C++} allows a class to inherit from multiple base classes. While this means that we can easily combine implementations it is not without disadvantages.\footnote{The elaborations in this section are largely based on  Chapters "Multiple Inheritance" and "Linearization" of the  lecture "Concepts of Object Oriented Programming" by Prof. Peter M\"uller. See the lecture notes at \url{https://www1.ethz.ch/pminf/education/courses/coop}.} I particularly wish to discuss a problem arising from diamond shaped inheritance.
+\texttt{C++} allows a class to inherit from multiple base classes. While this means that we can easily combine implementations it is not without disadvantages. In this section, I wish to outline a commonly occuring issue with multiple inheritance, possible solutions thereof and finally the application of one of these solutions to my implementation.\footnote{The elaborations in this section are largely based on  Chapters "Multiple Inheritance" and "Linearization" of the  lecture "Concepts of Object Oriented Programming" by Prof. Peter M\"uller. See the lecture notes at \url{https://www1.ethz.ch/pminf/education/courses/coop}.} I particularly wish to discuss a problem arising from diamond shaped inheritance.
 \subsection{Problem}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++]
