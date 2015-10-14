@@ -24,10 +24,6 @@ namespace waveblocks
          * \tparam Subtype The type extending this interface (used for static polymorphism)
          * \tparam Basis
          * Which basis (bases::Eigen or bases::Canonical) the potential is given in
-         * \tparam N
-         * Number of levels (dimension of square matrix when evaluated)
-         * \tparam D
-         * Dimension of argument space
          */
         template <class Subtype, class Basis>
         struct Abstract {
@@ -59,7 +55,16 @@ namespace waveblocks
                        args );
             }
         };
-        
+
+        /**
+         * \brief Helper class for easier template specialization
+         *
+         * This wraps concrete implementations of the Abstract base class
+         *
+         * \tparam TaylorImpl The implementation of the taylor module used
+         * \tparam Basis
+         * Which basis (bases::Eigen or bases::Canonical) the potential is given in
+         */
         template <class TaylorImpl, class Basis>
         class Standard : public Abstract<Standard<TaylorImpl, Basis>, Basis>,
         public TaylorImpl
@@ -109,6 +114,19 @@ namespace waveblocks
           }
         };
 
+        /**
+         * \brief Specialization of Standard implementation for D = 1
+         *
+         * This wraps concrete implementations of the Abstract base class
+         *
+         * \tparam TaylorImpl The implementation of the taylor module used
+         * \tparam B
+         * template to be used to instantiate basis
+         * \tparam N
+         * number of levels
+         * \tparam C
+         * number of columns (N for canonical basis, 1 for eigen basis)
+         */
         template <class TaylorImpl, template <int, int, int> class B, int N, int C>
         class Standard<TaylorImpl, B<N, 1, C>> : public Abstract<Standard<TaylorImpl, B<N,1, C>>, B<N,1, C>>,
         public TaylorImpl
@@ -151,7 +169,19 @@ namespace waveblocks
         };
 
         
-        
+        /**
+         * \brief Specialization of Standard implementation for N = 1
+         *
+         * This wraps concrete implementations of the Abstract base class
+         *
+         * \tparam TaylorImpl The implementation of the taylor module used
+         * \tparam B
+         * template to be used to instantiate basis
+         * \tparam D
+         * dimension of domain
+         * \tparam C
+         * number of columns (N for canonical basis, 1 for eigen basis)
+         */
         template <class TaylorImpl, template <int, int, int> class B, int D, int C>
         class Standard<TaylorImpl, B<1, D,C>> : public Abstract <
           Standard<TaylorImpl, B<1,D,C>>, B<1,D,C> >,        public TaylorImpl
@@ -188,6 +218,17 @@ namespace waveblocks
           }
         };
 
+        /**
+         * \brief Specialization of Standard implementation for D = 1, N =1 
+         *
+         * This wraps concrete implementations of the Abstract base class
+         *
+         * \tparam TaylorImpl The implementation of the taylor module used
+         * \tparam B
+         * template to be used to instantiate basis
+         * \tparam C
+         * number of columns (N for canonical basis, 1 for eigen basis)
+         */
         template <class TaylorImpl, template <int, int, int> class B, int C>
         class Standard<TaylorImpl, B<1,1,C>> : public Abstract<Standard<TaylorImpl, B<1, 1,C>>, B<1, 1,C>>,
         public TaylorImpl

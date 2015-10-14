@@ -17,7 +17,7 @@ namespace waveblocks
     {
       namespace taylor
       {
-        /**
+      /**
        * \brief Abstract class for potential evaluation
        *
        * A matrix potential inheriting an implementation of this module
@@ -28,10 +28,6 @@ namespace waveblocks
        * \tparam Subtype The type extending this interface (used for static polymorphism)
        * \tparam Basis
        * Which basis (bases::Eigen or bases::Canonical) the potential is given in
-       * \tparam N
-       * Number of levels (dimension of square matrix when evaluated)
-       * \tparam D
-       * Dimension of argument space
        */
         template <class Subtype, class Basis>
         struct Abstract {
@@ -62,10 +58,11 @@ namespace waveblocks
          *
          * This wraps concrete implementations of the Abstract base class
          *
-         * \tparam N
-         * Number of levels (dimension of square matrix when evaluated)
-         * \tparam D
-         * Dimension of argument space
+         * \tparam EvalImpl Implemntation of the evaluation module.
+         * \tparam JacImpl Implementation of the jacobian module.
+         * \tparam HessImpl Implementation of the hessian module.
+         * \tparam Basis
+         * Which basis (bases::Eigen or bases::Canonical) the potential is given in
          */
         template <class EvalImpl, class JacImpl, class HessImpl, class Basis>
         struct Standard : public Abstract<Standard<EvalImpl, JacImpl, HessImpl, Basis>, Basis>, public EvalImpl, public JacImpl, public HessImpl {

@@ -24,10 +24,6 @@ namespace waveblocks
          * \tparam Subtype The type extending this interface (used for static polymorphism)
          * \tparam Basis
          * Which basis (bases::Eigen or bases::Canonical) the potential is given in
-         * \tparam N
-         * Number of levels (dimension of square matrix when evaluated)
-         * \tparam D
-         * Dimension of argument space
          */
         template <class Subtype, class Basis>
         class Abstract
@@ -61,17 +57,13 @@ namespace waveblocks
          /**
          * \brief Implementation of exponential of potential evaluation
          *
-         * A matrix potential inheriting an implementation of this module
+         * A matrix potential inheriting this implementation
          * can evaluate its exponential potential and also inherits the evaluation module
-         * given by EvalImpl
+         * given by EvalImpl.
          *
          * \tparam EvalImpl The implementation of the evaluation module used
          * \tparam Basis
          * Which basis (bases::Eigen or bases::Canonical) the potential is given in
-         * \tparam N
-         * Number of levels (dimension of square matrix when evaluated)
-         * \tparam D
-         * Dimension of argument space
          */
         template <class EvalImpl, class Basis>
         struct Standard : public Abstract<Standard<EvalImpl, Basis>, Basis>,
