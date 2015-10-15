@@ -16,7 +16,8 @@
 namespace waveblocks {
 
 /**
- * \brief Class providing calculation of inhomogeneous inner products.
+ * \brief Class providing inhomogeneous inner product calculation of scalar
+ *   wavepackets.
  *
  * \tparam D dimensionality of processed wavepackets
  * \tparam MultiIndex multi-index type of processed wavepackets
@@ -96,6 +97,13 @@ public:
         return phase * result;
     }
 
+
+    /**
+     * \brief Perform quadrature.
+     *
+     * Evaluates the scalar \f$\langle \phi | f | \phi' \rangle\f$.
+     * See build_matrix() for the parameters.
+     */
     complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& pacbra,
                          const AbstractScalarHaWp<D, MultiIndex>& packet,
                          const op_t& op=default_op) const {

@@ -16,7 +16,8 @@
 namespace waveblocks {
 
 /**
- * \brief Class providing calculation of homogeneous inner products.
+ * \brief Class providing homogeneous inner product calculation of scalar
+ *   wavepackets.
  *
  * \tparam D dimensionality of processed wavepackets
  * \tparam MultiIndex multi-index type of processed wavepackets
