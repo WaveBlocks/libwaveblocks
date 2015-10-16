@@ -100,8 +100,7 @@ public:
                          const op_t& op=default_op) const {
         const auto M = build_matrix(packet, op);
         // Quadrature with wavepacket coefficients, c^H M c.
-        const CMatrixN1 coeffs = CMatrixN1::Map(packet.coefficients().data(), packet.coefficients().size());
-        return coeffs.adjoint() * M * coeffs;
+        return packet.coefficients().adjoint() * M * packet.coefficients();
     }
 
 private:

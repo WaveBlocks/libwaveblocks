@@ -109,9 +109,7 @@ public:
                          const op_t& op=default_op) const {
         const auto M = build_matrix(pacbra, packet, op);
         // Quadrature with wavepacket coefficients, c^H M c.
-        const CMatrixN1 coeffs_bra = CMatrixN1::Map(pacbra.coefficients().data(), pacbra.coefficients().size());
-        const CMatrixN1 coeffs_ket = CMatrixN1::Map(packet.coefficients().data(), packet.coefficients().size());
-        return coeffs_bra.adjoint() * M * coeffs_ket;
+        return pacbra.coefficients().adjoint() * M * packet.coefficients();
     }
 
 private:
