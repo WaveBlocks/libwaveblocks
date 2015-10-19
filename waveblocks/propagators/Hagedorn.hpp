@@ -19,8 +19,8 @@ namespace waveblocks
       using utilities::Squeeze;
       using utilities::PacketToCoefficients;
       using utilities::Unsqueeze;
-      
-      template<int N, int D>
+
+         template<int N, int D>
       struct Step1 {
           static void apply(HaWpParamSet<D>& params,
                             const real_t &delta_t) {
@@ -30,6 +30,11 @@ namespace waveblocks
           }
       };
 
+    /**
+      * \brief Helper class for Step2. If Mode then level is supscripted in i.
+      * 
+      * \tparam Mode flag true for inhomogeneous computation
+      */
       template<bool Mode>
       struct HelperL {
         template<class L>
@@ -45,7 +50,13 @@ namespace waveblocks
           return level;
         }
       };
-      
+
+
+    /**
+      * \brief Performs commong code of Step2 for all specializations.
+      * 
+      * \tparam Mode flag true for inhomogeneous computation
+      */      
       template<int N, int D, bool MODE>
       struct HelperA {
           template<class Potential>
@@ -70,7 +81,9 @@ namespace waveblocks
         }
       };
 
-
+    /**
+      * \brief Builds the inner product matrix
+      */ 
       template<class Packet, class Potential, class IP, int N, int D>
       struct HelperF {
         static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential& V) {
@@ -113,6 +126,9 @@ namespace waveblocks
         }
       };
 
+    /**
+      * \brief Specialization for N = 1
+      */ 
       template<class Packet, class Potential, class IP,int D>
       struct HelperF<Packet,Potential,IP,1,D> {
         static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential &V) {
@@ -166,6 +182,9 @@ namespace waveblocks
     using helper::Step2;
     using helper::Step3;
 
+    /**
+      * \brief Models the Hagedorn propagator. Offers propagation method.
+      */ 
     template <int N, int D, class MultiIndex, class TQR>
     struct Hagedorn {
       template<class Potential>

@@ -10,7 +10,8 @@ namespace waveblocks {
     /**
     * \brief Computes potential energy of a Hagedorn Wavepacket.
     *
-    * \param
+    * \param packet
+    * \param V potential
     * 
     * \tparam Potential
     * Needs to implement evaluation::Abstract interface
@@ -36,6 +37,8 @@ namespace waveblocks {
 
     /**
     * \brief Computes kinetic energy of a Hagedorn Wavepacket.
+    *
+    * \param packet
     * 
     * \tparam D
     * Dimension of argument space
