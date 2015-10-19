@@ -37,7 +37,8 @@ int main() {
   ShapeEnumerator<D, MultiIndex> enumerator;
   ShapeEnum<D, MultiIndex> shape_enum =
     enumerator.generate(HyperCubicShape<D>(K));
-  HaWpParamSet<D> param_set(q,p,Q,P,0.0);
+  HaWpParamSet<D> param_set(q, p, Q, P, 0.0);
+  HaWpParamSet<D> param_set2(2*q, 0.5*p, Q, P, 0.0);
   Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
   InhomogeneousHaWp<D,MultiIndex> packet(N);
 
@@ -48,7 +49,7 @@ int main() {
   packet.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
   packet.component(0).coefficients() = coeffs;
 
-  packet.component(1).parameters() = param_set;
+  packet.component(1).parameters() = param_set2;
   packet.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
   packet.component(1).coefficients() = coeffs;
 
