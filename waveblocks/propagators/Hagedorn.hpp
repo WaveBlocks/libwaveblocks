@@ -93,7 +93,6 @@ namespace waveblocks
   template<class Packet, class Potential, class IP, int N, int D>
   struct HelperF {
     static void build(CMatrix<Eigen::Dynamic, Eigen::Dynamic>& F, const Packet& packet, const Potential& V) {
-      IP ip;
         int size = 0;
         for (auto& component : packet.components()) {
           size += component.coefficients().size();
@@ -124,7 +123,7 @@ namespace waveblocks
             };
 
             // Build matrix
-            F.block(i_offset,j_offset,i_size,j_size) = ip.build_matrix( packet.component(i), packet.component(j), op );
+            F.block(i_offset,j_offset,i_size,j_size) = IP::build_matrix( packet.component(i), packet.component(j), op );
             j_offset += j_size;
           }
           i_offset += i_size;
@@ -147,7 +146,7 @@ namespace waveblocks
       };
 
       // Build matrix
-      F = ip.build_matrix(packet, op);
+      F = IP::build_matrix(packet, op);
     }
   };
     

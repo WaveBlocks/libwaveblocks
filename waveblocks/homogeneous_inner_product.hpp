@@ -39,10 +39,6 @@ public:
     using WeightVector = typename QR::WeightVector;
     using op_t = std::function<CMatrix1N(CMatrixDN,RMatrixD1)>;
 
-    HomogeneousInnerProduct()
-    {
-    }
-
     /**
      * \brief Calculate the matrix of the inner product.
      *
@@ -56,8 +52,9 @@ public:
      *   nodal points \f$x\f$ and position \f$q\f$;
      *   default returns a vector of ones
      */
-    CMatrixNN build_matrix(const AbstractScalarHaWp<D, MultiIndex>& packet,
-                           const op_t& op=default_op) const {
+    static CMatrixNN build_matrix(
+                           const AbstractScalarHaWp<D, MultiIndex>& packet,
+                           const op_t& op=default_op) {
         const dim_t n_nodes = QR::number_nodes();
         const CMatrixD1& q = packet.parameters().q().template cast<complex_t>();
         const CMatrixDD& Q = packet.parameters().Q();
@@ -96,8 +93,8 @@ public:
      * Evaluates the scalar \f$\langle \phi | f | \phi \rangle\f$.
      * See build_matrix() for the parameters.
      */
-    complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet,
-                         const op_t& op=default_op) const {
+    static complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet,
+                                const op_t& op=default_op) {
         const auto M = build_matrix(packet, op);
         // Quadrature with wavepacket coefficients, c^H M c.
         return packet.coefficients().adjoint() * M * packet.coefficients();

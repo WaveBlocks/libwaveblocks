@@ -38,8 +38,12 @@ public:
     using WeightVector = typename QR::WeightVector;
     using op_t = std::function<CMatrix1N(CMatrixDN,RMatrixD1)>;
 
-    CMatrixNN build_matrix(const HomogenousHaWp<D, MultiIndex>& packet,
+    static CMatrixNN build_matrix(const HomogenousHaWp<D, MultiIndex>& packet,
                            const op_t& op=default_op) const {
+        size_t total_size = 0;
+        for (auto& comp : packet.components()) {
+            total_size += comp.coefficients().size();
+        }
     }
 };
 

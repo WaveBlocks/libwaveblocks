@@ -40,13 +40,13 @@ void test1DGaussHermite()
     Coefficients coeffs = Coefficients::Ones(N,1);
 
     // Print QR nodes and weights.
-    std::cout << "nodes: {";
-    for (auto x : QR::nodes()) std::cout << " " << x;
-    std::cout << " }\n";
+    //std::cout << "nodes: {";
+    //for (auto x : QR::nodes()) std::cout << " " << x;
+    //std::cout << " }\n";
 
-    std::cout << "weights: {";
-    for (auto x : QR::weights()) std::cout << " " << x;
-    std::cout << " }\n";
+    //std::cout << "weights: {";
+    //for (auto x : QR::weights()) std::cout << " " << x;
+    //std::cout << " }\n";
 
     ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
@@ -55,14 +55,14 @@ void test1DGaussHermite()
     packet.coefficients() = coeffs;
 
     // Calculate inner product matrix, print it.
-    HomogeneousInnerProduct<D, MultiIndex, QR> ip;
+    using IP = HomogeneousInnerProduct<D, MultiIndex, QR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        ip.build_matrix(packet);
+        IP::build_matrix(packet);
 
-    std::cout << "IP matrix:\n" << mat << std::endl;
+    //std::cout << "IP matrix:\n" << mat << std::endl;
 
     // Calculate quadrature.
-    std::cout << "Quadrature: " << ip.quadrature(packet) << "\n";
+    std::cout << "Quadrature: " << IP::quadrature(packet) << "\n";
 }
 
 void test1DGaussHermiteOperator()
@@ -89,13 +89,13 @@ void test1DGaussHermiteOperator()
     Coefficients coeffs = Coefficients::Ones(N, 1);
 
     // Print QR nodes and weights.
-    std::cout << "nodes: {";
-    for (auto x : QR::nodes()) std::cout << " " << x;
-    std::cout << " }\n";
+    //std::cout << "nodes: {";
+    //for (auto x : QR::nodes()) std::cout << " " << x;
+    //std::cout << " }\n";
 
-    std::cout << "weights: {";
-    for (auto x : QR::weights()) std::cout << " " << x;
-    std::cout << " }\n";
+    //std::cout << "weights: {";
+    //for (auto x : QR::weights()) std::cout << " " << x;
+    //std::cout << " }\n";
 
     ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
@@ -105,7 +105,7 @@ void test1DGaussHermiteOperator()
 
     // Calculate inner product matrix, print it.
     // Use an operator that returns a sequence 1, 2, ..., number_nodes.
-    HomogeneousInnerProduct<D, MultiIndex, QR> ip;
+    using IP = HomogeneousInnerProduct<D, MultiIndex, QR>;
     auto op =
         [] (CMatrixDN nodes, RMatrixD1 pos) -> CMatrix1N
     {
@@ -116,12 +116,12 @@ void test1DGaussHermiteOperator()
         return result;
     };
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        ip.build_matrix(packet, op);
+        IP::build_matrix(packet, op);
 
-    std::cout << "IP matrix:\n" << mat << std::endl;
+    //std::cout << "IP matrix:\n" << mat << std::endl;
 
     // Calculate quadrature.
-    std::cout << "Quadrature: " << ip.quadrature(packet, op) << "\n";
+    std::cout << "Quadrature: " << IP::quadrature(packet, op) << "\n";
 }
 
 void test3DGaussHermite()
@@ -147,8 +147,8 @@ void test3DGaussHermite()
     packet.parameters() = param_set;
     packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
-    std::cout << "Coefficients:\n";
-    std::cout << coeffs << "\n";
+    //std::cout << "Coefficients:\n";
+    //std::cout << coeffs << "\n";
 
     //const dim_t order = 4;
     //using QR = GaussHermiteQR<order>;
@@ -157,25 +157,25 @@ void test3DGaussHermite()
     TQR::NodeMatrix nodes;
     TQR::WeightVector weights;
     std::tie(nodes, weights) = TQR::nodes_and_weights();
-    std::cout << "number of nodes: " << TQR::number_nodes() << "\n";
+    //std::cout << "number of nodes: " << TQR::number_nodes() << "\n";
     //std::cout << "node matrix:\n" << nodes << "\n";
     //std::cout << "weight vector:\n" << weights << "\n";
 
     // Calculate inner product matrix, print it.
-    HomogeneousInnerProduct<D, MultiIndex, TQR> ip;
+    using IP = HomogeneousInnerProduct<D, MultiIndex, TQR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        ip.build_matrix(packet);
+        IP::build_matrix(packet);
 
-    std::cout << "IP matrix diagonal:\n";
-    for(int i = 0; i < mat.rows(); ++i)
-    {
-        std::cout << " " << mat(i, i);
-        if(i%3 == 2) std::cout << "\n";
-    }
-    std::cout << "\n";
+    //std::cout << "IP matrix diagonal:\n";
+    //for(int i = 0; i < mat.rows(); ++i)
+    //{
+    //    std::cout << " " << mat(i, i);
+    //    if(i%3 == 2) std::cout << "\n";
+    //}
+    //std::cout << "\n";
 
     // Calculate quadrature.
-    std::cout << "Quadrature: " << ip.quadrature(packet) << "\n";
+    std::cout << "Quadrature: " << IP::quadrature(packet) << "\n";
 }
 
 void test1DInhomog()
@@ -213,22 +213,22 @@ void test1DInhomog()
     packet2.coefficients() = coeffs2;
 
     // Calculate inner product matrix, print it.
-    InhomogeneousInnerProduct<D, MultiIndex, QR> ip;
+    using IP = InhomogeneousInnerProduct<D, MultiIndex, QR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        ip.build_matrix(packet1, packet2);
+        IP::build_matrix(packet1, packet2);
 
-    std::cout << "IP matrix:\n" << mat << std::endl;
+    //std::cout << "IP matrix:\n" << mat << std::endl;
 
     // Calculate quadrature.
-    std::cout << "Quadrature: " << ip.quadrature(packet1, packet2) << "\n";
+    std::cout << "Quadrature: " << IP::quadrature(packet1, packet2) << "\n";
 }
 
 int main()
 {
-    //test1DGaussHermite();
-    //test1DGaussHermiteOperator();
+    test1DGaussHermite();
+    test1DGaussHermiteOperator();
     test3DGaussHermite();
-    //test1DInhomog();
+    test1DInhomog();
 
     return 0;
 }
