@@ -52,11 +52,14 @@ public:
      * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times N} \times
      *   \mathbb{R}^D \times \mathbb{N} \times \mathbb{N} \rightarrow
      *   \mathbb{C}^N\f$ which is evaluated at the
-     *   nodal points \f$x\f$ and position \f$q\f$ between components 
+     *   nodal points \f$x\f$ and position \f$q\f$, between components 
      *   \f$i\f$ and \f$j\f$;
      *   default returns a vector of ones
+     *
+     * \tparam Packet packet type (e.g. HomogeneousHaWp)
      */
-    static CMatrixNN build_matrix(const HomogeneousHaWp<D, MultiIndex>& packet,
+    template<class Packet>
+    static CMatrixNN build_matrix(const Packet& packet,
                            const op_t& op=default_op) {
         const dim_t n_components = packet.n_components();
 
