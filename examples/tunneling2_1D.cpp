@@ -22,7 +22,7 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
 
-        const double d = 2.0;
+        const double d = 4.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
 
@@ -42,7 +42,7 @@ struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potent
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
 
-        const double d = 2.0;
+        const double d = 4.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
 
@@ -59,7 +59,7 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
         const real_t a =     0.944858;
         const auto xmq = x - q;
 
-        const double d = 2.0;
+        const double d = 4.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
         const complex_t cqmd = std::pow(std::cosh((q-d)/a),2);
@@ -86,9 +86,9 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
 int main() {
     const int N = 1;
     const int D = 1;
-    const int K = 512;
+    const int K = 700;
 
-    const real_t T = 70;
+    const real_t T = 100;
     const real_t dt = 0.005;
 
     const real_t eps = 0.1530417681822;
@@ -98,7 +98,7 @@ int main() {
     // The parameter set of the initial wavepacket
     CMatrix<D,D> Q; Q(0,0) = 3.5355339059327;
     CMatrix<D,D> P; P(0,0) = complex_t(0,0.2828427124746);
-    RVector<D> q; q[0] = -7.5589045088306;
+    RVector<D> q; q[0] = -7.5589045088306 - 4.0;
     RVector<D> p; p[0] = 0.2478854736792;
 
     // Setting up the wavepacket
