@@ -21,23 +21,23 @@ namespace waveblocks {
  *
  * \tparam D dimensionality of processed wavepackets
  * \tparam MultiIndex multi-index type of processed wavepackets
- * \tparam QR quadrature rule to use, with N nodes
+ * \tparam QR quadrature rule to use, with R nodes
  */
 template<dim_t D, class MultiIndex, class QR>
 class HomogeneousInnerProduct
 {
 public:
-    using CMatrixNN = CMatrix<Eigen::Dynamic, Eigen::Dynamic>;
-    using CMatrix1N = CMatrix<1, Eigen::Dynamic>;
-    using CMatrixN1 = CMatrix<Eigen::Dynamic, 1>;
+    using CMatrixXX = CMatrix<Eigen::Dynamic, Eigen::Dynamic>;
+    using CMatrix1X = CMatrix<1, Eigen::Dynamic>;
+    using CMatrixX1 = CMatrix<Eigen::Dynamic, 1>;
     using CMatrixD1 = CMatrix<D, 1>;
     using CMatrixDD = CMatrix<D, D>;
-    using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
+    using CMatrixDX = CMatrix<D, Eigen::Dynamic>;
     using RMatrixD1 = RMatrix<D, 1>;
-    using CDiagonalNN = Eigen::DiagonalMatrix<complex_t, Eigen::Dynamic>;
+    using CDiagonalXX = Eigen::DiagonalMatrix<complex_t, Eigen::Dynamic>;
     using NodeMatrix = typename QR::NodeMatrix;
     using WeightVector = typename QR::WeightVector;
-    using op_t = std::function<CMatrix1N(CMatrixDN,RMatrixD1)>;
+    using op_t = std::function<CMatrix1X(CMatrixDX,RMatrixD1)>;
 
     /**
      * \brief Calculate the matrix of the inner product.
@@ -47,12 +47,12 @@ public:
      * The coefficients of the wavepacket are ignored.
      *
      * \param[in] packet wavepacket \f$\phi\f$
-     * \param[in] op operator \f$f(x, q) : \mathbb{C}^{D \times N} \times
-     *   \mathbb{R}^D \rightarrow \mathbb{C}^N\f$ which is evaluated at the
+     * \param[in] op operator \f$f(x, q) : \mathbb{C}^{D \times R} \times
+     *   \mathbb{R}^D \rightarrow \mathbb{C}^R\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$;
      *   default returns a vector of ones
      */
-    static CMatrixNN build_matrix(
+    static CMatrixXX build_matrix(
                            const AbstractScalarHaWp<D, MultiIndex>& packet,
                            const op_t& op=default_op) {
         const dim_t n_nodes = QR::number_nodes();
@@ -66,22 +66,22 @@ public:
         const CMatrixDD Qs = (Q * Q.adjoint()).sqrt();
 
         // Transform nodes
-        const CMatrixDN transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * nodes);
+        const CMatrixDX transformed_nodes = q.replicate(1, n_nodes) + packet.eps() * (Qs * nodes);
 
         // Apply operator
-        const CMatrix1N values = op(transformed_nodes, packet.parameters().q());
+        const CMatrix1X values = op(transformed_nodes, packet.parameters().q());
 
         // Prefactor
-        const CMatrix1N factor =
+        const CMatrix1X factor =
             // std::conj(packet.prefactor()) * packet.prefactor() * Qs.determinant() = 1
             std::pow(packet.eps(), D) * weights.array() * values.array();
 
         // Evaluate basis
-        const CMatrixNN basis = packet.evaluate_basis(transformed_nodes);
+        const CMatrixXX basis = packet.evaluate_basis(transformed_nodes);
 
         // Build matrix
-        const CDiagonalNN Dfactor(factor);
-        const CMatrixNN result = basis.matrix().conjugate() * Dfactor * basis.matrix().transpose();
+        const CDiagonalXX Dfactor(factor);
+        const CMatrixXX result = basis.matrix().conjugate() * Dfactor * basis.matrix().transpose();
 
         // Global phase cancels out
         return result;
@@ -101,10 +101,10 @@ public:
     }
 
 private:
-    static CMatrix1N default_op(const CMatrixDN& nodes, const RMatrixD1& pos)
+    static CMatrix1X default_op(const CMatrixDX& nodes, const RMatrixD1& pos)
     {
         (void)pos;
-        return CMatrix1N::Ones(1, nodes.cols());
+        return CMatrix1X::Ones(1, nodes.cols());
     }
 };
 

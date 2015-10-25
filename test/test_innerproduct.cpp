@@ -26,7 +26,7 @@ void test1DGaussHermite()
 
     const real_t eps = 0.2;
     const dim_t D = 1;
-    const dim_t N = 10;
+    const dim_t n_coeffs = 10;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
     using QR = GaussHermiteQR<order>;
@@ -34,10 +34,10 @@ void test1DGaussHermite()
     // Set up sample 1D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(N));
+        enumerator.generate(HyperCubicShape<D>(n_coeffs));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    Coefficients coeffs = Coefficients::Ones(N,1);
+    Coefficients coeffs = Coefficients::Ones(n_coeffs,1);
 
     // Print QR nodes and weights.
     //std::cout << "nodes: {";
@@ -72,21 +72,21 @@ void test1DGaussHermiteOperator()
 
     const real_t eps = 0.2;
     const dim_t D = 1;
-    const dim_t N = 10;
+    const dim_t n_coeffs = 10;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
     using QR = GaussHermiteQR<order>;
-    using CMatrix1N = CMatrix<1, Eigen::Dynamic>;
+    using CMatrix1X = CMatrix<1, Eigen::Dynamic>;
     using RMatrixD1 = RMatrix<D, 1>;
-    using CMatrixDN = CMatrix<D, Eigen::Dynamic>;
+    using CMatrixDX = CMatrix<D, Eigen::Dynamic>;
 
     // Set up sample 1D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(N));
+        enumerator.generate(HyperCubicShape<D>(n_coeffs));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    Coefficients coeffs = Coefficients::Ones(N, 1);
+    Coefficients coeffs = Coefficients::Ones(n_coeffs, 1);
 
     // Print QR nodes and weights.
     //std::cout << "nodes: {";
@@ -107,11 +107,11 @@ void test1DGaussHermiteOperator()
     // Use an operator that returns a sequence 1, 2, ..., number_nodes.
     using IP = HomogeneousInnerProduct<D, MultiIndex, QR>;
     auto op =
-        [] (CMatrixDN nodes, RMatrixD1 pos) -> CMatrix1N
+        [] (CMatrixDX nodes, RMatrixD1 pos) -> CMatrix1X
     {
         (void)pos;
         const dim_t n_nodes = nodes.cols();
-        CMatrix1N result(1, n_nodes);
+        CMatrix1X result(1, n_nodes);
         for(int i = 0; i < n_nodes; ++i) result(0, i) = i+1;
         return result;
     };
@@ -131,16 +131,16 @@ void test3DGaussHermite()
 
     const real_t eps = 0.2;
     const dim_t D = 3;
-    const dim_t N = 5;
+    const dim_t n_coeffs = 5;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
 
     // Set up sample 3D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(N));
+        enumerator.generate(HyperCubicShape<D>(n_coeffs));
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
-    Coefficients coeffs = Coefficients::Ones(std::pow(N, D),1);
+    Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D),1);
     for(int i = 0; i < coeffs.size(); ++i) coeffs[i] = i+1;
     ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
@@ -185,7 +185,7 @@ void test1DInhomog()
 
     const real_t eps = 0.2;
     const dim_t D = 1;
-    const dim_t N1 = 10, N2 = 12;
+    const dim_t n_coeffs1 = 10, n_coeffs2 = 12;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
     using QR = GaussHermiteQR<order>;
@@ -193,12 +193,12 @@ void test1DInhomog()
     // Set up sample 1D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
     ShapeEnum<D, MultiIndex> shape_enum1 =
-        enumerator.generate(HyperCubicShape<D>(N1));
+        enumerator.generate(HyperCubicShape<D>(n_coeffs1));
     ShapeEnum<D, MultiIndex> shape_enum2 =
-        enumerator.generate(HyperCubicShape<D>(N2));
+        enumerator.generate(HyperCubicShape<D>(n_coeffs2));
     HaWpParamSet<D> param_set1, param_set2;
-    Coefficients coeffs1 = Coefficients::Ones(N1,1);
-    Coefficients coeffs2 = Coefficients::Constant(N2,1, 1.4);
+    Coefficients coeffs1 = Coefficients::Ones(n_coeffs1,1);
+    Coefficients coeffs2 = Coefficients::Constant(n_coeffs2,1, 1.4);
 
     ScalarHaWp<D, MultiIndex> packet1;
     packet1.eps() = eps;
