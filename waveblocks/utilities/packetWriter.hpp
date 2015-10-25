@@ -1,16 +1,9 @@
 #include <iostream>
-#include <sstream>
-#include <Eigen/Core>
 #include "../hdf5/eigen3-hdf5.hpp"
 #include "../types.hpp"
+#include "to_string.hpp"
 
 namespace waveblocks {
-        template<class T>
-      std::string toString(T in) {
-        std::ostringstream strs;
-        strs << in;
-        return strs.str();
-      }
   namespace utilities {
     namespace packetWriter {
       
@@ -62,7 +55,7 @@ namespace waveblocks {
     
       void store_packet_implementation(const double& time, const Packet& packet) {
         
-        std::string t = toString<double>(time);
+        std::string t = to_string<double>(time);
         // coefficients
         Super::save_matrix(PacketToCoefficients<Packet>::to(packet), "coefficients@" + t);
         
@@ -79,7 +72,7 @@ namespace waveblocks {
       }
 
       void store_energies_implementation(const double& time, const real_t& epot, const real_t& ekin) {
-        std::string t = toString<double>(time);
+        std::string t = to_string<double>(time);
         Super::save_scalar(epot, "Epot@" + t);
         Super::save_scalar(ekin, "Ekin@" + t);
         Super::save_scalar(epot+ekin, "Etot@" + t);

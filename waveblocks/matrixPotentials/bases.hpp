@@ -54,6 +54,8 @@ namespace waveblocks
        * Number of levels
        * \tparam D
        * Dimension of argument space
+       * \tparam C
+       * Number of columns (N for canonical basis, 1 for eigen basis)
        */
       template <int N, int D, int C>
       struct Basis {
@@ -79,7 +81,7 @@ namespace waveblocks
 
       template <int N, int C>
       struct Basis<N,1,C> {
-static const int argument_dimension = 1;
+      static const int argument_dimension = 1;
           static const int number_of_levels = N;
           static const int number_of_columns = C;
                   using argument_type = complex_t;
@@ -100,7 +102,7 @@ static const int argument_dimension = 1;
       
       template <int D, int C>
       struct Basis<1, D, C> {
-static const int argument_dimension = D;
+      const int argument_dimension = D;
           static const int number_of_levels = 1;
           static const int number_of_columns = C;
                   using argument_type = CVector<D>;
@@ -122,7 +124,7 @@ static const int argument_dimension = D;
 
       template <int C>
       struct Basis<1, 1, C> {
-static const int argument_dimension = 1;
+      static const int argument_dimension = 1;
           static const int number_of_levels = 1;
           static const int number_of_columns = C;
           

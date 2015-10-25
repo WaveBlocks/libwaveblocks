@@ -10,23 +10,7 @@ namespace waveblocks
     namespace modules
     {
       namespace leadingLevelOwner {
-       /**
-       * \brief Abstract class for local quadratic evaluation
-       *
-       * A matrix potential inheriting an implementation of this module
-       * can evaluate the local quadratic approximation of its' potential
-       * elementwise
-       *
-       * This makes use of the CRTPattern
-       *
-       * \tparam Subtype The type extending this interface (used for static polymorphism)
-       * \tparam Basis
-       * Which basis (bases::Eigen or bases::Canonical) the potential is given in
-       * \tparam N
-       * Number of levels (dimension of square matrix when evaluated)
-       * \tparam D
-       * Dimension of argument space
-       */
+
       template <class Owned>
       struct Standard {
       private:
