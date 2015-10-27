@@ -158,18 +158,15 @@ namespace waveblocks
           CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
           HelperF<Packet,Potential,IP,N,D>::build(F, packet, V);
 
-          auto M = -delta_t *  complex_t(0,1) / (packet.eps()*packet.eps()) * F;
+          complex_t factor = -delta_t * complex_t(0,1) / (packet.eps()*packet.eps());
 
-          // Exponential
-          CMatrix<Eigen::Dynamic,Eigen::Dynamic> expM;
-          (Eigen::MatrixExponential<CMatrix<Eigen::Dynamic, Eigen::Dynamic> >( M )).compute( expM );
-          
           // Put all coefficients into a vector
           CVector<Eigen::Dynamic> coefficients = PacketToCoefficients<Packet>::to(packet);
 
-          // Compute product
-          coefficients = expM * coefficients;
-          
+          // Compute product of exponential with coefficients
+          coefficients = (factor * F).exp() * coefficients;
+
+          // Put all coefficients back
           PacketToCoefficients<Packet>::from(coefficients, packet);
         }
       };

@@ -80,10 +80,7 @@ namespace waveblocks
             potential_evaluation_type result;
 
             // Compute exponential
-            Eigen::MatrixExponential<potential_evaluation_type> m_exp( factor * values );
-
-            m_exp.compute( result );
-            return result;
+            return (factor * values).exp();
           }
         };
 
