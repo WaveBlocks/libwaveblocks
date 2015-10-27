@@ -21,9 +21,10 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
         Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation(const argument_type &x ) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
-        return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(sigma / std::pow(std::cosh(x/a),2),
-                                                                                                 - (2.0*sigma*std::tanh(x/a)) / (a*std::pow(std::cosh(x/a),2)),
-                                                                                                 (2*sigma*std::cosh(2.0*x/a) - 4*sigma) / (a*a*std::pow(std::cosh(x/a),4)));
+        const complex_t cx = std::pow(std::cosh(x/a),2);
+        return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(sigma / cx,
+                                                                                                 - (2.0*sigma*std::tanh(x/a)) / (a*cx),
+                                                                                                 (2*sigma*std::cosh(2.0*x/a) - 4*sigma) / (a*a*cx*cx));
     }
 };
 
@@ -40,13 +41,12 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
                                           const complex_t &q ) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
+        const complex_t cq = std::pow(std::cosh(q/a),2);
         const auto xmq = x - q;
-
         const auto V = sigma / std::pow(std::cosh(x/a),2);
-        const auto U = sigma / std::pow(std::cosh(q/a),2);
-        const auto J = - (2.0*sigma*std::tanh(q/a)) / (a*std::pow(std::cosh(q/a),2));
-        const auto H = (2*sigma*std::cosh(2.0*q/a) - 4*sigma) / (a*a*std::pow(std::cosh(q/a),4));
-
+        const auto U = sigma / cq;
+        const auto J = - (2.0*sigma*std::tanh(q/a)) / (a*cq);
+        const auto H = (2*sigma*std::cosh(2.0*q/a) - 4*sigma) / (a*a*cq*cq);
         return V - U - J*xmq - 0.5*xmq*H*xmq;
     }
 };

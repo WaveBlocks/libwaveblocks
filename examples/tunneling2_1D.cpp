@@ -21,8 +21,7 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
         Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation(const argument_type &x ) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
-
-        const double d = 4.0;
+        const double d =     4.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
 
@@ -32,8 +31,7 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
           -(2*sigma * std::tanh((x-d)/a) / cxmd)
           -(2*sigma * std::tanh((x+d)/a) / cxpd),
           (2*sigma*std::cosh(2.0*(x-d)/a) - 4*sigma) / (a*a*cxmd*cxmd) +
-          (2*sigma*std::cosh(2.0*(x+d)/a) - 4*sigma) / (a*a*cxpd*cxpd)
-                                                                                                 );
+          (2*sigma*std::cosh(2.0*(x+d)/a) - 4*sigma) / (a*a*cxpd*cxpd));
     }
 };
 
@@ -41,11 +39,9 @@ struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potent
     complex_t evaluate_at_implementation(const complex_t& x) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
-
-        const double d = 4.0;
+        const double d =     4.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
-
         return
             sigma / cxmd +
             sigma / cxpd;
@@ -57,14 +53,12 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
                                           const complex_t &q ) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
-        const auto xmq = x - q;
-
         const double d = 4.0;
         const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
         const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
         const complex_t cqmd = std::pow(std::cosh((q-d)/a),2);
         const complex_t cqpd = std::pow(std::cosh((q+d)/a),2);
-
+        const auto xmq = x - q;
         const auto V =
             sigma / cxmd +
             sigma / cxpd;
