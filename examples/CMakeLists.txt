@@ -20,4 +20,7 @@ target_link_libraries(harmonic_2D ${LINK_LIBS})
 add_executable(tunneling_1D tunneling_1D.cpp)
 target_link_libraries(tunneling_1D ${LINK_LIBS})
 
+add_executable(tunneling2_1D tunneling2_1D.cpp)
+target_link_libraries(tunneling2_1D ${LINK_LIBS})
+
 add_executable(nonsense_2N_2D nonsense_2N_2D.cpp)
