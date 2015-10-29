@@ -14,6 +14,7 @@ defined set of nodes $\gamma_i$, the values of which are summed up with specific
 weights $\omega_i$:
 
 \begin{equation}
+  \label{eq:gaussquad}
   \int_{-\infty}^{\infty} g(x) \, dx \approx \sum_{i=1}^{n} f(\gamma_i) \omega_i
 \end{equation}
 
@@ -24,6 +25,16 @@ following form:
   \int_{-\infty}^{\infty} e^{-x^2} f(x) \, dx
 \end{equation}
 
-As we require the quadrature to work on general functions, transformations are
-done to the usual weights and nodes which is described in
+However, as we require the quadrature to work on general functions,
+transformations are done to the usual weights and nodes which is described in
 \cite{B_master_thesis}.
+The result is a rule in the form of \eqref{eq:gaussquad}.
+Figure~\ref{fig:ghexample} shows an example of the node distribution of a
+Gauss-Hermite rule.
+
+\begin{figure}
+  \center
+  \includegraphics[width=\linewidth]{figures/gh-rule.eps}
+  \caption{45-point Gauss-Hermite nodes and weights}
+  \label{fig:ghexample}
+\end{figure}
