@@ -1,4 +1,4 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper,11pt]{article}
 
 \usepackage{graphicx}
 \usepackage[english]{babel}
@@ -48,7 +48,7 @@
 \end{titlepage}
 
 \tableofcontents
-\pagebreak
+\newpage
 
 %\section{Inner Products and Quadrature}
 %
@@ -61,7 +61,10 @@
 %\subsection{Performance}
 
 \input{sections/introduction.tex}
+\newpage
+\input{sections/quadrature.tex}
 
+\newpage
 \bibliographystyle{plain}
 \bibliography{references}
 
