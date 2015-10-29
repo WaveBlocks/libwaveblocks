@@ -1,0 +1,6 @@
+# temporary files
+*.bbl
+*.blg
+
+# *.eps generated from *.gnuplot
+figures/*.eps
