@@ -5,6 +5,7 @@ integrals between wavepackets.
 This is done numerically with a quadrature rule, of which there are many
 different kinds.
 
+
 \subsection{Gauss-Hermite Quadrature}
 
 The basic integration algorithm used in this project is the one-dimensional
@@ -38,3 +39,25 @@ Gauss-Hermite rule.
   \caption{45-point Gauss-Hermite nodes and weights}
   \label{fig:ghexample}
 \end{figure}
+
+In the implementation of this rule, an auxiliary Python script was made to
+automatically generate C++-code with hardcoded tables of nodes and weights for
+different orders.
+
+
+\subsection{Tensor-Product Quadrature}
+
+The wavepackets that are processed by WaveBlocks are generally multi-dimensional.
+To handle this, tensor products of $D$ one-dimensional quadrature rules can be
+built up.
+
+Denoting the $i$-th node-weight-pair of the $d$-th scalar quadrature rule
+$(\gamma_i^d,\ \omega_i^d)$, the resulting pair at the multi-index $j = (j_1,
+\ldots, j_d)$ for the resulting tensor quadrature rule is:
+
+\begin{equation}
+  (\gamma_j,\ \omega_j) = \left(
+    \begin{pmatrix} \gamma_{j_1}^1 \\ \vdots \\ \gamma_{j_d}^d \end{pmatrix},
+    \ \prod_{d=1}^D \omega_{j_d}^d
+  \right)
+\end{equation}

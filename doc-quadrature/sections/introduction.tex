@@ -1,7 +1,8 @@
 \section{Introduction}
 
 This work is part of an effort to port the WaveBlocksND project
-\cite{waveblocksnd} from Python to C++.
+\cite{waveblocksnd} from Python to C++, using the Eigen template library for
+linear algebra.
 WaveBlocksND provides a framework for quantum-physical simulations, in
 particular to calculate the time propagation of wavepackets in different
 potentials.
@@ -12,7 +13,7 @@ In this work, we focus on implementing quadrature and inner product calculations
 for the wavepackets, which is a prerequisite for the time-propagation
 algorithms.
 
-This report will describe formulas and rules used for numerical quadrature,
+This report will show formulas and rules used for numerical quadrature,
 the code structure for building inner products, as well as describing the
 additional complexity arising from multi-component wavepackets.
 
