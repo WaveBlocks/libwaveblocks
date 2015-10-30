@@ -4,7 +4,7 @@ set xlabel "$\\gamma_i$"
 set ylabel "$\\omega_i$" rotate by 0
 set grid
 set output "gh-rule.tex"
-plot [*:*] [0:*] "-" pt 7 lc 1
+plot [*:*] [0:*] "-" pt 7
   -8.65615232599  0.775715820523
   -7.98369981622  0.600381463721
   -7.42532662586  0.524102804484

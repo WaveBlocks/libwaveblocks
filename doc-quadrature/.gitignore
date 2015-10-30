@@ -2,5 +2,6 @@
 *.bbl
 *.blg
 
-# *.eps generated from *.gnuplot
+# files generated from *.gnuplot
 figures/*.eps
+figures/*.tex
