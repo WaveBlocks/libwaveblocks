@@ -21,10 +21,17 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
         Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation(const argument_type &x ) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
-        const complex_t cx = std::pow(std::cosh(x/a),2);
-        return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(sigma / cx,
-                                                                                                 - (2.0*sigma*std::tanh(x/a)) / (a*cx),
-                                                                                                 (2*sigma*std::cosh(2.0*x/a) - 4*sigma) / (a*a*cx*cx));
+        const double d =     4.0;
+        const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
+        const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
+
+        return Tuple<potential_evaluation_type,jacobian_evaluation_type,hessian_evaluation_type>(
+          sigma / cxmd +
+          sigma / cxpd,
+          -(2*sigma * std::tanh((x-d)/a) / cxmd)
+          -(2*sigma * std::tanh((x+d)/a) / cxpd),
+          (2*sigma*std::cosh(2.0*(x-d)/a) - 4*sigma) / (a*a*cxmd*cxmd) +
+          (2*sigma*std::cosh(2.0*(x+d)/a) - 4*sigma) / (a*a*cxpd*cxpd));
     }
 };
 
@@ -32,7 +39,12 @@ struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potent
     complex_t evaluate_at_implementation(const complex_t& x) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
-        return sigma / std::pow(std::cosh(x/a),2);
+        const double d =     4.0;
+        const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
+        const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
+        return
+            sigma / cxmd +
+            sigma / cxpd;
     }
 };
 
@@ -41,12 +53,25 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
                                           const complex_t &q ) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
-        const complex_t cq = std::pow(std::cosh(q/a),2);
+        const double d = 4.0;
+        const complex_t cxmd = std::pow(std::cosh((x-d)/a),2);
+        const complex_t cxpd = std::pow(std::cosh((x+d)/a),2);
+        const complex_t cqmd = std::pow(std::cosh((q-d)/a),2);
+        const complex_t cqpd = std::pow(std::cosh((q+d)/a),2);
         const auto xmq = x - q;
-        const auto V = sigma / std::pow(std::cosh(x/a),2);
-        const auto U = sigma / cq;
-        const auto J = - (2.0*sigma*std::tanh(q/a)) / (a*cq);
-        const auto H = (2*sigma*std::cosh(2.0*q/a) - 4*sigma) / (a*a*cq*cq);
+        const auto V =
+            sigma / cxmd +
+            sigma / cxpd;
+        const auto U =
+            sigma / cqmd +
+            sigma / cqpd;
+        const auto J =
+            -(2*sigma * std::tanh((q-d)/a) / cqmd)
+            -(2*sigma * std::tanh((q+d)/a) / cqpd);
+        const auto H =
+            (2*sigma*std::cosh(2.0*(q-d)/a) - 4*sigma) / (a*a*cqmd*cqmd) +
+            (2*sigma*std::cosh(2.0*(q+d)/a) - 4*sigma) / (a*a*cqpd*cqpd);
+
         return V - U - J*xmq - 0.5*xmq*H*xmq;
     }
 };
@@ -55,9 +80,9 @@ struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remai
 int main() {
     const int N = 1;
     const int D = 1;
-    const int K = 512;
+    const int K = 700;
 
-    const real_t T = 70;
+    const real_t T = 100;
     const real_t dt = 0.005;
 
     const real_t eps = 0.1530417681822;
@@ -67,7 +92,7 @@ int main() {
     // The parameter set of the initial wavepacket
     CMatrix<D,D> Q; Q(0,0) = 3.5355339059327;
     CMatrix<D,D> P; P(0,0) = complex_t(0,0.2828427124746);
-    RVector<D> q; q[0] = -7.5589045088306;
+    RVector<D> q; q[0] = -7.5589045088306 - 4.0;
     RVector<D> p; p[0] = 0.2478854736792;
 
     // Setting up the wavepacket
