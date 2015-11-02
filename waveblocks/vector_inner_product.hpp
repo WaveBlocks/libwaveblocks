@@ -52,9 +52,9 @@ public:
      * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times N} \times
      *   \mathbb{R}^D \times \mathbb{N} \times \mathbb{N} \rightarrow
      *   \mathbb{C}^N\f$ which is evaluated at the
-     *   nodal points \f$x\f$ and position \f$q\f$, between components 
+     *   nodal points \f$x\f$ and position \f$q\f$, between components
      *   \f$i\f$ and \f$j\f$;
-     *   default returns a vector of ones
+     *   default returns a vector of ones if i==j, zeros otherwise
      *
      * \tparam Packet packet type (e.g. HomogeneousHaWp)
      */
@@ -94,13 +94,136 @@ public:
         return result;
     }
 
+    /**
+     * \brief Calculate the matrix of the inner product.
+     *
+     * Returns the matrix elements \f$\langle \Phi | f | \Phi' \rangle\f$ with
+     * an operator \f$f\f$.
+     * The matrix consists of \f$N \times N'\f$ blocks (\f$N,N'\f$: number of
+     * components of \f$\Phi,\Phi'\f$), each of size \f$|\mathfrak{K}_i| \times
+     * |\mathfrak{K}_j'|\f$.  The coefficients of the wavepacket are ignored.
+     *
+     * \param[in] pacbra multi-component wavepacket \f$\Phi\f$
+     * \param[in] packet multi-component wavepacket \f$\Phi'\f$
+     * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times N} \times
+     *   \mathbb{R}^D \times \mathbb{N} \times \mathbb{N} \rightarrow
+     *   \mathbb{C}^N\f$ which is evaluated at the
+     *   nodal points \f$x\f$ and position \f$q\f$, between components
+     *   \f$i\f$ and \f$j\f$;
+     *   default returns a vector of ones if i==j, zeros otherwise
+     *
+     * \tparam Pacbra packet type of \f$\Phi\f$ (e.g. HomogeneousHaWp)
+     * \tparam Packet packet type of \f$\Phi'\f$
+     */
+    template<class Pacbra, class Packet>
+    static CMatrixNN build_matrix(const Pacbra& pacbra,
+                           const Packet& packet,
+                           const op_t& op=default_op) {
+        const dim_t n_components_bra = pacbra.n_components();
+        const dim_t n_components_ket = packet.n_components();
+
+        // Calculate offsets into output matrix.
+        // Needed for parallelization.
+        std::vector<dim_t> offsets_bra(n_components_bra);
+        offsets_bra[0] = 0;
+        for (dim_t i = 1; i < n_components_bra; ++i) {
+            offsets_bra[i] = pacbra.component(i-1).coefficients().size();
+        }
+
+        std::vector<dim_t> offsets_ket(n_components_ket);
+        offsets_ket[0] = 0;
+        for (dim_t i = 1; i < n_components_ket; ++i) {
+            offsets_ket[i] = packet.component(i-1).coefficients().size();
+        }
+
+        // Allocate output matrix.
+        size_t total_rows = 0, total_cols = 0;
+        for (auto& comp : pacbra.components()) {
+            total_rows += comp.coefficients().size();
+        }
+        for (auto& comp : packet.components()) {
+            total_cols += comp.coefficients().size();
+        }
+        CMatrixNN result(total_rows, total_cols);
+
+        // Calculate matrix.
+        using IP = InhomogeneousInnerProduct<D,MultiIndex,QR>;
+        for (dim_t i = 0; i < n_components_bra; ++i) {
+            for (dim_t j = 0; j < n_components_ket; ++j) {
+                using namespace std::placeholders;
+                result.block(offsets_bra[i], offsets_ket[j],
+                        pacbra.component(i).coefficients().size(),
+                        packet.component(j).coefficients().size()) =
+                    IP::build_matrix(pacbra.component(i), packet.component(j),
+                                     std::bind(op, _1, _2, i, j));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * \brief Perform quadrature.
+     *
+     * Evaluates a vector of scalars \f$\langle \phi_i | f | \phi_j \rangle\f$.
+     * See build_matrix() for the parameters.
+     */
+    template<class Packet>
+    static CMatrixN1 quadrature(const Packet& packet,
+                           const op_t& op=default_op) {
+        const dim_t n_components = packet.n_components();
+        CMatrixN1 result(n_components * n_components, 1);
+
+        // Calculate matrix.
+        using IP = InhomogeneousInnerProduct<D,MultiIndex,QR>;
+        for (dim_t i = 0; i < n_components; ++i) {
+            for (dim_t j = 0; j < n_components; ++j) {
+                using namespace std::placeholders;
+                result(j + i * n_components) = packet.component(i).coefficients().adjoint() *
+                    IP::build_matrix(packet.component(i), packet.component(j),
+                                     std::bind(op, _1, _2, i, j)) *
+                    packet.component(j).coefficients();
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * \brief Perform quadrature.
+     *
+     * Evaluates a vector of scalars \f$\langle \phi_i | f | \phi'_j \rangle\f$.
+     * See build_matrix() for the parameters.
+     */
+    template<class Pacbra, class Packet>
+    static CMatrixN1 quadrature(const Pacbra& pacbra,
+                           const Packet& packet,
+                           const op_t& op=default_op) {
+        const dim_t n_components_bra = pacbra.n_components();
+        const dim_t n_components_ket = packet.n_components();
+        CMatrixN1 result(n_components_bra * n_components_ket, 1);
+
+        // Calculate matrix.
+        using IP = InhomogeneousInnerProduct<D,MultiIndex,QR>;
+        for (dim_t i = 0; i < n_components_bra; ++i) {
+            for (dim_t j = 0; j < n_components_ket; ++j) {
+                using namespace std::placeholders;
+                result(j + i * n_components_ket) = pacbra.component(i).coefficients().adjoint() *
+                    IP::build_matrix(pacbra.component(i), packet.component(j),
+                                     std::bind(op, _1, _2, i, j)) *
+                    packet.component(j).coefficients();
+            }
+        }
+
+        return result;
+    }
+
 private:
     static CMatrix1N default_op(const CMatrixDN& nodes, const RMatrixD1& pos, dim_t i, dim_t j)
     {
         (void)pos;
-        (void)i;
-        (void)j;
-        return CMatrix1N::Ones(1, nodes.cols());
+        if (i == j) return CMatrix1N::Ones(1, nodes.cols());
+        else        return CMatrix1N::Zero(1, nodes.cols());
     }
 };
 

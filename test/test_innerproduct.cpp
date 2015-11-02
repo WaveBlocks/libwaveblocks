@@ -11,6 +11,7 @@
 #include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/homogeneous_inner_product.hpp"
 #include "waveblocks/inhomogeneous_inner_product.hpp"
+#include "waveblocks/vector_inner_product.hpp"
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/stdarray2stream.hpp"
@@ -223,12 +224,64 @@ void test1DInhomog()
     std::cout << "Quadrature: " << IP::quadrature(packet1, packet2) << "\n";
 }
 
+void testVector()
+{
+    std::cout << "\nMulti-component Test\n";
+    std::cout <<   "--------------------\n";
+
+    const real_t eps = 0.2;
+    const dim_t D = 1;
+    const dim_t order = 8;
+    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using QR = GaussHermiteQR<order>;
+
+    // Set up sample 1D wavepacket.
+    ShapeEnumerator<D, MultiIndex> enumerator;
+    HaWpParamSet<D> param_set1, param_set2;
+
+    HomogeneousHaWp<D, MultiIndex> packet1(2);
+    packet1.eps() = eps;
+    packet1.parameters() = param_set1;
+    packet1.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
+        enumerator.generate(HyperCubicShape<D>(5)));
+    packet1.component(0).coefficients() = Coefficients::Constant(5,1, 1.0);
+    packet1.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
+        enumerator.generate(HyperCubicShape<D>(6)));
+    packet1.component(1).coefficients() = Coefficients::Constant(6,1, 1.5);
+
+    HomogeneousHaWp<D, MultiIndex> packet2(3);
+    packet2.eps() = eps;
+    packet2.parameters() = param_set2;
+    packet2.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
+        enumerator.generate(HyperCubicShape<D>(3)));
+    packet2.component(0).coefficients() = Coefficients::Constant(3,1, 1.4);
+    packet2.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
+        enumerator.generate(HyperCubicShape<D>(4)));
+    packet2.component(1).coefficients() = Coefficients::Constant(4,1, 1.2);
+    packet2.component(2).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
+        enumerator.generate(HyperCubicShape<D>(7)));
+    packet2.component(2).coefficients() = Coefficients::Constant(7,1, 1.0);
+
+    // Calculate inner product matrix, print it.
+    using IP = VectorInnerProduct<D, MultiIndex, QR>;
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
+        IP::build_matrix(packet1, packet2);
+        //IP::build_matrix(packet1);
+
+    std::cout << "IP matrix:\n" << mat << std::endl;
+
+    // Calculate quadrature.
+    std::cout << "Quadrature: " << IP::quadrature(packet1, packet2) << "\n";
+    //std::cout << "Quadrature: " << IP::quadrature(packet1) << "\n";
+}
+
 int main()
 {
-    test1DGaussHermite();
-    test1DGaussHermiteOperator();
-    test3DGaussHermite();
-    test1DInhomog();
+    //test1DGaussHermite();
+    //test1DGaussHermiteOperator();
+    //test3DGaussHermite();
+    //test1DInhomog();
+    testVector();
 
     return 0;
 }
