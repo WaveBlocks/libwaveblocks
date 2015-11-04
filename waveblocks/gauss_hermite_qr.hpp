@@ -26,7 +26,7 @@ namespace waveblocks {
         using WeightVector = Eigen::Matrix<real_t,1,Eigen::Dynamic>;
 
         /**
-         * \brief Returns the number of nodes for the given order.
+         * \brief Return the number of nodes for the given order.
          *
          * In the case of GaussHermiteQR, this is the same as the order.
          */
@@ -36,31 +36,38 @@ namespace waveblocks {
         }
 
         /**
-         * \brief Returns the quadrature nodes.
+         * \brief Return the quadrature nodes.
          */
-        static const std::vector<real_t>& nodes()
+        static NodeMatrix nodes()
         {
-            return gauss_hermite_rules[ORDER-1].nodes;
+            const auto& nodes = gauss_hermite_rules[ORDER-1].nodes;
+            return NodeMatrix::Map(nodes.data(), nodes.size());
         }
 
 
         /**
-         * \brief Returns the quadrature weights.
+         * \brief Return the quadrature weights.
          */
-        static const std::vector<real_t>& weights()
+        static WeightVector weights()
         {
-            return gauss_hermite_rules[ORDER-1].weights;
+            const auto& weights = gauss_hermite_rules[ORDER-1].weights;
+            return WeightVector::Map(weights.data(), weights.size());
         }
 
         /**
-         * \brief Returns the quadrature nodes and weights.
+         * \brief Return the quadrature nodes and weights.
          */
         static std::tuple<NodeMatrix,WeightVector> nodes_and_weights()
         {
-            return std::make_tuple(
-                                   NodeMatrix::Map(nodes().data(), nodes().size()),
-                                   WeightVector::Map(weights().data(), weights().size()));
+            return std::make_tuple(nodes(), weights());
         }
+
+        /**
+         * \brief Free the precalculated nodes and weights.
+         *
+         * Does nothing, only for consistency with TensorProductQR.
+         */
+        static void clear_cache() {}
     };
 
 }

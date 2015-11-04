@@ -151,13 +151,10 @@ void test3DGaussHermite()
     //std::cout << "Coefficients:\n";
     //std::cout << coeffs << "\n";
 
-    //const dim_t order = 4;
-    //using QR = GaussHermiteQR<order>;
-    //using TQR = TensorProductQR<QR, QR, QR>;
     using TQR = TensorProductQR<GaussHermiteQR<3>, GaussHermiteQR<4>, GaussHermiteQR<5>>;
-    TQR::NodeMatrix nodes;
-    TQR::WeightVector weights;
-    std::tie(nodes, weights) = TQR::nodes_and_weights();
+    //TQR::NodeMatrix nodes;
+    //TQR::WeightVector weights;
+    //std::tie(nodes, weights) = TQR::nodes_and_weights();
     //std::cout << "number of nodes: " << TQR::number_nodes() << "\n";
     //std::cout << "node matrix:\n" << nodes << "\n";
     //std::cout << "weight vector:\n" << weights << "\n";
@@ -177,6 +174,8 @@ void test3DGaussHermite()
 
     // Calculate quadrature.
     std::cout << "Quadrature: " << IP::quadrature(packet) << "\n";
+
+    TQR::clear_cache();
 }
 
 void test1DInhomog()
@@ -265,22 +264,22 @@ void testVector()
     // Calculate inner product matrix, print it.
     using IP = VectorInnerProduct<D, MultiIndex, QR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        IP::build_matrix(packet1, packet2);
+        IP::build_matrix_inhomog(packet1, packet2);
         //IP::build_matrix(packet1);
 
     std::cout << "IP matrix:\n" << mat << std::endl;
 
     // Calculate quadrature.
-    std::cout << "Quadrature: " << IP::quadrature(packet1, packet2) << "\n";
+    std::cout << "Quadrature: " << IP::quadrature_inhomog(packet1, packet2) << "\n";
     //std::cout << "Quadrature: " << IP::quadrature(packet1) << "\n";
 }
 
 int main()
 {
-    //test1DGaussHermite();
-    //test1DGaussHermiteOperator();
-    //test3DGaussHermite();
-    //test1DInhomog();
+    test1DGaussHermite();
+    test1DGaussHermiteOperator();
+    test3DGaussHermite();
+    test1DInhomog();
     testVector();
 
     return 0;

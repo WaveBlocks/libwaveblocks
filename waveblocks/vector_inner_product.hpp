@@ -116,7 +116,7 @@ public:
      * \tparam Packet packet type of \f$\Phi'\f$
      */
     template<class Pacbra, class Packet>
-    static CMatrixNN build_matrix2(const Pacbra& pacbra,
+    static CMatrixNN build_matrix_inhomog(const Pacbra& pacbra,
                            const Packet& packet,
                            const op_t& op=default_op) {
         const dim_t n_components_bra = pacbra.n_components();
@@ -196,7 +196,7 @@ public:
      * See build_matrix() for the parameters.
      */
     template<class Pacbra, class Packet>
-    static CMatrixN1 quadrature2(const Pacbra& pacbra,
+    static CMatrixN1 quadrature_inhomog(const Pacbra& pacbra,
                            const Packet& packet,
                            const op_t& op=default_op) {
         const dim_t n_components_bra = pacbra.n_components();

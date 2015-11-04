@@ -29,7 +29,7 @@ struct TensorProductQR
 
 
     /**
-     * \brief Returns the number of nodes for the given order.
+     * \brief Return the number of nodes for the given order.
      *
      * In the case of TensorProductQR, this is the product of the numbers of
      * nodes of the constituent quadrature rules (RULES).
@@ -45,14 +45,60 @@ struct TensorProductQR
     }
 
     /**
-     * \brief Returns the quadrature nodes and weights.
+     * \brief Return the quadrature nodes.
      */
-    static std::tuple<const NodeMatrix,const WeightVector> nodes_and_weights()
+    static NodeMatrix nodes()
+    {
+        if (!cached) calculate_nodes_and_weights();
+        return cached_nodes;
+    }
+
+
+    /**
+     * \brief Return the quadrature weights.
+     */
+    static WeightVector weights()
+    {
+        if (!cached) calculate_nodes_and_weights();
+        return cached_weights;
+    }
+
+    /**
+     * \brief Return the quadrature nodes and weights.
+     */
+    static std::tuple<const NodeMatrix&, const WeightVector&>
+        nodes_and_weights()
+    {
+        if (!cached) calculate_nodes_and_weights();
+        return std::make_tuple(cached_nodes, cached_weights);
+    }
+
+
+    /**
+     * \brief Free the precalculated nodes and weights.
+     */
+    static void clear_cache()
+    {
+        cached = false;
+        cached_nodes.resize(D, 0);
+        cached_weights.resize(1, 0);
+    }
+
+private:
+    static bool cached;
+    static NodeMatrix cached_nodes;
+    static WeightVector cached_weights;
+
+    /**
+     * \brief Precalculate nodes and weights.
+     */
+    static void calculate_nodes_and_weights()
     {
         const dim_t dim = D;
         const dim_t n_nodes = number_nodes();
-        NodeMatrix nodes(dim, n_nodes);
-        WeightVector weights = WeightVector::Ones(1, n_nodes);
+        cached_nodes.resize(dim, n_nodes);
+        cached_weights.resize(1, n_nodes);
+        cached_weights.setOnes();
 
         const dim_t sizes[D] = { RULES::number_nodes() ...};
         dim_t cycles[D];
@@ -70,16 +116,28 @@ struct TensorProductQR
                 for(dim_t n = 0; n < n_nodes; ++n)
                 {
                     const dim_t base_idx = (n / cycles[d]) % sizes[d];
-                    nodes(d, n) = std::get<0>(nw)(base_idx);
-                    weights(n) *= std::get<1>(nw)(base_idx);
+                    cached_nodes(d, n) = std::get<0>(nw)(base_idx);
+                    cached_weights(n) *= std::get<1>(nw)(base_idx);
                 }
 
                 ++d;
             }
         }
 
-        return std::make_tuple(nodes, weights);
+        cached = true;
     }
 };
+
+// Initialize static members.
+template <class... RULES>
+bool TensorProductQR<RULES...>::cached = false;
+
+template <class... RULES>
+typename TensorProductQR<RULES...>::NodeMatrix
+    TensorProductQR<RULES...>::cached_nodes;
+
+template <class... RULES>
+typename TensorProductQR<RULES...>::WeightVector
+    TensorProductQR<RULES...>::cached_weights;
 
 }
