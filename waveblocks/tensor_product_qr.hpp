@@ -66,7 +66,7 @@ struct TensorProductQR
     /**
      * \brief Return the quadrature nodes and weights.
      */
-    static std::tuple<const NodeMatrix&, const WeightVector&>
+    static std::tuple<NodeMatrix,WeightVector>
         nodes_and_weights()
     {
         if (!cached) calculate_nodes_and_weights();
