@@ -175,8 +175,8 @@ void runMultiComponent()
 
 int main()
 {
-    //run1D();
-    //runMultiD();
+    run1D();
+    runMultiD();
     runMultiComponent();
 
     return 0;
