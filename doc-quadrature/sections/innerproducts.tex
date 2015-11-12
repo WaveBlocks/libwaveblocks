@@ -1,1 +1,46 @@
 \section{Inner Products}
+
+In order to calculate wavepacket norms, various energies and other observables,
+it is necessary to evaluate the braket
+\begin{equation}
+  \label{eq:braket}
+  M = \langle \Phi | F_{i,j} | \Phi' \rangle,
+\end{equation}
+where $\Phi$ and $\Phi'$ are wavepackets and $F_{i,j}$ specifies the operator.
+
+For the mathematical derivation of the braket evaluation algorithms, again refer
+to \cite{B_master_thesis}.
+
+\subsection{Scalar Inner Products}
+
+In the case of scalar wavepackets $\phi$ and $\phi'$ the braket is written as
+\begin{equation}
+  M = \langle \phi | f | \phi' \rangle.
+\end{equation}
+The operator $f$ is given as a function parameter of the form
+\begin{equation}
+  f(x, q) : \mathbb{C}^{D \times R} \times \mathbb{R}^D \rightarrow \mathbb{C}^R
+\end{equation}
+mapping $D$-dimensional nodal points $x$ and position
+$q$ to the operator's values.
+
+Here, $R$ is the order of the quadrature.
+Instead of calling the operator function for the different nodes separately, all
+points are given to the function at once to make efficient vector calculations
+in its definition possible.
+
+The inner product calculation implementation provides two different methods,
+\texttt{build\_matrix} and \texttt{quadrature}.
+The first returns a $|\mathfrak{K}| \times |\mathfrak{K'}|$-sized matrix, one
+entry for each pair of basis functions of $\phi$ and $\phi'$, where
+$\mathfrak{K}$ is the basis shape size.
+\texttt{quadrature} reduces the matrix to a scalar by multiplying in the
+coefficient vectors $c$ and $c'$ of $\phi$ and $\phi'$, returning $c^H M c$.
+
+The evaluation code for different wavepackets $\phi$ and $\phi'$ can be found in
+\texttt{waveblocks/inhomogeneous\_inner\_product.hpp}.
+If the two wavepackets are the equivalent, $\phi = \phi'$, a more efficient
+algorithm can be used which is implemented in
+\texttt{waveblocks/homogeneous\_inner\_product.hpp}
+
+\subsection{Multi-component Inner Products}

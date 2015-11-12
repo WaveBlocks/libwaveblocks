@@ -45,6 +45,9 @@ In the implementation of this rule, an auxiliary Python script was made to
 automatically generate C++-code with hardcoded tables of nodes and weights for
 different orders.
 
+The source code can be found under \texttt{scripts/create\_tables.py} and
+\texttt{waveblocks/gauss\_hermite\_qr.hpp}.
+
 
 \subsection{Tensor-Product Quadrature}
 \label{subsec:tpquad}
@@ -72,6 +75,8 @@ A two-dimensional quadrature rule is shown in figure~\ref{fig:tpexample}.
   \caption{Tensor-product built from 16- and 25-point Gauss-Hermite rules}
   \label{fig:tpexample}
 \end{figure}
+
+The implementation resides in \texttt{waveblocks/tensor\_product\_qr.hpp}.
 
 
 \subsection{Result Caching}
