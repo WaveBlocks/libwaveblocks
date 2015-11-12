@@ -4,18 +4,19 @@ In order to calculate wavepacket norms, various energies and other observables,
 it is necessary to evaluate the braket
 \begin{equation}
   \label{eq:braket}
-  M = \langle \Phi | F_{i,j} | \Phi' \rangle,
+  M = \langle \Psi | F | \Psi' \rangle,
 \end{equation}
-where $\Phi$ and $\Phi'$ are wavepackets and $F_{i,j}$ specifies the operator.
+where $\Psi$ and $\Psi'$ are wavepackets and $F$ specifies the operator.
 
 For the mathematical derivation of the braket evaluation algorithms, again refer
 to \cite{B_master_thesis}.
 
+
 \subsection{Scalar Inner Products}
 
-In the case of scalar wavepackets $\phi$ and $\phi'$ the braket is written as
+In the case of scalar wavepackets $\Phi$ and $\Phi'$ the braket is written as
 \begin{equation}
-  M = \langle \phi | f | \phi' \rangle.
+  M = \langle \Phi | f | \Phi' \rangle.
 \end{equation}
 The operator $f$ is given as a function parameter of the form
 \begin{equation}
@@ -32,15 +33,34 @@ in its definition possible.
 The inner product calculation implementation provides two different methods,
 \texttt{build\_matrix} and \texttt{quadrature}.
 The first returns a $|\mathfrak{K}| \times |\mathfrak{K'}|$-sized matrix, one
-entry for each pair of basis functions of $\phi$ and $\phi'$, where
+entry for each pair of basis functions of $\Phi$ and $\Phi'$, where
 $\mathfrak{K}$ is the basis shape size.
 \texttt{quadrature} reduces the matrix to a scalar by multiplying in the
-coefficient vectors $c$ and $c'$ of $\phi$ and $\phi'$, returning $c^H M c$.
+coefficient vectors $c$ and $c'$ of $\Phi$ and $\Phi'$, returning $c^H M c$.
 
-The evaluation code for different wavepackets $\phi$ and $\phi'$ can be found in
-\texttt{waveblocks/inhomogeneous\_inner\_product.hpp}.
-If the two wavepackets are the equivalent, $\phi = \phi'$, a more efficient
-algorithm can be used which is implemented in
-\texttt{waveblocks/homogeneous\_inner\_product.hpp}
+The ``inhomogeneous'' evaluation code for different wavepackets $\Phi$ and
+$\Phi'$ can be found in \path{waveblocks/inhomogeneous_inner_product.hpp}.
+If the two wavepackets are the equivalent, $\Phi = \Phi'$, a more efficient
+``homogeneous'' algorithm can be used which is implemented in
+\path{waveblocks/homogeneous_inner_product.hpp}
+
 
 \subsection{Multi-component Inner Products}
+
+In the more general case the wavepackets can have multiple components:
+\begin{align}
+  \Psi &= \begin{pmatrix} \Phi_1 \\ \vdots \\ \Phi_N \end{pmatrix} \\
+  M &= \langle \Psi | F | \Psi' \rangle = \left\langle
+    \begin{pmatrix} \Phi_1 \\ \vdots \\ \Phi_N \end{pmatrix} \left|
+    \begin{pmatrix} \ddots & \vdots & \udots \\ \cdots & f_{i,j} & \cdots \\
+      \udots & \vdots & \ddots \end{pmatrix} \right|
+    \begin{pmatrix} \Phi'_1 \\ \vdots \\ \Phi'_N \end{pmatrix}
+    \right\rangle
+\end{align}
+
+The calculation of these brakets builds on top of the inhomogeneous scalar
+evaluation code, calling it for every pair of wavepackets $(\Phi_i,\Phi'_j)$ and
+corresponding function $f_{i,j}$.
+
+The source code for this algorithm is found in
+\path{waveblocks/vector_inner_product.hpp}.
