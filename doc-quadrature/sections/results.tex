@@ -1,13 +1,13 @@
 \section{Results}
 
-Since one of the main reasons of porting WaveBlocks from Python to C++ was to
-increase the performance, run-times for various use-cases must be measured and
+Since one of the main reasons of porting WaveBlocksND from Python to C++ was to
+increase its performance, run-times for various use-cases must be measured and
 compared to evaluate the improvements.
-All tests were done using homogeneous \texttt{quadrature} with an identity
-operator.
+All tests were done using homogeneous quadrature with an identity operator;
+they can be found in the file \path{test/test_innerproduct_runtimes.cpp}.
 The computer used for benchmarking had a quad-core Intel i5-2500 processor.
 
-Different parameters were varied to compare the scaling behaviors of the two
+Different parameters were varied to compare the scaling behavior of the two
 implementations.
 Because the algorithms used in both cases were essentially the same, the
 run-times grow with the parameters roughly at the same rate, however there is a
@@ -47,9 +47,8 @@ have a 20-fold speedup.
 \end{figure}
 
 Finally, figure~\ref{fig:speedupncomps} shows the behavior for varying sizes
-of multi-component wavepackets.
-It is apparent that the speed-up is very consistently a factor of approximately
-75.
+of multi-component wavepackets in two dimensions.
+It is apparent that the speed-up is very consistently a factor of 75.
 
 In conclusion, there is no doubt that replacing the quadrature code with a C++
 version using the highly-optimized Eigen library brings great improvements.

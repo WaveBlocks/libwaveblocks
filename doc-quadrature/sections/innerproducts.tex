@@ -27,25 +27,25 @@ $q$ to the operator's values.
 
 Here, $R$ is the order of the quadrature.
 Instead of calling the operator function for the different nodes separately, all
-points are given to the function at once to make efficient vector calculations
-in its definition possible.
+points are given to the function at once to make efficient vectorized
+calculations in its definition possible.
 
 The inner product calculation implementation provides two different methods,
 \texttt{build\_matrix} and \texttt{quadrature}.
 The first returns a $|\mathfrak{K}| \times |\mathfrak{K'}|$-sized matrix, one
 entry for each pair of basis functions of $\Phi$ and $\Phi'$, where
 $\mathfrak{K}$ is the basis shape size.
-\texttt{quadrature} reduces the matrix to a scalar by multiplying in the
-coefficient vectors $c$ and $c'$ of $\Phi$ and $\Phi'$, returning $c^H M c$.
+\texttt{quadrature} reduces the matrix to a scalar by factoring in the
+coefficient vectors $c$ and $c'$ of $\Phi$ and $\Phi'$, returning $c^H M c'$.
 
 The ``inhomogeneous'' evaluation code for different wavepackets $\Phi$ and
 $\Phi'$ can be found in \path{waveblocks/inhomogeneous_inner_product.hpp}.
-If the two wavepackets are the equivalent, $\Phi = \Phi'$, a more efficient
-``homogeneous'' algorithm can be used which is implemented in
+If the two wavepackets are the equivalent ($\Phi = \Phi'$), a more efficient
+``homogeneous'' algorithm can be used instead which is implemented in
 \path{waveblocks/homogeneous_inner_product.hpp}
 
 
-\subsection{Multi-component Inner Products}
+\subsection{Multi-Component Inner Products}
 
 In the more general case the wavepackets can have multiple components:
 \begin{align}
@@ -58,7 +58,7 @@ In the more general case the wavepackets can have multiple components:
     \right\rangle
 \end{align}
 
-The calculation of these brakets builds on top of the inhomogeneous scalar
+The calculation of these brakets is built on top of the inhomogeneous scalar
 evaluation code, calling it for every pair of wavepackets $(\Phi_i,\Phi'_j)$ and
 corresponding function $f_{i,j}$.
 

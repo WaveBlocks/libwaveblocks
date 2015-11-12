@@ -1,7 +1,7 @@
 set term epslatex color
 set key top left
 set xlabel "number of dimensions"
-set ylabel "runtime [ms]" rotate by 0
+set ylabel "runtime [ms]"
 set log y
 set grid
 set xtics 1

@@ -41,7 +41,7 @@ Gauss-Hermite rule.
   \label{fig:ghexample}
 \end{figure}
 
-In the implementation of this rule, an auxiliary Python script was made to
+For the implementation of this rule, an auxiliary Python script was made to
 automatically generate C++-code with hardcoded tables of nodes and weights for
 different orders.
 
@@ -82,16 +82,16 @@ The implementation resides in \path{waveblocks/tensor_product_qr.hpp}.
 \subsection{Result Caching}
 
 As the node positions and weight values are tabulated with an external script
-for Gauss-Hermite Quadrature (\ref{subsec:ghquad}), the code for looking up and
+for Gauss-Hermite quadrature (\ref{subsec:ghquad}), the code for looking up and
 returning those numbers is simple and fast.
 
-However, in the case of Tensor-Product Quadrature (\ref{subsec:tpquad}), some
+However, in the case of tensor-product quadrature (\ref{subsec:tpquad}), some
 calculations must be performed to yield these values.
 We wish to avoid re-calculating node and weight vectors when the same quadrature
 rule is used many times, as is done in the case of wavepacket propagation over
 many iterations.
 
-For this reason, the results are only calculated once for a given Tensor-Product
+For this reason, the results are only calculated once for a given tensor-product
 rule, stored and re-used automatically on subsequent queries.
 The quadrature functions have been implemented as \texttt{static} methods, with
 the rule parameters given as template parameters.
