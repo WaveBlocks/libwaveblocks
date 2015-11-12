@@ -21,7 +21,7 @@ namespace waveblocks {
  *
  * \tparam D dimensionality of processed wavepackets
  * \tparam MultiIndex multi-index type of processed wavepackets
- * \tparam QR quadrature rule to use, with N nodes
+ * \tparam QR quadrature rule to use, with R nodes
  */
 template<dim_t D, class MultiIndex, class QR>
 class VectorInnerProduct
@@ -42,18 +42,18 @@ public:
     /**
      * \brief Calculate the matrix of the inner product.
      *
-     * Returns the matrix elements \f$\langle \Phi | f | \Phi \rangle\f$ with
+     * Returns the matrix elements \f$\langle \Psi | f | \Psi \rangle\f$ with
      * an operator \f$f\f$.
      * The matrix consists of \f$N \times N\f$ blocks (\f$N\f$: number of
      * components), each of size \f$|\mathfrak{K}| \times |\mathfrak{K}|\f$.
      * The coefficients of the wavepacket are ignored.
      *
-     * \param[in] packet multi-component wavepacket \f$\Phi\f$
-     * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times N} \times
-     *   \mathbb{R}^D \times \mathbb{N} \times \mathbb{N} \rightarrow
-     *   \mathbb{C}^N\f$ which is evaluated at the
+     * \param[in] packet multi-component wavepacket \f$\Psi\f$
+     * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times R} \times
+     *   \mathbb{R}^D \times \mathbb{R} \times \mathbb{R} \rightarrow
+     *   \mathbb{C}^R\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$, between components
-     *   \f$i\f$ and \f$j\f$;
+     *   \f$\Phi_i\f$ and \f$\Phi_j\f$;
      *   default returns a vector of ones if i==j, zeros otherwise
      *
      * \tparam Packet packet type (e.g. HomogeneousHaWp)
@@ -97,23 +97,23 @@ public:
     /**
      * \brief Calculate the matrix of the inner product.
      *
-     * Returns the matrix elements \f$\langle \Phi | f | \Phi' \rangle\f$ with
+     * Returns the matrix elements \f$\langle \Psi | f | \Psi' \rangle\f$ with
      * an operator \f$f\f$.
      * The matrix consists of \f$N \times N'\f$ blocks (\f$N,N'\f$: number of
-     * components of \f$\Phi,\Phi'\f$), each of size \f$|\mathfrak{K}_i| \times
+     * components of \f$\Psi,\Psi'\f$), each of size \f$|\mathfrak{K}_i| \times
      * |\mathfrak{K}_j'|\f$.  The coefficients of the wavepacket are ignored.
      *
-     * \param[in] pacbra multi-component wavepacket \f$\Phi\f$
-     * \param[in] packet multi-component wavepacket \f$\Phi'\f$
-     * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times N} \times
-     *   \mathbb{R}^D \times \mathbb{N} \times \mathbb{N} \rightarrow
-     *   \mathbb{C}^N\f$ which is evaluated at the
+     * \param[in] pacbra multi-component wavepacket \f$\Psi\f$
+     * \param[in] packet multi-component wavepacket \f$\Psi'\f$
+     * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times R} \times
+     *   \mathbb{R}^D \times \mathbb{R} \times \mathbb{R} \rightarrow
+     *   \mathbb{C}^R\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$, between components
-     *   \f$i\f$ and \f$j\f$;
+     *   \f$\Phi_i\f$ and \f$\Phi_j\f$;
      *   default returns a vector of ones if i==j, zeros otherwise
      *
-     * \tparam Pacbra packet type of \f$\Phi\f$ (e.g. HomogeneousHaWp)
-     * \tparam Packet packet type of \f$\Phi'\f$
+     * \tparam Pacbra packet type of \f$\Psi\f$ (e.g. HomogeneousHaWp)
+     * \tparam Packet packet type of \f$\Psi'\f$
      */
     template<class Pacbra, class Packet>
     static CMatrixNN build_matrix_inhomog(const Pacbra& pacbra,
@@ -165,7 +165,8 @@ public:
     /**
      * \brief Perform quadrature.
      *
-     * Evaluates a vector of scalars \f$\langle \phi_i | f | \phi_j \rangle\f$.
+     * Returns an \f$N^2\f$-sized vector of scalars \f$\langle \Phi_i | f |
+     * \Phi_j \rangle\f$.
      * See build_matrix() for the parameters.
      */
     template<class Packet>
@@ -192,7 +193,7 @@ public:
     /**
      * \brief Perform quadrature.
      *
-     * Evaluates a vector of scalars \f$\langle \phi_i | f | \phi'_j \rangle\f$.
+     * Returns an \f$N \cdot N'\f$-sized vector of scalars \f$\langle \Phi_i | f | \Phi'_j \rangle\f$.
      * See build_matrix() for the parameters.
      */
     template<class Pacbra, class Packet>

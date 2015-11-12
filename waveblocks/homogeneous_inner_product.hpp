@@ -42,11 +42,11 @@ public:
     /**
      * \brief Calculate the matrix of the inner product.
      *
-     * Returns the matrix elements \f$\langle \phi | f | \phi \rangle\f$ with
+     * Returns the matrix elements \f$\langle \Phi | f | \Phi \rangle\f$ with
      * an operator \f$f\f$.
      * The coefficients of the wavepacket are ignored.
      *
-     * \param[in] packet wavepacket \f$\phi\f$
+     * \param[in] packet wavepacket \f$\Phi\f$
      * \param[in] op operator \f$f(x, q) : \mathbb{C}^{D \times R} \times
      *   \mathbb{R}^D \rightarrow \mathbb{C}^R\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$;
@@ -90,7 +90,7 @@ public:
     /**
      * \brief Perform quadrature.
      *
-     * Evaluates the scalar \f$\langle \phi | f | \phi \rangle\f$.
+     * Evaluates the scalar \f$\langle \Phi | f | \Phi \rangle\f$.
      * See build_matrix() for the parameters.
      */
     static complex_t quadrature(const AbstractScalarHaWp<D, MultiIndex>& packet,
