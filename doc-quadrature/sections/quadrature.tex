@@ -7,6 +7,7 @@ different kinds.
 
 
 \subsection{Gauss-Hermite Quadrature}
+\label{subsec:ghquad}
 
 The basic integration algorithm used in this project is the one-dimensional
 Gauss-Hermite quadrature.
@@ -46,6 +47,7 @@ different orders.
 
 
 \subsection{Tensor-Product Quadrature}
+\label{subsec:tpquad}
 
 The wavepackets that are processed by WaveBlocks are generally multi-dimensional.
 To handle this, tensor products of $D$ one-dimensional quadrature rules can be
@@ -70,3 +72,29 @@ A two-dimensional quadrature rule is shown in figure~\ref{fig:tpexample}.
   \caption{Tensor-product built from 16- and 25-point Gauss-Hermite rules}
   \label{fig:tpexample}
 \end{figure}
+
+
+\subsection{Result Caching}
+
+As the node positions and weight values are tabulated with an external script
+for Gauss-Hermite Quadrature (\ref{subsec:ghquad}), the code for looking up and
+returning those numbers is simple and fast.
+
+However, in the case of Tensor-Product Quadrature (\ref{subsec:tpquad}), some
+calculations must be performed to yield these values.
+We wish to avoid re-calculating node and weight vectors when the same quadrature
+rule is used many times, as is done in the case of wavepacket propagation over
+many iterations.
+
+For this reason, the results are only calculated once for a given Tensor-Product
+rule, stored and re-used automatically on subsequent queries.
+The quadrature functions have been implemented as \texttt{static} methods, with
+the rule parameters given as template parameters.
+Therefore, the caching is done in \texttt{static} fields.
+
+This has the advantage that the rule only has to be calculated once in the
+entire run of the program as long as the quadrature rule is the same, even if it
+is invoked in different scopes, without having to pass down an object explicitly
+that holds a state.
+On the other hand, no clean-up can be done automatically, so a method must be
+called manually to free the memory used by the cache.
