@@ -7,6 +7,7 @@
 
 #include "waveblocks/basic_types.hpp"
 #include "waveblocks/gauss_hermite_qr.hpp"
+#include "waveblocks/genz_keister_qr.hpp"
 #include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/homogeneous_inner_product.hpp"
@@ -274,13 +275,60 @@ void testVector()
     //std::cout << "Quadrature: " << IP::quadrature(packet1) << "\n";
 }
 
+void test3DGenzKeister()
+{
+    std::cout << "\n3D Homogeneous Genz-Keister Test\n";
+    std::cout <<   "--------------------------------\n";
+
+    const real_t eps = 0.2;
+    const dim_t D = 3;
+    const dim_t level = 4;
+    const dim_t n_coeffs = 5;
+    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+
+    // Set up sample 3D wavepacket.
+    ShapeEnumerator<D, MultiIndex> enumerator;
+    ShapeEnum<D, MultiIndex> shape_enum =
+        enumerator.generate(HyperCubicShape<D>(n_coeffs));
+    HaWpParamSet<D> param_set;
+    std::cout << param_set << std::endl;
+    Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D),1);
+    for(int i = 0; i < coeffs.size(); ++i) coeffs[i] = i+1;
+    ScalarHaWp<D, MultiIndex> packet;
+    packet.eps() = eps;
+    packet.parameters() = param_set;
+    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.coefficients() = coeffs;
+    //std::cout << "Coefficients:\n";
+    //std::cout << coeffs << "\n";
+
+    using QR = GenzKeisterQR<D, level>;
+    QR::NodeMatrix nodes;
+    QR::WeightVector weights;
+    std::tie(nodes, weights) = QR::nodes_and_weights();
+    std::cout << "number of nodes: " << QR::number_nodes() << "\n";
+    std::cout << "node matrix:\n" << nodes << "\n";
+    std::cout << "weight vector:\n" << weights << "\n";
+
+    // Calculate inner product matrix, print it.
+    using IP = HomogeneousInnerProduct<D, MultiIndex, QR>;
+    //CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
+    //    IP::build_matrix(packet);
+
+    // Calculate quadrature.
+    std::cout << "Quadrature: " << IP::quadrature(packet) << "\n";
+
+    QR::clear_cache();
+}
+
 int main()
 {
-    test1DGaussHermite();
-    test1DGaussHermiteOperator();
-    test3DGaussHermite();
-    test1DInhomog();
-    testVector();
+    //test1DGaussHermite();
+    //test1DGaussHermiteOperator();
+    //test3DGaussHermite();
+    //test1DInhomog();
+    //testVector();
+    test3DGenzKeister();
 
     return 0;
 }
