@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <iostream>
 #include <tuple>
 #include <vector>
@@ -109,12 +110,6 @@ private:
                 const dim_t n_nodes = part_nodes.cols();
                 const real_t part_weight = weight_for_partition(part);
 
-                // DEBUG
-                std::cout << "\nPart:";
-                for (int p : part) std::cout << " " << p;
-                std::cout << "\nNodes:\n" << part_nodes << "\n";
-                std::cout << "\nWeight:\n" << part_weight << "\n";
-
                 // Append them to the result.
                 cached_nodes.conservativeResize(Eigen::NoChange, node_offset + n_nodes);
                 cached_weights.conservativeResize(Eigen::NoChange, node_offset + n_nodes);
@@ -127,7 +122,10 @@ private:
         }
 
         // Transform weights.
-        //cached_weights /= exp(-
+        for (dim_t i = 0; i < cached_nodes.cols(); ++i)
+        {
+            cached_weights(i) /= exp(-cached_nodes.col(i).squaredNorm());
+        }
 
         cached = true;
     }
@@ -177,8 +175,20 @@ private:
      */
     static real_t weight_for_partition(const partition_t<D>& part)
     {
-        // TODO
-        return 0;
+        const dim_t K = LEVEL - 1;
+
+        real_t weight = 0;
+        for (const auto& q : lattice_points<D>(K - sum<D>(part)))
+        {
+            real_t w = 1;
+            for (dim_t i = 0; i < D; ++i)
+            {
+                w *= genz_keister_weight_factors(part[i], q[i] + part[i]);
+            }
+            weight += w;
+        }
+
+        return weight / (1 << nnz<D>(part));
     }
 };
 
