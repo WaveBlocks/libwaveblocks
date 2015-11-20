@@ -293,7 +293,7 @@ void test3DGenzKeister()
     HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D),1);
-    for(int i = 0; i < coeffs.size(); ++i) coeffs[i] = i+1;
+    //for(int i = 0; i < coeffs.size(); ++i) coeffs[i] = i+1;
     ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;

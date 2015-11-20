@@ -79,6 +79,22 @@ A two-dimensional quadrature rule is shown in figure~\ref{fig:tpexample}.
 The implementation resides in \path{waveblocks/tensor_product_qr.hpp}.
 
 
+\subsection{Genz-Keister Quadrature}
+\label{subsec:gkquad}
+
+If one wants to investigate higher dimensions, the tensor rule quickly becomes
+unfeasible to compute in its full form.
+As the results in section~\ref{sec:results} will show, the run-times grow
+faster than exponentially with increasing dimensionality, single quadratures
+taking minutes already in the fourth dimension.
+
+For this reason, specialized multi-dimensional schemes, such as the Genz-Keister
+quadrature implemented here, operate on a reduced set of nodes.
+The details of the procedure are outlined in \cite{B15_601}.
+Similarly to the Gauss-Hermite quadrature rule, many of the intermediary
+constants were tabulated beforehand.
+
+
 \subsection{Result Caching}
 
 As the node positions and weight values are tabulated with an external script
