@@ -37,7 +37,7 @@ Gauss-Hermite rule.
 \begin{figure}
   \center
   \input{figures/gh-rule.tex}
-  \caption{45-point Gauss-Hermite nodes and weights}
+  \caption{45-point Gauss-Hermite nodes and weights.}
   \label{fig:ghexample}
 \end{figure}
 
@@ -57,11 +57,11 @@ To handle this, tensor products of $D$ one-dimensional quadrature rules can be
 built up.
 
 Denoting the $i$-th node-weight-pair of the $d$-th scalar quadrature rule
-$(\gamma_i^d,\ \omega_i^d)$, the resulting pair at the multi-index $j = (j_1,
-\ldots, j_d)$ for the resulting tensor quadrature rule is:
+$(\gamma_i^d,\ \omega_i^d)$, the resulting pair at the multi-index $\vect{j} =
+(j_1, \ldots, j_d)$ for the resulting tensor quadrature rule is:
 
 \begin{equation}
-  (\gamma_j,\ \omega_j) = \left(
+  (\gamma_{\vect{j}},\ \omega_{\vect{j}}) = \left(
     \begin{pmatrix} \gamma_{j_1}^1 \\ \vdots \\ \gamma_{j_d}^d \end{pmatrix},
     \ \prod_{d=1}^D \omega_{j_d}^d
   \right)
@@ -72,7 +72,7 @@ A two-dimensional quadrature rule is shown in figure~\ref{fig:tpexample}.
 \begin{figure}
   \center
   \input{figures/tp-rule.tex}
-  \caption{Tensor-product built from 16- and 25-point Gauss-Hermite rules}
+  \caption{Tensor-product built from 16- and 25-point Gauss-Hermite rules.}
   \label{fig:tpexample}
 \end{figure}
 
