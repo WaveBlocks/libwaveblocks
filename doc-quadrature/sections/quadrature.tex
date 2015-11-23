@@ -105,7 +105,7 @@ However, in the case of tensor-product quadrature (\ref{subsec:tpquad}), some
 calculations must be performed to yield these values.
 We wish to avoid re-calculating node and weight vectors when the same quadrature
 rule is used many times, as is done in the case of wavepacket propagation over
-many iterations.
+many timesteps.
 
 For this reason, the results are only calculated once for a given tensor-product
 rule, stored and re-used automatically on subsequent queries.
