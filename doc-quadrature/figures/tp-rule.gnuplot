@@ -1,8 +1,8 @@
 set term epslatex color size 5,3.5
 set key off
-set xlabel "$\\gamma_i^1$"
-set ylabel "$\\gamma_i^2$"
-set zlabel "$\\omega_i$"
+set xlabel "$\\gamma_i^1$" offset 0.5, -0.7, 0
+set ylabel "$\\gamma_i^2$" offset 0, 0, 0
+set zlabel "$\\omega_i$" offset 0.5, 0, 0
 set xyplane relative 0
 set grid
 set output "tp-rule.tex"
