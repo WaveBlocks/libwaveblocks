@@ -53,18 +53,40 @@ If the two wavepackets are equivalent ($\Phi[\Pi] = \Phi'[\Pi']$), a more effici
 
 In the more general case the wavepackets can have multiple components:
 \begin{align}
-  \Psi &= \begin{pmatrix} \Phi_1 \\ \vdots \\ \Phi_N \end{pmatrix} \\
+  \Psi &= \begin{pmatrix} \Phi_1[\Pi_1] \\ \vdots \\ \Phi_N[\Pi_N] \end{pmatrix} \\
   \mat{M} &= \langle \Psi | F | \Psi' \rangle = \left\langle
-    \begin{pmatrix} \Phi_1 \\ \vdots \\ \Phi_N \end{pmatrix} \left|
+    \begin{pmatrix} \Phi_1[\Pi_1] \\ \vdots \\ \Phi_N[\Pi_N] \end{pmatrix} \left|
     \begin{pmatrix} \ddots & \vdots & \udots \\ \cdots & f_{i,j} & \cdots \\
       \udots & \vdots & \ddots \end{pmatrix} \right|
-    \begin{pmatrix} \Phi'_1 \\ \vdots \\ \Phi'_M \end{pmatrix}
+    \begin{pmatrix} \Phi'_1[\Pi_1'] \\ \vdots \\ \Phi'_{N'}[\Pi_{N'}'] \end{pmatrix}
     \right\rangle
 \end{align}
+
+Instead of passing a matrix of functions for the operator $F$ like in the
+formula above, the code expects one function parameter of the following type:
+\begin{equation}
+  f(\mat{x}, \vect{q}, i, j) : \mathbb{C}^{D \times R} \times \mathbb{R}^D
+  \times \mathbb{N} \times \mathbb{N} \rightarrow \mathbb{C}^R
+\end{equation}
 
 The calculation of these brakets is built on top of the inhomogeneous scalar
 evaluation code, calling it for every pair of wavepackets $(\Phi_i,\Phi'_j)$ and
 corresponding function $f_{i,j}$.
+
+In the implementation, the resulting matrix $\mat{M}$ is built up of $N \times
+N'$ blocks, each of size $|\mathfrak{K}_i| \times |\mathfrak{K}_j'|$:
+\begin{equation}
+  \mat{M} = \begin{pmatrix} \ddots & \vdots & \udots \\
+    \cdots & \mat{M}_{i,j} & \cdots \\
+    \udots & \vdots & \ddots
+  \end{pmatrix} =
+  \begin{pmatrix} \ddots & \vdots & \udots \\
+    \cdots & \langle \Phi_i[\Pi_i]|f_{i,j}|\Phi'_j[\Pi_j'] \rangle & \cdots \\
+    \udots & \vdots & \ddots
+  \end{pmatrix}
+\end{equation}
+If quadrature is requested, a vector of $N \cdot N'$ scalars is returned, their
+values being $\vect{c}_i^H \ \mat{M}_{i,j} \ \vect{c}'_j$.
 
 The source code for this algorithm is found in
 \path{waveblocks/vector_inner_product.hpp}.
