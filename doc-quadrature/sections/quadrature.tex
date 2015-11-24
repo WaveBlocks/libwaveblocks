@@ -94,8 +94,19 @@ The details of the procedure are outlined in \cite{B15_601}.
 Similarly to the Gauss-Hermite quadrature rule, many of the intermediary
 constants were tabulated beforehand.
 
+Comparing figures \ref{fig:speedupnd} and \ref{fig:speedupgenzkeister}, one can
+see a difference of an order of magnitude between the computational complexity
+of tensor and Genz-Keister quadrature.
+However, the latter can yield less exact results, so the Genz-Keister level has
+to be chosen suitably.
+
+
+\subsection{Implementation Details}
+
+
 
 \subsection{Result Caching}
+\label{subseq:resultcaching}
 
 As the node positions and weight values are tabulated with an external script
 for Gauss-Hermite quadrature (\ref{subsec:ghquad}), the code for looking up and

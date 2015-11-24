@@ -5,7 +5,8 @@ Since one of the main reasons of porting WaveBlocksND from Python to C++ was to
 increase its performance, run-times for various use-cases must be measured and
 compared to evaluate the improvements.
 All tests were done using homogeneous quadrature with an identity operator;
-they can be found in the file \path{test/test_innerproduct_runtimes.cpp}.
+they can be found in the file \path{test/test_innerproduct_runtimes.cpp} for the
+C++ version and \path{test/RuntimeTest.py} for the Python version.
 The computer used for benchmarking had a quad-core Intel i5-2500 processor.
 
 Different parameters were varied to compare the scaling behavior of the two
