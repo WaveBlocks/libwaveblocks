@@ -18,14 +18,17 @@ namespace waveblocks {
 /**
  * \brief Structure providing weighted nodes for Genz-Keister quadrature.
  *
- * \tparam D dimensionality of the Genz-Keister rule
+ * \tparam DIM dimensionality of the Genz-Keister rule
  * \tparam LEVEL the level of the Genz-Keister rule, must be between 1 and 30
  *   inclusive
  */
-template <dim_t D, dim_t LEVEL>
+template <dim_t DIM, dim_t LEVEL>
 struct GenzKeisterQR
 {
-    using NodeMatrix = Eigen::Matrix<real_t,D,Eigen::Dynamic>;
+    static const dim_t D = DIM;
+    static const dim_t level = LEVEL;
+
+    using NodeMatrix = Eigen::Matrix<real_t,DIM,Eigen::Dynamic>;
     using WeightVector = Eigen::Matrix<real_t,1,Eigen::Dynamic>;
 
 
@@ -74,7 +77,7 @@ struct GenzKeisterQR
     static void clear_cache()
     {
         cached = false;
-        cached_nodes.resize(D, 0);
+        cached_nodes.resize(DIM, 0);
         cached_weights.resize(1, 0);
     }
 
@@ -97,7 +100,7 @@ private:
         }
 
         const dim_t K = LEVEL - 1;
-        const partitions_t<D> parts = partitions<D>(K);
+        const partitions_t<DIM> parts = partitions<DIM>(K);
         dim_t node_offset = 0;
         for (const auto& part : parts)
         {
@@ -135,22 +138,22 @@ private:
      *
      * \param[in] part partition
      */
-    static NodeMatrix nodes_for_partition(const partition_t<D>& part)
+    static NodeMatrix nodes_for_partition(const partition_t<DIM>& part)
     {
-        const dim_t xi = nz<D>(part);
-        const permutations_t<D> perms = permutations<D>(part);
-        NodeMatrix nodes = NodeMatrix::Zero(D, perms.size() * (1 << (D-xi)));
+        const dim_t xi = nz<DIM>(part);
+        const permutations_t<DIM> perms = permutations<DIM>(part);
+        NodeMatrix nodes = NodeMatrix::Zero(DIM, perms.size() * (1 << (DIM-xi)));
 
         dim_t node_offset = 0;
         for (const auto& perm : perms)
         {
             // Copy nodes with flipped signs from non-zero generators.
             int nnz_row = 0;
-            for (int row = 0; row < D; ++row)
+            for (int row = 0; row < DIM; ++row)
             {
                 if (perm[row] == 0) continue;
 
-                for (int col = 0; col < (1 << (D-xi)); ++col)
+                for (int col = 0; col < (1 << (DIM-xi)); ++col)
                 {
                     // Generators corresponding to current permutation.
                     const int sign = -2 * ((col >> nnz_row) & 1) + 1;
@@ -162,7 +165,7 @@ private:
                 ++ nnz_row;
             }
 
-            node_offset += (1 << (D-xi));
+            node_offset += (1 << (DIM-xi));
         }
 
         return nodes;
@@ -173,35 +176,35 @@ private:
      *
      * \param[in] part partition
      */
-    static real_t weight_for_partition(const partition_t<D>& part)
+    static real_t weight_for_partition(const partition_t<DIM>& part)
     {
         const dim_t K = LEVEL - 1;
 
         real_t weight = 0;
-        for (const auto& q : lattice_points<D>(K - sum<D>(part)))
+        for (const auto& q : lattice_points<DIM>(K - sum<DIM>(part)))
         {
             real_t w = 1;
-            for (dim_t i = 0; i < D; ++i)
+            for (dim_t i = 0; i < DIM; ++i)
             {
                 w *= genz_keister_weight_factors(part[i], q[i] + part[i]);
             }
             weight += w;
         }
 
-        return weight / (1 << nnz<D>(part));
+        return weight / (1 << nnz<DIM>(part));
     }
 };
 
 // Initialize static members.
-template <dim_t D, dim_t LEVEL>
-bool GenzKeisterQR<D, LEVEL>::cached = false;
+template <dim_t DIM, dim_t LEVEL>
+bool GenzKeisterQR<DIM, LEVEL>::cached = false;
 
-template <dim_t D, dim_t LEVEL>
-typename GenzKeisterQR<D, LEVEL>::NodeMatrix
-    GenzKeisterQR<D, LEVEL>::cached_nodes;
+template <dim_t DIM, dim_t LEVEL>
+typename GenzKeisterQR<DIM, LEVEL>::NodeMatrix
+    GenzKeisterQR<DIM, LEVEL>::cached_nodes;
 
-template <dim_t D, dim_t LEVEL>
-typename GenzKeisterQR<D, LEVEL>::WeightVector
-    GenzKeisterQR<D, LEVEL>::cached_weights;
+template <dim_t DIM, dim_t LEVEL>
+typename GenzKeisterQR<DIM, LEVEL>::WeightVector
+    GenzKeisterQR<DIM, LEVEL>::cached_weights;
 
 }
