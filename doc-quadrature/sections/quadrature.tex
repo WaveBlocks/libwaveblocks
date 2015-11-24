@@ -61,7 +61,7 @@ $(\gamma_i^d,\ \omega_i^d)$, the resulting pair at the multi-index $\vect{j} =
 (j_1, \ldots, j_d)$ for the resulting tensor quadrature rule is:
 
 \begin{equation}
-  (\gamma_{\vect{j}},\ \omega_{\vect{j}}) = \left(
+  (\vect{\gamma}_{\vect{j}},\ \omega_{\vect{j}}) = \left(
     \begin{pmatrix} \gamma_{j_1}^1 \\ \vdots \\ \gamma_{j_d}^d \end{pmatrix},
     \ \prod_{d=1}^D \omega_{j_d}^d
   \right)
@@ -105,7 +105,7 @@ to be chosen suitably.
 
 The three implemented quadrature rules share a similar structure in terms of
 their function interface, but because the code makes heavy use of template
-programming, no explicit inheritance hierarchy has been defined.
+programming, no explicit inheritance hierarchy was defined.
 
 They provide the following methods:
 \begin{itemize}
@@ -113,14 +113,13 @@ They provide the following methods:
     tensor-products and Genz-Keister)
   \item \texttt{nodes} returning the the quadrature node positions,
   \item \texttt{weights} giving the quadrature node weights,
-  \item \texttt{nodes\_and\_weights} as a utility method giving both of the
-    above at once as a \texttt{std::pair}, and
-  \item \texttt{clear\_cache}, described in section
-    (\ref{subsec:resultcaching}).
+  \item \texttt{nodes\_and\_weights} for both of the above as a
+    \texttt{std::pair}, and
+  \item \texttt{clear\_cache}, described in section~\ref{subsec:resultcaching}.
 \end{itemize}
 
-Every method of the quadrature rule classes has been made static, so they need
-not be instantiated.
+Every method of the quadrature rule classes has been made static, so no
+instantiation is necessary.
 Instead of quadrature rule objects holding a state at run-time, we utilize the
 type-system and give all the necessary parameters as template arguments.
 These are the Gauss-Hermite order, tensor-product base rules, and Genz-Keister

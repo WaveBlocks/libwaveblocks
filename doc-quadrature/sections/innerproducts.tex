@@ -14,14 +14,14 @@ to \cite{B_master_thesis}.
 
 \subsection{Scalar Inner Products}
 
-In the case of scalar wavepackets $\Phi$ and $\Phi'$ the braket is written as
+In the case of scalar wavepackets $\Phi[\Pi]$ and $\Phi'[\Pi']$ the braket is written as
 \begin{equation}
-  \mat{M} = \langle \Phi | f | \Phi' \rangle.
+  \mat{M} = \langle \Phi[\Pi] | f | \Phi'[\Pi'] \rangle.
 \end{equation}
 The operator $f$ is given as a function parameter of the form
 \begin{equation}
   f(\mat{x}, \vect{q}) : \mathbb{C}^{D \times R} \times \mathbb{R}^D \rightarrow
-  \mathbb{C}^R
+  \mathbb{C}^R,
 \end{equation}
 mapping nodal points $\vect{x} \in \mathbb{R}^D$ and position
 $\vect{q} \in \mathbb{R}^D$ to the operator's values.
@@ -35,10 +35,10 @@ definition possible.
 The inner product calculation implementation provides two different methods,
 \texttt{build\_matrix} and \texttt{quadrature}.
 The first returns a $|\mathfrak{K}| \times |\mathfrak{K'}|$-sized matrix, one
-entry for each pair of basis functions of $\Phi$ and $\Phi'$, where
+entry for each pair of basis functions of $\Phi[\Pi]$ and $\Phi'[\Pi']$, where
 $|\mathfrak{K}|$ is the basis shape size.
 \texttt{quadrature} reduces the matrix to a scalar by multiplying in the
-coefficient vectors $\vect{c}$ and $\vect{c}'$ of $\Phi$ and $\Phi'$, returning
+coefficient vectors $\vect{c}$ and $\vect{c}'$ of $\Phi[\Pi]$ and $\Phi'[\Pi']$, returning
 $\vect{c}^H \mat{M} \vect{c}'$.
 
 The ``inhomogeneous'' evaluation code for different wavepackets $\Phi[\Pi]$
@@ -85,8 +85,8 @@ N'$ blocks, each of size $|\mathfrak{K}_i| \times |\mathfrak{K}_j'|$:
     \udots & \vdots & \ddots
   \end{pmatrix}
 \end{equation}
-If quadrature is requested, a vector of $N \cdot N'$ scalars is returned, their
-values being $\vect{c}_i^H \ \mat{M}_{i,j} \ \vect{c}'_j$.
+If quadrature is requested, a vector of $N \cdot N'$ scalars is returned, with
+components $\vect{c}_i^H \ \mat{M}_{i,j} \ \vect{c}'_j$.
 
 The source code for this algorithm is found in
 \path{waveblocks/vector_inner_product.hpp}.
