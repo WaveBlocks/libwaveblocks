@@ -84,9 +84,9 @@ The implementation resides in \path{waveblocks/tensor_product_qr.hpp}.
 
 If one wants to investigate higher dimensions, the tensor rule quickly becomes
 unfeasible to compute in its full form.
-As the results in section~\ref{sec:results} will show, the run-times grow
-faster than exponentially with increasing dimensionality, single quadratures
-taking minutes already in the fourth dimension.
+As the results in section~\ref{sec:results} show, the run-times grow faster than
+exponentially with increasing dimensionality, single quadratures taking minutes
+already in the fourth dimension.
 
 For this reason, specialized multi-dimensional schemes, such as the Genz-Keister
 quadrature implemented here, operate on a reduced set of nodes.
@@ -114,7 +114,7 @@ They provide the following methods:
   \item \texttt{nodes} returning the the quadrature node positions,
   \item \texttt{weights} giving the quadrature node weights,
   \item \texttt{nodes\_and\_weights} as a utility method giving both of the
-    above at once, and
+    above at once as a \texttt{std::pair}, and
   \item \texttt{clear\_cache}, described in section
     (\ref{subsec:resultcaching}).
 \end{itemize}
@@ -130,6 +130,13 @@ This avoids the overhead of constructing objects at run-time just to pass on
 parameters and makes some compile-time calculations possible.
 On the other hand, these parameters must be hardcoded, making it impossible to
 dynamically change the quadrature order, for instance.
+
+Designing \texttt{TensorProductQR} to work this way proved to be challenging,
+since it needs to receive an arbitrary number of other quadrature rule classes,
+one for each dimension, as template parameters and call their methods.
+This was accomplished using template parameter
+packs\footnote{\url{http://en.cppreference.com/w/cpp/language/parameter_pack}},
+introduced in C++11.
 
 
 \subsection{Result Caching}
@@ -148,13 +155,13 @@ many timesteps.
 
 For this reason, the results are only calculated once for a given complex
 rule, stored and re-used automatically on subsequent queries.
-The quadrature functions have been implemented as \texttt{static} methods, with
-the rule parameters given as template parameters.
-Therefore, the caching is done in \texttt{static} fields.
+Since the qudrature rule classes are not instantiated, the caching is done in
+\texttt{static} fields.
 
 This has the advantage that the rule only has to be calculated once in the
 entire run of the program as long as the quadrature rule is the same, even if it
 is invoked in different scopes, without having to pass down an object explicitly
 that holds a state.
-On the other hand, no clean-up can be done automatically, so a method must be
-called manually to free the memory used by the cache.
+On the other hand, no clean-up can be done automatically, so the method
+\texttt{clear\_cache} must be called manually to free the memory used by the
+cache.
