@@ -53,7 +53,7 @@ The source code can be found under \path{scripts/create_tables.py} and
 \label{subsec:tpquad}
 
 The wavepackets that are processed by WaveBlocks are generally multi-dimensional.
-To handle this, tensor products of $D$ one-dimensional quadrature rules can be
+To handle this, tensor-products of $D$ one-dimensional quadrature rules can be
 built up.
 
 Denoting the $i$-th node-weight-pair of the $d$-th scalar quadrature rule
@@ -103,22 +103,50 @@ to be chosen suitably.
 
 \subsection{Implementation Details}
 
+The three implemented quadrature rules share a similar structure in terms of
+their function interface, but because the code makes heavy use of template
+programming, no explicit inheritance hierarchy has been defined.
+
+They provide the following methods:
+\begin{itemize}
+  \item \texttt{number\_nodes} for querying the number of nodes (non-trivial for
+    tensor-products and Genz-Keister)
+  \item \texttt{nodes} returning the the quadrature node positions,
+  \item \texttt{weights} giving the quadrature node weights,
+  \item \texttt{nodes\_and\_weights} as a utility method giving both of the
+    above at once, and
+  \item \texttt{clear\_cache}, described in section
+    (\ref{subsec:resultcaching}).
+\end{itemize}
+
+Every method of the quadrature rule classes has been made static, so they need
+not be instantiated.
+Instead of quadrature rule objects holding a state at run-time, we utilize the
+type-system and give all the necessary parameters as template arguments.
+These are the Gauss-Hermite order, tensor-product base rules, and Genz-Keister
+dimension and level.
+
+This avoids the overhead of constructing objects at run-time just to pass on
+parameters and makes some compile-time calculations possible.
+On the other hand, these parameters must be hardcoded, making it impossible to
+dynamically change the quadrature order, for instance.
 
 
 \subsection{Result Caching}
-\label{subseq:resultcaching}
+\label{subsec:resultcaching}
 
 As the node positions and weight values are tabulated with an external script
 for Gauss-Hermite quadrature (\ref{subsec:ghquad}), the code for looking up and
 returning those numbers is simple and fast.
 
-However, in the case of tensor-product quadrature (\ref{subsec:tpquad}), some
-calculations must be performed to yield these values.
+However, in the case of tensor-product (\ref{subsec:tpquad}) and Genz-Keister
+(\ref{subsec:gkquad}) quadrature, some calculations must be performed to yield
+these values.
 We wish to avoid re-calculating node and weight vectors when the same quadrature
 rule is used many times, as is done in the case of wavepacket propagation over
 many timesteps.
 
-For this reason, the results are only calculated once for a given tensor-product
+For this reason, the results are only calculated once for a given complex
 rule, stored and re-used automatically on subsequent queries.
 The quadrature functions have been implemented as \texttt{static} methods, with
 the rule parameters given as template parameters.
