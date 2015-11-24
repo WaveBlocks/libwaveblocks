@@ -50,7 +50,7 @@ public:
      *
      * \param[in] packet multi-component wavepacket \f$\Psi\f$
      * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times R} \times
-     *   \mathbb{R}^D \times \mathbb{R} \times \mathbb{R} \rightarrow
+     *   \mathbb{R}^D \times \mathbb{N} \times \mathbb{N} \rightarrow
      *   \mathbb{C}^R\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$, between components
      *   \f$\Phi_i\f$ and \f$\Phi_j\f$;
@@ -106,7 +106,7 @@ public:
      * \param[in] pacbra multi-component wavepacket \f$\Psi\f$
      * \param[in] packet multi-component wavepacket \f$\Psi'\f$
      * \param[in] op operator \f$f(x, q, i, j) : \mathbb{C}^{D \times R} \times
-     *   \mathbb{R}^D \times \mathbb{R} \times \mathbb{R} \rightarrow
+     *   \mathbb{R}^D \times \mathbb{N} \times \mathbb{N} \rightarrow
      *   \mathbb{C}^R\f$ which is evaluated at the
      *   nodal points \f$x\f$ and position \f$q\f$, between components
      *   \f$\Phi_i\f$ and \f$\Phi_j\f$;
