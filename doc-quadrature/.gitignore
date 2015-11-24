@@ -3,5 +3,5 @@
 *.blg
 
 # files generated from *.gnuplot
-figures/*.eps
-figures/*.tex
+#figures/*.eps
+#figures/*.tex
