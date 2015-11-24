@@ -7,6 +7,7 @@
 
 #include "waveblocks/basic_types.hpp"
 #include "waveblocks/gauss_hermite_qr.hpp"
+#include "waveblocks/genz_keister_qr.hpp"
 #include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/homogeneous_inner_product.hpp"
@@ -173,11 +174,29 @@ void runMultiComponent()
     }
 }
 
+template<dim_t LEVEL>
+void runGenzKeister()
+{
+    const real_t eps = 0.2;
+    const dim_t n_coeffs = 10;
+
+    std::cout << "\nHomogeneous Genz-Keister quadrature of level " <<
+        LEVEL << " with " << n_coeffs << " coefficients per dimension.\n";
+    std::cout << "number of dimensions vs. evaluation time [ms]:\n";
+
+    // Do runs for different numbers of dimensions.
+    MultiDHelper<1, GenzKeisterQR<1, LEVEL>>::run(eps, n_coeffs, 50000);
+    MultiDHelper<2, GenzKeisterQR<2, LEVEL>>::run(eps, n_coeffs, 5000);
+    MultiDHelper<3, GenzKeisterQR<3, LEVEL>>::run(eps, n_coeffs, 100);
+    MultiDHelper<4, GenzKeisterQR<4, LEVEL>>::run(eps, n_coeffs, 4);
+}
+
 int main()
 {
     run1D();
     runMultiD();
     runMultiComponent();
+    runGenzKeister<6>();
 
     return 0;
 }

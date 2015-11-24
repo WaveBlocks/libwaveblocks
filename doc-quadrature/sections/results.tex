@@ -35,9 +35,22 @@ factor of about 9 for larger ones.
   \label{fig:speedupnd}
 \end{figure}
 
-The next test inspects the impact of dimensionality.
+The next test inspects the impact of dimensionality using tensor product
+quadrature.
 As can be seen from figure~\ref{fig:speedupnd}, higher-dimensional problems can
-have a 20-fold speedup.
+have a 20-fold speed-up.
+
+\begin{figure}
+  \center
+  \input{figures/speedup-genz-keister.tex}
+  \caption{Run-times for multi-dimensional homogeneous Genz-Keister quadrature
+    of level 6 with 10 coefficients per dimension.}
+  \label{fig:speedupgenzkeister}
+\end{figure}
+
+Figure~\ref{fig:speedupgenzkeister} results from the same type of test as above,
+but with Genz-Keister quadrature of level 6 instead of dense tensor products.
+The speed-up is in a similar range.
 
 \begin{figure}
   \center
@@ -59,17 +72,5 @@ quadrature.
 This means that for smaller problems, even though the measured speed-ups are
 huge, there are probably bottlenecks in other parts of the code, which
 diminishes the total improvement.
-
 Additionally, a noticeable trade-off is a much longer compilation time, which
 can hinder doing many test with small problems.
-If one wants to tweak some hard-coded parameter, they have to wait for the
-lengthy build to finish.
-Disabling optimization flags can help, but in this aspect the Python version has
-a clear advantage.
-
-Beyond the efficiency improvements, using a statically typed language can also
-aid with catching more bugs at compilation time, theoretically resulting in more
-correct programs.
-Unfortunately, compiler error messages can get very complicated and confusing
-when using template-heavy C++ code like in this work, so some experience is
-needed to find and fix bugs.
