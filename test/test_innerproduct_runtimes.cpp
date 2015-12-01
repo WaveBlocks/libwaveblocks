@@ -139,6 +139,7 @@ void runGenzKeister()
     MultiDHelper<4, GenzKeisterQR<4, LEVEL>>::run(eps, n_coeffs, 4);
 }
 
+// Fewer coefficients for reaching higher dimensions.
 void runMultiD2()
 {
     const real_t eps = 0.2;
@@ -161,6 +162,7 @@ void runMultiD2()
     MultiDHelper<8, TensorProductQR<QR,QR,QR,QR,QR,QR,QR,QR>>::run(eps, n_coeffs, 1);
 }
 
+// Fewer coefficients for reaching higher dimensions.
 template<dim_t LEVEL>
 void runGenzKeister2()
 {
@@ -243,6 +245,7 @@ int main()
     runMultiComponent();
     runMultiD2();
     runGenzKeister2<3>();
+    runGenzKeister2<2>();
 
     return 0;
 }
