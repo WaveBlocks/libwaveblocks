@@ -64,8 +64,8 @@ void runMultiD2()
 {
     const dim_t D = 6;
     const real_t eps = 0.2;
-    const dim_t n_coeffs = 10;
-    const dim_t order = 10;
+    const dim_t n_coeffs = 6;
+    const dim_t order = 6;
     using QR = GaussHermiteQR<order>;
     using TQR = TensorProductQR<QR,QR,QR,QR,QR,QR>;
 
