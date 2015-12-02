@@ -14,19 +14,15 @@ Gauss-Hermite quadrature.
 Like related rules, this method works by evaluating the integrand function at a
 defined set of nodes $\gamma_i$, the values of which are summed up with specific
 weights $\omega_i$:
-
 \begin{equation}
   \label{eq:gaussquad}
-  \int_{-\infty}^{\infty} g(x) \, dx \approx \sum_{i=1}^{n} f(\gamma_i) \omega_i
+  \int_{-\infty}^{\infty} g(x) \, dx \approx \sum_{i=1}^{n} f(\gamma_i) \omega_i \,.
 \end{equation}
-
 In its basic form, the Gauss-Hermite rule works on special integrals of the
 following form:
-
 \begin{equation}
-  \int_{-\infty}^{\infty} e^{-x^2} f(x) \, dx
+  \int_{-\infty}^{\infty} e^{-x^2} f(x) \, dx \,.
 \end{equation}
-
 However, as we require the quadrature to work on general functions,
 transformations are done to the usual weights and nodes which is described in
 \cite{B_master_thesis}.
@@ -59,14 +55,12 @@ built up.
 Denoting the $i$-th node-weight-pair of the $d$-th scalar quadrature rule
 $(\gamma_i^d,\ \omega_i^d)$, the resulting pair at the multi-index $\vect{j} =
 (j_1, \ldots, j_d)$ for the resulting tensor quadrature rule is:
-
 \begin{equation}
   (\vect{\gamma}_{\vect{j}},\ \omega_{\vect{j}}) = \left(
     \begin{pmatrix} \gamma_{j_1}^1 \\ \vdots \\ \gamma_{j_d}^d \end{pmatrix},
-    \ \prod_{d=1}^D \omega_{j_d}^d
-  \right)
+    \ \prod_{d=1}^D \omega_{j_d}^{(d)}
+  \right) \,.
 \end{equation}
-
 A two-dimensional quadrature rule is shown in figure~\ref{fig:tpexample}.
 
 \begin{figure}
@@ -122,9 +116,9 @@ programming, no explicit inheritance hierarchy was defined.
 They provide the following methods:
 \begin{itemize}
   \item \texttt{number\_nodes} for querying the number of nodes (non-trivial for
-    tensor-products and Genz-Keister)
-  \item \texttt{nodes} returning the the quadrature node positions,
-  \item \texttt{weights} giving the quadrature node weights,
+    tensor-product and Genz-Keister rules)
+  \item \texttt{nodes} returning the quadrature node positions,
+  \item \texttt{weights} giving the quadrature weights,
   \item \texttt{nodes\_and\_weights} for both of the above as a
     \texttt{std::pair}, and
   \item \texttt{clear\_cache}, described in section~\ref{subsec:resultcaching}.
