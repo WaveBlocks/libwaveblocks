@@ -42,7 +42,7 @@ Gauss-Hermite rule.
 \end{figure}
 
 For the implementation of this rule, an auxiliary Python script was made to
-automatically generate C++-code with hardcoded tables of nodes and weights for
+automatically generate C++-code with hard-coded tables of nodes and weights for
 different orders.
 
 The source code can be found under \path{scripts/create_tables.py} and
@@ -139,7 +139,7 @@ dimension and level.
 
 This avoids the overhead of constructing objects at run-time just to pass on
 parameters and makes some compile-time calculations possible.
-On the other hand, these parameters must be hardcoded, making it impossible to
+On the other hand, these parameters must be hard-coded, making it impossible to
 dynamically change the quadrature order, for instance.
 
 Designing \texttt{TensorProductQR} to work this way proved to be challenging,
