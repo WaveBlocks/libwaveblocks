@@ -24,5 +24,6 @@ add_executable(test_param_mixing test_param_mixing.cpp)
 
 add_executable(test_innerproduct test_innerproduct.cpp)
 add_executable(test_innerproduct_runtimes test_innerproduct_runtimes.cpp)
+add_executable(test_innerproduct_problems test_innerproduct_problems.cpp)
 
 add_executable(test_matexp test_matexp.cpp)
