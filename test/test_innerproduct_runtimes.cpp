@@ -73,7 +73,7 @@ struct MultiDHelper
 {
     static void run(real_t eps, dim_t n_coeffs, int n_runs)
     {
-        using MultiIndex = TinyMultiIndex<unsigned short, D>;
+        using MultiIndex = TinyMultiIndex<unsigned long, D>;
         using IP = HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
         // Set up sample wavepacket.
@@ -120,6 +120,69 @@ void runMultiD()
     MultiDHelper<2, TensorProductQR<QR,QR>>::run(eps, n_coeffs, 5000);
     MultiDHelper<3, TensorProductQR<QR,QR,QR>>::run(eps, n_coeffs, 100);
     MultiDHelper<4, TensorProductQR<QR,QR,QR,QR>>::run(eps, n_coeffs, 2);
+}
+
+template<dim_t LEVEL>
+void runGenzKeister()
+{
+    const real_t eps = 0.2;
+    const dim_t n_coeffs = 10;
+
+    std::cout << "\nHomogeneous Genz-Keister quadrature of level " <<
+        LEVEL << " with " << n_coeffs << " coefficients per dimension.\n";
+    std::cout << "number of dimensions vs. evaluation time [ms]:\n";
+
+    // Do runs for different numbers of dimensions.
+    MultiDHelper<1, GenzKeisterQR<1, LEVEL>>::run(eps, n_coeffs, 50000);
+    MultiDHelper<2, GenzKeisterQR<2, LEVEL>>::run(eps, n_coeffs, 5000);
+    MultiDHelper<3, GenzKeisterQR<3, LEVEL>>::run(eps, n_coeffs, 100);
+    MultiDHelper<4, GenzKeisterQR<4, LEVEL>>::run(eps, n_coeffs, 4);
+}
+
+// Fewer coefficients for reaching higher dimensions.
+void runMultiD2()
+{
+    const real_t eps = 0.2;
+    const dim_t n_coeffs = 3;
+    const dim_t order = 3;
+    using QR = GaussHermiteQR<order>;
+
+    std::cout << "\nHomogeneous quadrature of order " <<
+        order << " with " << n_coeffs << " coefficients per dimension.\n";
+    std::cout << "number of dimensions vs. evaluation time [ms]:\n";
+
+    // Do runs for different numbers of dimensions.
+    MultiDHelper<1, TensorProductQR<QR>>::run(eps, n_coeffs, 1000000);
+    MultiDHelper<2, TensorProductQR<QR,QR>>::run(eps, n_coeffs, 500000);
+    MultiDHelper<3, TensorProductQR<QR,QR,QR>>::run(eps, n_coeffs, 200000);
+    MultiDHelper<4, TensorProductQR<QR,QR,QR,QR>>::run(eps, n_coeffs, 20000);
+    MultiDHelper<5, TensorProductQR<QR,QR,QR,QR,QR>>::run(eps, n_coeffs, 1500);
+    MultiDHelper<6, TensorProductQR<QR,QR,QR,QR,QR,QR>>::run(eps, n_coeffs, 100);
+    MultiDHelper<7, TensorProductQR<QR,QR,QR,QR,QR,QR,QR>>::run(eps, n_coeffs, 4);
+    MultiDHelper<8, TensorProductQR<QR,QR,QR,QR,QR,QR,QR,QR>>::run(eps, n_coeffs, 1);
+}
+
+// Fewer coefficients for reaching higher dimensions.
+template<dim_t LEVEL>
+void runGenzKeister2()
+{
+    const real_t eps = 0.2;
+    const dim_t n_coeffs = 3;
+
+    std::cout << "\nHomogeneous Genz-Keister quadrature of level " <<
+        LEVEL << " with " << n_coeffs << " coefficients per dimension.\n";
+    std::cout << "number of dimensions vs. evaluation time [ms]:\n";
+
+    // Do runs for different numbers of dimensions.
+    MultiDHelper<1, GenzKeisterQR<1, LEVEL>>::run(eps, n_coeffs, 1000000);
+    MultiDHelper<2, GenzKeisterQR<2, LEVEL>>::run(eps, n_coeffs, 500000);
+    MultiDHelper<3, GenzKeisterQR<3, LEVEL>>::run(eps, n_coeffs, 200000);
+    MultiDHelper<4, GenzKeisterQR<4, LEVEL>>::run(eps, n_coeffs, 50000);
+    MultiDHelper<5, GenzKeisterQR<5, LEVEL>>::run(eps, n_coeffs, 8000);
+    MultiDHelper<6, GenzKeisterQR<6, LEVEL>>::run(eps, n_coeffs, 1000);
+    MultiDHelper<7, GenzKeisterQR<7, LEVEL>>::run(eps, n_coeffs, 50);
+    MultiDHelper<8, GenzKeisterQR<8, LEVEL>>::run(eps, n_coeffs, 5);
+    MultiDHelper<9, GenzKeisterQR<9, LEVEL>>::run(eps, n_coeffs, 1);
 }
 
 void runMultiComponent()
@@ -174,29 +237,15 @@ void runMultiComponent()
     }
 }
 
-template<dim_t LEVEL>
-void runGenzKeister()
-{
-    const real_t eps = 0.2;
-    const dim_t n_coeffs = 10;
-
-    std::cout << "\nHomogeneous Genz-Keister quadrature of level " <<
-        LEVEL << " with " << n_coeffs << " coefficients per dimension.\n";
-    std::cout << "number of dimensions vs. evaluation time [ms]:\n";
-
-    // Do runs for different numbers of dimensions.
-    MultiDHelper<1, GenzKeisterQR<1, LEVEL>>::run(eps, n_coeffs, 50000);
-    MultiDHelper<2, GenzKeisterQR<2, LEVEL>>::run(eps, n_coeffs, 5000);
-    MultiDHelper<3, GenzKeisterQR<3, LEVEL>>::run(eps, n_coeffs, 100);
-    MultiDHelper<4, GenzKeisterQR<4, LEVEL>>::run(eps, n_coeffs, 4);
-}
-
 int main()
 {
     run1D();
     runMultiD();
-    runMultiComponent();
     runGenzKeister<6>();
+    runMultiComponent();
+    runMultiD2();
+    runGenzKeister2<3>();
+    runGenzKeister2<2>();
 
     return 0;
 }

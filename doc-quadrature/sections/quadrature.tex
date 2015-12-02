@@ -94,11 +94,23 @@ The details of the procedure are outlined in \cite{B15_601}.
 Similarly to the Gauss-Hermite quadrature rule, many of the intermediary
 constants were tabulated beforehand.
 
-Comparing figures \ref{fig:speedupnd} and \ref{fig:speedupgenzkeister}, one can
-see a difference of an order of magnitude between the computational complexity
-of tensor and Genz-Keister quadrature.
-However, the latter can yield less exact results, so the Genz-Keister level has
-to be chosen suitably.
+\begin{figure}
+  \center
+  \input{figures/comparison-multi-dim.tex}
+  \caption{Run-times for multi-dimensional homogeneous quadrature with 3
+    coefficients per dimension.}
+  \label{fig:comparisonmultid}
+\end{figure}
+
+Figure~\ref{fig:comparisonmultid} shows the efficiency gain that can be achieved
+by using this rule over the plain Gauss-Hermite tensor product quadrature.
+For high dimensions, the difference in the run-times is over an order of
+magnitude.
+Choosing a lower level means less computational complexity at the cost of
+numerical accuracy, so it has to be chosen suitably for the task.
+
+More timings are shown in the final section in
+figure~\ref{fig:speedupgenzkeister}.
 
 
 \subsection{Implementation Details}
