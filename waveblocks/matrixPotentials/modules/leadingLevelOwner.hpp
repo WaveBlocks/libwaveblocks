@@ -1,5 +1,5 @@
 #pragma once
-#include "../../macros.hpp"
+
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
 
@@ -22,16 +22,15 @@ namespace waveblocks
         const Owned& get_leading_level() const {
           return owned;
         }
-            
+
         template<class... T>
-        Standard(T... args) :owned(args...){}  
+        Standard(T... args) :owned(args...){}
       };
 
-      
+
       }
     }
   }
  template<class Owned>
       using LeadingLevelOwner = matrixPotentials::modules::leadingLevelOwner::Standard<Owned>;
 }
-

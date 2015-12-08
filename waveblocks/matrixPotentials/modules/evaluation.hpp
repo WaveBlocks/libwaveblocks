@@ -1,5 +1,5 @@
 #pragma once
-#include "../../macros.hpp"
+
 #include "../../types.hpp"
 #include "../bases.hpp"
 #include "../../utilities/evaluations.hpp"

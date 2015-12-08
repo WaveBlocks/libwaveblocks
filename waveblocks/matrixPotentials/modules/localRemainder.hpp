@@ -1,5 +1,5 @@
 #pragma once
-#include "../../macros.hpp"
+
 #include "../bases.hpp"
 #include "localQuadratic.hpp"
 #include "leadingLevelOwner.hpp"

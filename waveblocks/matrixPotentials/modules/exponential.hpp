@@ -1,5 +1,5 @@
 #pragma once
-#include "../../macros.hpp"
+
 #include "../bases.hpp"
 #include "../../utilities/evaluations.hpp"
 #include <Eigen/Core>
@@ -15,10 +15,10 @@ namespace waveblocks
       {
            /**
          * \brief Abstract class for exponential of potential evaluation
-         * 
+         *
          * A matrix potential inheriting an implementation of this module
          * can evaluate the exponential of its potential
-         * 
+         *
          * This makes use of the CRTPattern
          *
          * \tparam Subtype The type extending this interface (used for static polymorphism)
@@ -30,7 +30,7 @@ namespace waveblocks
         {
             using Self = Abstract<Subtype, Basis>;
             IMPORT_TYPES_FROM( Basis)
-            
+
             potential_evaluation_type evaluate_exponential_at( const argument_type &arg,
                 const real_t &factor = 1 ) const {
               static_cast<const Subtype*>(this)->evaluate_exponential_at_implementation( arg, factor );

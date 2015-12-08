@@ -1,5 +1,5 @@
 #pragma once
-#include "../../macros.hpp"
+
 #include "../bases.hpp"
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
@@ -67,7 +67,7 @@ namespace waveblocks
         template <class EvalImpl, class JacImpl, class HessImpl, class Basis>
         struct Standard : public Abstract<Standard<EvalImpl, JacImpl, HessImpl, Basis>, Basis>, public EvalImpl, public JacImpl, public HessImpl {
                 IMPORT_TYPES_FROM( Basis)
-                
+
               public:
                 Standard(potential_type potential,
                       jacobian_type jacobian,

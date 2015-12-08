@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../bases.hpp"
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
@@ -65,7 +66,7 @@ namespace waveblocks
                 hessian_type hessian;
 
               public:
-                Standard( 
+                Standard(
                            hessian_type hessian )
                   :  hessian( hessian ){}
 
@@ -84,9 +85,9 @@ namespace waveblocks
             };
 
 
-        
+
       }
-      
+
       template <class Basis>
       using Hessian = hessian::Standard<Basis>;
     }

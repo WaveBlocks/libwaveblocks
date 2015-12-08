@@ -1,5 +1,5 @@
 #pragma once
-#include "../../macros.hpp"
+
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
 #include "taylor.hpp"
@@ -29,15 +29,15 @@ namespace waveblocks
         struct Abstract {
             using Self = Abstract<Subtype, Basis>;
             IMPORT_TYPES_FROM( Basis)
-            
-            
+
+
           public:
             potential_evaluation_type evaluate_local_quadratic_at(
               const argument_type &arg,
               const argument_type &position ) const {
               return static_cast<const Subtype*>(this)->evaluate_local_quadratic_at_implementation( arg,position );
             }
-            
+
             template < template <typename...> class grid_in = std::vector,
                      template <typename...> class grid_out = grid_in >
             grid_out<potential_evaluation_type> evaluate_local_remainder(
@@ -78,13 +78,13 @@ namespace waveblocks
                     hessian_type hessian )
             : TaylorImpl( potential, jacobian, hessian ) {
           }
-          
+
           potential_evaluation_type evaluate_local_quadratic_at_implementation(
             const argument_type &x,
             const argument_type &q ) const {
 
             potential_evaluation_type result_matrix;
-            
+
             auto V_mat = TaylorImpl::evaluate_at(q );
             auto J_mat = TaylorImpl::evaluate_jacobian_at(q );
             auto H_mat = TaylorImpl::evaluate_hessian_at(q );
@@ -109,7 +109,7 @@ namespace waveblocks
                 result_matrix(l,m) = result;
               }
             }
-              
+
             return result_matrix;
           }
         };
@@ -141,14 +141,14 @@ namespace waveblocks
                     hessian_type hessian )
             : TaylorImpl( potential, jacobian, hessian ) {
           }
-          
+
           potential_evaluation_type evaluate_local_quadratic_at_implementation(
             const argument_type &x,
             const argument_type &q ) const {
             auto xmq = x - q;
 
             potential_evaluation_type result_matrix;
-            
+
             auto V_mat = TaylorImpl::evaluate_at(q );
             auto J_mat = TaylorImpl::evaluate_jacobian_at(q );
             auto H_mat = TaylorImpl::evaluate_hessian_at(q );
@@ -163,12 +163,12 @@ namespace waveblocks
                 result_matrix(l,m) = V + J*xmq + 0.5*xmq*H*xmq;
               }
             }
-              
+
             return result_matrix;
           }
         };
 
-        
+
         /**
          * \brief Specialization of Standard implementation for N = 1
          *
@@ -195,31 +195,31 @@ namespace waveblocks
                       hessian_type hessian )
               : TaylorImpl( potential, jacobian, hessian ) {
             }
-            
+
           potential_evaluation_type evaluate_local_quadratic_at_implementation(
             const argument_type &x,
             const argument_type &q ) const {
               auto V = TaylorImpl::evaluate_at( q );
               auto J = TaylorImpl::evaluate_jacobian_at(q );
               auto H = TaylorImpl::evaluate_hessian_at(q );
-           
+
               auto result = V;
-              
+
               for ( int i = 0; i < D; ++i ) {
                 auto xmqi = x[i] - q[i];
                 result += J[i] * ( xmqi );
-                
+
                 for ( int j = 0; j < D; ++j ) {
                   result += 0.5 * xmqi * H( i, j ) * ( x[j] - q[j] );
                 }
               }
-              
+
               return result;
           }
         };
 
         /**
-         * \brief Specialization of Standard implementation for D = 1, N =1 
+         * \brief Specialization of Standard implementation for D = 1, N =1
          *
          * This wraps concrete implementations of the Abstract base class
          *
@@ -243,12 +243,12 @@ namespace waveblocks
                     hessian_type hessian )
             : TaylorImpl( potential, jacobian, hessian ) {
           }
-          
+
           potential_evaluation_type evaluate_local_quadratic_at_implementation(
             const argument_type &x,
             const argument_type &q ) const {
             auto xmq = x - q;
-            
+
             auto V = TaylorImpl::evaluate_at(q );
             auto J = TaylorImpl::evaluate_jacobian_at(q );
             auto H = TaylorImpl::evaluate_hessian_at(q );

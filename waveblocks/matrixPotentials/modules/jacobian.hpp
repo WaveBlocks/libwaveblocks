@@ -1,5 +1,5 @@
 #pragma once
-#include "../../macros.hpp"
+
 #include "../bases.hpp"
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
@@ -28,12 +28,12 @@ namespace waveblocks
         struct Abstract {
           using Self = Abstract<Subtype, Basis>;
           IMPORT_TYPES_FROM( Basis)
-          
-          
+
+
           jacobian_evaluation_type evaluate_jacobian_at( const argument_type &arg ) const {
             return static_cast<const Subtype*>(this)->evaluate_jacobian_at_implementation( arg );
           }
-          
+
           template < template <typename...> class grid_in = std::vector,
                    template <typename...> class grid_out = grid_in >
           grid_out<jacobian_evaluation_type> evaluate_jacobian(
@@ -47,7 +47,7 @@ namespace waveblocks
                      args );
           }
       };
-        
+
         /**
          * \brief Helper class for easier template specialization
          *
@@ -58,16 +58,16 @@ namespace waveblocks
          */
         template <class Basis>
         struct Standard : Abstract<Standard<Basis>, Basis> {
-                
+
                 IMPORT_TYPES_FROM(Basis )
-                
+
               private:
                 jacobian_type jacobian;
-                
+
               public:
                 Standard(jacobian_type jacobian)
                   : jacobian( jacobian ) {}
-                  
+
               public:
                 jacobian_evaluation_type evaluate_jacobian_at_implementation(
                   const argument_type &arg ) const {
@@ -79,9 +79,9 @@ namespace waveblocks
                          function_t >::apply( jacobian, arg );
                 }
             };
-            
+
       }
-      
+
       template <class Basis>
       using Jacobian = jacobian::Standard<Basis>;
     }
