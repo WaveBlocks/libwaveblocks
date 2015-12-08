@@ -1,3 +1,5 @@
+#pragma once
+
 namespace waveblocks {
   namespace utilities {
     template<int D, class T>

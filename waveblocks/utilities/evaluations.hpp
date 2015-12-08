@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <functional>
 #include "../types.hpp"
@@ -16,13 +17,13 @@ namespace waveblocks
     static M<R, N, C> apply( const M<F<R( A )>  , N, C>& mf, const A& arg )
     {
       M<R, N, C> m;
-      
+
       for ( int i = 0; i < N; ++i ) {
         for ( int j = 0; j < C; ++j ) {
           m( i, j ) = mf( i, j )( arg );
         }
       }
-      
+
       return m;
     }
     template<template <typename...> class G_in = std::vector,
@@ -33,15 +34,15 @@ namespace waveblocks
     {
       G_out<M<R, N, C> > result( g.size() );
       auto it = result.begin();
-      
+
       for ( const auto & arg : g ) {
         *it = apply( mf, arg );
         ++it;
       }
-      
+
       return result;
     }
-    
+
    };
 
   template < template <typename, int, int> class M,
@@ -56,7 +57,7 @@ namespace waveblocks
     {
       M<R, 1, 1> m;
           m( 0,0 ) = mf( 0,0 )( arg );
-      
+
       return m;
     }
 
@@ -68,12 +69,12 @@ namespace waveblocks
     {
       G_out<M<R, 1,1> > result( g.size() );
       auto it = result.begin();
-      
+
       for ( const auto & arg : g ) {
         *it = apply( mf, arg );
         ++it;
       }
-      
+
       return result;
     }
 
@@ -85,30 +86,30 @@ namespace waveblocks
     {
       G_out<R > result( g.size() );
       auto it = result.begin();
-      
+
       for ( const auto & arg : g ) {
         *it = apply( mf, arg );
         ++it;
       }
-      
+
       return result;
     }
   };
 
-    
-    
+
+
     /**
      * \brief Evaluate a function in multiple points at once.
-     * 
+     *
      * Generic template to evaluate a function object in multiple points
-     * 
-     * \param f 
+     *
+     * \param f
      * Function object taking input of type A and returning type R
      * \param g
-     * grid (template G_in) of A elements 
+     * grid (template G_in) of A elements
      * \return
      * grid (template G_out) of R elements
-     * 
+     *
      * \tparam A
      * Type of the argument to be passed to f
      * \tparam R
@@ -117,7 +118,7 @@ namespace waveblocks
      * class template for a container which implements size() and allows for:in loops
      * \tparam G_out
      * class template for a container which implements a constructor with
-     *  a single size_t argument and implements begin() to return a forward-iterator 
+     *  a single size_t argument and implements begin() to return a forward-iterator
      * \tparam F
      * class template for a function object
      */
@@ -130,27 +131,27 @@ namespace waveblocks
     {
       G_out<R> result( g.size() );
       auto it = result.begin();
-      
+
       for ( const auto & arg : g ) {
         *it = f( arg );
         ++it;
       }
-      
+
       return result;
     }
 
     /**
      * \brief Evaluate a function square matrix.
-     * 
+     *
      * Generic template to evaluate allfunction objects in a vector in a single point
-     * 
-     * \param mf 
+     *
+     * \param mf
      * Matrix (type M<N,N>( of function objects taking input of type A and returning type R
      * \param arg
-     * The argument of type A to be passed into all function objects 
+     * The argument of type A to be passed into all function objects
      * \return
      * grid (type G_out) of vectors (type V) of N elements of type R which are the results of the function evaluations
-     * 
+     *
      * \tparam N
      * Dimension of the square matrix to be evaluated
      * \tparam M
@@ -162,19 +163,19 @@ namespace waveblocks
      * \tparam F
      * class template for a function object
      */
-    
+
     /**
      * \brief Evaluate a function square matrix in a grid.
-     * 
+     *
      * Generic template to evaluate allfunction objects in a vector in multiple points
-     * 
-     * \param mf 
+     *
+     * \param mf
      * Matrix (type M<N,N>( of function objects taking input of type A and returning type R
      * \param g
-     * grid (type G_in) of the arguments of type A to be passed into all function objects 
+     * grid (type G_in) of the arguments of type A to be passed into all function objects
      * \return
      * grid (type G_out) of vectors (type V) of N elements of type R which are the results of the function evaluations
-     * 
+     *
      * \tparam N
      * Dimension of the square matrix to be evaluated
      * \tparam M
@@ -187,7 +188,7 @@ namespace waveblocks
      * class template for a container which implements size() and allows for:in loops
      * \tparam G_out
      * class template for a container which implements a constructor with
-     *  a single size_t argument and implements begin() to return a forward-iterator 
+     *  a single size_t argument and implements begin() to return a forward-iterator
      * \tparam F
      * class template for a function object
      */

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "bases.hpp"
 #include "modules/localRemainder.hpp"
 #include "modules/evaluation.hpp"
@@ -10,7 +11,7 @@ namespace waveblocks
   {
     namespace potentials
     {
-      
+
       template<int N, int D>
       using InhomogenousMatrixPotential =
         modules::Inhomogenous<N,D>;
@@ -28,7 +29,7 @@ namespace waveblocks
   using matrixPotentials::potentials::HomogenousMatrixPotential;
   using matrixPotentials::potentials::ScalarMatrixPotential;
 
-  
+
   template<int N, int D>
   using InhomogenousLeadingLevel = matrixPotentials::modules::LocalQuadratic<matrixPotentials::bases::Eigen<N,D>>;
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../types.hpp"
 #include "../hawp_commons.hpp"
 #include "../homogeneous_inner_product.hpp"

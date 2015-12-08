@@ -1,4 +1,5 @@
 #pragma once
+
 #define IMPORT_TYPES_FROM(B)                                            \
     using argument_type = typename B::argument_type;                    \
     using potential_type = typename B::potential_type;                  \
