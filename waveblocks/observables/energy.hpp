@@ -28,6 +28,7 @@ namespace waveblocks {
                              [&V] (const CMatrix<D,Eigen::Dynamic>& nodes,
                                    const RMatrix<D,1>& pos)
                              -> CMatrix<1,Eigen::Dynamic> {
+                                 (void)pos; // Unused
                                  const dim_t n_nodes = nodes.cols();
                                  CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
                                  for(int i = 0; i < n_nodes; ++i) {
