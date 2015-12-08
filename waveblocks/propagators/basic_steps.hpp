@@ -15,9 +15,16 @@ namespace waveblocks
             using utilities::PacketToCoefficients;
             using utilities::Unsqueeze;
 
-
+            /**
+             * \brief Propagate one step with the kinetic operator T.
+             *
+             * \tparam N
+             * Number of levels
+             * \tparam D
+             * Dimension of space
+             */
             template<int N, int D>
-            struct Step1 {
+            struct StepT {
                 static void apply(HaWpParamSet<D>& params,
                                   const real_t &delta_t) {
                     params.updateq( 0.5 * delta_t * params.p() );
@@ -27,7 +34,7 @@ namespace waveblocks
             };
 
             /**
-             * \brief Helper class for Step2. If Mode then level is supscripted in i.
+             * \brief Helper class for StepU. If Mode then level is supscripted in i.
              *
              * \tparam Mode flag true for inhomogeneous computation
              */
@@ -48,7 +55,7 @@ namespace waveblocks
             };
 
             /**
-             * \brief Performs commong code of Step2 for all specializations.
+             * \brief Performs commong code of StepU for all specializations.
              *
              * \tparam Mode flag true for inhomogeneous computation
              */
@@ -56,7 +63,7 @@ namespace waveblocks
             struct HelperA {
                 template<class Potential>
                 static void apply(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
-                    // inefficient since all levels are evaluated for each q
+                    // TODO: Inefficient since all levels are evaluated for each q.
                     const auto& leading_level_taylor = V.get_leading_level().taylor_at(complex_t(1,0) * Squeeze<D,RVector<D>>::apply(params.q()));
                     params.updatep( -delta_t * Unsqueeze<D,RVector<D>>::apply(HelperL<MODE>::apply(std::get<1>(leading_level_taylor),i).real()));
                     params.updateP( -delta_t * HelperL<MODE>::apply(std::get<2>(leading_level_taylor),i) * params.Q() );
@@ -64,18 +71,25 @@ namespace waveblocks
                 }
             };
 
+            /**
+             * \brief Propagate one step with the quadratic potential part U.
+             *
+             * \tparam N
+             * Number of levels
+             * \tparam D
+             * Dimension of space
+             */
             template<int N, int D>
-            struct Step2 {
+            struct StepU {
                 template<class Potential>
                 static void inhomogeneous(int i, const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
-                    HelperA<N,D,true>::apply(i,V,params,delta_t);
+                    HelperA<N,D,true>::apply(i, V, params, delta_t);
                 }
                 template<class Potential>
                 static void homogeneous(const Potential &V, HaWpParamSet<D> &params, const real_t &delta_t) {
-                    HelperA<N,D,false>::apply(-1,V,params,delta_t);
+                    HelperA<N,D,false>::apply(-1, V, params, delta_t);
                 }
             };
-
 
             /**
              * \brief Builds the inner product matrix
@@ -103,7 +117,7 @@ namespace waveblocks
 
                             #pragma omp parallel for schedule(guided)
                             for(int l = 0; l < n_nodes; ++l) {
-                                // SUUUUPER INEFFICIENT. COMPUTE N x N Matrix when we only want one entry ...
+                                // TODO: Super inefficient: we compute an N x N matrix when we only want one entry.
                                 result(0, l) = V.evaluate_local_remainder_at(Squeeze<D, CMatrix<D,Eigen::Dynamic>>::apply(nodes,l),
                                                                              Squeeze<D, CVector<D>>::apply(complex_t(1,0)*pos)) (i,j);
                             }
@@ -145,27 +159,30 @@ namespace waveblocks
                 }
             };
 
+            /**
+             * \brief Propagate one step with the non-quadratic potential remainder part W.
+             *
+             * \tparam N
+             * Number of levels
+             * \tparam D
+             * Dimension of space
+             */
             template<class Packet, class Potential, int N, int D, class IP>
-            struct Step3 {
-
+            struct StepW {
                 static void apply(Packet &packet, const Potential& V, const real_t& delta_t) {
-
+                    // Compute the matrix F
                     CMatrix<Eigen::Dynamic,Eigen::Dynamic> F;
                     HelperF<Packet,Potential,IP,N,D>::build(F, packet, V);
-
+                    // Common prefactor
                     complex_t factor = -delta_t * complex_t(0,1) / (packet.eps()*packet.eps());
-
                     // Put all coefficients into a vector
                     CVector<Eigen::Dynamic> coefficients = PacketToCoefficients<Packet>::to(packet);
-
                     // Compute product of exponential with coefficients
                     coefficients = (factor * F).exp() * coefficients;
-
                     // Put all coefficients back
                     PacketToCoefficients<Packet>::from(coefficients, packet);
                 }
             };
-
         }
     }
 }
