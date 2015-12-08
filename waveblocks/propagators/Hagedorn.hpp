@@ -107,9 +107,9 @@ namespace waveblocks
 
                             #pragma omp parallel for schedule(guided)
                             for(int l = 0; l < n_nodes; ++l) {
-                                // SUUUUPER INEFFICIENT. COMPUTE NxN Matrix when we only want one entry...
+                                // SUUUUPER INEFFICIENT. COMPUTE N x N Matrix when we only want one entry ...
                                 result(0, l) = V.evaluate_local_remainder_at(Squeeze<D, CMatrix<D,Eigen::Dynamic>>::apply(nodes,l),
-                                                                             Squeeze<D, RVector<D>>::apply(complex_t(1, 0)*pos))(i,j);
+                                                                             Squeeze<D, CVector<D>>::apply(complex_t(1,0)*pos)) (i,j);
                             }
                             return result;
                         };
@@ -134,12 +134,12 @@ namespace waveblocks
                               const RMatrix<D,1> &pos)
                         {
                             const dim_t n_nodes = nodes.cols();
-                            CMatrix<1,Eigen::Dynamic> result(n_nodes);
+                            CMatrix<1,Eigen::Dynamic> result(1, n_nodes);
 
                             #pragma omp parallel for schedule(guided)
                             for(int l = 0; l < n_nodes; ++l) {
                                 result(0, l) = V.evaluate_local_remainder_at(Squeeze<D, CMatrix<D,Eigen::Dynamic>>::apply(nodes,l),
-                                                                             Squeeze<D, RVector<D>>::apply(pos));
+                                                                             Squeeze<D, CVector<D>>::apply(complex_t(1,0)*pos));
                             }
                             return result;
                         };
