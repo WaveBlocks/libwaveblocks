@@ -10,7 +10,7 @@
 
 #include "basic_types.hpp"
 #include "tables_genzkeister.hpp"
-#include "util/combinatorics.hpp"
+#include "utilities/combinatorics.hpp"
 
 namespace waveblocks {
 

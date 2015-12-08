@@ -18,7 +18,7 @@
 #include "waveblocks/stdarray2stream.hpp"
 #include "waveblocks/tensor_product_qr.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
-#include "waveblocks/util/timer.hpp"
+#include "waveblocks/utilities/timer.hpp"
 
 using namespace waveblocks;
 

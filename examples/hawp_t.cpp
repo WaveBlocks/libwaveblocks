@@ -8,7 +8,7 @@
 
 #include <omp.h>
 
-#include <waveblocks/util/timer.hpp>
+#include <waveblocks/utilities/timer.hpp>
 #include <waveblocks/hawp_commons.hpp>
 #include <waveblocks/hawp_gradient_operator.hpp>
 #include <waveblocks/tiny_multi_index.hpp>

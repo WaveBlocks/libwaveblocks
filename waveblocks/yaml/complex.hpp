@@ -5,7 +5,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "../util/complexnumber_parser.hpp"
+#include "../utilities/complexnumber_parser.hpp"
 
 namespace YAML {
     template<>
@@ -32,7 +32,7 @@ namespace YAML {
             if (str.size() >= 2 && str.front() == '(' && str.back() == ')')
                 str = str.substr(1, str.size()-2);
 
-            return util::parse_complex(str.c_str(), rhs);
+            return utilities::parse_complex(str.c_str(), rhs);
         }
     };
 }

@@ -32,7 +32,7 @@ add_definitions(
 
 add_library(waveblocks-static STATIC
   waveblocks/csv/coefficients_file_parser.cpp
-  waveblocks/util/complexnumber_parser.cpp
+  waveblocks/utilities/complexnumber_parser.cpp
   )
 
 
