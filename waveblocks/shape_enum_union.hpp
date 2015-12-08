@@ -1,5 +1,4 @@
-#ifndef WAVEBLOCKS_SHAPE_ENUM_UNION_HPP
-#define WAVEBLOCKS_SHAPE_ENUM_UNION_HPP
+#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -7,6 +6,7 @@
 #include <initializer_list>
 
 #include "shape_enum.hpp"
+
 
 namespace waveblocks
 {
@@ -16,11 +16,11 @@ namespace shape_enum
 
 /**
  * \ingroup ShapeEnum
- * 
+ *
  * \brief Creates union of two shape slices.
- * 
+ *
  * \f[ \forall k \colon k \in union(\mathfrak{K}_1,\mathfrak{K}_2) \iff k \in \mathfrak{K}_1 \lor k \in \mathfrak{K}_2 \f]
- * 
+ *
  * \param[in] begin1 input iterator to begin of lattice point vector of first slice
  * \param[in] end1 input iterator to end of lattice point vector of first slice
  * \param[in] begin2 input iterator to begin of lattice point vector of second slice
@@ -38,7 +38,7 @@ Output strict_union(Input1 begin1, Input1 end1, Input2 begin2, Input2 end2, Outp
 {
     auto it1 = begin1;
     auto it2 = begin2;
-    
+
     while (it1 != end1 && it2 != end2) {
         if (*it1 == *it2) {
             // lhs = rhs
@@ -60,10 +60,10 @@ Output strict_union(Input1 begin1, Input1 end1, Input2 begin2, Input2 end2, Outp
             ++sink;
         }
     }
-    
+
     sink = std::copy(it1, end1, sink);
     sink = std::copy(it2, end2, sink);
-    
+
     return sink;
 }
 
@@ -73,7 +73,7 @@ struct _strict_union__heap_entry
 public:
     MultiIndex value;
     std::size_t source;
-    
+
     bool operator<(const _strict_union__heap_entry& lhs) const
     {
         // this operator is used for heap construction
@@ -86,25 +86,25 @@ public:
 };
 
 /**
- * 
+ *
  */
 template<class MultiIndex>
-std::vector<MultiIndex> strict_union(std::vector< typename std::vector<MultiIndex>::const_iterator > begin, 
+std::vector<MultiIndex> strict_union(std::vector< typename std::vector<MultiIndex>::const_iterator > begin,
                                      std::vector< typename std::vector<MultiIndex>::const_iterator > end)
 {
     assert( begin.size() == end.size() );
-    
+
     typedef _strict_union__heap_entry<MultiIndex> HeapEntry;
-    
+
     // get size of largest source
     std::size_t minsize = 0;
     for (std::size_t i = 0; i < begin.size(); i++) {
         minsize = std::max(minsize, static_cast<std::size_t>(end[i] - begin[i]));
     }
-    
+
     std::vector<MultiIndex> superset;
     std::vector< HeapEntry > heap; // tuple (multi-index, source)
-    
+
     // initialize heap
     for (std::size_t i = 0; i < begin.size(); i++) {
         if (begin[i] != end[i]) {
@@ -114,27 +114,27 @@ std::vector<MultiIndex> strict_union(std::vector< typename std::vector<MultiInde
         }
     }
     std::make_heap(heap.begin(), heap.end());
-    
+
     // merge multi-indices
     while (!heap.empty()) {
         HeapEntry entry = heap.front();
         std::pop_heap(heap.begin(), heap.end()); heap.pop_back();
-        
+
         if (superset.empty() || entry.value != superset.back()) {
             std::less<MultiIndex> less;
-            
+
             (void)less;
             assert( superset.empty() || less(superset.back(), entry.value) ); // multi-indices must be sorted in ascending order
             superset.push_back(entry.value);
         }
-        
+
         if ( begin[entry.source] != end[entry.source] ) {
             heap.push_back( HeapEntry{*(begin[entry.source]), entry.source} );
             std::push_heap(heap.begin(), heap.end());
             (begin[entry.source])++;
         }
     }
-    
+
     return superset;
 }
 
@@ -143,14 +143,14 @@ ShapeSlice<D, MultiIndex> strict_union(const std::vector< const ShapeSlice<D, Mu
 {
     std::vector< typename std::vector<MultiIndex>::const_iterator > begin(slices.size());
     std::vector< typename std::vector<MultiIndex>::const_iterator > end(slices.size());
-    
+
     for (std::size_t i = 0; i < slices.size(); i++) {
         begin[i] = slices[i]->cbegin();
         end[i] = slices[i]->cend();
     }
-    
+
     std::vector<MultiIndex> superset = strict_union<MultiIndex>(begin, end);
-    
+
     return {std::move(superset), union_offset};
 }
 
@@ -166,7 +166,7 @@ ShapeEnum<D, MultiIndex> strict_union(std::vector< ShapeEnum<D, MultiIndex> cons
             limits[d] = std::max((int)limits[d], _enum->limit(d));
         }
     }
-    
+
     // create union
     std::size_t offset = 0;
     std::vector< ShapeSlice<D,MultiIndex> > superset(n_slices);
@@ -181,13 +181,13 @@ ShapeEnum<D, MultiIndex> strict_union(std::vector< ShapeEnum<D, MultiIndex> cons
         superset[islice] = strict_union<D,MultiIndex>(slices, offset);
         offset += superset[islice].size();
     }
-    
+
     return {std::move(superset), offset, limits};
 }
 
 /**
  * \ingroup ShapeUnion
- * 
+ *
  * \param enum_list
  */
 template<dim_t D, class MultiIndex, std::size_t N>
@@ -222,5 +222,3 @@ ShapeEnum<D, MultiIndex> strict_union(std::initializer_list< const ShapeEnum<D, 
 } // namespace shape_enum
 
 } // namespace waveblocks
-
-#endif

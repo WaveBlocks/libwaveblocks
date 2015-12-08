@@ -1,11 +1,11 @@
-#ifndef YAML_COMPLEX_HPP
-#define YAML_COMPLEX_HPP
+#pragma once
 
 #include <complex>
 
 #include <yaml-cpp/yaml.h>
 
 #include "../utilities/complexnumber_parser.hpp"
+
 
 namespace YAML {
     template<>
@@ -36,5 +36,3 @@ namespace YAML {
         }
     };
 }
-
-#endif

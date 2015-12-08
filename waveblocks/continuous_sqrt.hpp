@@ -1,5 +1,4 @@
-#ifndef WAVEBLOCKS_CONTINUOUS_SQRT
-#define WAVEBLOCKS_CONTINUOUS_SQRT
+#pragma once
 
 #include <complex>
 #include <stdexcept>
@@ -136,5 +135,3 @@ public:
 };
 
 }
-
-#endif

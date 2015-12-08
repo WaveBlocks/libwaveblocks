@@ -1,14 +1,13 @@
-#ifndef WAVEBLOCKS_HAWP_COMMONS_HPP
-#define WAVEBLOCKS_HAWP_COMMONS_HPP
-
-#include "shape_enum_union.hpp"
-#include "shape_enum_extended.hpp"
-
-#include "hawp_paramset.hpp"
-#include "hawp_evaluator.hpp"
+#pragma once
 
 #include <stdexcept>
 #include <memory>
+
+#include "shape_enum_union.hpp"
+#include "shape_enum_extended.hpp"
+#include "hawp_paramset.hpp"
+#include "hawp_evaluator.hpp"
+
 
 namespace waveblocks
 {
@@ -947,5 +946,3 @@ private:
 }; // class InhomogeneousHaWp
 
 } // namespace waveblocks
-
-#endif

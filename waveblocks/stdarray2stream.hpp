@@ -1,8 +1,8 @@
-#ifndef UTIL_STDARRAY_TO_STREAM
-#define UTIL_STDARRAY_TO_STREAM
+#pragma once
 
 #include <iostream>
 #include <array>
+
 
 namespace std {
     template<class T, std::size_t D>
@@ -18,5 +18,3 @@ namespace std {
         return out;
     }
 }
-
-#endif

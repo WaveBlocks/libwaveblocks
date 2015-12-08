@@ -1,12 +1,10 @@
-#ifndef WAVEBLOCKS_HAGEDORN_BASIS_EVALUATOR
-#define WAVEBLOCKS_HAGEDORN_BASIS_EVALUATOR
+#pragma once
 
 #include <functional>
 
 #include <Eigen/Core>
 
 #include "hawp_paramset.hpp"
-
 #include "shape_enum.hpp"
 #include "shape_enum_subset.hpp"
 #include "kahan_sum.hpp"
@@ -15,18 +13,18 @@ namespace waveblocks {
 
 /**
  * \brief Evaluates a wavepacket slice by slice.
- * 
+ *
  * This class is low-level. You should not use it directly.
- * You should use the high-level member functions 
+ * You should use the high-level member functions
  * AbstractScalarHaWp::evaluate() and AbstractScalarHaWpBasis::evaluate_basis().
- * 
- * The only reason you may want to use HaWpEvaluator directly is when 
- * you gain an advantage by evaluating a wavepacket slice-by-slice. 
+ *
+ * The only reason you may want to use HaWpEvaluator directly is when
+ * you gain an advantage by evaluating a wavepacket slice-by-slice.
  * The slice-by-slice evaluation reduces memory since you
  * don't have to store all basis function values, but only the 'active' ones.
  * Take a look at the implementation of the member functions all() or reduce()
  * to learn, how to evaluate a wave packet slice-by-slice.
- * 
+ *
  * \tparam D dimensionality of wavepacket
  * \tparam MulitIndex The type used to represent multi-indices.
  * \tparam N
@@ -46,7 +44,7 @@ private:
     real_t eps_;
     const HaWpParamSet<D>* parameters_;
     const ShapeEnum<D,MultiIndex>* enumeration_;
-    
+
     /**
      * number of quadrature points
      */
@@ -61,7 +59,7 @@ private:
      * precomputed expression: Q^{-1}
      */
     CMatrixDD Qinv_;
-    
+
     /**
      * precomputed expression: Q^H * Q^{-T}
      */
@@ -76,7 +74,7 @@ private:
      * lookup-table for sqrt
      */
     std::vector<real_t> sqrt_;
-    
+
 public:
     /**
      * \param[in] eps The semi-classical scaling parameter \f$ \varepsilon \f$ of the wavepacket.
@@ -86,8 +84,8 @@ public:
      * Or the union of all component's basis shapes, if you want to evaluate a vectorial wavepacket.
      * \param[in] x Quadrature points: Complex matrix of shape \f$ (D \times N) \f$, where \f$ N \f$ number of quadrature points).
      */
-    HaWpEvaluator(real_t eps, 
-              const HaWpParamSet<D>* parameters, 
+    HaWpEvaluator(real_t eps,
+              const HaWpParamSet<D>* parameters,
               const ShapeEnum<D,MultiIndex>* enumeration,
               const CMatrixDN &x)
         : eps_(eps)
@@ -110,17 +108,17 @@ public:
             int limit = 0;
             for (dim_t d = 0; d < D; d++)
                 limit = std::max(limit, enumeration_->limit(d) );
-            
+
             sqrt_.resize(limit+2);
-            
+
             for (int i = 0; i <= limit+1; i++)
                 sqrt_[i] = std::sqrt( real_t(i) );
         }
     }
-    
+
     /**
      * \brief Evaluates basis function on node \f$ \underline{0} \f$ (ground-state).
-     * 
+     *
      * \return Complex 2D-Array of shape \f$ (D \times N) \f$, where \f$ N \f$ is the number of quadrature points.
      */
     CArray1N seed() const
@@ -137,27 +135,27 @@ public:
 
         return e.exp() / std::pow(pi<real_t>()*eps_*eps_, D/4.0);
     }
-    
+
     /**
-     * \brief Having basis function values on previous and current slice, 
+     * \brief Having basis function values on previous and current slice,
      * this member function computes basis function values
      * on the next slice (using recursive evaluation formula).
-     * 
+     *
      * Hint: Use function seed() to bootstrap recursion.
-     * 
+     *
      * \param[in] islice Ordinal of current slice.
-     * \param[in] prev_basis 
+     * \param[in] prev_basis
      * Basis values on previous slice.
-     * Type: Complex 2D-array of shape \f$ (S \times N) \f$, 
-     * where \f$ S \f$ is the number of nodes in the current slice 
+     * Type: Complex 2D-array of shape \f$ (S \times N) \f$,
+     * where \f$ S \f$ is the number of nodes in the current slice
      * and \f$ N \f$ is the number of quadrature points.
      * \param[in] curr_basis B
      * Basis values on current slice.
      * Type: Complex 2D-array of shape \f$ (S \times N) \f$
-     * 
+     *
      * \return
      * Computed basis values on next slice.
-     * Type: Complex 2D-Array of shape \f$ (S^+ \times N) \f$, 
+     * Type: Complex 2D-Array of shape \f$ (S^+ \times N) \f$,
      * where \f$ S^+ \f$ is the number of nodes in the next slice.
      */
     HaWpBasisVector<N> step(std::size_t islice,
@@ -167,17 +165,17 @@ public:
         auto & prev_enum = enumeration_->slice(islice-1);
         auto & curr_enum = enumeration_->slice(islice);
         auto & next_enum = enumeration_->slice(islice+1);
-        
+
         assert ((int)prev_enum.size() == prev_basis.rows());
         assert ((int)curr_enum.size() == curr_basis.rows());
-        
+
         HaWpBasisVector<N> next_basis(next_enum.size(), npts_);
-        
+
         #pragma omp parallel
         {
             // pre-allocate
             CArray<1,N> pr1(1,npts_), pr2(1,npts_);
-            
+
             //loop over all multi-indices within next slice [j = position of multi-index within next slice]
             #pragma omp for
             for (std::size_t j = 0; j < next_enum.size(); j++) {
@@ -190,44 +188,44 @@ public:
                         break;
                     }
                 }
-                
+
                 assert(axis != D); //assert that multi-index contains some non-zero entries
-                
-                
+
+
                 // compute contribution of current slice
                 std::array<int,D> curr_index = next_index;
                 curr_index[axis] -= 1; //get backward neighbour
                 std::size_t curr_ordinal = curr_enum.find(curr_index);
-                
+
                 assert(curr_ordinal < curr_enum.size()); //assert that multi-index has been found within current slice
-                
+
                 pr1 = curr_basis.row(curr_ordinal) * Qinv_dx_.row(axis).array() * std::sqrt(2.0)/eps_ ;
-                
-                
+
+
                 // compute contribution of previous slice
                 std::array< std::size_t,D > prev_ordinals = prev_enum.find_backward_neighbours(curr_index);
-                
+
                 pr2.setZero();
-                
+
                 for (dim_t d = 0; d < D; d++) {
                     if (curr_index[d] != 0) {
                         pr2 += prev_basis.row(prev_ordinals[d]) * Qh_Qinvt_(axis,d) * sqrt_[ curr_index[d] ];
                     }
                 }
-                
-                
+
+
                 // compute basis value within next slice
                 next_basis.row(j) = (pr1 - pr2) / sqrt_[ 1+curr_index[axis] ];
             }
-            
+
         }
-        
+
         return next_basis;
     }
-    
+
     /**
      * \brief Evaluates all basis functions.
-     * 
+     *
      * \return
      * Complex 2D-Array of shape \f$ (|\mathfrak{K}| \times N) \f$,
      * where \f$ N \f$ is the number of quadrature points.
@@ -238,37 +236,37 @@ public:
         //HaWpBasisVector<N> complete_basis = HaWpBasisVector<N>::Zero(enumeration_->n_entries(), npts_);
         //~ std::cout << "complete_basis (init):\n" << complete_basis << "\n";
         //~ std::cout << "complete_basis.shape: " << complete_basis.rows() << ", " << complete_basis.cols() << "\n";
-        
+
         HaWpBasisVector<N> prev_basis(0,npts_);
         HaWpBasisVector<N> curr_basis(0,npts_);
         HaWpBasisVector<N> next_basis(1,npts_);
-        
+
         complete_basis.block(0, 0, 1, npts_) = next_basis = seed();
-        
+
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
             curr_basis = std::move(next_basis);
-            
+
             next_basis = step(islice, prev_basis, curr_basis);
-            
+
             std::size_t offset = enumeration_->slice(islice+1).offset();
 
             //~ std::cout << "offset: " << offset << ", next_basis.rows: " << next_basis.rows() << "\n";
-            
+
             complete_basis.block(offset, 0, next_basis.rows(), npts_) = next_basis;
         }
-        
+
         return complete_basis;
     }
-    
+
     /**
      * \brief Evaluates wavepacket in a memory efficient manner.
-     * 
-     * This function computes the dot product (thus the name 'reduce') of the wavepacket coefficients 
+     *
+     * This function computes the dot product (thus the name 'reduce') of the wavepacket coefficients
      * with the wavepacket basis. This is done by evaluating the wavepacket basis slice by slice
      * and multiplying the basis values with the coefficients on the fly. Computed
      * basis values are discarded, once they are not needed any more.
-     * 
+     *
      * \param[in] coefficients Vector of wavepacket coefficients, length is \f$ |\mathfrak{K}| \f$.
      * \return
      * Complex 2D-Array of shape \f$ (1 \times N) \f$,
@@ -278,44 +276,44 @@ public:
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         KahanSum< CArray<1,N> > psi( CArray<1,N>::Zero(1,npts_) );
-        
+
         HaWpBasisVector<N> prev_basis(0,npts_);
         HaWpBasisVector<N> curr_basis(0,npts_);
         HaWpBasisVector<N> next_basis(1,npts_);
-        
+
         next_basis = seed();
-        
+
         psi += next_basis.row(0)*coefficients[0];
-        
+
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
             curr_basis = std::move(next_basis);
-            
+
             next_basis = step(islice, prev_basis, curr_basis);
 
             std::size_t offset = enumeration_->slice(islice+1).offset();
-            
+
             for (long j = 0; j < next_basis.rows(); j++) {
                 complex_t cj = coefficients[offset + j];
-                
+
                 //prints: multi-index -> basis -> coefficient
                 //std::cout << enumeration->slice(islice+1)[j] << " -> " << next_basis.row(j).matrix() << " * " << cj << std::endl;
-                
+
                 psi += next_basis.row(j)*cj;
             }
         }
-        
+
         return psi();
     }
-    
+
     /**
-     * \brief Efficiently evaluates a vectorial wavepacket with shared Hagedorn parameter set, 
+     * \brief Efficiently evaluates a vectorial wavepacket with shared Hagedorn parameter set,
      * but different basis shapes.
-     * 
+     *
      * The union of all component's basis shapes is passed to the constructor.
-     * 
+     *
      * This function is used to evaluate a homogeneous wavepacket (see HomogeneousHaWp::evaluate())
-     * 
+     *
      * \param[in] subset_enums The shape enumerations of each wavepacket component.
      * \param[in] subset_coeffs The coefficients of each wavepacket component.
      * \param[in] n_components The number of wavepacket components \f$ C \f$.
@@ -323,72 +321,72 @@ public:
      * Complex 2D-Array of shape \f$ (C \times N) \f$,
      * where \f$ N \f$ is the number of quadrature points.
      */
-    CArray<Eigen::Dynamic,N> vector_reduce(ShapeEnum<D,MultiIndex> ** subset_enums, 
-                                           complex_t const ** subset_coeffs, 
+    CArray<Eigen::Dynamic,N> vector_reduce(ShapeEnum<D,MultiIndex> ** subset_enums,
+                                           complex_t const ** subset_coeffs,
                                            std::size_t n_components) const
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         std::vector< KahanSum< CArray<1,N> > > psi(n_components);
-        
+
         HaWpBasisVector<N> prev_basis(0,npts_);
         HaWpBasisVector<N> curr_basis(0,npts_);
         HaWpBasisVector<N> next_basis(1,npts_);
-        
+
         next_basis = seed();
-        
+
         for (std::size_t n = 0; n < n_components; n++) {
             psi[n] = KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
             psi[n] += subset_coeffs[n][0]*next_basis.row(0).matrix();
         }
-        
+
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
             curr_basis = std::move(next_basis);
-            
+
             next_basis = step(islice, prev_basis, curr_basis);
-            
+
             ShapeSlice<D,MultiIndex> const& superset_slice = enumeration_->slice(islice+1);
-            
+
 //             for (std::size_t n = 0; n < n_components; n++) {
 //                 ShapeSlice<D,MultiIndex> const& subset_slice = subset_enums[n]->slice(islice+1);
 //                 HaWpBasisVector<N> subset_basis = shape_enum::copy_subset(next_basis, superset_slice, subset_slice);
-//                 
+//
 //                 for (long j = 0; j < subset_basis.rows(); j++) {
 //                     complex_t cj = subset_coeffs[n][subset_slice.offset() + j];
-//                     
+//
 //                     psi[n] += cj*subset_basis.row(j);
 //                 }
 //             }
-            
+
             std::vector<std::size_t> seek(n_components);
             for (long j = 0; j < next_basis.rows(); j++) {
                 for (std::size_t n = 0; n < n_components; n++) {
                     ShapeSlice<D,MultiIndex> const& subset_slice = subset_enums[n]->slice(islice+1);
-                    
+
                     if (seek[n] < subset_slice.size() && subset_slice[seek[n]] == superset_slice[j]) {
                         complex_t cj = subset_coeffs[n][subset_slice.offset() + seek[n]];
-                        
+
                         psi[n] += next_basis.row(j)*cj;
-                        
+
                         seek[n]++;
                     }
                 }
             }
         }
-        
+
         CArray<Eigen::Dynamic,N> result(n_components, npts_);
         for (std::size_t n = 0; n < n_components; n++) {
             result.row(n) = psi[n]();
         }
-        
+
         return result;
     }
-    
+
     /**
      * \brief Efficiently evaluates a vectorial wavepacket with shared Hagedorn parameter set and shared basis shapes.
-     * 
+     *
      * This function is used to evaluate a wavepacket gradient (see HaWpGradient::evaluate()).
-     * 
+     *
      * \param[in] coefficients The coefficients of each wavepacket component.
      * \param[in] n_components The number of wavepacket components.
      * \param[in] n_components The number of wavepacket components \f$ C \f$.
@@ -400,45 +398,43 @@ public:
     {
         // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
         std::vector< KahanSum< CArray<1,N> > > psi(n_components);
-        
+
         HaWpBasisVector<N> prev_basis(0,npts_);
         HaWpBasisVector<N> curr_basis(0,npts_);
         HaWpBasisVector<N> next_basis(1,npts_);
-        
+
         next_basis = seed();
-        
+
         for (std::size_t n = 0; n < n_components; n++) {
             psi[n] = KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
             psi[n] += coefficients[n][0]*next_basis.row(0);
         }
-        
+
         for (int islice = 0; islice < enumeration_->n_slices(); islice++) {
             prev_basis = std::move(curr_basis);
             curr_basis = std::move(next_basis);
-            
+
             next_basis = step(islice, prev_basis, curr_basis);
-            
+
             ShapeSlice<D,MultiIndex> const& slice = enumeration_->slice(islice+1);
-            
-            
+
+
             for (long j = 0; j < next_basis.rows(); j++) {
                 for (std::size_t n = 0; n < n_components; n++) {
                     complex_t cj = coefficients[n][slice.offset() + j];
-                    
+
                     psi[n] += next_basis.row(j)*cj;
                 }
             }
         }
-        
+
         CArray<Eigen::Dynamic,N> result(n_components, npts_);
         for (std::size_t n = 0; n < n_components; n++) {
             result.row(n) = psi[n]();
         }
-        
+
         return result;
     }
 };
 
 }
-
-#endif

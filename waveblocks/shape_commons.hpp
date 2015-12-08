@@ -1,7 +1,4 @@
-#ifndef WAVEBLOCKS_COMMON_SHAPES_HPP
-#define WAVEBLOCKS_COMMON_SHAPES_HPP
+#pragma once
 
 #include "shape_hyperbolic.hpp"
 #include "shape_hypercubic.hpp"
-
-#endif

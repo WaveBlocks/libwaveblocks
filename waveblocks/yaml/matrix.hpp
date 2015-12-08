@@ -1,5 +1,4 @@
-#ifndef YAML_MATRIX_HPP
-#define YAML_MATRIX_HPP
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -33,5 +32,3 @@ namespace YAML {
         }
     };
 }
-
-#endif

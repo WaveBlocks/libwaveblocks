@@ -1,5 +1,4 @@
-#ifndef YAML_HAGEDORN_PARAMETER_SET_HPP
-#define YAML_HAGEDORN_PARAMETER_SET_HPP
+#pragma once
 
 #include <stdexcept>
 
@@ -45,5 +44,3 @@ namespace YAML {
         }
     };
 }
-
-#endif
