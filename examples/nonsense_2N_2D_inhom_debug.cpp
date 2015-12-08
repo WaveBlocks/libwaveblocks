@@ -1,3 +1,6 @@
+#include <iostream>
+#include <fstream>
+
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/matrixPotentials/potentials.hpp"
 #include "waveblocks/matrixPotentials/bases.hpp"
@@ -7,8 +10,8 @@
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/hawp_paramset.hpp"
-#include <iostream>
-#include <fstream>
+#include "waveblocks/gauss_hermite_qr.hpp"
+#include "waveblocks/tensor_product_qr.hpp"
 
 
 using namespace waveblocks;
@@ -25,7 +28,7 @@ int main() {
   const real_t eps = 0.1;
 
   using MultiIndex = TinyMultiIndex<unsigned short, D>;
-  
+
   // The parameter set of the initial wavepacket
   CMatrix<D,D> Q = CMatrix<D,D>::Identity();
   CMatrix<D,D> P = complex_t(0,1)*CMatrix<D,D>::Identity();
@@ -69,20 +72,20 @@ int main() {
   potential(1,1) = [sigma_x,sigma_y,N](CVector<D> x) {
     return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
   };
-  
+
   typename InhomogenousLeadingLevel<N,D>::potential_type leading_level;
   leading_level(0) = [sigma_x,sigma_y,N](CVector<D> x) {
     return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
   };
 
- 
+
   typename InhomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
   leading_jac(0) = [sigma_x,sigma_y,N](CVector<D> x) {
       return  CVector<D>{sigma_x*x[0], sigma_y*x[1]};
   };
 
   typename InhomogenousLeadingLevel<N,D>::hessian_type leading_hess;
-  leading_hess(0) = 
+  leading_hess(0) =
     [sigma_x,sigma_y,N](CVector<D> x) {
       CMatrix<D,D> res;
       res(0,0) = sigma_x;
@@ -93,7 +96,7 @@ int main() {
     leading_level(1) = leading_level(0);
     leading_jac(1) = leading_jac(0);
     leading_hess(1) = leading_hess(0);
-    
+
   InhomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
@@ -103,7 +106,7 @@ int main() {
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
   //~ store(0,packet,S);
-  
+
   // Output before
   std::cout << "Before:\n-------\n";
   for (size_t i = 0; i < packet.n_components(); ++i) {
@@ -111,12 +114,12 @@ int main() {
     std::cout << packet.component(i).parameters();
     std::cout << packet.component(i).coefficients() << "\n";
   }
-  
+
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
     propagator.propagate(packet,dt,V);
   }
-  
+
   // Output after
   std::cout << "\nAfter:\n-------\n";
   for (size_t i = 0; i < packet.n_components(); ++i) {

@@ -10,6 +10,8 @@
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/hawp_paramset.hpp"
+#include "waveblocks/gauss_hermite_qr.hpp"
+#include "waveblocks/tensor_product_qr.hpp"
 
 
 using namespace waveblocks;
@@ -26,7 +28,7 @@ int main() {
   const real_t eps = 0.1;
 
   using MultiIndex = TinyMultiIndex<unsigned short, D>;
-  
+
   // The parameter set of the initial wavepacket
   CMatrix<D,D> Q = CMatrix<D,D>::Identity();
   CMatrix<D,D> P = complex_t(0,1)*CMatrix<D,D>::Identity();
@@ -67,13 +69,13 @@ int main() {
   potential(1,1) = [sigma_x,sigma_y,N](CVector<D> x) {
     return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
   };
-  
+
   typename HomogenousLeadingLevel<N,D>::potential_type leading_level;
   leading_level = [sigma_x,sigma_y,N](CVector<D> x) {
     return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
   };
 
- 
+
   typename HomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
   leading_jac = [sigma_x,sigma_y,N](CVector<D> x) {
     return CVector<D>{sigma_x*x[0], sigma_y*x[1]};
@@ -87,7 +89,7 @@ int main() {
       res(1,1) = sigma_y;
       return res;
     };
-    
+
   HomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
@@ -98,13 +100,13 @@ int main() {
 
 
   // Preparing the file
-  
-  
+
+
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
     propagator.propagate(packet,dt,V);
   }
-  
-  
+
+
 
 }
