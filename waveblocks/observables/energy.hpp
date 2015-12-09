@@ -8,6 +8,7 @@
 
 namespace waveblocks {
     using utilities::Squeeze;
+    using innerproducts::HomogeneousInnerProduct;
 
     /**
      * \brief Computes potential energy of a Hagedorn Wavepacket.

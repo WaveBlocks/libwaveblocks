@@ -31,7 +31,7 @@ void test1DGaussHermite()
     const dim_t n_coeffs = 10;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
-    using QR = GaussHermiteQR<order>;
+    using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
@@ -57,7 +57,7 @@ void test1DGaussHermite()
     packet.coefficients() = coeffs;
 
     // Calculate inner product matrix, print it.
-    using IP = HomogeneousInnerProduct<D, MultiIndex, QR>;
+    using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, QR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
         IP::build_matrix(packet);
 
@@ -77,7 +77,7 @@ void test1DGaussHermiteOperator()
     const dim_t n_coeffs = 10;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
-    using QR = GaussHermiteQR<order>;
+    using QR = innerproducts::GaussHermiteQR<order>;
     using CMatrix1X = CMatrix<1, Eigen::Dynamic>;
     using RMatrixD1 = RMatrix<D, 1>;
     using CMatrixDX = CMatrix<D, Eigen::Dynamic>;
@@ -107,7 +107,7 @@ void test1DGaussHermiteOperator()
 
     // Calculate inner product matrix, print it.
     // Use an operator that returns a sequence 1, 2, ..., number_nodes.
-    using IP = HomogeneousInnerProduct<D, MultiIndex, QR>;
+    using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, QR>;
     auto op =
         [] (CMatrixDX nodes, RMatrixD1 pos) -> CMatrix1X
     {
@@ -117,8 +117,7 @@ void test1DGaussHermiteOperator()
         for(int i = 0; i < n_nodes; ++i) result(0, i) = i+1;
         return result;
     };
-    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        IP::build_matrix(packet, op);
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat = IP::build_matrix(packet, op);
 
     //std::cout << "IP matrix:\n" << mat << std::endl;
 
@@ -152,7 +151,9 @@ void test3DGaussHermite()
     //std::cout << "Coefficients:\n";
     //std::cout << coeffs << "\n";
 
-    using TQR = TensorProductQR<GaussHermiteQR<3>, GaussHermiteQR<4>, GaussHermiteQR<5>>;
+    using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<3>,
+                                               innerproducts::GaussHermiteQR<4>,
+                                               innerproducts::GaussHermiteQR<5>>;
     //TQR::NodeMatrix nodes;
     //TQR::WeightVector weights;
     //std::tie(nodes, weights) = TQR::nodes_and_weights();
@@ -161,7 +162,7 @@ void test3DGaussHermite()
     //std::cout << "weight vector:\n" << weights << "\n";
 
     // Calculate inner product matrix, print it.
-    using IP = HomogeneousInnerProduct<D, MultiIndex, TQR>;
+    using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
         IP::build_matrix(packet);
 
@@ -189,7 +190,7 @@ void test1DInhomog()
     const dim_t n_coeffs1 = 10, n_coeffs2 = 12;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
-    using QR = GaussHermiteQR<order>;
+    using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
@@ -214,7 +215,7 @@ void test1DInhomog()
     packet2.coefficients() = coeffs2;
 
     // Calculate inner product matrix, print it.
-    using IP = InhomogeneousInnerProduct<D, MultiIndex, QR>;
+    using IP = innerproducts::InhomogeneousInnerProduct<D, MultiIndex, QR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
         IP::build_matrix(packet1, packet2);
 
@@ -233,7 +234,7 @@ void testVector()
     const dim_t D = 1;
     const dim_t order = 8;
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
-    using QR = GaussHermiteQR<order>;
+    using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
@@ -263,7 +264,7 @@ void testVector()
     packet2.component(2).coefficients() = Coefficients::Constant(7,1, 1.0);
 
     // Calculate inner product matrix, print it.
-    using IP = VectorInnerProduct<D, MultiIndex, QR>;
+    using IP = innerproducts::VectorInnerProduct<D, MultiIndex, QR>;
     CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
         IP::build_matrix_inhomog(packet1, packet2);
         //IP::build_matrix(packet1);
@@ -302,7 +303,7 @@ void test3DGenzKeister()
     //std::cout << "Coefficients:\n";
     //std::cout << coeffs << "\n";
 
-    using QR = GenzKeisterQR<D, level>;
+    using QR = innerproducts::GenzKeisterQR<D, level>;
     QR::NodeMatrix nodes;
     QR::WeightVector weights;
     std::tie(nodes, weights) = QR::nodes_and_weights();
@@ -311,7 +312,7 @@ void test3DGenzKeister()
     std::cout << "weight vector:\n" << weights << "\n";
 
     // Calculate inner product matrix, print it.
-    using IP = HomogeneousInnerProduct<D, MultiIndex, QR>;
+    using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, QR>;
     //CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
     //    IP::build_matrix(packet);
 

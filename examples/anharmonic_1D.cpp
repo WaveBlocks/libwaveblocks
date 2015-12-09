@@ -80,7 +80,7 @@ int main() {
     Remain V;
 
     // Quadrature rules
-    using QR = waveblocks::GaussHermiteQR<K+4>;
+    using QR = waveblocks::innerproducts::GaussHermiteQR<K+4>;
 
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex,QR> propagator;

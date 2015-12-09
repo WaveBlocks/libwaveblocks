@@ -18,7 +18,7 @@ def run1D():
         HAWP.set_basis_shapes([K])
         HAWP.set_coefficients([ones((N, 1))])
 
-        QR = GaussHermiteQR(order)
+        QR = GuassHermiteQR(order)
         IP = HomogeneousInnerProduct(DirectHomogeneousQuadrature(QR))
 
         # Time many runs.
@@ -45,7 +45,7 @@ def runMultiD():
         HAWP.set_basis_shapes([K])
         HAWP.set_coefficients([ones((N**D, 1))])
 
-        TQR = TensorProductQR(D * [GaussHermiteQR(order)])
+        TQR = TensorProductQR(D * [GuassHermiteQR(order)])
         IP = HomogeneousInnerProduct(DirectHomogeneousQuadrature(TQR))
 
         start_time = time()
@@ -74,7 +74,7 @@ def runMultiComponent():
         HAWP.set_basis_shapes(n_components * [K])
         HAWP.set_coefficients(n_components * [ones((N**D, 1))])
 
-        TQR = TensorProductQR(D * [GaussHermiteQR(order)])
+        TQR = TensorProductQR(D * [GuassHermiteQR(order)])
         IP = InhomogeneousInnerProduct(DirectInhomogeneousQuadrature(TQR))
 
         start_time = time()

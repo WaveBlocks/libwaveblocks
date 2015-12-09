@@ -93,8 +93,8 @@ int main() {
   HomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
-  using TQR = waveblocks::TensorProductQR < waveblocks::GaussHermiteQR<3>,
-              waveblocks::GaussHermiteQR<4>>;
+  using TQR = waveblocks::innerproducts::TensorProductQR<waveblocks::innerproducts::GaussHermiteQR<3>,
+                                                         waveblocks::innerproducts::GaussHermiteQR<4>>;
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 

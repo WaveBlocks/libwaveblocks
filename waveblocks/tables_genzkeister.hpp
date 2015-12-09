@@ -5,7 +5,7 @@
 #include "types.hpp"
 
 namespace waveblocks {
-
+namespace innerproducts {
 // Genz-Keister weighting factor and generator tables.
 
 const dim_t genz_keister_tablesize = 30;
@@ -85,4 +85,5 @@ const GVector<int, genz_keister_tablesize> genz_keister_zs(
          0, 0, 0, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0
              ).finished());
 
+}
 }

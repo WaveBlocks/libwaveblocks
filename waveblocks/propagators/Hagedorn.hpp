@@ -12,6 +12,8 @@ namespace waveblocks
 {
     namespace propagators
     {
+        using innerproducts::HomogeneousInnerProduct;
+        using innerproducts::VectorInnerProduct;
         using steps::StepT;
         using steps::StepU;
         using steps::StepW;

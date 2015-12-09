@@ -87,7 +87,7 @@ int main() {
     Remain V;
 
     // Quadrature rules
-    using TQR = waveblocks::TensorProductQR <waveblocks::GaussHermiteQR<K+4>>;
+    using TQR = waveblocks::innerproducts::TensorProductQR<waveblocks::innerproducts::GaussHermiteQR<K+4>>;
 
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
