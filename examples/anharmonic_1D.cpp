@@ -98,8 +98,8 @@ int main() {
         writer.store_packet(t,packet);
 
         // Compute energies
-        real_t ekin = kinetic_energy<D,MultiIndex>(packet);
-        real_t epot = potential_energy<Remain,D,MultiIndex,QR>(packet,V);
+        real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+        real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
         real_t etot = ekin + epot;
         std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << etot << std::endl;
         writer.store_energies(t,epot,ekin);

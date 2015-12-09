@@ -131,8 +131,8 @@ int main() {
         writer.store_packet(t,packet);
 
         // Compute energies
-        real_t kinetic = kinetic_energy<D,MultiIndex>(packet);
-        real_t potential = potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
+        real_t kinetic = observables::kinetic_energy<D,MultiIndex>(packet);
+        real_t potential = observables::potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
         real_t total = kinetic+potential;
         std::cout << "E: (p,k,t) " << potential << ", " << kinetic << ", " << total << std::endl;
         std::cout << potential << "," << kinetic << ", "<< total << std::endl;
