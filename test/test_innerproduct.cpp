@@ -6,18 +6,19 @@
 #include <Eigen/Core>
 
 #include "waveblocks/basic_types.hpp"
+#include "waveblocks/wavepackets/hawp_commons.hpp"
+#include "waveblocks/wavepackets/hawp_paramset.hpp"
+#include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"
+#include "waveblocks/wavepackets/shapes/shape_hypercubic.hpp"
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
 #include "waveblocks/innerproducts/genz_keister_qr.hpp"
-#include "waveblocks/hawp_commons.hpp"
-#include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/innerproducts/homogeneous_inner_product.hpp"
 #include "waveblocks/innerproducts/inhomogeneous_inner_product.hpp"
 #include "waveblocks/innerproducts/vector_inner_product.hpp"
-#include "waveblocks/shape_enumerator.hpp"
-#include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/stdarray2stream.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
+
 
 using namespace waveblocks;
 
@@ -34,10 +35,9 @@ void test1DGaussHermite()
     using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs));
-    HaWpParamSet<D> param_set;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs));
+    wavepackets::HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     Coefficients coeffs = Coefficients::Ones(n_coeffs,1);
 
@@ -50,16 +50,15 @@ void test1DGaussHermite()
     //for (auto x : QR::weights()) std::cout << " " << x;
     //std::cout << " }\n";
 
-    ScalarHaWp<D, MultiIndex> packet;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
-    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
 
     // Calculate inner product matrix, print it.
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, QR>;
-    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        IP::build_matrix(packet);
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat = IP::build_matrix(packet);
 
     //std::cout << "IP matrix:\n" << mat << std::endl;
 
@@ -83,10 +82,9 @@ void test1DGaussHermiteOperator()
     using CMatrixDX = CMatrix<D, Eigen::Dynamic>;
 
     // Set up sample 1D wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs));
-    HaWpParamSet<D> param_set;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs));
+    wavepackets::HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     Coefficients coeffs = Coefficients::Ones(n_coeffs, 1);
 
@@ -99,10 +97,10 @@ void test1DGaussHermiteOperator()
     //for (auto x : QR::weights()) std::cout << " " << x;
     //std::cout << " }\n";
 
-    ScalarHaWp<D, MultiIndex> packet;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
-    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
 
     // Calculate inner product matrix, print it.
@@ -136,17 +134,16 @@ void test3DGaussHermite()
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
 
     // Set up sample 3D wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs));
-    HaWpParamSet<D> param_set;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs));
+    wavepackets::HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D),1);
     for(int i = 0; i < coeffs.size(); ++i) coeffs[i] = i+1;
-    ScalarHaWp<D, MultiIndex> packet;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
-    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
     //std::cout << "Coefficients:\n";
     //std::cout << coeffs << "\n";
@@ -193,31 +190,28 @@ void test1DInhomog()
     using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum1 =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs1));
-    ShapeEnum<D, MultiIndex> shape_enum2 =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs2));
-    HaWpParamSet<D> param_set1, param_set2;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum1 = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs1));
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum2 = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs2));
+    wavepackets::HaWpParamSet<D> param_set1, param_set2;
     Coefficients coeffs1 = Coefficients::Ones(n_coeffs1,1);
     Coefficients coeffs2 = Coefficients::Constant(n_coeffs2,1, 1.4);
 
-    ScalarHaWp<D, MultiIndex> packet1;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet1;
     packet1.eps() = eps;
     packet1.parameters() = param_set1;
-    packet1.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum1);
+    packet1.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum1);
     packet1.coefficients() = coeffs1;
 
-    ScalarHaWp<D, MultiIndex> packet2;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet2;
     packet2.eps() = eps;
     packet2.parameters() = param_set2;
-    packet2.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum2);
+    packet2.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum2);
     packet2.coefficients() = coeffs2;
 
     // Calculate inner product matrix, print it.
     using IP = innerproducts::InhomogeneousInnerProduct<D, MultiIndex, QR>;
-    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        IP::build_matrix(packet1, packet2);
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat = IP::build_matrix(packet1, packet2);
 
     //std::cout << "IP matrix:\n" << mat << std::endl;
 
@@ -237,37 +231,31 @@ void testVector()
     using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    HaWpParamSet<D> param_set1, param_set2;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::HaWpParamSet<D> param_set1, param_set2;
 
-    HomogeneousHaWp<D, MultiIndex> packet1(2);
+    wavepackets::HomogeneousHaWp<D, MultiIndex> packet1(2);
     packet1.eps() = eps;
     packet1.parameters() = param_set1;
-    packet1.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
-        enumerator.generate(HyperCubicShape<D>(5)));
+    packet1.component(0).shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(5)));
     packet1.component(0).coefficients() = Coefficients::Constant(5,1, 1.0);
-    packet1.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
-        enumerator.generate(HyperCubicShape<D>(6)));
+    packet1.component(1).shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(6)));
     packet1.component(1).coefficients() = Coefficients::Constant(6,1, 1.5);
 
-    HomogeneousHaWp<D, MultiIndex> packet2(3);
+    wavepackets::HomogeneousHaWp<D, MultiIndex> packet2(3);
     packet2.eps() = eps;
     packet2.parameters() = param_set2;
-    packet2.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
-        enumerator.generate(HyperCubicShape<D>(3)));
+    packet2.component(0).shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(3)));
     packet2.component(0).coefficients() = Coefficients::Constant(3,1, 1.4);
-    packet2.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
-        enumerator.generate(HyperCubicShape<D>(4)));
+    packet2.component(1).shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(4)));
     packet2.component(1).coefficients() = Coefficients::Constant(4,1, 1.2);
-    packet2.component(2).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(
-        enumerator.generate(HyperCubicShape<D>(7)));
+    packet2.component(2).shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(7)));
     packet2.component(2).coefficients() = Coefficients::Constant(7,1, 1.0);
 
     // Calculate inner product matrix, print it.
     using IP = innerproducts::VectorInnerProduct<D, MultiIndex, QR>;
-    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat =
-        IP::build_matrix_inhomog(packet1, packet2);
-        //IP::build_matrix(packet1);
+    CMatrix<Eigen::Dynamic, Eigen::Dynamic> mat = IP::build_matrix_inhomog(packet1, packet2);
+    //IP::build_matrix(packet1);
 
     std::cout << "IP matrix:\n" << mat << std::endl;
 
@@ -288,17 +276,16 @@ void test3DGenzKeister()
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
 
     // Set up sample 3D wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs));
-    HaWpParamSet<D> param_set;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs));
+    wavepackets::HaWpParamSet<D> param_set;
     std::cout << param_set << std::endl;
     Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D),1);
     //for(int i = 0; i < coeffs.size(); ++i) coeffs[i] = i+1;
-    ScalarHaWp<D, MultiIndex> packet;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
-    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
     //std::cout << "Coefficients:\n";
     //std::cout << coeffs << "\n";

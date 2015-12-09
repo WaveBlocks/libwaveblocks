@@ -5,10 +5,8 @@
 #include <fstream>
 
 
-namespace waveblocks
-{
-    namespace csv
-    {
+namespace waveblocks {
+    namespace csv {
         class CoefficientsFileParser
         {
         public:

@@ -9,10 +9,11 @@
 #include "basic_steps.hpp"
 
 
-namespace waveblocks
-{
-    namespace propagators
-    {
+namespace waveblocks {
+    namespace propagators {
+        using wavepackets::ScalarHaWp;
+        using wavepackets::HomogeneousHaWp;
+        using wavepackets::InhomogeneousHaWp;
         using innerproducts::HomogeneousInnerProduct;
         using innerproducts::VectorInnerProduct;
         using steps::StepT;

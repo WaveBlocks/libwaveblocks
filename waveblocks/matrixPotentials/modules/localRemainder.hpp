@@ -1,10 +1,12 @@
 #pragma once
 
+#include "../../types.hpp"
+#include "../../utilities/evaluations.hpp"
+
 #include "../bases.hpp"
 #include "localQuadratic.hpp"
 #include "leadingLevelOwner.hpp"
-#include "../../types.hpp"
-#include "../../utilities/evaluations.hpp"
+
 
 namespace waveblocks
 {

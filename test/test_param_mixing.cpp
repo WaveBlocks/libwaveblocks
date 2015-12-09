@@ -1,10 +1,9 @@
 #include <iostream>
 
-#include <waveblocks/hawp_paramset.hpp>
+#include <waveblocks/wavepackets/hawp_paramset.hpp>
 
 
 using namespace waveblocks;
-
 
 int main(int argc, char* argv[])
 {
@@ -48,8 +47,8 @@ int main(int argc, char* argv[])
 
     // Test 2
     const dim_t D = 2;
-    HaWpParamSet<D> PIbra = HaWpParamSet<D>();
-    HaWpParamSet<D> PIket = HaWpParamSet<D>();
+    wavepackets::HaWpParamSet<D> PIbra = wavepackets::HaWpParamSet<D>();
+    wavepackets::HaWpParamSet<D> PIket = wavepackets::HaWpParamSet<D>();
 
     RMatrix<D,1> qb;
     qb <<  0.1, -0.2;

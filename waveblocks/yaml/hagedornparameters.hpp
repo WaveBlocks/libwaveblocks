@@ -5,14 +5,14 @@
 #include <yaml-cpp/yaml.h>
 
 #include "../basic_types.hpp"
-#include "../hawp_paramset.hpp"
+#include "../wavepackets/hawp_paramset.hpp"
 
 
 namespace YAML {
     template<int D>
-    struct convert<waveblocks::HaWpParamSet<D>> {
+    struct convert<waveblocks::wavepackets::HaWpParamSet<D>> {
 
-        static Node encode(const waveblocks::HaWpParamSet<D> & PI) {
+        static Node encode(const waveblocks::wavepackets::HaWpParamSet<D> & PI) {
             YAML::Node pinode;
 
             pinode["q"] = PI.q();
@@ -24,7 +24,7 @@ namespace YAML {
             return pinode;
         }
 
-        static bool decode(const Node& pinode, waveblocks::HaWpParamSet<D> & PI) {
+        static bool decode(const Node& pinode, waveblocks::wavepackets::HaWpParamSet<D> & PI) {
             if (pinode["q"]) {
                 PI.q(pinode["q"].as<waveblocks::RMatrix<D,1>>());
             }

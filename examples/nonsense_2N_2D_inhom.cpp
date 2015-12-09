@@ -1,14 +1,15 @@
+#include <iostream>
+#include <fstream>
+
+#include "types.hpp"
 #include "propagators/Hagedorn.hpp"
 #include "matrixPotentials/potentials.hpp"
 #include "matrixPotentials/bases.hpp"
-#include "types.hpp"
-#include "hawp_commons.hpp"
 #include "tiny_multi_index.hpp"
-#include "shape_enumerator.hpp"
-#include "shape_hypercubic.hpp"
-#include "hawp_paramset.hpp"
-#include <iostream>
-#include <fstream>
+#include "wavepackets/hawp_commons.hpp"
+#include "wavepackets/hawp_paramset.hpp"
+#include "wavepackets/shapes/shape_enumerator.hpp"
+#include "wavepackets/shapes/shape_hypercubic.hpp"
 
 
 using namespace waveblocks;
@@ -34,12 +35,11 @@ int main() {
   CVector<N> S;
 
   // Setting up the wavepacket
-  ShapeEnumerator<D, MultiIndex> enumerator;
-  ShapeEnum<D, MultiIndex> shape_enum =
-    enumerator.generate(HyperCubicShape<D>(K));
-  HaWpParamSet<D> param_set(q,p,Q,P);
+  wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+  wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
+  wavepackets::HaWpParamSet<D> param_set(q,p,Q,P);
   Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
-  InhomogeneousHaWp<D,MultiIndex> packet(N);
+  wavepackets::InhomogeneousHaWp<D,MultiIndex> packet(N);
 
 
   packet.eps() = eps;
@@ -96,8 +96,8 @@ int main() {
   InhomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
-  using TQR = waveblocks::innerproducts::TensorProductQR<waveblocks::innerproducts::GaussHermiteQR<3>,
-                                                         waveblocks::innerproducts::GaussHermiteQR<4>>;
+  using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<3>,
+                                             innerproducts::GaussHermiteQR<4>>;
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 

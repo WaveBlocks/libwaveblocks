@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../../types.hpp"
-#include "../bases.hpp"
 #include "../../utilities/evaluations.hpp"
+
+#include "../bases.hpp"
+
 
 namespace waveblocks
 {

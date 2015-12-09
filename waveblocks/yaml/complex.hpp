@@ -15,7 +15,7 @@ namespace YAML {
                 return Node(std::to_string(rhs.real()));
             }
             else if (rhs.real() == 0.0) {
-                    return Node(""+std::to_string(rhs.imag())+"j");
+                return Node(""+std::to_string(rhs.imag())+"j");
             }
             else if (rhs.imag() < 0.0) {
                 return Node(""+std::to_string(rhs.real())+std::to_string(rhs.imag())+"j");
@@ -32,7 +32,7 @@ namespace YAML {
             if (str.size() >= 2 && str.front() == '(' && str.back() == ')')
                 str = str.substr(1, str.size()-2);
 
-            return utilities::parse_complex(str.c_str(), rhs);
+            return waveblocks::utilities::parse_complex(str.c_str(), rhs);
         }
     };
 }

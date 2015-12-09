@@ -5,15 +5,13 @@
 #include "../utilities/adaptors.hpp"
 
 
-namespace waveblocks
-{
-    namespace propagators
-    {
-        namespace steps
-        {
+namespace waveblocks {
+    namespace propagators {
+        namespace steps {
             using utilities::Squeeze;
             using utilities::PacketToCoefficients;
             using utilities::Unsqueeze;
+            using wavepackets::HaWpParamSet;
 
             /**
              * \brief Propagate one step with the kinetic operator T.

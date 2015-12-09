@@ -3,6 +3,7 @@
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
 
+
 namespace waveblocks
 {
   namespace matrixPotentials

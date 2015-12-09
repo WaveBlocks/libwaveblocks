@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 
 #include <waveblocks/basic_types.hpp>
-#include <waveblocks/hawp_paramset.hpp>
+#include <waveblocks/wavepackets/hawp_paramset.hpp>
 
 #include <waveblocks/yaml/complex.hpp>
 #include <waveblocks/yaml/matrix.hpp>
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     std::cout << "Loading a yaml file:" << std::endl;
 
     YAML::Node config = YAML::LoadFile("pi.yaml");
-    HaWpParamSet<D> PI = config["PI"].as<HaWpParamSet<D>>();
+    wavepackets::HaWpParamSet<D> PI = config["PI"].as<wavepackets::HaWpParamSet<D>>();
 
     std::cout << "Loaded values are:\n" << PI << std::endl;
 

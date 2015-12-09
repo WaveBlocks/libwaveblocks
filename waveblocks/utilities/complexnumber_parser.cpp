@@ -2,33 +2,35 @@
 
 #include <cstdint>
 
-namespace utilities {
 
-bool parse_complex(char const* text, std::complex<double> & result)
-{
-    double real = 0.0;
-    double imag = 0.0;
+namespace waveblocks {
+    namespace utilities {
 
-    do {
-        char * end;
-        double num = std::strtod(text, &end);
+        bool parse_complex(char const* text, std::complex<double> & result)
+        {
+            double real = 0.0;
+            double imag = 0.0;
 
-        if (end == text)
-            return false; // require at least one processed character to avoid endless loop
+            do {
+                char * end;
+                double num = std::strtod(text, &end);
 
-            if (*end=='j' || *end=='i' || *end=='J' || *end=='I') {
-                imag += num;
-                ++end;
-            } else {
-                real += num;
-            }
+                if (end == text)
+                    return false; // require at least one processed character to avoid endless loop
 
-            text = end;
-    } while (*text != 0);
+                if (*end=='j' || *end=='i' || *end=='J' || *end=='I') {
+                    imag += num;
+                    ++end;
+                } else {
+                    real += num;
+                }
 
-    result = std::complex<double>(real, imag);
+                text = end;
+            } while (*text != 0);
 
-    return true;
-}
+            result = std::complex<double>(real, imag);
 
+            return true;
+        }
+    }
 }

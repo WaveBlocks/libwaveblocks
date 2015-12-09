@@ -15,7 +15,6 @@
     using local_quadratic_return_type = typename B::local_quadratic_return_type;
 
 
-
 namespace waveblocks
 {
     namespace matrixPotentials

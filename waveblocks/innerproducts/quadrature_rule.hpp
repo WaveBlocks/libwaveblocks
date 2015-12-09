@@ -4,6 +4,7 @@
 
 #include "../basic_types.hpp"
 
+
 namespace waveblocks {
     namespace innerproducts {
 

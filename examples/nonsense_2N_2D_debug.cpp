@@ -1,20 +1,21 @@
 #include <iostream>
 #include <fstream>
 
+#include "waveblocks/types.hpp"
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/matrixPotentials/potentials.hpp"
 #include "waveblocks/matrixPotentials/bases.hpp"
-#include "waveblocks/types.hpp"
-#include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
-#include "waveblocks/shape_enumerator.hpp"
-#include "waveblocks/shape_hypercubic.hpp"
-#include "waveblocks/hawp_paramset.hpp"
+#include "waveblocks/wavepackets/hawp_commons.hpp"
+#include "waveblocks/wavepackets/hawp_paramset.hpp"
+#include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"
+#include "waveblocks/wavepackets/shapes/shape_hypercubic.hpp"
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 
 
 using namespace waveblocks;
+
 int main() {
   const int N = 2;
   const int D = 2;
@@ -36,21 +37,20 @@ int main() {
   RVector<D> p = {0.0,0.5};
 
   // Setting up the wavepacket
-  ShapeEnumerator<D, MultiIndex> enumerator;
-  ShapeEnum<D, MultiIndex> shape_enum =
-    enumerator.generate(HyperCubicShape<D>(K));
-  HaWpParamSet<D> param_set(q,p,Q,P,0.0);
+  wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+  wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
+  wavepackets::HaWpParamSet<D> param_set(q,p,Q,P,0.0);
   Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
-  HomogeneousHaWp<D,MultiIndex> packet(N);
+  wavepackets::HomogeneousHaWp<D,MultiIndex> packet(N);
 
 
   packet.eps() = eps;
   packet.parameters() = param_set;
 
-  packet.component(0).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+  packet.component(0).shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
   packet.component(0).coefficients() = coeffs;
 
-  packet.component(1).shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+  packet.component(1).shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
   packet.component(1).coefficients() = coeffs;
 
   // Defining the potential
@@ -93,8 +93,8 @@ int main() {
   HomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
-  using TQR = waveblocks::innerproducts::TensorProductQR<waveblocks::innerproducts::GaussHermiteQR<3>,
-                                                         waveblocks::innerproducts::GaussHermiteQR<4>>;
+  using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<3>,
+                                             innerproducts::GaussHermiteQR<4>>;
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
