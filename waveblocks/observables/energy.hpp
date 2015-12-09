@@ -2,12 +2,13 @@
 
 #include "../types.hpp"
 #include "../hawp_commons.hpp"
-#include "../homogeneous_inner_product.hpp"
+#include "../innerproducts/homogeneous_inner_product.hpp"
 #include "../hawp_gradient_operator.hpp"
 #include "../hawp_gradient_evaluator.hpp"
 
 namespace waveblocks {
     using utilities::Squeeze;
+    using innerproducts::HomogeneousInnerProduct;
 
     /**
      * \brief Computes potential energy of a Hagedorn Wavepacket.

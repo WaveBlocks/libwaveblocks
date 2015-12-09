@@ -6,17 +6,17 @@
 #include <Eigen/Core>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/gauss_hermite_qr.hpp"
-#include "waveblocks/genz_keister_qr.hpp"
+#include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
+#include "waveblocks/innerproducts/genz_keister_qr.hpp"
 #include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/hawp_paramset.hpp"
-#include "waveblocks/homogeneous_inner_product.hpp"
-#include "waveblocks/inhomogeneous_inner_product.hpp"
-#include "waveblocks/vector_inner_product.hpp"
+#include "waveblocks/innerproducts/homogeneous_inner_product.hpp"
+#include "waveblocks/innerproducts/inhomogeneous_inner_product.hpp"
+#include "waveblocks/innerproducts/vector_inner_product.hpp"
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/stdarray2stream.hpp"
-#include "waveblocks/tensor_product_qr.hpp"
+#include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
 #include "waveblocks/utilities/timer.hpp"
 
@@ -31,15 +31,15 @@ void runMultiD1()
     const real_t eps = 0.2;
     const dim_t n_coeffs = 5;
     const dim_t order = 5;
-    using QR = GaussHermiteQR<order>;
-    using TQR = TensorProductQR<QR,QR,QR,QR,QR,QR,QR,QR>;
+    using QR = innerproducts::GaussHermiteQR<order>;
+    using TQR = innerproducts::TensorProductQR<QR,QR,QR,QR,QR,QR,QR,QR>;
 
     std::cout << D << "-D homogeneous quadrature of order " <<
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
     // Note the unsigned short here.
     using MultiIndex = TinyMultiIndex<unsigned short, D>;
-    using IP = HomogeneousInnerProduct<D, MultiIndex, TQR>;
+    using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
@@ -66,14 +66,14 @@ void runMultiD2()
     const real_t eps = 0.2;
     const dim_t n_coeffs = 6;
     const dim_t order = 6;
-    using QR = GaussHermiteQR<order>;
-    using TQR = TensorProductQR<QR,QR,QR,QR,QR,QR>;
+    using QR = innerproducts::GaussHermiteQR<order>;
+    using TQR = innerproducts::TensorProductQR<QR,QR,QR,QR,QR,QR>;
 
     std::cout << D << "-D homogeneous quadrature of order " <<
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
     using MultiIndex = TinyMultiIndex<unsigned long, D>;
-    using IP = HomogeneousInnerProduct<D, MultiIndex, TQR>;
+    using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;
@@ -103,15 +103,15 @@ void runMultiD3()
     const real_t eps = 0.2;
     const dim_t n_coeffs = 8;
     const dim_t order = 8;
-    using QR = GaussHermiteQR<order>;
-    using TQR = TensorProductQR<QR>;
+    using QR = innerproducts::GaussHermiteQR<order>;
+    using TQR = innerproducts::TensorProductQR<QR>;
 
     std::cout << D << "-D homogeneous quadrature of order " <<
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
     // Note the unsigned long here.
     using MultiIndex = TinyMultiIndex<unsigned long, D>;
-    using IP = HomogeneousInnerProduct<D, MultiIndex, TQR>;
+    using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
     ShapeEnumerator<D, MultiIndex> enumerator;

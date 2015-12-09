@@ -3,8 +3,9 @@
 #include "../types.hpp"
 #include "../matrixPotentials/potentials.hpp"
 #include "../matrixPotentials/bases.hpp"
-#include "../homogeneous_inner_product.hpp"
-#include "../vector_inner_product.hpp"
+#include "../innerproducts/homogeneous_inner_product.hpp"
+#include "../innerproducts/vector_inner_product.hpp"
+
 #include "basic_steps.hpp"
 
 
@@ -12,6 +13,8 @@ namespace waveblocks
 {
     namespace propagators
     {
+        using innerproducts::HomogeneousInnerProduct;
+        using innerproducts::VectorInnerProduct;
         using steps::StepT;
         using steps::StepU;
         using steps::StepW;

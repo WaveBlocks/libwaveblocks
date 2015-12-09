@@ -25,11 +25,11 @@ int main() {
   const real_t eps = 0.1;
 
   using MultiIndex = TinyMultiIndex<unsigned short, D>;
-  
+
   // The parameter set of the initial wavepacket
   CMatrix<D,D> Q = CMatrix<D,D>::Identity();
   CMatrix<D,D> P = complex_t(0,1)*CMatrix<D,D>::Identity();
-  RVector<D> q; 
+  RVector<D> q;
   RVector<D> p;
   complex_t S;
 
@@ -67,20 +67,20 @@ int main() {
   potential(1,1) = [sigma_x,sigma_y,N](complex_t x) {
     return 0.5*(sigma_x*x).real();
   };
-  
+
   typename HomogenousLeadingLevel<N,D>::potential_type leading_level;
   leading_level = [sigma_x,sigma_y,N](complex_t x) {
     return 0.5*(sigma_x*x).real();
   };
 
- 
+
   typename HomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
   leading_jac = [D,sigma_x,sigma_y,N](complex_t x) {
     return 0.5*(sigma_x*x).real();
   };
 
   typename HomogenousLeadingLevel<N,D>::hessian_type leading_hess;
-  leading_hess = 
+  leading_hess =
     [D,sigma_x,sigma_y,N](complex_t x) {
     return 0.5*(sigma_x*x).real();
     };
@@ -88,26 +88,26 @@ int main() {
   HomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
   // Quadrature rules
-  using TQR = waveblocks::TensorProductQR < waveblocks::GaussHermiteQR<3>>;
+  using TQR = waveblocks::innerproducts::TensorProductQR<waveblocks::innerproducts::GaussHermiteQR<3>>;
   // Defining the propagator
   propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
 
   // Preparing the file
-  
+
   // Propagation
   for (real_t t = 0; t < T; t += dt) {
     propagator.propagate(packet,dt,V,S);
   }
-  
-  
 
 
 
-  
-  
 
-  
+
+
+
+
+
 
 
 
