@@ -10,8 +10,8 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
-#include "basic_types.hpp"
-#include "hawp_commons.hpp"
+#include "../basic_types.hpp"
+#include "../hawp_commons.hpp"
 
 
 namespace waveblocks {

@@ -8,9 +8,10 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include "basic_types.hpp"
+#include "../basic_types.hpp"
+#include "../utilities/combinatorics.hpp"
+
 #include "tables_genzkeister.hpp"
-#include "utilities/combinatorics.hpp"
 
 
 namespace waveblocks {

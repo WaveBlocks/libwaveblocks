@@ -11,7 +11,7 @@
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/hawp_paramset.hpp"
-#include "waveblocks/gauss_hermite_qr.hpp"
+#include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/utilities/packetWriter.hpp"
 

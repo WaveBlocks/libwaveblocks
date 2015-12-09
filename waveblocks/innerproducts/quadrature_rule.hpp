@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "basic_types.hpp"
+#include "../basic_types.hpp"
 
 namespace waveblocks {
     namespace innerproducts {

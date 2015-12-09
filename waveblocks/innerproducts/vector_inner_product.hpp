@@ -9,8 +9,9 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include "basic_types.hpp"
-#include "hawp_commons.hpp"
+#include "../basic_types.hpp"
+#include "../hawp_commons.hpp"
+
 #include "inhomogeneous_inner_product.hpp"
 
 

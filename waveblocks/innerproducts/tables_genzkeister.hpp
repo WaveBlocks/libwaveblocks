@@ -2,7 +2,7 @@
 
 // Values copied from Python version.
 
-#include "types.hpp"
+#include "../types.hpp"
 
 namespace waveblocks {
 namespace innerproducts {

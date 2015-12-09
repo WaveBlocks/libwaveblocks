@@ -6,17 +6,17 @@
 #include <Eigen/Core>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/gauss_hermite_qr.hpp"
-#include "waveblocks/genz_keister_qr.hpp"
+#include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
+#include "waveblocks/innerproducts/genz_keister_qr.hpp"
 #include "waveblocks/hawp_commons.hpp"
 #include "waveblocks/hawp_paramset.hpp"
-#include "waveblocks/homogeneous_inner_product.hpp"
-#include "waveblocks/inhomogeneous_inner_product.hpp"
-#include "waveblocks/vector_inner_product.hpp"
+#include "waveblocks/innerproducts/homogeneous_inner_product.hpp"
+#include "waveblocks/innerproducts/inhomogeneous_inner_product.hpp"
+#include "waveblocks/innerproducts/vector_inner_product.hpp"
 #include "waveblocks/shape_enumerator.hpp"
 #include "waveblocks/shape_hypercubic.hpp"
 #include "waveblocks/stdarray2stream.hpp"
-#include "waveblocks/tensor_product_qr.hpp"
+#include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/tiny_multi_index.hpp"
 #include "waveblocks/utilities/timer.hpp"
 
