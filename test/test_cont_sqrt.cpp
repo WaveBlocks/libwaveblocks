@@ -5,7 +5,8 @@
 #include <iomanip>
 
 #include "waveblocks/basic_types.hpp"
-#include "waveblocks/continuous_sqrt.hpp"
+#include "waveblocks/math/continuous_sqrt.hpp"
+
 
 using namespace waveblocks;
 

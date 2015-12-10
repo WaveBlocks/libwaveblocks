@@ -1,8 +1,7 @@
 #pragma once
 
 
-namespace waveblocks
-{
+namespace waveblocks {
 
 /**
  * \brief The Kahan's algorithm achieves O(1) error growth for summing N numbers.
@@ -92,5 +91,4 @@ public:
         return sum_;
     }
 };
-
 }

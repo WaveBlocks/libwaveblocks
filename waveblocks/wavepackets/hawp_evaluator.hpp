@@ -4,7 +4,7 @@
 
 #include <Eigen/Core>
 
-#include "../kahan_sum.hpp"
+#include "../math/kahan_sum.hpp"
 
 #include "hawp_paramset.hpp"
 #include "shapes/shape_enum.hpp"

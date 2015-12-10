@@ -7,7 +7,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 
 #include "../basic_types.hpp"
-#include "../continuous_sqrt.hpp"
+#include "../math/continuous_sqrt.hpp"
 
 
 namespace waveblocks {
