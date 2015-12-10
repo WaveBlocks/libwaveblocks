@@ -33,9 +33,8 @@ int main() {
     // The parameter set of the initial wavepacket
     CMatrix<D,D> Q = CMatrix<D,D>::Identity();
     CMatrix<D,D> P = complex_t(0,1)*CMatrix<D,D>::Identity();
-    RVector<D> q = {-3.0,0.0};
-    RVector<D> p = {0.0,0.5};
-    CVector<N> S;
+    RVector<D> q = {-3.0, 0.0};
+    RVector<D> p = {0.0, 0.5};
 
     // Setting up the wavepacket
     wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
@@ -44,7 +43,6 @@ int main() {
     wavepackets::HaWpParamSet<D> param_set2(2*q, 0.5*p, Q, P, 0.0);
     Coefficients coeffs = Coefficients::Ones(std::pow(K, D), 1);
     wavepackets::InhomogeneousHaWp<D,MultiIndex> packet(N);
-
 
     packet.eps() = eps;
     packet.component(0).parameters() = param_set;
@@ -78,15 +76,14 @@ int main() {
         return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
     };
 
-
     typename InhomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
-    leading_jac(0) = [D,sigma_x,sigma_y,N](CVector<D> x) {
+    leading_jac(0) = [sigma_x,sigma_y,N](CVector<D> x) {
         return CVector<D>{sigma_x*x[0], sigma_y*x[1]};
     };
 
     typename InhomogenousLeadingLevel<N,D>::hessian_type leading_hess;
     leading_hess(0) =
-        [D,sigma_x,sigma_y,N](CVector<D> x) {
+        [sigma_x,sigma_y,N](CVector<D> x) {
         (void) x; // Unused
         CMatrix<D,D> res;
         res(0,0) = sigma_x;
@@ -105,8 +102,6 @@ int main() {
                                                innerproducts::GaussHermiteQR<4>>;
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
-
-    //~ store(0,packet,S);
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
