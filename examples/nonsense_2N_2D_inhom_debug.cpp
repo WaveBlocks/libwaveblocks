@@ -81,7 +81,7 @@ int main() {
 
     typename InhomogenousLeadingLevel<N,D>::jacobian_type leading_jac;
     leading_jac(0) = [sigma_x,sigma_y,N](CVector<D> x) {
-        return  CVector<D>{sigma_x*x[0], sigma_y*x[1]};
+        return CVector<D>{sigma_x*x[0], sigma_y*x[1]};
     };
 
     typename InhomogenousLeadingLevel<N,D>::hessian_type leading_hess;
@@ -101,8 +101,8 @@ int main() {
     InhomogenousMatrixPotential<N,D> V(potential,leading_level,leading_jac,leading_hess);
 
     // Quadrature rules
-    using TQR = waveblocks::innerproducts::TensorProductQR<waveblocks::innerproducts::GaussHermiteQR<3>,
-                                                           waveblocks::innerproducts::GaussHermiteQR<4>>;
+    using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<3>,
+                                               innerproducts::GaussHermiteQR<4>>;
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 

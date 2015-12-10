@@ -19,7 +19,7 @@ add_definitions(
   )
 
 # Clang
-#add_definitions(
+# add_definitions(
 #  -std=c++11
 #  -Wall
 #  -Wno-deprecated-declarations

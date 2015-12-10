@@ -25,4 +25,7 @@ target_link_libraries(tunneling2_1D ${LINK_LIBS})
 
 add_executable(nonsense_2N_2D nonsense_2N_2D.cpp)
 add_executable(nonsense_2N_2D_debug nonsense_2N_2D_debug.cpp)
-add_executable(nonsense_2N_2D_inhom_debug nonsense_2N_2D_inhom_debug.cpp)
+
+# atm broken
+#add_executable(nonsense_2N_2D_inhom nonsense_2N_2D_inhom.cpp)
+#add_executable(nonsense_2N_2D_inhom_debug nonsense_2N_2D_inhom_debug.cpp)
