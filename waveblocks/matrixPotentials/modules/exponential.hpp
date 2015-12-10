@@ -1,9 +1,12 @@
 #pragma once
 
-#include "../bases.hpp"
-#include "../../utilities/evaluations.hpp"
 #include <Eigen/Core>
 #include <unsupported/Eigen/MatrixFunctions>
+
+#include "../../utilities/evaluations.hpp"
+
+#include "../bases.hpp"
+
 
 namespace waveblocks
 {

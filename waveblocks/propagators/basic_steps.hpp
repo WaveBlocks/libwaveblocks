@@ -5,15 +5,13 @@
 #include "../utilities/adaptors.hpp"
 
 
-namespace waveblocks
-{
-    namespace propagators
-    {
-        namespace steps
-        {
+namespace waveblocks {
+    namespace propagators {
+        namespace steps {
             using utilities::Squeeze;
             using utilities::PacketToCoefficients;
             using utilities::Unsqueeze;
+            using wavepackets::HaWpParamSet;
 
             /**
              * \brief Propagate one step with the kinetic operator T.
@@ -41,7 +39,7 @@ namespace waveblocks
             template<bool Mode>
             struct HelperL {
                 template<class L>
-                static typename decltype(std::declval<L>()[0])::type apply(const L& level, int i) {
+                static const typename std::remove_reference<decltype(std::declval<L>()[0])>::type& apply(const L& level, int i) {
                     return level[i];
                 }
             };
@@ -49,7 +47,8 @@ namespace waveblocks
             template<>
             struct HelperL<false> {
                 template<class L>
-                static const L& apply(const L& level, int) {
+                static const L& apply(const L& level, int i) {
+                    (void) i; // Unused
                     return level;
                 }
             };

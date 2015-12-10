@@ -1,16 +1,19 @@
 #pragma once
 
 #include "../types.hpp"
-#include "../hawp_commons.hpp"
-#include "../hawp_gradient_operator.hpp"
-#include "../hawp_gradient_evaluator.hpp"
+#include "../wavepackets/hawp_commons.hpp"
+#include "../wavepackets/hawp_gradient_operator.hpp"
+#include "../wavepackets/hawp_gradient_evaluator.hpp"
 #include "../innerproducts/homogeneous_inner_product.hpp"
 
 
 namespace waveblocks {
     namespace observables {
-        using utilities::Squeeze;
+        using wavepackets::ScalarHaWp;
+        using wavepackets::HaWpGradient;
+        using wavepackets::HaWpGradientOperator;
         using innerproducts::HomogeneousInnerProduct;
+        using utilities::Squeeze;
 
         /**
          * \brief Computes potential energy of a Hagedorn Wavepacket.

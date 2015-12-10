@@ -6,19 +6,19 @@
 #include <Eigen/Core>
 
 #include "waveblocks/basic_types.hpp"
+#include "waveblocks/wavepackets/hawp_commons.hpp"
+#include "waveblocks/wavepackets/hawp_paramset.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
+#include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"
+#include "waveblocks/wavepackets/shapes/shape_hypercubic.hpp"
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
+#include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/innerproducts/genz_keister_qr.hpp"
-#include "waveblocks/hawp_commons.hpp"
-#include "waveblocks/hawp_paramset.hpp"
 #include "waveblocks/innerproducts/homogeneous_inner_product.hpp"
 #include "waveblocks/innerproducts/inhomogeneous_inner_product.hpp"
 #include "waveblocks/innerproducts/vector_inner_product.hpp"
-#include "waveblocks/shape_enumerator.hpp"
-#include "waveblocks/shape_hypercubic.hpp"
-#include "waveblocks/stdarray2stream.hpp"
-#include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/tiny_multi_index.hpp"
-#include "waveblocks/utilities/timer.hpp"
+#include "waveblocks/utilities/stdarray2stream.hpp"
+
 
 using namespace waveblocks;
 
@@ -38,20 +38,19 @@ void runMultiD1()
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
     // Note the unsigned short here.
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs));
-    HaWpParamSet<D> param_set;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs));
+    wavepackets::HaWpParamSet<D> param_set;
     Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D), 1);
 
-    ScalarHaWp<D, MultiIndex> packet;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
-    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
 
     // Calculate quadrature, volatile to force evaluation.
@@ -72,20 +71,19 @@ void runMultiD2()
     std::cout << D << "-D homogeneous quadrature of order " <<
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
-    using MultiIndex = TinyMultiIndex<unsigned long, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs));
-    HaWpParamSet<D> param_set;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs));
+    wavepackets::HaWpParamSet<D> param_set;
     Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D), 1);
 
-    ScalarHaWp<D, MultiIndex> packet;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
-    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
 
     // Calculate quadrature, volatile to force evaluation.
@@ -110,20 +108,19 @@ void runMultiD3()
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
     // Note the unsigned long here.
-    using MultiIndex = TinyMultiIndex<unsigned long, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
-    ShapeEnumerator<D, MultiIndex> enumerator;
-    ShapeEnum<D, MultiIndex> shape_enum =
-        enumerator.generate(HyperCubicShape<D>(n_coeffs));
-    HaWpParamSet<D> param_set;
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(n_coeffs));
+    wavepackets::HaWpParamSet<D> param_set;
     Coefficients coeffs = Coefficients::Ones(std::pow(n_coeffs, D), 1);
 
-    ScalarHaWp<D, MultiIndex> packet;
+    wavepackets::ScalarHaWp<D, MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
-    packet.shape() = std::make_shared<ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
 
     // Calculate quadrature, volatile to force evaluation.

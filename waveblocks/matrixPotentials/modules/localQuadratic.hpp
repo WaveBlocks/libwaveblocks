@@ -2,7 +2,9 @@
 
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
+
 #include "taylor.hpp"
+
 
 namespace waveblocks
 {

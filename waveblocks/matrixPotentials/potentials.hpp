@@ -5,6 +5,7 @@
 #include "modules/evaluation.hpp"
 #include "modules/exponential.hpp"
 
+
 namespace waveblocks
 {
   namespace matrixPotentials
@@ -38,6 +39,4 @@ namespace waveblocks
 
   template<int D>
   using ScalarLeadingLevel = HomogenousLeadingLevel<1,D>;
-
-
 }

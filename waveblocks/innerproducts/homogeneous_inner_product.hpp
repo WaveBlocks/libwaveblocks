@@ -11,11 +11,13 @@
 #include <unsupported/Eigen/MatrixFunctions>
 
 #include "../basic_types.hpp"
-#include "../hawp_commons.hpp"
+#include "../wavepackets/hawp_commons.hpp"
 
 
 namespace waveblocks {
     namespace innerproducts {
+        using wavepackets::AbstractScalarHaWp;
+
         /**
          * \brief Class providing homogeneous inner product calculation of scalar
          *   wavepackets.

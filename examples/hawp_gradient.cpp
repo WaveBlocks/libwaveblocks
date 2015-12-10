@@ -5,7 +5,7 @@
 
 #include <waveblocks/hawp_commons.hpp>
 #include <waveblocks/hawp_gradient_operator.hpp>
-#include <waveblocks/tiny_multi_index.hpp>
+#include <waveblocks/wavepackets/shapes/tiny_multi_index.hpp>
 #include <waveblocks/yaml/hawp_scalar_decoder.hpp>
 
 #include <waveblocks/utilities/timer.hpp>

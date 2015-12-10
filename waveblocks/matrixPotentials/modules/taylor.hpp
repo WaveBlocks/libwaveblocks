@@ -1,13 +1,14 @@
 #pragma once
 
-#include "../bases.hpp"
+#include <tuple>
+
 #include "../../types.hpp"
 #include "../../utilities/evaluations.hpp"
+#include "../bases.hpp"
 #include "evaluation.hpp"
 #include "jacobian.hpp"
 #include "hessian.hpp"
 
-#include <tuple>
 
 namespace waveblocks
 {

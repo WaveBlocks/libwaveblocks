@@ -1,25 +1,21 @@
-
+#include <algorithm>
 #include <iostream>
+
+#include <omp.h>
+
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <Eigen/Core>
 
 #include <waveblocks/utilities/timer.hpp>
 
-#include <waveblocks/hawp_commons.hpp>
-#include <waveblocks/hawp_gradient_operator.hpp>
-#include <waveblocks/tiny_multi_index.hpp>
+#include <waveblocks/wavepackets/hawp_commons.hpp>
+#include <waveblocks/wavepackets/hawp_gradient_operator.hpp>
+#include <waveblocks/wavepackets/shapes/tiny_multi_index.hpp>
+#include <waveblocks/wavepackets/shapes/shape_commons.hpp>
+#include <waveblocks/wavepackets/shapes/shape_enumerator.hpp>
 
-#include <waveblocks/shape_commons.hpp>
-#include <waveblocks/shape_enumerator.hpp>
-
-
-
-#include <boost/format.hpp>
-#include <boost/lexical_cast.hpp>
-
-#include <algorithm>
-
-#include <omp.h>
 
 using namespace waveblocks;
 
@@ -33,7 +29,7 @@ int pow(int m, int e)
 }
 
 template<dim_t D, class MultiIndex>
-void print_coefficients(AbstractScalarHaWp<D,MultiIndex> const& wp)
+void print_coefficients(wavepackets::AbstractScalarHaWp<D,MultiIndex> const& wp)
 {
     {
         for (int i = 0; i < wp.shape()->n_slices(); i++) {
@@ -70,16 +66,16 @@ int main(int argc, char* argv[])
 
     // (1) Define dimensionality
     const dim_t D = 5;
-    typedef TinyMultiIndex<std::size_t, D> MultiIndex;
+    typedef wavepackets::shapes::TinyMultiIndex<std::size_t, D> MultiIndex;
 
     // (2) Define shapes
-    LimitedHyperbolicCutShape<D> shape(pow(2,D-shape_sparsity)*pow(3,shape_sparsity), shape_limit);
+    wavepackets::shapes::LimitedHyperbolicCutShape<D> shape(pow(2,D-shape_sparsity)*pow(3,shape_sparsity), shape_limit);
 
     std::cout << "--------------------------------------------------------------------------------" << std::endl;
     std::cout << "     CREATE WAVEPACKET" << std::endl;
     std::cout << "--------------------------------------------------------------------------------" << std::endl;
 
-    ScalarHaWp<D,MultiIndex> wp;
+    wavepackets::ScalarHaWp<D,MultiIndex> wp;
     wp.eps() = 0.9;
 
     // (3) Define "random" parameters
@@ -95,9 +91,9 @@ int main(int argc, char* argv[])
             Q(i,j) += 0.1*std::exp(complex_t(0,0.6*(i*D+j)));
         }
     }
-    wp.parameters() = HaWpParamSet<D>(q,p,Q,P,0);
+    wp.parameters() = wavepackets::HaWpParamSet<D>(q,p,Q,P,0);
 
-    ShapeEnumerator<D,MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnumerator<D,MultiIndex> enumerator;
     wp.shape() = enumerator.enumerate(shape);
 
     std::size_t bsize = wp.shape()->n_entries();
@@ -190,9 +186,9 @@ int main(int argc, char* argv[])
 
     std::cout << boost::format("Evaluate gradient (%i components) on %i quadrature points") % D % grid.cols() << std::endl;
     {
-        HaWpGradientOperator<D,MultiIndex> nabla;
+        wavepackets::HaWpGradientOperator<D,MultiIndex> nabla;
 
-        HaWpGradient<D,MultiIndex> gradwp;
+        wavepackets::HaWpGradient<D,MultiIndex> gradwp;
         timer.start();
         for (int i = 0; i < repeat; i++)
             gradwp = nabla(wp);

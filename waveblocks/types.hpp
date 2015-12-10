@@ -5,11 +5,12 @@
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <functional>
+
 #include "basic_types.hpp"
+
 
 namespace waveblocks
 {
-
   // scalar types
   typedef double real_t;
   typedef std::complex<real_t> complex_t;

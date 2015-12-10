@@ -2,16 +2,13 @@
 
 #include <iostream>
 
-#include "waveblocks/tiny_multi_index.hpp"
-
-#include "waveblocks/shape_commons.hpp"
-
-#include "waveblocks/shape_enum.hpp"
-#include "waveblocks/shape_enumerator.hpp"
-
-#include "waveblocks/hawp_commons.hpp"
-
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
+#include "waveblocks/wavepackets/shapes/shape_commons.hpp"
+#include "waveblocks/wavepackets/shapes/shape_enum.hpp"
+#include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"
+#include "waveblocks/wavepackets/hawp_commons.hpp"
 #include "waveblocks/utilities/timer.hpp"
+
 
 using namespace waveblocks;
 
@@ -23,28 +20,28 @@ int main(int argc, char* argv[])
     Eigen::IOFormat CleanFmt(8, 0, ", ", "\n   ", "[", "]");
 
     const dim_t D = 8;
-    typedef TinyMultiIndex<std::size_t, D> MultiIndex;
+    typedef wavepackets::shapes::TinyMultiIndex<std::size_t, D> MultiIndex;
 
     // (1) Define shapes
-    HyperCubicShape<D> shape1({2,2,4,4,4,5,3,5});
-    LimitedHyperbolicCutShape<D> shape23(1 << D, 4);
+    wavepackets::shapes::HyperCubicShape<D> shape1({2,2,4,4,4,5,3,5});
+    wavepackets::shapes::LimitedHyperbolicCutShape<D> shape23(1 << D, 4);
 
     // (2) Enumerate shapes
-    ShapeEnumerator<D,MultiIndex> shape_enumerator;
+    wavepackets::shapes::ShapeEnumerator<D,MultiIndex> shape_enumerator;
 
     int n_components = 10;
 
-    std::vector< ShapeEnumSharedPtr<D,MultiIndex> > shape_enums(n_components);
+    std::vector<wavepackets::shapes::ShapeEnumSharedPtr<D,MultiIndex>> shape_enums(n_components);
     shape_enums[0] = shape_enumerator.enumerate(shape1);
     for (int i = 1; i < n_components; i++) {
         shape_enums[i] = shape_enumerator.enumerate(shape23);
     }
 
     // (3) Initialize wavepacket-components
-    HomogeneousHaWp<D,MultiIndex> wavepacket(n_components);
+    wavepackets::HomogeneousHaWp<D,MultiIndex> wavepacket(n_components);
 
     wavepacket.eps() = 0.9;
-    wavepacket.parameters() = HaWpParamSet<D>{};
+    wavepacket.parameters() = wavepackets::HaWpParamSet<D>{};
     wavepacket.parameters().p(RMatrix<D,1>::Random());
     wavepacket.parameters().q(RMatrix<D,1>::Random());
     wavepacket.parameters().P(CMatrix<D,D>::Random());
