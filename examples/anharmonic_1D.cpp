@@ -3,7 +3,7 @@
 #include <complex>
 
 #include "waveblocks/types.hpp"
-#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 #include "waveblocks/matrixPotentials/potentials.hpp"
 #include "waveblocks/matrixPotentials/bases.hpp"
 #include "waveblocks/wavepackets/hawp_paramset.hpp"
@@ -57,7 +57,7 @@ int main() {
 
     const real_t eps = 0.1;
 
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 
     // The parameter set of the initial wavepacket
     CMatrix<D,D> Q; Q(0,0) = 1.0;

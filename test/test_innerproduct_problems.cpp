@@ -17,7 +17,7 @@
 #include "waveblocks/innerproducts/vector_inner_product.hpp"
 #include "waveblocks/stdarray2stream.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 #include "waveblocks/utilities/timer.hpp"
 
 
@@ -39,7 +39,7 @@ void runMultiD1()
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
     // Note the unsigned short here.
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
@@ -72,7 +72,7 @@ void runMultiD2()
     std::cout << D << "-D homogeneous quadrature of order " <<
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
-    using MultiIndex = TinyMultiIndex<unsigned long, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.
@@ -109,7 +109,7 @@ void runMultiD3()
         order << " with " << n_coeffs << " coefficients per dimension.\n";
 
     // Note the unsigned long here.
-    using MultiIndex = TinyMultiIndex<unsigned long, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
     // Set up sample wavepacket.

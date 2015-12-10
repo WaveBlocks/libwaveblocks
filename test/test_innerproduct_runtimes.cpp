@@ -17,7 +17,7 @@
 #include "waveblocks/innerproducts/vector_inner_product.hpp"
 #include "waveblocks/stdarray2stream.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 #include "waveblocks/utilities/timer.hpp"
 
 
@@ -28,7 +28,7 @@ void run1D()
     const real_t eps = 0.2;
     const dim_t D = 1;
     const dim_t order = 8;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using QR = innerproducts::GaussHermiteQR<order>;
     using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, QR>;
     const int n_runs = 1000;
@@ -73,7 +73,7 @@ struct MultiDHelper
 {
     static void run(real_t eps, dim_t n_coeffs, int n_runs)
     {
-        using MultiIndex = TinyMultiIndex<unsigned long, D>;
+        using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
         using IP = innerproducts::HomogeneousInnerProduct<D, MultiIndex, TQR>;
 
         // Set up sample wavepacket.
@@ -191,7 +191,7 @@ void runMultiComponent()
     const dim_t order = 8;
     const dim_t n_coeffs = 10;
     const int n_runs = 200;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using QR = innerproducts::GaussHermiteQR<order>;
     using TQR = innerproducts::TensorProductQR<QR,QR>;
     using IP = innerproducts::VectorInnerProduct<D, MultiIndex, TQR>;

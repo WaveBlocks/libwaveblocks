@@ -11,7 +11,7 @@
 #include <waveblocks/utilities/timer.hpp>
 #include <waveblocks/hawp_commons.hpp>
 #include <waveblocks/hawp_gradient_operator.hpp>
-#include <waveblocks/tiny_multi_index.hpp>
+#include <waveblocks/wavepackets/shapes/tiny_multi_index.hpp>
 #include <waveblocks/shape_commons.hpp>
 #include <waveblocks/shape_enumerator.hpp>
 
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
     // (1) Define dimensionality
     const dim_t D = 1;
-    typedef TinyMultiIndex<std::size_t, D> MultiIndex;
+    typedef wavepackets::shapes::TinyMultiIndex<std::size_t, D> MultiIndex;
 
     // (2) Create Wavepacket
     ScalarHaWp<D,MultiIndex> wp;

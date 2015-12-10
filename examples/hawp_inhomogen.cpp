@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 #include "waveblocks/wavepackets/shapes/shape_commons.hpp"
 #include "waveblocks/wavepackets/shapes/shape_enum.hpp"
 #include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"
@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
     Eigen::IOFormat CleanFmt(8, 0, ", ", "\n   ", "[", "]");
 
     const dim_t D = 8;
-    typedef TinyMultiIndex<std::size_t, D> MultiIndex;
+    typedef wavepackets::shapes::TinyMultiIndex<std::size_t, D> MultiIndex;
 
     // (1) Define shapes
     wavepackets::shapes::HyperCubicShape<D> shape1({2,2,4,4,4,5,3,5});

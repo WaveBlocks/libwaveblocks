@@ -12,7 +12,7 @@
 
 #include <waveblocks/wavepackets/hawp_commons.hpp>
 #include <waveblocks/wavepackets/hawp_gradient_operator.hpp>
-#include <waveblocks/tiny_multi_index.hpp>
+#include <waveblocks/wavepackets/shapes/tiny_multi_index.hpp>
 #include <waveblocks/wavepackets/shapes/shape_commons.hpp>
 #include <waveblocks/wavepackets/shapes/shape_enumerator.hpp>
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
     // (1) Define dimensionality
     const dim_t D = 5;
-    typedef TinyMultiIndex<std::size_t, D> MultiIndex;
+    typedef wavepackets::shapes::TinyMultiIndex<std::size_t, D> MultiIndex;
 
     // (2) Define shapes
     wavepackets::shapes::LimitedHyperbolicCutShape<D> shape(pow(2,D-shape_sparsity)*pow(3,shape_sparsity), shape_limit);

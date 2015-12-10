@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../types.hpp"
-#include "../tiny_multi_index.hpp"
+#include "../wavepackets/shapes/tiny_multi_index.hpp"
 
 
 namespace waveblocks {

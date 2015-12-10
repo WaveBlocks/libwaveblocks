@@ -17,7 +17,7 @@
 #include "waveblocks/innerproducts/vector_inner_product.hpp"
 #include "waveblocks/stdarray2stream.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/tiny_multi_index.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 
 
 using namespace waveblocks;
@@ -31,7 +31,7 @@ void test1DGaussHermite()
     const dim_t D = 1;
     const dim_t n_coeffs = 10;
     const dim_t order = 8;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
@@ -75,7 +75,7 @@ void test1DGaussHermiteOperator()
     const dim_t D = 1;
     const dim_t n_coeffs = 10;
     const dim_t order = 8;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using QR = innerproducts::GaussHermiteQR<order>;
     using CMatrix1X = CMatrix<1, Eigen::Dynamic>;
     using RMatrixD1 = RMatrix<D, 1>;
@@ -131,7 +131,7 @@ void test3DGaussHermite()
     const real_t eps = 0.2;
     const dim_t D = 3;
     const dim_t n_coeffs = 5;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 
     // Set up sample 3D wavepacket.
     wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
@@ -186,7 +186,7 @@ void test1DInhomog()
     const dim_t D = 1;
     const dim_t n_coeffs1 = 10, n_coeffs2 = 12;
     const dim_t order = 8;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
@@ -227,7 +227,7 @@ void testVector()
     const real_t eps = 0.2;
     const dim_t D = 1;
     const dim_t order = 8;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
     using QR = innerproducts::GaussHermiteQR<order>;
 
     // Set up sample 1D wavepacket.
@@ -273,7 +273,7 @@ void test3DGenzKeister()
     const dim_t D = 3;
     const dim_t level = 4;
     const dim_t n_coeffs = 5;
-    using MultiIndex = TinyMultiIndex<unsigned short, D>;
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 
     // Set up sample 3D wavepacket.
     wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
