@@ -4,6 +4,7 @@
 
 #include "hawp_commons.hpp"
 #include "hawp_gradient_evaluator.hpp"
+#include "shapes/shape_extension_cache.hpp"
 
 
 namespace waveblocks {
@@ -53,7 +54,7 @@ namespace waveblocks {
                     return owner_->parameters();
                 }
 
-                ShapeEnumSharedPtr<D,MultiIndex> shape() const override
+                shapes::ShapeEnumSharedPtr<D,MultiIndex> shape() const override
                 {
                     return owner_->shape();
                 }
@@ -122,12 +123,12 @@ namespace waveblocks {
              * Reference to the shape enumeration pointer.
              * You can assign a new pointer to it!
              */
-            ShapeEnumSharedPtr<D,MultiIndex> & shape()
+            shapes::ShapeEnumSharedPtr<D,MultiIndex> & shape()
             {
                 return shape_;
             }
 
-            ShapeEnumSharedPtr<D,MultiIndex> shape() const override
+            shapes::ShapeEnumSharedPtr<D,MultiIndex> shape() const override
             {
                 return shape_;
             }
@@ -250,9 +251,8 @@ namespace waveblocks {
         private:
             double eps_;
             HaWpParamSet<D> parameters_;
-            ShapeEnumSharedPtr<D,MultiIndex> shape_;
+            shapes::ShapeEnumSharedPtr<D,MultiIndex> shape_;
             std::vector<Component> components_;
-
         };
 
         /**

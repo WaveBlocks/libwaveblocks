@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     // (2) Enumerate shapes
     wavepackets::shapes::ShapeEnumerator<D,MultiIndex> shape_enumerator;
 
-    std::vector<wavepackets::ShapeEnumSharedPtr<D,MultiIndex> > shape_enums;
+    std::vector<wavepackets::shapes::ShapeEnumSharedPtr<D,MultiIndex>> shape_enums;
     shape_enums.push_back( shape_enumerator.enumerate(shape1) );
     shape_enums.push_back( shape_enumerator.enumerate(shape23) );
     shape_enums.push_back( shape_enumerator.enumerate(shape23) );

@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 
     int n_components = 10;
 
-    std::vector<wavepackets::ShapeEnumSharedPtr<D,MultiIndex> > shape_enums(n_components);
+    std::vector<wavepackets::shapes::ShapeEnumSharedPtr<D,MultiIndex>> shape_enums(n_components);
     shape_enums[0] = shape_enumerator.enumerate(shape1);
     for (int i = 1; i < n_components; i++) {
         shape_enums[i] = shape_enumerator.enumerate(shape23);

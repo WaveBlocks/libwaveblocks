@@ -5,74 +5,11 @@
 
 #include "hawp_paramset.hpp"
 #include "hawp_evaluator.hpp"
-#include "shapes/shape_enum_union.hpp"
-#include "shapes/shape_enum_extended.hpp"
+#include "shapes/shape_extension_cache.hpp"
 
 
 namespace waveblocks {
     namespace wavepackets {
-
-
-        template<dim_t D, class MultiIndex>
-        using ShapeEnumSharedPtr = std::shared_ptr< ShapeEnum<D, MultiIndex> >;
-
-        // template<dim_t D>
-        // class AbstractScalarWavepacket
-        // {
-        // public:
-        //     virtual Eigen::Array<complex_t,1,Eigen::Dynamic> evaluate(ComplexGrid<D,Eigen::Dynamic> const& grid) const = 0;
-        //     virtual HaWpBasisVector<Eigen::Dynamic> evaluate_basis(ComplexGrid<D,Eigen::Dynamic> const& grid) const = 0;
-        // };
-
-
-        template<dim_t D, class MultiIndex>
-        class ShapeExtensionCache
-        {
-        public:
-            /**
-             * \brief shape reference to shape to check actuality of cache
-             * \return
-             */
-            ShapeEnumSharedPtr<D,MultiIndex> get_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape) const
-            {
-                if (shape.get() != cached_extended_shape_source_)
-                    update_extended_shape(shape); // this function is not thread-safe
-
-                return cached_extended_shape_;
-            }
-
-            /**
-             * \brief Manually sets extended shape
-             *
-             * \param shape source of new extended shape
-             * \param extension new extended shape
-             */
-            void set_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape,
-                                    std::shared_ptr< ShapeEnum<D,MultiIndex> > extension)
-            {
-                cached_extended_shape_source_ = shape.get();
-                cached_extended_shape_ = extension;
-            }
-
-            /**
-             * \brief Recomputes extended shape if source shape changed.
-             *
-             * \param shape new source shape
-             */
-            void update_extended_shape(std::shared_ptr< ShapeEnum<D,MultiIndex> > shape) const
-            {
-                if (shape.get() != cached_extended_shape_source_) {
-                    cached_extended_shape_source_ = shape.get();
-                    cached_extended_shape_ = std::make_shared< ShapeEnum<D,MultiIndex> >(shapes::shape_enum::extend(shape.get()));
-                }
-            }
-
-        private:
-            mutable ShapeEnumSharedPtr<D,MultiIndex> cached_extended_shape_;
-            mutable ShapeEnum<D,MultiIndex> * cached_extended_shape_source_; // source of the cached extended shape
-        };
-
-
         /**
          * \brief Abstract superclass that represents a set
          * of basis function to a scalar Hagedorn wavepacket.
@@ -104,7 +41,7 @@ namespace waveblocks {
              * \brief Retrieves the basis shape \f$ \mathfrak{K} \f$
              * of the wavepacket.
              */
-            virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
+            virtual shapes::ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
 
             template<int N> HaWpEvaluator<D,MultiIndex,N>
             create_evaluator(CMatrix<D,N> const& grid) const
@@ -163,14 +100,14 @@ namespace waveblocks {
              *
              * \return Shared pointer to the extended shape.
              */
-            ShapeEnumSharedPtr<D,MultiIndex>
+            shapes::ShapeEnumSharedPtr<D,MultiIndex>
             extended_shape() const
             {
                 return shape_extension_cache_.get_extended_shape( this->shape() );
             }
 
         private:
-            ShapeExtensionCache<D,MultiIndex> shape_extension_cache_;
+            shapes::ShapeExtensionCache<D,MultiIndex> shape_extension_cache_;
         };
 
 
@@ -194,7 +131,7 @@ namespace waveblocks {
         public:
             virtual double eps() const = 0;
             virtual HaWpParamSet<D> const& parameters() const = 0;
-            virtual ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
+            virtual shapes::ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
 
             /**
              * \brief Grants read-only access to the coefficients \f$ \{c_k\} \f$
@@ -308,12 +245,12 @@ namespace waveblocks {
              * Reference to the shape enumeration pointer.
              * You can assign a new pointer to it!
              */
-            ShapeEnumSharedPtr<D, MultiIndex> & shape()
+            shapes::ShapeEnumSharedPtr<D, MultiIndex> & shape()
             {
                 return shape_;
             }
 
-            ShapeEnumSharedPtr<D, MultiIndex> shape() const override
+            shapes::ShapeEnumSharedPtr<D, MultiIndex> shape() const override
             {
                 return shape_;
             }
@@ -335,10 +272,9 @@ namespace waveblocks {
         private:
             double eps_;
             HaWpParamSet<D> parameters_;
-            ShapeEnumSharedPtr<D, MultiIndex> shape_;
+            shapes::ShapeEnumSharedPtr<D, MultiIndex> shape_;
             Coefficients coefficients_;
-
-        }; // class ScalarHaWp
+        };
 
 
         /**
@@ -415,12 +351,12 @@ namespace waveblocks {
                  * Reference to the shape enumeration pointer.
                  * You can assign a new pointer to it!
                  */
-                ShapeEnumSharedPtr<D, MultiIndex> & shape()
+                shapes::ShapeEnumSharedPtr<D, MultiIndex> & shape()
                 {
                     return shape_;
                 }
 
-                ShapeEnumSharedPtr<D, MultiIndex> shape() const override
+                shapes::ShapeEnumSharedPtr<D, MultiIndex> shape() const override
                 {
                     return shape_;
                 }
@@ -442,7 +378,7 @@ namespace waveblocks {
             private:
                 HomogeneousHaWp const* const owner_;
 
-                ShapeEnumSharedPtr<D, MultiIndex> shape_;
+                shapes::ShapeEnumSharedPtr<D, MultiIndex> shape_;
                 Coefficients coefficients_;
             };
 
@@ -569,7 +505,7 @@ namespace waveblocks {
              * The cache is not protected by a mutex. This concurrent access may
              * introduce race conditions.
              */
-            ShapeEnumSharedPtr<D,MultiIndex> union_shape() const
+            shapes::ShapeEnumSharedPtr<D,MultiIndex> union_shape() const
             {
                 // check cache status
                 bool rebuild_cache = false;
@@ -664,7 +600,7 @@ namespace waveblocks {
             std::vector<Component> components_;
 
             mutable std::vector< ShapeEnum<D,MultiIndex>* > union_cache_snapshot_;
-            mutable ShapeEnumSharedPtr<D,MultiIndex> cached_shape_union_;
+            mutable shapes::ShapeEnumSharedPtr<D,MultiIndex> cached_shape_union_;
         }; // class HomogeneousHaWp
 
 
@@ -761,12 +697,12 @@ namespace waveblocks {
                  * Reference to the shape enumeration pointer.
                  * You can assign a new pointer to it!
                  */
-                ShapeEnumSharedPtr<D, MultiIndex> & shape()
+                shapes::ShapeEnumSharedPtr<D, MultiIndex> & shape()
                 {
                     return shape_;
                 }
 
-                ShapeEnumSharedPtr<D, MultiIndex> shape() const override
+                shapes::ShapeEnumSharedPtr<D, MultiIndex> shape() const override
                 {
                     return shape_;
                 }
@@ -789,7 +725,7 @@ namespace waveblocks {
                 InhomogeneousHaWp const* const owner_;
 
                 HaWpParamSet<D> parameters_;
-                ShapeEnumSharedPtr<D, MultiIndex> shape_;
+                shapes::ShapeEnumSharedPtr<D, MultiIndex> shape_;
                 Coefficients coefficients_;
             };
 

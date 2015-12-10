@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cmath>
 #include <iostream>
-#include <memory>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
