@@ -15,7 +15,7 @@ int main()
     real_t PI = 3.14159265359;
     int N = 1000;
 
-    ContinuousSqrt<real_t> sqrt;
+    math::ContinuousSqrt<real_t> sqrt;
 
     std::ofstream out("cont_sqrt.csv");
     out.precision(15);

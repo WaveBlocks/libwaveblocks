@@ -27,7 +27,7 @@ namespace waveblocks {
             RMatrix<D,1> q_, p_;
             CMatrix<D,D> Q_, P_;
             complex_t S_;
-            ContinuousSqrt<real_t> sqrt_detQ_;
+            math::ContinuousSqrt<real_t> sqrt_detQ_;
 
         public:
             /** Construct a Hagedorn parameter set with default values.
@@ -73,7 +73,7 @@ namespace waveblocks {
                          const CMatrix<D,D> &Q,
                          const CMatrix<D,D> &P,
                          const complex_t &S,
-                         ContinuousSqrt<real_t> sqrt_detQ)
+                         math::ContinuousSqrt<real_t> sqrt_detQ)
                 : q_(q)
                 , p_(p)
                 , Q_(Q)

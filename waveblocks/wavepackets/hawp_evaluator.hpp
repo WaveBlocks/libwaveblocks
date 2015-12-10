@@ -4,6 +4,7 @@
 
 #include <Eigen/Core>
 
+#include "../math/pi.hpp"
 #include "../math/kahan_sum.hpp"
 
 #include "hawp_paramset.hpp"
@@ -138,7 +139,7 @@ namespace waveblocks {
 
                 CArray1N e = complex_t(0.0, 1.0)/(eps_*eps_) * (0.5*pr1 + pr2);
 
-                return e.exp() / std::pow(pi<real_t>()*eps_*eps_, D/4.0);
+                return e.exp() / std::pow(math::pi<real_t>()*eps_*eps_, D/4.0);
             }
 
             /**
@@ -279,7 +280,7 @@ namespace waveblocks {
             CArray<1,N> reduce(const Coefficients& coefficients) const
             {
                 // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
-                KahanSum< CArray<1,N> > psi( CArray<1,N>::Zero(1,npts_) );
+                math::KahanSum< CArray<1,N> > psi( CArray<1,N>::Zero(1,npts_) );
 
                 HaWpBasisVector<N> prev_basis(0,npts_);
                 HaWpBasisVector<N> curr_basis(0,npts_);
@@ -330,7 +331,7 @@ namespace waveblocks {
                                                    std::size_t n_components) const
             {
                 // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
-                std::vector< KahanSum< CArray<1,N> > > psi(n_components);
+                std::vector< math::KahanSum< CArray<1,N> > > psi(n_components);
 
                 HaWpBasisVector<N> prev_basis(0,npts_);
                 HaWpBasisVector<N> curr_basis(0,npts_);
@@ -339,7 +340,7 @@ namespace waveblocks {
                 next_basis = seed();
 
                 for (std::size_t n = 0; n < n_components; n++) {
-                    psi[n] = KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
+                    psi[n] = math::KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
                     psi[n] += subset_coeffs[n][0]*next_basis.row(0).matrix();
                 }
 
@@ -401,7 +402,7 @@ namespace waveblocks {
             CArray<Eigen::Dynamic,N> vector_reduce(complex_t const ** coefficients, std::size_t n_components) const
             {
                 // use Kahan's algorithm to accumulate bases with O(1) numerical error instead of O(Sqrt(N))
-                std::vector< KahanSum< CArray<1,N> > > psi(n_components);
+                std::vector< math::KahanSum< CArray<1,N> > > psi(n_components);
 
                 HaWpBasisVector<N> prev_basis(0,npts_);
                 HaWpBasisVector<N> curr_basis(0,npts_);
@@ -410,7 +411,7 @@ namespace waveblocks {
                 next_basis = seed();
 
                 for (std::size_t n = 0; n < n_components; n++) {
-                    psi[n] = KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
+                    psi[n] = math::KahanSum< CArray<1,N> >( CArray<1,N>::Zero(1,npts_)); // zero initialize
                     psi[n] += coefficients[n][0]*next_basis.row(0);
                 }
 
