@@ -8,16 +8,16 @@
 #include "waveblocks/basic_types.hpp"
 #include "waveblocks/wavepackets/hawp_commons.hpp"
 #include "waveblocks/wavepackets/hawp_paramset.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 #include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"
 #include "waveblocks/wavepackets/shapes/shape_hypercubic.hpp"
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
+#include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/innerproducts/genz_keister_qr.hpp"
 #include "waveblocks/innerproducts/homogeneous_inner_product.hpp"
 #include "waveblocks/innerproducts/inhomogeneous_inner_product.hpp"
 #include "waveblocks/innerproducts/vector_inner_product.hpp"
-#include "waveblocks/stdarray2stream.hpp"
-#include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
+#include "waveblocks/utilities/stdarray2stream.hpp"
 
 
 using namespace waveblocks;

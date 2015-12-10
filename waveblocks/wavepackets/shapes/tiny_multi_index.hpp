@@ -9,7 +9,6 @@
 #include <limits>
 
 #include "../../basic_types.hpp"
-#include "../../stdarray2stream.hpp"
 
 
 namespace waveblocks {
