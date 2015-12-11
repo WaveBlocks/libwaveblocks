@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../types.hpp"
-#include "../matrixPotentials/potentials.hpp"
-#include "../matrixPotentials/bases.hpp"
+#include "../potentials/potentials.hpp"
+#include "../potentials/bases.hpp"
 #include "../innerproducts/homogeneous_inner_product.hpp"
 #include "../innerproducts/vector_inner_product.hpp"
 

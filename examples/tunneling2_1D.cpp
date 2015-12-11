@@ -4,8 +4,8 @@
 
 #include "waveblocks/types.hpp"
 #include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
-#include "waveblocks/matrixPotentials/potentials.hpp"
-#include "waveblocks/matrixPotentials/bases.hpp"
+#include "waveblocks/potentials/potentials.hpp"
+#include "waveblocks/potentials/bases.hpp"
 #include "waveblocks/wavepackets/hawp_paramset.hpp"
 #include "waveblocks/wavepackets/hawp_commons.hpp"
 #include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"
@@ -19,7 +19,7 @@
 
 using namespace waveblocks;
 
-struct Level : public matrixPotentials::modules::taylor::Abstract<Level,CanonicalBasis<1,1>> {
+struct Level : public potentials::modules::taylor::Abstract<Level,CanonicalBasis<1,1>> {
     template <template <typename...> class Tuple = std::tuple>
         Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation(const argument_type &x ) const {
         const real_t sigma = 0.038088;
@@ -38,7 +38,7 @@ struct Level : public matrixPotentials::modules::taylor::Abstract<Level,Canonica
     }
 };
 
-struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potential,CanonicalBasis<1,1>> {
+struct Potential : public potentials::modules::evaluation::Abstract<Potential,CanonicalBasis<1,1>> {
     complex_t evaluate_at_implementation(const complex_t& x) const {
         const real_t sigma = 0.038088;
         const real_t a =     0.944858;
@@ -51,7 +51,7 @@ struct Potential : public matrixPotentials::modules::evaluation::Abstract<Potent
     }
 };
 
-struct Remain : public matrixPotentials::modules::localRemainder::Abstract<Remain, 1,1>, public Potential, public LeadingLevelOwner<Level> {
+struct Remain : public potentials::modules::localRemainder::Abstract<Remain, 1,1>, public Potential, public LeadingLevelOwner<Level> {
     complex_t evaluate_local_remainder_at(const complex_t &x,
                                           const complex_t &q ) const {
         const real_t sigma = 0.038088;

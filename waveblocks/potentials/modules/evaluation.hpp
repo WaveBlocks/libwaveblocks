@@ -8,7 +8,7 @@
 
 namespace waveblocks
 {
-    namespace matrixPotentials
+    namespace potentials
     {
         namespace modules
         {

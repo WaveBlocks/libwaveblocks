@@ -8,7 +8,7 @@
 
 namespace waveblocks
 {
-  namespace matrixPotentials
+  namespace potentials
   {
     namespace potentials
     {
@@ -26,16 +26,16 @@ namespace waveblocks
     }
   }
 
-  using matrixPotentials::potentials::InhomogenousMatrixPotential;
-  using matrixPotentials::potentials::HomogenousMatrixPotential;
-  using matrixPotentials::potentials::ScalarMatrixPotential;
+  using potentials::potentials::InhomogenousMatrixPotential;
+  using potentials::potentials::HomogenousMatrixPotential;
+  using potentials::potentials::ScalarMatrixPotential;
 
 
   template<int N, int D>
-  using InhomogenousLeadingLevel = matrixPotentials::modules::LocalQuadratic<matrixPotentials::bases::Eigen<N,D>>;
+  using InhomogenousLeadingLevel = potentials::modules::LocalQuadratic<potentials::bases::Eigen<N,D>>;
 
   template<int N, int D>
-  using HomogenousLeadingLevel = matrixPotentials::modules::LocalQuadratic<matrixPotentials::bases::Eigen<1,D>>;
+  using HomogenousLeadingLevel = potentials::modules::LocalQuadratic<potentials::bases::Eigen<1,D>>;
 
   template<int D>
   using ScalarLeadingLevel = HomogenousLeadingLevel<1,D>;

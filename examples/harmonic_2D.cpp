@@ -3,8 +3,8 @@
 
 #include "waveblocks/types.hpp"
 #include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
-#include "waveblocks/matrixPotentials/potentials.hpp"
-#include "waveblocks/matrixPotentials/bases.hpp"
+#include "waveblocks/potentials/potentials.hpp"
+#include "waveblocks/potentials/bases.hpp"
 #include "waveblocks/wavepackets/hawp_paramset.hpp"
 #include "waveblocks/wavepackets/hawp_commons.hpp"
 #include "waveblocks/wavepackets/shapes/shape_enumerator.hpp"

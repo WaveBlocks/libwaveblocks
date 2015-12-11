@@ -6,7 +6,7 @@
 
 namespace waveblocks
 {
-  namespace matrixPotentials
+  namespace potentials
   {
     namespace modules
     {
@@ -33,5 +33,5 @@ namespace waveblocks
     }
   }
  template<class Owned>
-      using LeadingLevelOwner = matrixPotentials::modules::leadingLevelOwner::Standard<Owned>;
+      using LeadingLevelOwner = potentials::modules::leadingLevelOwner::Standard<Owned>;
 }

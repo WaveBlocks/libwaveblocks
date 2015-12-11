@@ -17,7 +17,7 @@
 
 namespace waveblocks
 {
-    namespace matrixPotentials
+    namespace potentials
     {
         namespace bases
         {
@@ -150,8 +150,8 @@ namespace waveblocks
     }
 
     template<int N, int D>
-    using CanonicalBasis = matrixPotentials::bases::Canonical<N,D>;
+    using CanonicalBasis = potentials::bases::Canonical<N,D>;
 
     template<int N, int D>
-    using EigenBasis = matrixPotentials::bases::Eigen<N,D>;
+    using EigenBasis = potentials::bases::Eigen<N,D>;
 }
