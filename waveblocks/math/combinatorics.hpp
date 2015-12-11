@@ -13,11 +13,11 @@ namespace waveblocks {
         template<int D> using permutation_t = std::array<int, D>;
         template<int D> using permutations_t = std::list<permutation_t<D>>;
 
-
+        /**
+         * \brief Sum of the components of the point Z.
+         */
         template<int D>
         int sum(const point_t<D> Z) {
-            /* Sum of the components of the point Z.
-             */
             int s = 0;
             for(int i=0; i<D; i++) {
                 s += Z[i];
@@ -25,11 +25,11 @@ namespace waveblocks {
             return s;
         }
 
-
+        /**
+         * Number of zero components of the point Z.
+         */
         template<int D>
         int nz(const point_t<D> Z) {
-            /* Number of zero components of the point Z.
-             */
             int s = 0;
             for(int i=0; i<D; i++) {
                 if(Z[i] == 0) {
@@ -39,24 +39,23 @@ namespace waveblocks {
             return s;
         }
 
-
+        /**
+         * Number of non-zero components of the point Z.
+         */
         template<int D>
         int nnz(const point_t<D> Z) {
-            /* Number of non-zero components of the point Z.
-             */
             return D - nz<D>(Z);
         }
 
-
+        /**
+         * Enumerate integer partitions in anti-lexocographic
+         * order for integers up to some limit K. All partitions
+         * have exactly D parts, some may be zero.
+         *
+         * \param K The Level
+         */
         template<int D>
         partitions_t<D> partitions(const int K) {
-            /*
-             * Enumerate integer partitions in anti-lexocographic
-             * order for integers up to some limit K. All partitions
-             * have exactly D parts, some may be zero.
-             *
-             * K: Level
-             */
             partitions_t<D> partitions;
             partition_t<D> P;
 
@@ -91,15 +90,14 @@ namespace waveblocks {
             return partitions;
         }
 
-
+        /** This method enumerates all lattice points of a lattice
+         * \f$\Lambda \subset \mathbb{N}^D\f$ in \f$D\f$ dimensions
+         * having fixed \f$l_1\f$ norm \f$N\f$.
+         *
+         * \param N The \f$l_1\f$ norm of the lattice points.
+         */
         template<int D>
         latticepoints_t<D> lattice_points(const int N) {
-            /* This method enumerates all lattice points of a lattice
-             * :math:`\Lambda \subset \mathbb{N}^D` in :math:`D` dimensions
-             * having fixed :math:`l_1` norm :math:`N`.
-             *
-             * N: The :math:`l_1` norm of the lattice points.
-             */
             latticepoints_t<D> L;
             point_t<D> k;
 
@@ -135,14 +133,13 @@ namespace waveblocks {
             return L;
         }
 
-
+        /** Enumerate all permutations in anti-lexicographical
+         * order follwing the given permutation \f$P\f$.
+         *
+         * \param permutation A permutation.
+         */
         template<int D>
         permutations_t<D> permutations(const permutation_t<D> permutation) {
-            /* Enumerate all permutations in anti-lexicographical
-             * order follwing the given permutation `P`.
-             *
-             * P: A permutation
-             */
             permutations_t<D> permutations;
             permutation_t<D> P = permutation;
 

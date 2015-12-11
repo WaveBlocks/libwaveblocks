@@ -26,6 +26,7 @@ namespace waveblocks {
          *   "-+2.0"
          *
          * \param text zero-terminated c-string
+         * \param result Variable holding the result
          */
         bool parse_complex(char const* text, std::complex<double> & result);
     }

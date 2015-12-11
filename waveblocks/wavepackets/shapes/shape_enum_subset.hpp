@@ -31,10 +31,13 @@ namespace waveblocks {
                  * \tparam D dimension of multi-index
                  * \tparam T component data type of \p superset_data and return value
                  * \tparam N number of quadrature points or \e Eigen::Dynamic
-                 * \param[in] superset_data (#nodes in superset, #quadrature points)-matrix
+                 * \param[in] superset_data (number of nodes in superset, number of quadrature points)-matrix
                  * \param[in] superset_slice nodes within superset slice
+                 * \param[in] offset1 Offset within the basis shape
+                 * \param[in] subset_data (number of nodes in subset, number of quadrature points)-matrix
                  * \param[in] subset_slice nodes within subset slice
-                 * \return (#nodes in subset, #quadrature points)-matrix
+                 * \param[in] offset2 Offset within the basis shape
+                 * \return (number of nodes in subset, number of quadrature points)-matrix
                  */
                 template<dim_t D, class MultiIndex, int N>
                 void copy_subset(const HaWpBasisVector<N>& superset_data, std::size_t offset1,
