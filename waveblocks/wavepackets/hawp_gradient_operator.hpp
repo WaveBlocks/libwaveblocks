@@ -44,7 +44,7 @@ namespace waveblocks {
                     : owner_(owner)
                 { }
 
-                double eps() const override
+                real_t eps() const override
                 {
                     return owner_->eps();
                 }
@@ -91,12 +91,12 @@ namespace waveblocks {
              * \brief Grants writeable access to the semi-classical scaling parameter
              * \f$ \varepsilon \f$ of the wavepacket.
              */
-            double & eps()
+            real_t & eps()
             {
                 return eps_;
             }
 
-            double eps() const override
+            real_t eps() const override
             {
                 return eps_;
             }
@@ -249,7 +249,7 @@ namespace waveblocks {
             }
 
         private:
-            double eps_;
+            real_t eps_;
             HaWpParamSet<D> parameters_;
             shapes::ShapeEnumSharedPtr<D,MultiIndex> shape_;
             std::vector<Component> components_;

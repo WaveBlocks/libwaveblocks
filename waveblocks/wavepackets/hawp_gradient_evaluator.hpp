@@ -30,7 +30,7 @@ namespace waveblocks {
              * \param base_enum The basis shape \f$ \mathfrak{K} \f$ of the source wavepacket.
              * \param grad_enum The extended basis shape \f$ \mathfrak{K}_{ext} \f$ of the future wavepacket gradient.
              */
-            HaWpGradientEvaluator(double eps,
+            HaWpGradientEvaluator(real_t eps,
                                   const HaWpParamSet<D>* parameters,
                                   const ShapeEnum<D,MultiIndex>* base_enum,
                                   const ShapeEnum<D,MultiIndex>* grad_enum)
@@ -130,7 +130,7 @@ namespace waveblocks {
             }
 
         private:
-            double eps_;
+            real_t eps_;
 
             const HaWpParamSet<D>* parameters_;
 

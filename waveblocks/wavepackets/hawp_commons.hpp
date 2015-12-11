@@ -29,7 +29,7 @@ namespace waveblocks {
              * \brief Retrieves the semi-classical scaling parameter
              * \f$ \varepsilon \f$ of the wavepacket.
              */
-            virtual double eps() const = 0;
+            virtual real_t eps() const = 0;
 
             /**
              * \brief Grants read-only access to the Hagedorn parameter set
@@ -129,7 +129,7 @@ namespace waveblocks {
         class AbstractScalarHaWp : public AbstractScalarHaWpBasis<D,MultiIndex>
         {
         public:
-            virtual double eps() const = 0;
+            virtual real_t eps() const = 0;
             virtual HaWpParamSet<D> const& parameters() const = 0;
             virtual shapes::ShapeEnumSharedPtr<D, MultiIndex> shape() const = 0;
 
@@ -213,12 +213,12 @@ namespace waveblocks {
              * \brief Grants writeable access to the semi-classical scaling parameter
              * \f$ \varepsilon \f$ of the wavepacket.
              */
-            double & eps()
+            real_t & eps()
             {
                 return eps_;
             }
 
-            double eps() const override
+            real_t eps() const override
             {
                 return eps_;
             }
@@ -270,7 +270,7 @@ namespace waveblocks {
             }
 
         private:
-            double eps_;
+            real_t eps_;
             HaWpParamSet<D> parameters_;
             shapes::ShapeEnumSharedPtr<D, MultiIndex> shape_;
             Coefficients coefficients_;
@@ -333,7 +333,7 @@ namespace waveblocks {
                     return *this;
                 }
 
-                double eps() const override
+                real_t eps() const override
                 {
                     return owner_->eps();
                 }
@@ -392,7 +392,7 @@ namespace waveblocks {
              * \brief Grants access to the semi-classical scaling parameter
              * \f$ \varepsilon \f$ of the wavepacket.
              */
-            double & eps()
+            real_t & eps()
             {
                 return eps_;
             }
@@ -401,7 +401,7 @@ namespace waveblocks {
              * \brief Retrieves the semi-classical scaling parameter
              * \f$ \varepsilon \f$ of the wavepacket.
              */
-            double eps() const
+            real_t eps() const
             {
                 return eps_;
             }
@@ -595,7 +595,7 @@ namespace waveblocks {
             }
 
         private:
-            double eps_;
+            real_t eps_;
             HaWpParamSet<D> parameters_;
             std::vector<Component> components_;
 
@@ -670,7 +670,7 @@ namespace waveblocks {
                  * \brief Forwards the scaling parameter \f$ \varepsilon \f$
                  * of the owning inhomogeneous wavepacket.
                  */
-                double eps() const override
+                real_t eps() const override
                 {
                     return owner_->eps();
                 }
@@ -738,7 +738,7 @@ namespace waveblocks {
              * \brief Grants access to the semi-classical scaling parameter
              * \f$ \varepsilon \f$ of the wavepacket.
              */
-            double & eps()
+            real_t & eps()
             {
                 return eps_;
             }
@@ -747,7 +747,7 @@ namespace waveblocks {
              * \brief Retrieves the semi-classical scaling parameter
              * \f$ \varepsilon \f$ of the wavepacket.
              */
-            double eps() const
+            real_t eps() const
             {
                 return eps_;
             }
@@ -878,7 +878,7 @@ namespace waveblocks {
             }
 
         private:
-            double eps_;
+            real_t eps_;
             std::vector<Component> components_;
         };
     }
