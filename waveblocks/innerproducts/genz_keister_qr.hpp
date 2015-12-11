@@ -9,7 +9,7 @@
 #include <Eigen/Dense>
 
 #include "../basic_types.hpp"
-#include "../utilities/combinatorics.hpp"
+#include "../math/combinatorics.hpp"
 
 #include "tables_genzkeister.hpp"
 
@@ -20,8 +20,7 @@ namespace waveblocks {
          * \brief Structure providing weighted nodes for Genz-Keister quadrature.
          *
          * \tparam DIM dimensionality of the Genz-Keister rule
-         * \tparam LEVEL the level of the Genz-Keister rule, must be between 1 and 30
-         *   inclusive
+         * \tparam LEVEL the level of the Genz-Keister rule, must be between 1 and 30 inclusive
          */
         template <dim_t DIM, dim_t LEVEL>
         struct GenzKeisterQR
@@ -101,7 +100,7 @@ namespace waveblocks {
                     }
 
                 const dim_t K = LEVEL - 1;
-                const partitions_t<DIM> parts = partitions<DIM>(K);
+                const math::partitions_t<DIM> parts = math::partitions<DIM>(K);
                 dim_t node_offset = 0;
                 for (const auto& part : parts)
                     {
@@ -139,10 +138,10 @@ namespace waveblocks {
              *
              * \param[in] part partition
              */
-            static NodeMatrix nodes_for_partition(const partition_t<DIM>& part)
+            static NodeMatrix nodes_for_partition(const math::partition_t<DIM>& part)
             {
-                const dim_t xi = nz<DIM>(part);
-                const permutations_t<DIM> perms = permutations<DIM>(part);
+                const dim_t xi = math::nz<DIM>(part);
+                const math::permutations_t<DIM> perms = math::permutations<DIM>(part);
                 NodeMatrix nodes = NodeMatrix::Zero(DIM, perms.size() * (1 << (DIM-xi)));
 
                 dim_t node_offset = 0;
@@ -177,12 +176,12 @@ namespace waveblocks {
              *
              * \param[in] part partition
              */
-            static real_t weight_for_partition(const partition_t<DIM>& part)
+            static real_t weight_for_partition(const math::partition_t<DIM>& part)
             {
                 const dim_t K = LEVEL - 1;
 
                 real_t weight = 0;
-                for (const auto& q : lattice_points<DIM>(K - sum<DIM>(part)))
+                for (const auto& q : math::lattice_points<DIM>(K - math::sum<DIM>(part)))
                     {
                         real_t w = 1;
                         for (dim_t i = 0; i < DIM; ++i)
@@ -192,7 +191,7 @@ namespace waveblocks {
                         weight += w;
                     }
 
-                return weight / (1 << nnz<DIM>(part));
+                return weight / (1 << math::nnz<DIM>(part));
             }
         };
 
