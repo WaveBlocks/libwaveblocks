@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
     int repeat = 1;
 
     std::cout << boost::format("Evaluate wavepacket on %i quadrature points") % grid.cols() << std::endl;
-    Timer timer;
+    utilities::Timer timer;
     {
         CMatrix<1,numQ> result(1,numQ);
 

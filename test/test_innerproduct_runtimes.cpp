@@ -53,7 +53,7 @@ void run1D()
         packet.coefficients() = coeffs;
 
         // Time many quadrature calculations.
-        Timer timer;
+        utilities::Timer timer;
         timer.start();
         for (int i = 0; i < n_runs; ++i)
         {
@@ -89,7 +89,7 @@ struct MultiDHelper
         packet.coefficients() = coeffs;
 
         // Time many quadrature calculations.
-        Timer timer;
+        utilities::Timer timer;
         timer.start();
         for (int i = 0; i < n_runs; ++i)
         {
@@ -220,7 +220,7 @@ void runMultiComponent()
         }
 
         // Time many quadrature calculations.
-        Timer timer;
+        utilities::Timer timer;
         timer.start();
         for (int i = 0; i < n_runs; ++i)
         {

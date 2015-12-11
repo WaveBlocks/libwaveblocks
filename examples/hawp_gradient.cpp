@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
 
     std::cout << boost::format("Evaluate wavepacket on %i quadrature points") % grid.cols() << std::endl;
-    Timer timer;
+    utilities::Timer timer;
     {
         CMatrix<1,numQ> result;
 

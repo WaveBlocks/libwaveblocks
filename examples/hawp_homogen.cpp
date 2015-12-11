@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     }
 
     // (5) Evaluate wavepacket-components
-    Timer timer;
+    utilities::Timer timer;
 
     std::cout << "Evaluate each component one by one ... " << std::endl;
     {
