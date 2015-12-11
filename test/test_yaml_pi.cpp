@@ -4,7 +4,7 @@
 
 #include <Eigen/Core>
 
-#include <waveblocks/basic_types.hpp>
+#include <waveblocks/types.hpp>
 #include <waveblocks/wavepackets/hawp_paramset.hpp>
 
 #include <waveblocks/yaml/complex.hpp>

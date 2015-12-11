@@ -3,7 +3,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include "../../basic_types.hpp"
+#include "../../types.hpp"
 
 
 namespace waveblocks {

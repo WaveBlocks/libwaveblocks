@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../basic_types.hpp"
+#include "../types.hpp"
 
 #include "hawp_commons.hpp"
 #include "hawp_gradient_evaluator.hpp"

@@ -4,7 +4,7 @@
 
 #include <Eigen/Core>
 
-#include <waveblocks/basic_types.hpp>
+#include <waveblocks/types.hpp>
 #include <waveblocks/yaml/complex.hpp>
 
 #include <waveblocks/yaml/matrix.hpp>

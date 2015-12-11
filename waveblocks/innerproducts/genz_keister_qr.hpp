@@ -8,7 +8,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include "../basic_types.hpp"
+#include "../types.hpp"
 #include "../math/combinatorics.hpp"
 
 #include "tables_genzkeister.hpp"

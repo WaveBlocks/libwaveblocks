@@ -9,7 +9,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include "../basic_types.hpp"
+#include "../types.hpp"
 #include "../wavepackets/hawp_commons.hpp"
 
 #include "inhomogeneous_inner_product.hpp"

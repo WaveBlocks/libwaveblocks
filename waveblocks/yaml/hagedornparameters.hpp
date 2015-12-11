@@ -4,7 +4,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "../basic_types.hpp"
+#include "../types.hpp"
 #include "../wavepackets/hawp_paramset.hpp"
 
 

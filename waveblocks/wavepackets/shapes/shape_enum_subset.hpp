@@ -3,7 +3,7 @@
 #include <memory>
 #include <array>
 
-#include "../../basic_types.hpp"
+#include "../../types.hpp"
 
 #include "shape_enum.hpp"
 

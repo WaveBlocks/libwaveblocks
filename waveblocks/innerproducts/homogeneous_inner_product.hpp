@@ -10,7 +10,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
-#include "../basic_types.hpp"
+#include "../types.hpp"
 #include "../wavepackets/hawp_commons.hpp"
 
 

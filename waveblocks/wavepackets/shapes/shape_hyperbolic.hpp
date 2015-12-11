@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-#include "../../basic_types.hpp"
+#include "../../types.hpp"
 
 #include "shape_base.hpp"
 

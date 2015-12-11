@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <initializer_list>
 
-#include "../../basic_types.hpp"
+#include "../../types.hpp"
 
 #include "shape_base.hpp"
 

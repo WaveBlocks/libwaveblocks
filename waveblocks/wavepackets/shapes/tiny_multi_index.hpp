@@ -8,7 +8,7 @@
 #include <initializer_list>
 #include <limits>
 
-#include "../../basic_types.hpp"
+#include "../../types.hpp"
 
 
 namespace waveblocks {

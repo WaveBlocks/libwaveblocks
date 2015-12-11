@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iomanip>
 
-#include "waveblocks/basic_types.hpp"
+#include "waveblocks/types.hpp"
 #include "waveblocks/math/continuous_sqrt.hpp"
 
 

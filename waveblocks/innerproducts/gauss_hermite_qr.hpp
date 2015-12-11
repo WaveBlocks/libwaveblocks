@@ -3,7 +3,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../basic_types.hpp"
+#include "../types.hpp"
 
 #include "tables_gausshermite.hpp"
 

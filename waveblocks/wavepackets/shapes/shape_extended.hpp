@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../basic_types.hpp"
+#include "../../types.hpp"
 
 #include "shape_hypercubic.hpp"
 
