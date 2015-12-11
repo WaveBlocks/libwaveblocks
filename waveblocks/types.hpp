@@ -10,6 +10,7 @@
 
 namespace waveblocks
 {
+    // scalar types
     typedef double real_t;
     typedef std::complex<real_t> complex_t;
     typedef int dim_t;
@@ -30,11 +31,6 @@ namespace waveblocks
     using HaWpBasisVector = CArray<Eigen::Dynamic, N>;
 
     using Coefficients = Eigen::Matrix<complex_t, Eigen::Dynamic, 1>;
-
-    // scalar types
-    typedef double real_t;
-    typedef std::complex<real_t> complex_t;
-    typedef int dim_t;
 
     // matrix types
     template <class I, int R, int C>
