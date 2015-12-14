@@ -1,7 +1,0 @@
-# temporary files
-*.bbl
-*.blg
-
-# files generated from *.gnuplot
-#figures/*.eps
-#figures/*.tex
