@@ -4,6 +4,13 @@ libwaveblocks
 Reusable building blocks for simulations with semiclassical wavepackets
 for solving the time-dependent Schrödinger equation.
 
+
+License
+=======
+
+This project is covered by the GNU Public License, version 2 or above.
+
+
 Citation
 ========
 
