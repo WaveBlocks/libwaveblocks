@@ -1,12 +1,15 @@
 libwaveblocks
 =============
 
-Reusable building blocks for simulations with semiclassical wavepackets for solving the time-dependent Schrödinger equation.
+Reusable building blocks for simulations with semiclassical wavepackets
+for solving the time-dependent Schrödinger equation.
 
 Citation
 ========
 
-For citation of this project please use the following bibtex snippet:
+This repository contains source code for published scientific work.
+The usual citation requirements apply. For citation of this project
+please use the following bibtex snippet:
 
     @misc{libwaveblocks,
         title = {{libwaveblocks}: {C++} library for simulations with semiclassical wavepackets},
