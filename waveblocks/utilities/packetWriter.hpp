@@ -17,6 +17,7 @@ namespace waveblocks {
             class Abstract {
                 std::string file_name;
                 H5::H5File file;
+
             public:
                 Abstract(const std::string& file_name) : file_name(file_name), file(file_name, H5F_ACC_TRUNC) {}
                 ~Abstract() {file.close();}
