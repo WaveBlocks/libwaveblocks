@@ -27,3 +27,6 @@ add_executable(test_innerproduct_runtimes test_innerproduct_runtimes.cpp)
 add_executable(test_innerproduct_problems test_innerproduct_problems.cpp)
 
 add_executable(test_matexp test_matexp.cpp)
+
+add_executable(test_2hdf_files test_2hdf_files.cpp)
+target_link_libraries(test_2hdf_files ${LINK_LIBS})
