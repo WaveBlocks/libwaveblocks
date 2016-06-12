@@ -45,10 +45,10 @@ namespace waveblocks
     public:
         /**
          *\brief Construction of hdf5 writer class with a name
-         *\param filename for construction
+         *\param name for construction
          *
          * Construction of hdf5 writer from std::string \param name where also implicitly the definition
-         * of our H5:CompType is hidden. Also the H5::File gets constructed by the \param filename where
+         * of our H5:CompType is hidden. Also the H5::File gets constructed by the \param name where
          * it is open with H5F_ACC_TRUNC value
          * */
         hdf5writertemplate(std::string name):filename_(name),mytype_(sizeof(instanceof)),file_(filename_,H5F_ACC_TRUNC)
