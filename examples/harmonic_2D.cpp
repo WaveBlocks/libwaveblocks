@@ -89,24 +89,18 @@ int main() {
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
 
-    utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_cpp.hdf5");
+    utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_tmp.hdf5");
+    //mywriter2.set_write_energy(true);
+    //mywriter2.set_write_timegrid(true);
     // Preparing the file
-    //TODO nextlvl mywriter<D>("harmonic_2D.hdf5");
-    utilities::hdf5writer mywriter("harmonic_2D_cpp.hdf5");
-    mywriter.setup_dataspaces();
-    mywriter.setup_groups();
-    mywriter.setup_datasets();
+    //utilities::hdf5writer mywriter("harmonic_2D_cpp.hdf5");
 
     //write time = 0
-    mywriter.select_writespace();
-    mywriter.store_packet(0,packet);
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
-    mywriter.store_energies(0,epot,ekin);
-    mywriter.increase_index();
-    mywriter.setup_extension();
-    mywriter.extend_datasets();
-    mywriter.overwrite_dataspaces();
+    mywriter2.store_packet(0,packet);
+    mywriter2.store_energies(epot,ekin);
+    mywriter2.advance();
 
 
     std::cout << "Time: " << 0 << std::endl;
@@ -120,15 +114,12 @@ int main() {
         propagator.propagate(packet,dt,V);
         std::cout << packet.parameters() << std::endl;
 
-        mywriter.select_writespace();
-        mywriter.store_packet(t+dt,packet);
         real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
         real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
-        mywriter.store_energies(t+dt,epot,ekin);
-        mywriter.increase_index();
-        mywriter.setup_extension();
-        mywriter.extend_datasets();
-        mywriter.overwrite_dataspaces();
+
+        mywriter2.store_packet(t+dt,packet);
+        mywriter2.store_energies(epot,ekin);
+        mywriter2.advance();
 
         std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
 
@@ -140,5 +131,5 @@ int main() {
 
 
     }
-    mywriter.cleanup();
+    mywriter2.cleanup();
 }
