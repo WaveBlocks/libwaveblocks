@@ -15,6 +15,7 @@
 #include "waveblocks/observables/energy.hpp"
 //#include "waveblocks/utilities/packetWriter.hpp"
 #include "waveblocks/utilities/hdf5writer.hpp"
+#include "waveblocks/utilities/hdf5templatewriter.hpp"
 
 
 using namespace waveblocks;
@@ -87,6 +88,8 @@ int main() {
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
+
+    utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_cpp.hdf5");
     // Preparing the file
     //TODO nextlvl mywriter<D>("harmonic_2D.hdf5");
     utilities::hdf5writer mywriter("harmonic_2D_cpp.hdf5");
