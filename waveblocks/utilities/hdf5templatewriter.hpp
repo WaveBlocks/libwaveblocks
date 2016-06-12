@@ -63,11 +63,14 @@ namespace waveblocks
             //set up elem space
             set_elem_space();
 
+            //select elemtary space
+            select_elem_hyperslabs();
+
             //set group structure
             set_group_structure();
 
-            //
-            select_elem_hyperslabs();
+            //allocate datasets needs to be after select writespace
+            allocate_datasets();
         }
         /**
          * @brief sets bool value for writing the packet
@@ -379,87 +382,87 @@ namespace waveblocks
         }
 
     private:
-        H5std_string filename_;/**<identifier for filename*/
-        CompType mytype_;/**<Declaration of H5:CompType member */
-        H5File file_; /**<H5File member */
-        enum wlist:bool{packet=1,energy=0,coefficients=1,timegrid=0};/**<enum for storing writing bool values*/
+        H5std_string filename_;///<identifier for filename
+        CompType mytype_;///Declaration of H5:CompType member
+        H5File file_; ///H5File member
+        enum wlist:bool{packet=1,energy=0,coefficients=1,timegrid=0};///enum for storing writing bool values
 
-        double dref=0.;/**<fillvalue for energys for allocation */
-        H5std_string packet_group_string="/Pi";/**<String for H5Group to save packet to. Default:Pi*/
-        H5std_string datablock_string="/datablock_0";/**<String for H5Group for datablock.default. Datablock_0*/
-        H5std_string coefficient_group_string="/coefficients";/**<String for H5Group of coefficients. Default:coefficients*/
-        H5std_string wavepacket_group_string="/wavepacket";/**<String for H5Group for packet and coefficients. Default:wavepacket*/
-        H5std_string energy_group_string="/energies";/**<String for H5Group for energies. Default:energies*/
-        H5std_string timegrid_group_string="/timegrid";/**<String for H5Group for timegrid. Default:timegrid*/
+        double dref=0.;///fillvalue for energys for allocation
+        H5std_string packet_group_string="/Pi";///String for H5Group to save packet to. Default:Pi
+        H5std_string datablock_string="/datablock_0";///String for H5Group for datablock.default. datablock_0
+        H5std_string coefficient_group_string="/coefficients";///String for H5Group of coefficients. Default:coefficients
+        H5std_string wavepacket_group_string="/wavepacket";///String for H5Group for packet and coefficients. Default:wavepacket
+        H5std_string energy_group_string="/energies";///String for H5Group for energies. Default:energies
+        H5std_string timegrid_group_string="/timegrid";///String for H5Group for timegrid. Default:timegrid
 
-        DSetCreatPropList plist_qp;/**<PropList for packet.q() packet.p()*/
-        DSetCreatPropList plist_QP;/**<PropList for packet.Q() packet.P()*/
-        DSetCreatPropList plist_S;/**<PropList for packet.S()*/
-        DSetCreatPropList plist_energy;/**<PropList for energies*/
-        DSetCreatPropList plist_c;/**<PropList for coefficients*/
-        DSetCreatPropList plist_time;/**<PropList for timegrid*/
+        DSetCreatPropList plist_qp;///PropList for packet.q() packet.p()
+        DSetCreatPropList plist_QP;///PropList for packet.Q() packet.P()
+        DSetCreatPropList plist_S;///PropList for packet.S()
+        DSetCreatPropList plist_energy;///PropList for energies
+        DSetCreatPropList plist_c;///PropList for coefficients
+        DSetCreatPropList plist_time;///PropList for timegrid
 
-        const int RANK1=1;/**<rank 1 identifier */
-        const int RANK2=2;/**<rank 2 identifier */
-        const int RANK3=3;/**<rank 3 identifier */
+        const int RANK1=1;///rank 1 identifier
+        const int RANK2=2;///rank 2 identifier
+        const int RANK3=3;///rank 3 identifier
 
-        const hsize_t maxdims1[1]={H5S_UNLIMITED};/**<max dim identifier for rank1 for extension */
-        const hsize_t maxdims2[2]={H5S_UNLIMITED,H5S_UNLIMITED};/**<max dim identifier for rank2 for extension */
-        const hsize_t maxdims3[3]={H5S_UNLIMITED,H5S_UNLIMITED,H5S_UNLIMITED};/**<max dim identifier for rank3 for extension */
+        const hsize_t maxdims1[1]={H5S_UNLIMITED};///max dim identifier for rank1 for extension
+        const hsize_t maxdims2[2]={H5S_UNLIMITED,H5S_UNLIMITED};///max dim identifier for rank2 for extension
+        const hsize_t maxdims3[3]={H5S_UNLIMITED,H5S_UNLIMITED,H5S_UNLIMITED};///max dim identifier for rank3 for extension
 
-        hsize_t exqp[3];/**<extenstion for packet.q() packet.p() */
-        hsize_t exQP[3];/**<extenstion for packet.Q() packet.P() */
-        hsize_t exS[2];/**<extenstion for packet.S()*/
-        hsize_t exenergy[2];/**<extenstion for energies*/
-        hsize_t exc[2];/**<extenstion for coefficients*/
-        hsize_t extime[1];/**<extenstion for timegrid*/
+        hsize_t exqp[3];///extenstion for packet.q() packet.p()
+        hsize_t exQP[3];///extenstion for packet.Q() packet.P()
+        hsize_t exS[2];///extenstion for packet.S()
+        hsize_t exenergy[2];///extenstion for energies
+        hsize_t exc[2];///extenstion for coefficients
+        hsize_t extime[1];///extenstion for timegrid
 
-        hsize_t qpelem[3]; /**<size of q,p element written from program to file needed by HDF interface */
-        DataSpace qpelemspace;/**<space of q,p element written from program to file needed by HDF interface */
-        hsize_t QPelem[3];/**<size of Q,P element written from program to file needed by HDF interface */
-        DataSpace QPelemspace;/**<space of Q,P element written from program to file needed by HDF interface */
-        hsize_t Selem[2];/**<size of S element written from program to file needed by HDF interface */
-        DataSpace Selemspace;/**<space of S element written from program to file needed by HDF interface */
-        hsize_t energyelem[2];/**<size of energy element written from program to file needed by HDF interface */
-        DataSpace energyelemspace;/**<space of energy element written from program to file needed by HDF interface */
-        hsize_t timeelem[1];/**<size of timegrid element written from program to file needed by HDF interface */
-        DataSpace timelemspace;/**<space of timegrid element written from program to file needed by HDF interface */
-        hsize_t celem[2];/**<size of coefficient element written from program to file needed by HDF interface */
-        DataSpace celemspace;/**<space of coefficient element written from program to file needed by HDF interface */
+        hsize_t qpelem[3]; ///size of q,p element written from program to file needed by HDF interface
+        DataSpace qpelemspace;///space of q,p element written from program to file needed by HDF interface
+        hsize_t QPelem[3];///size of Q,P element written from program to file needed by HDF interface
+        DataSpace QPelemspace;///space of Q,P element written from program to file needed by HDF interface
+        hsize_t Selem[2];///size of S element written from program to file needed by HDF interface
+        DataSpace Selemspace;///space of S element written from program to file needed by HDF interface
+        hsize_t energyelem[2];///size of energy element written from program to file needed by HDF interface
+        DataSpace energyelemspace;///space of energy element written from program to file needed by HDF interface
+        hsize_t timeelem[1];///size of timegrid element written from program to file needed by HDF interface
+        DataSpace timelemspace;///space of timegrid element written from program to file needed by HDF interface
+        hsize_t celem[2];///size of coefficient element written from program to file needed by HDF interface
+        DataSpace celemspace;///space of coefficient element written from program to file needed by HDF interface
 
-        int current_index=1;/**<current index used to determine position in file in time dimension*/
+        int current_index=1;///current index used to determine position in file in time dimension
 
-        std::shared_ptr<Group> gblock;/**<group for datablock */
-        std::shared_ptr<Group> gpacket;/**<group for packet */
-        std::shared_ptr<Group> gPi;/**<group for matrices in packet */
-        std::shared_ptr<Group> gcoefficient;/**<group for coefficients in packet */
-        std::shared_ptr<Group> genergy;/**<group for energies */
-        std::shared_ptr<Group> gtimegrid;/**<group for timegrid */
+        std::shared_ptr<Group> gblock;///group for datablock
+        std::shared_ptr<Group> gpacket;///group for packet
+        std::shared_ptr<Group> gPi;///group for matrices in packet
+        std::shared_ptr<Group> gcoefficient;///group for coefficients in packet
+        std::shared_ptr<Group> genergy;///group for energies
+        std::shared_ptr<Group> gtimegrid;///group for timegrid
 
-        H5std_string q="q";/**<name for packet.q()*/
-        DataSpace qspace;/**<space for packet.q() in file*/
-        std::shared_ptr<DataSet> qs;/**<dataset for packet.q() in file*/
-        H5std_string p="p";/**<name for packet.p()*/
-        DataSpace pspace;/**<space for packet.p() in file*/
-        std::shared_ptr<DataSet> ps;/**<dataset for packet.p() in file*/
-        H5std_string Q="Q";/**<name for packet.Q()*/
-        DataSpace Qspace;/**<space for packet.Q() in file*/
-        std::shared_ptr<DataSet> Qs;/**<dataset for packet.Q() in file*/
-        H5std_string P="P";/**<name for packet.P()*/
-        DataSpace Pspace;/**<space for packet.P() in file*/
-        std::shared_ptr<DataSet> Ps;/**<dataset for packet.P() in file*/
-        H5std_string S="S";/**<name for packet.S()*/
-        DataSpace Sspace;/**<space for packet.S() in file*/
-        std::shared_ptr<DataSet> Ss;/**<dataset for packet.S() in file*/
-        H5std_string c="c_0";/**<name for coefficients*/
-        DataSpace cspace;/**<space for coefficients in file*/
-        std::shared_ptr<DataSet> coeffs;/**<dataset for coefficients in file*/
-        H5std_string time="timegrid";/**<name for timegrid*/
-        DataSpace timespace;/**<space for timegrid in file*/
-        std::shared_ptr<DataSet> times;/**<dataset for timegrid in file*/
-        H5std_string energies="energies";/**<name for energies*/
-        DataSpace energyspace;/**<space for energies in file*/
-        std::shared_ptr<DataSet> energys;/**<dataset for energies in file*/
+        H5std_string q="q";///name for packet.q()
+        DataSpace qspace;///space for packet.q() in file
+        std::shared_ptr<DataSet> qs;///dataset for packet.q() in file
+        H5std_string p="p";///name for packet.p()
+        DataSpace pspace;///space for packet.p() in file
+        std::shared_ptr<DataSet> ps;///dataset for packet.p() in file
+        H5std_string Q="Q";///name for packet.Q()
+        DataSpace Qspace;///space for packet.Q() in file
+        std::shared_ptr<DataSet> Qs;///dataset for packet.Q() in file
+        H5std_string P="P";///name for packet.P()
+        DataSpace Pspace;///space for packet.P() in file
+        std::shared_ptr<DataSet> Ps;///dataset for packet.P() in file
+        H5std_string S="S";///name for packet.S()
+        DataSpace Sspace;///space for packet.S() in file
+        std::shared_ptr<DataSet> Ss;///dataset for packet.S() in file
+        H5std_string c="c_0";///name for coefficients
+        DataSpace cspace;///space for coefficients in file
+        std::shared_ptr<DataSet> coeffs;///dataset for coefficients in file
+        H5std_string time="timegrid";///name for timegrid
+        DataSpace timespace;///space for timegrid in file
+        std::shared_ptr<DataSet> times;///dataset for timegrid in file
+        H5std_string energies="energies";///name for energies
+        DataSpace energyspace;///space for energies in file
+        std::shared_ptr<DataSet> energys;///dataset for energies in file
     };
 
 
