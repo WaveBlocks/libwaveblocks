@@ -89,7 +89,7 @@ int main() {
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
 
-    utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_tmp.hdf5");
+    utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_cpp.hdf5");
     mywriter2.set_write_energy(true);
     mywriter2.set_write_timegrid(true);
     mywriter2.prestructuring();

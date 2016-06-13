@@ -87,7 +87,6 @@ namespace waveblocks
          */
         void set_write_packet(bool flag)
         {
-            writeflags[0]=flag;
             wrlist["packet"]=flag;
         }
         /**
@@ -96,7 +95,6 @@ namespace waveblocks
          */
         void set_write_energy(bool flag)
         {
-            writeflags[2]=flag;
             wrlist["energy"]=flag;
         }
         /**
@@ -105,7 +103,6 @@ namespace waveblocks
          */
         void set_write_coefficients(bool flag)
         {
-            writeflags[1]=flag;
             wrlist["coefficients"]=flag;
         }
         /**
@@ -114,7 +111,6 @@ namespace waveblocks
          */
         void set_write_timegrid(bool flag)
         {
-            writeflags[3]=flag;
             wrlist["timegrid"]=flag;
         }
         /**
@@ -373,7 +369,7 @@ namespace waveblocks
             }
             if(wrlist["energy"])
             {
-                hsize_t dim4[]={10,3};
+                hsize_t dim4[]={1,3};
                 DataSpace d4(RANK2,dim4,maxdims2);
                 energyspace=d4;
 
@@ -387,7 +383,7 @@ namespace waveblocks
             }
             if(wrlist["timegrid"])
             {
-                hsize_t dim6[]={10};
+                hsize_t dim6[]={1};
                 DataSpace d6(RANK1,dim6,maxdims1);
                 timespace=d6;
             }
@@ -754,8 +750,7 @@ namespace waveblocks
         H5std_string filename_;///<identifier for filename
         CompType mytype_;///Declaration of H5:CompType member
         H5File file_; ///H5File member
-        bool writeflags[4]={true,true,false,false}; ///bool array for flags writer [0]=packet [1]=coefficients [2]=energy [3]=timegrid
-        std::map<std::string,bool> wrlist={{"packet",1},{"coefficients",1},{"energy",0},{"timegrid",0}};
+        std::map<std::string,bool> wrlist={{"packet",1},{"coefficients",1},{"energy",0},{"timegrid",0}};///map string->bool for constructing und writing defined variables
 
         double dref=0.;///fillvalue for energys for allocation
         H5std_string packet_group_string="/Pi";///String for H5Group to save packet to. Default:Pi
