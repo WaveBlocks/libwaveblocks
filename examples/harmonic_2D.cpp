@@ -14,7 +14,7 @@
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/observables/energy.hpp"
 //#include "waveblocks/utilities/packetWriter.hpp"
-#include "waveblocks/utilities/hdf5writer.hpp"
+//#include "waveblocks/utilities/hdf5writer.hpp"
 #include "waveblocks/utilities/hdf5templatewriter.hpp"
 
 
@@ -90,8 +90,9 @@ int main() {
 
 
     utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_tmp.hdf5");
-    //mywriter2.set_write_energy(true);
-    //mywriter2.set_write_timegrid(true);
+    mywriter2.set_write_energy(true);
+    mywriter2.set_write_timegrid(true);
+    mywriter2.prestructuring();
     // Preparing the file
     //utilities::hdf5writer mywriter("harmonic_2D_cpp.hdf5");
 
