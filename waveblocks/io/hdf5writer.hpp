@@ -199,7 +199,7 @@ namespace waveblocks
             }
             if(wrlist["energy"])
             {
-                hsize_t chunk_dims4[]={1,3};
+                hsize_t chunk_dims4[]={1,2};
                 plist_energy.setChunk(RANK2,chunk_dims4);
                 plist_energy.setFillValue(PredType::NATIVE_DOUBLE,&dref);
 
@@ -251,7 +251,7 @@ namespace waveblocks
             if(wrlist["energy"])
             {
                 energyelem[0]=1;
-                energyelem[1]=3;
+                energyelem[1]=2;
                 DataSpace t4(RANK2,energyelem);
                 energyelemspace=t4;
             }
@@ -349,7 +349,7 @@ namespace waveblocks
             }
             if(wrlist["energy"])
             {
-                hsize_t count5[]={1,3};
+                hsize_t count5[]={1,2};
                 hsize_t start5[]={0,0};
                 hsize_t stride5[]={1,1};
                 hsize_t block5[]={1,1};
@@ -400,7 +400,7 @@ namespace waveblocks
             }
             if(wrlist["energy"])
             {
-                hsize_t dim4[]={1,3};
+                hsize_t dim4[]={1,2};
                 DataSpace d4(RANK2,dim4,maxdims2);
                 energyspace=d4;
 
@@ -475,7 +475,7 @@ namespace waveblocks
             }
             if(wrlist["energy"])
             {
-                hsize_t count5[]={1,3};
+                hsize_t count5[]={1,2};
                 hsize_t start5[2];
                 start5[0]=tr;
                 start5[1]=0;
@@ -547,7 +547,7 @@ namespace waveblocks
             if(wrlist["energy"])
             {
                 exenergy[0]=current_index;
-                exenergy[1]=3;
+                exenergy[1]=2;
             }
             if(wrlist["norm"])
             {
@@ -742,10 +742,9 @@ namespace waveblocks
         {
             if(wrlist["energy"])
             {
-                double* en = new double[3];
+                double* en = new double[2];
                 en[0]=epot_;
                 en[1]=ekin_;
-                en[2]=epot_+ekin_;
                 energys->write(en,PredType::NATIVE_DOUBLE,energyelemspace,energyspace);
             }
         }
