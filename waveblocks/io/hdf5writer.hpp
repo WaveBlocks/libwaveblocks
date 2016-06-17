@@ -366,6 +366,7 @@ namespace waveblocks
                 hsize_t dim3[]={1,1,1};
                 DataSpace d3(RANK3,dim3,maxdims3);
                 Sspace=d3;
+                adQspace=d3;
             }
             if(wrlist["energy"])
             {
@@ -431,6 +432,7 @@ namespace waveblocks
                 Pspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
                 //S
                 Sspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
+                adQspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
             }
             if(wrlist["coefficients"])
             {
@@ -479,6 +481,8 @@ namespace waveblocks
                 Qs=std::make_shared<DataSet>(file_.createDataSet(pack+Q,mytype_,Qspace,plist_QP));
                 Ps=std::make_shared<DataSet>(file_.createDataSet(pack+P,mytype_,Pspace,plist_QP));
                 Ss=std::make_shared<DataSet>(file_.createDataSet(pack+S,mytype_,Sspace,plist_S));
+                adQs=std::make_shared<DataSet>(file_.createDataSet(pack+adQ,mytype_,adQspace,plist_S));
+
             }
             if(wrlist["coefficients"])
             {
@@ -544,6 +548,7 @@ namespace waveblocks
                 Ps->extend(exQP);
                 //Senergies
                 Ss->extend(exS);
+                adQs->extend(exS);
             }
             if(wrlist["coefficients"])
             {
@@ -576,6 +581,7 @@ namespace waveblocks
                 Pspace=Ps->getSpace();
                 //S
                 Sspace=Ss->getSpace();
+                adQspace=adQs->getSpace();
             }
             if(wrlist["coefficients"])
             {
@@ -688,6 +694,7 @@ namespace waveblocks
         //  std::complex<double>* tmp(myQ.data());
             if(wrlist["packet"])
             {
+                //params.sdQ()
                 ctype* myQ=transform(params.Q());
                 Qs->write(myQ,mytype_,QPelemspace,Qspace);
                 ctype* myP=transform(params.P());
@@ -700,6 +707,9 @@ namespace waveblocks
 
                 ctype* myS=transform(params.S());
                 Ss->write(myS,mytype_,Selemspace,Sspace);
+
+                ctype* myadQ=transform(params.sdQ());
+                adQs->write(myadQ,mytype_,Selemspace,adQspace);
             }
             if(wrlist["timegrid"])
             {
@@ -817,6 +827,9 @@ namespace waveblocks
         H5std_string S="/S";///name for packet.S()
         DataSpace Sspace;///space for packet.S() in file
         std::shared_ptr<DataSet> Ss;///dataset for packet.S() in file
+        H5std_string adQ="/adQ";///name for packet.sdQ()
+        DataSpace adQspace;///space for packet.sdQ() in file
+        std::shared_ptr<DataSet> adQs;///dataset for packet.sdQ() in file
         H5std_string c="/c_0";///name for coefficients
         DataSpace cspace;///space for coefficients in file
         std::shared_ptr<DataSet> coeffs;///dataset for coefficients in file
