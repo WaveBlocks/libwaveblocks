@@ -15,6 +15,7 @@
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/utilities/packetWriter.hpp"
+#include "waveblocks/io/hdf5writer.hpp"
 
 
 using namespace waveblocks;

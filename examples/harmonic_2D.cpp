@@ -13,9 +13,7 @@
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/observables/energy.hpp"
-//#include "waveblocks/utilities/packetWriter.hpp"
-//#include "waveblocks/utilities/hdf5writer.hpp"
-#include "waveblocks/utilities/hdf5templatewriter.hpp"
+#include "waveblocks/io/hdf5writer.hpp"
 
 
 using namespace waveblocks;
@@ -89,7 +87,7 @@ int main() {
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
 
-    utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_cpp.hdf5");
+    io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
     mywriter2.set_write_energy(true);
     mywriter2.set_write_timegrid(true);
     mywriter2.prestructuring();

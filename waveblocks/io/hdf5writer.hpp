@@ -13,7 +13,7 @@
 
 namespace waveblocks
 {
-    namespace utilities
+    namespace io
     {
 
     //using namespaces for convenience
@@ -39,7 +39,7 @@ namespace waveblocks
      * of the HaWpBasisVector
      */
     template<int D>
-    class hdf5writertemplate
+    class hdf5writer
     {
         //declare friend for easy use
         friend struct ctype;
@@ -52,7 +52,7 @@ namespace waveblocks
          * of our H5:CompType is hidden. Also the H5::File gets constructed by the \param name where
          * it is open with H5F_ACC_TRUNC value
          * */
-        hdf5writertemplate(std::string name):filename_(name),mytype_(sizeof(instanceof)),file_(filename_,H5F_ACC_TRUNC)
+        hdf5writer(std::string name):filename_(name),mytype_(sizeof(instanceof)),file_(filename_,H5F_ACC_TRUNC)
         {
             //fixed writing type for easy overlap with python interface
             mytype_.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
@@ -676,7 +676,7 @@ namespace waveblocks
             //Eigen::Matrix<complex_t, Eigen::Dynamic, 1> cmat=PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packet);
             if(wrlist["coefficients"])
             {
-                ctype* myc=transform(PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
+                ctype* myc=transform(utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
                 coeffs->write(myc,mytype_,celemspace,cspace);
             }
             //std::cout<<cmat.rows()<<'\t'<<cmat.cols()<<'\n';
