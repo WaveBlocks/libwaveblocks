@@ -146,6 +146,30 @@ namespace waveblocks
         coefficient_group_string=name;
         }
         /**
+         * @brief set timestep for writing packet
+         * @param a
+         */
+        void set_timestep_packet(int a)
+        {
+            timestepsize_packet=a;
+        }
+        /**
+         * @brief set timestep for writing norms
+         * @param a
+         */
+        void set_timestep_norms(int a)
+        {
+            timestepsize_norms=a;
+        }
+        /**
+         * @brief set timestep for writing energies
+         * @param a
+         */
+        void set_timestep_energies(int a)
+        {
+            timestepsize_energies=a;
+        }
+        /**
          * \brief Set up chunk dimension for the written variables
          *
          * The HDF Interface needs that the PropList exits with chunked dimension otherwise
@@ -778,7 +802,13 @@ namespace waveblocks
         hsize_t exS[3];///extenstion for packet.S()
         hsize_t exenergy[2];///extenstion for energies
         hsize_t exc[2];///extenstion for coefficients
-        hsize_t extime[1];///extenstion for timegrid
+        hsize_t extime_norms[1];///extenstion for timegrid for norms
+        hsize_t extime_energies[1];///extenstion for timegrid for energies
+        hsize_t extime_packet[1];///extenstion for timegrid for packet
+
+        int timestepsize_norms=1;///timestepsize for norm timegrid
+        int timestepsize_energies=1;///timestepsize for energies timegrid
+        int timestepsize_packet=1;///timestepsize for packet timegrid
 
         hsize_t qpelem[3]; ///size of q,p element written from program to file needed by HDF interface
         DataSpace qpelemspace;///space of q,p element written from program to file needed by HDF interface
