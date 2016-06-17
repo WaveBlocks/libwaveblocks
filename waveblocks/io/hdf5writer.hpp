@@ -807,8 +807,11 @@ namespace waveblocks
         hsize_t extime_packet[1];///extenstion for timegrid for packet
 
         int timestepsize_norms=1;///timestepsize for norm timegrid
+        int tindex_norms=1;///current index for timegrid for norms used for extension
         int timestepsize_energies=1;///timestepsize for energies timegrid
+        int tindex_energies=1;///current index for timegrid for energies used for extension
         int timestepsize_packet=1;///timestepsize for packet timegrid
+        int tindex_packet=1;///current index for timegrid used for packet for extension
 
         hsize_t qpelem[3]; ///size of q,p element written from program to file needed by HDF interface
         DataSpace qpelemspace;///space of q,p element written from program to file needed by HDF interface
