@@ -109,9 +109,9 @@ namespace waveblocks
          * @brief sets bool value for writing timegrid
          * @param flag
          */
-        void set_write_timegrid(bool flag)
+        void set_write_norm(bool flag)
         {
-            wrlist["timegrid"]=flag;
+            wrlist["norm"]=flag;
         }
         /**
          * @brief set string for root group
@@ -154,6 +154,11 @@ namespace waveblocks
         void set_chunk_dim(void)
         {
             constexpr int dim = D; //alias for D
+
+            hsize_t chunk_dims6[]={1};
+            plist_time.setChunk(RANK1,chunk_dims6);
+            plist_time.setFillValue(PredType::NATIVE_DOUBLE,&dref);
+
             if(wrlist["packet"])
             {
                 hsize_t chunk_dims1[]={1,dim,1};
@@ -182,11 +187,9 @@ namespace waveblocks
                 plist_c.setFillValue(mytype_,&instanceof);
 
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                hsize_t chunk_dims6[]={1};
-                plist_time.setChunk(RANK1,chunk_dims6);
-                plist_time.setFillValue(PredType::NATIVE_DOUBLE,&dref);
+
             }
         }
         /**
@@ -198,6 +201,10 @@ namespace waveblocks
          */
         void set_elem_space(void)
         {
+            timeelem[0]=1;
+            DataSpace t6(RANK1,timeelem);
+            timelemspace=t6;
+
             constexpr int dim = D;
             if(wrlist["packet"])
             {
@@ -231,11 +238,9 @@ namespace waveblocks
                 DataSpace t5(RANK2,celem);
                 celemspace=t5;
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                timeelem[0]=1;
-                DataSpace t6(RANK1,timeelem);
-                timelemspace=t6;
+
             }
         }
         /**
@@ -277,6 +282,12 @@ namespace waveblocks
         void select_elem_hyperslabs(void)
         {
             constexpr int dim = D;
+
+            hsize_t count6[]={1};
+            hsize_t start6[]={0};
+            hsize_t stride6[]={1};
+            hsize_t block6[]={1};
+            timelemspace.selectHyperslab(H5S_SELECT_SET, count6, start6, stride6, block6);
 
             if(wrlist["packet"])
             {
@@ -320,13 +331,8 @@ namespace waveblocks
                 hsize_t block5[]={1,1};
                 energyelemspace.selectHyperslab(H5S_SELECT_SET, count5, start5, stride5, block5);
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                hsize_t count6[]={1};
-                hsize_t start6[]={0};
-                hsize_t stride6[]={1};
-                hsize_t block6[]={1};
-                timelemspace.selectHyperslab(H5S_SELECT_SET, count6, start6, stride6, block6);
 
             }
         }
@@ -382,11 +388,8 @@ namespace waveblocks
                 DataSpace d5(RANK2,dim5,maxdims2);
                 cspace=d5;
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                hsize_t dim6[]={1};
-                DataSpace d6(RANK1,dim6,maxdims1);
-                timespace=d6;
             }
         }
         /**
@@ -457,14 +460,8 @@ namespace waveblocks
                 energyspace.selectHyperslab(H5S_SELECT_SET, count5, start5, stride5, block5);
 
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                hsize_t count6[]={1};
-                hsize_t start6[1];
-                start6[0]=tr;
-                hsize_t stride6[]={1};
-                hsize_t block6[]={1};
-                timespace.selectHyperslab(H5S_SELECT_SET, count6, start6, stride6, block6);
             }
 
         }
@@ -494,10 +491,10 @@ namespace waveblocks
                 H5std_string eng=datablock_string+energies;
                 energys=std::make_shared<DataSet>(file_.createDataSet(eng,PredType::NATIVE_DOUBLE,energyspace,plist_energy));
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
                 H5std_string tmm=datablock_string+wavepacket_group_string+time;
-                times=std::make_shared<DataSet>(file_.createDataSet(tmm,PredType::NATIVE_DOUBLE,timespace,plist_time));
+                //times=std::make_shared<DataSet>(file_.createDataSet(tmm,PredType::NATIVE_DOUBLE,timespace,plist_time));
             }
         }
         /**
@@ -528,9 +525,8 @@ namespace waveblocks
                 exenergy[0]=current_index;
                 exenergy[1]=3;
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                extime[0]=current_index;
             }
         }
         /**
@@ -559,9 +555,8 @@ namespace waveblocks
             {
                 energys->extend(exenergy);
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                times->extend(extime);
             }
         }
         /**
@@ -591,9 +586,8 @@ namespace waveblocks
             {
                 energyspace=energys->getSpace();
             }
-            if(wrlist["timegrid"])
+            if(wrlist["norm"])
             {
-                timespace=times->getSpace();
             }
         }
         /**
@@ -694,9 +688,10 @@ namespace waveblocks
         //  std::complex<double>* tmp(myQ.data());
             if(wrlist["packet"])
             {
-                //params.sdQ()
-                ctype* myQ=transform(params.Q());
-                Qs->write(myQ,mytype_,QPelemspace,Qspace);
+                Eigen::Matrix<complex_t,D,D> myQ = params.Q();
+
+                ctype* myQw=transform(myQ);
+                Qs->write(myQw,mytype_,QPelemspace,Qspace);
                 ctype* myP=transform(params.P());
                 Ps->write(myP,mytype_,QPelemspace,Pspace);
 
@@ -708,15 +703,10 @@ namespace waveblocks
                 ctype* myS=transform(params.S());
                 Ss->write(myS,mytype_,Selemspace,Sspace);
 
-                ctype* myadQ=transform(params.sdQ());
+                Eigen::Matrix<complex_t,D,D> C1 = myQ.adjoint();
+                ctype* myadQ=transform(C1.determinant());
                 adQs->write(myadQ,mytype_,Selemspace,adQspace);
-            }
-            if(wrlist["timegrid"])
-            {
-                double* mtime = new double;
-                //*mtime=time_;
-                *mtime=1.*current_index-1;
-                times->write(mtime,PredType::NATIVE_DOUBLE,timelemspace,timespace);
+                //params.sqrt_det_Q()
             }
         }
         /**
@@ -760,7 +750,7 @@ namespace waveblocks
         H5std_string filename_;///<identifier for filename
         CompType mytype_;///Declaration of H5:CompType member
         H5File file_; ///H5File member
-        std::map<std::string,bool> wrlist={{"packet",1},{"coefficients",1},{"energy",0},{"timegrid",0}};///map string->bool for constructing und writing defined variables
+        std::map<std::string,bool> wrlist={{"packet",1},{"coefficients",1},{"energy",0},{"norm",0}};///map string->bool for constructing und writing defined variables
 
         double dref=0.;///fillvalue for energys for allocation
         H5std_string packet_group_string="/Pi";///String for H5Group to save packet to. Default:Pi
@@ -834,8 +824,13 @@ namespace waveblocks
         DataSpace cspace;///space for coefficients in file
         std::shared_ptr<DataSet> coeffs;///dataset for coefficients in file
         H5std_string time="/timegrid";///name for timegrid
-        DataSpace timespace;///space for timegrid in file
-        std::shared_ptr<DataSet> times;///dataset for timegrid in file
+        DataSpace timespace_packet;///space for timegrid for packet in file
+        std::shared_ptr<DataSet> times_packet;///dataset for timegrid for packet in file
+        DataSpace timespace_energies;///space for timegrid for energies in file
+        std::shared_ptr<DataSet> times_energies;///dataset for timegrid for energies in file
+        DataSpace timespace_norms;///space for timegrid in file
+        std::shared_ptr<DataSet> times_norms;///dataset for timegrid in file
+
         H5std_string energies="/energies";///name for energies
         DataSpace energyspace;///space for energies in file
         std::shared_ptr<DataSet> energys;///dataset for energies in file
