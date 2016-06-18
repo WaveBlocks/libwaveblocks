@@ -91,8 +91,6 @@ int main() {
     mywriter2.set_write_energy(true);
     mywriter2.set_write_norm(true);
     mywriter2.prestructuring();
-    // Preparing the file
-    //utilities::hdf5writer mywriter("harmonic_2D_cpp.hdf5");
 
     //write time = 0
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
