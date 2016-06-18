@@ -5,6 +5,7 @@
 //using strings
 #include <string>
 #include <map>
+#include <cstdio>
 
 #include <Eigen/Core>
 
@@ -466,67 +467,67 @@ namespace waveblocks
         void select_file_writespace(void)
         {
             //TODO
-            int tr=current_index-1;
-            constexpr int dim=D;
-            if(wrlist["packet"])
-            {
-                //qp
-                hsize_t count1[]={1,dim,1};
-                hsize_t start1[3];
-                start1[0]=tr;
-                start1[1]=0;
-                start1[2]=0;
-                hsize_t stride1[]={1,1,1};
-                hsize_t block1[]={1,1,1};
-                //QP
-                hsize_t count2[]={1,dim,dim};
-                hsize_t start2[3];
-                start2[0]=tr;
-                start2[1]=0;
-                start2[2]=0;
-                hsize_t stride2[]={1,1,1};
-                hsize_t block2[]={1,1,1};
-                //S
-                hsize_t count3[]={1,1,1};
-                hsize_t start3[3];
-                start3[0]=tr;
-                start3[1]=0;
-                start3[2]=0;
-                hsize_t stride3[]={1,1,1};
-                hsize_t block3[]={1,1,1};
-                //qp
-                qspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
-                pspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
-                //QP
-                Qspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-                Pspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-                //S
-                Sspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
-                adQspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
-            }
-            if(wrlist["coefficients"])
-            {
-                //coefficients
-                hsize_t count4[]={1,16};
-                hsize_t start4[2];
-                start4[0]=tr;
-                start4[1]=0;
-                hsize_t stride4[]={1,1};
-                hsize_t block4[]={1,1};
-                cspace.selectHyperslab(H5S_SELECT_SET, count4, start4, stride4, block4);
-            }
-            if(wrlist["energy"])
-            {
-                hsize_t count5[]={1,1};
-                hsize_t start5[2];
-                start5[0]=tr;
-                start5[1]=0;
-                hsize_t stride5[]={1,1};
-                hsize_t block5[]={1,1};
-            }
-            if(wrlist["norm"])
-            {
-            }
+            //int tr=current_index-1;
+//            constexpr int dim=D;
+//            if(wrlist["packet"])
+//            {
+//                //qp
+//                hsize_t count1[]={1,dim,1};
+//                hsize_t start1[3];
+//                start1[0]=tr;
+//                start1[1]=0;
+//                start1[2]=0;
+//                hsize_t stride1[]={1,1,1};
+//                hsize_t block1[]={1,1,1};
+//                //QP
+//                hsize_t count2[]={1,dim,dim};
+//                hsize_t start2[3];
+//                start2[0]=tr;
+//                start2[1]=0;
+//                start2[2]=0;
+//                hsize_t stride2[]={1,1,1};
+//                hsize_t block2[]={1,1,1};
+//                //S
+//                hsize_t count3[]={1,1,1};
+//                hsize_t start3[3];
+//                start3[0]=tr;
+//                start3[1]=0;
+//                start3[2]=0;
+//                hsize_t stride3[]={1,1,1};
+//                hsize_t block3[]={1,1,1};
+//                //qp
+//                qspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
+//                pspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
+//                //QP
+//                Qspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+//                Pspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+//                //S
+//                Sspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
+//                adQspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
+//            }
+//            if(wrlist["coefficients"])
+//            {
+//                //coefficients
+//                hsize_t count4[]={1,16};
+//                hsize_t start4[2];
+//                start4[0]=tr;
+//                start4[1]=0;
+//                hsize_t stride4[]={1,1};
+//                hsize_t block4[]={1,1};
+//                cspace.selectHyperslab(H5S_SELECT_SET, count4, start4, stride4, block4);
+//            }
+//            if(wrlist["energy"])
+//            {
+//                hsize_t count5[]={1,1};
+//                hsize_t start5[2];
+//                start5[0]=tr;
+//                start5[1]=0;
+//                hsize_t stride5[]={1,1};
+//                hsize_t block5[]={1,1};
+//            }
+//            if(wrlist["norm"])
+//            {
+//            }
 
         }
         /**
@@ -565,7 +566,7 @@ namespace waveblocks
             if(wrlist["norm"])
             {
                 H5std_string tmm=datablock_string+norms_group+"/norms";
-                normss=std::make_shared<DataSet>(file_.createDataSet(tmm,PredType::NATIVE_DOUBLE,normspace,plist_norm));
+                normss=std::make_shared<DataSet>(file_.createDataSet(tmm,PredType::NATIVE_DOUBLE,normspace,plist_norms));
                 H5std_string tmt=datablock_string+norms_group+"/timegrid";
                 times_norms=std::make_shared<DataSet>(file_.createDataSet(tmt,PredType::NATIVE_DOUBLE,timespace_norms,plist_time));
             }
@@ -619,7 +620,7 @@ namespace waveblocks
             }
             if(!wrlist["coefficients"]&&!wrlist["packet"])
             {
-                std::err<<"ERROR: setup_extension_packet called with bool=false\n";
+                std::cout<<"ERROR: setup_extension_packet called with bool=false\n";
             }
         }
         /**
@@ -646,7 +647,7 @@ namespace waveblocks
             }
             if(!wrlist["coefficients"]&&!wrlist["packet"])
             {
-                std::err<<"ERROR: extend_dataset_packet called with bool=false\n";
+                std::cout<<"ERROR: extend_dataset_packet called with bool=false\n";
             }
         }
         /**
@@ -656,11 +657,11 @@ namespace waveblocks
         {
             if(wrlist["norm"])
             {
-                normss->extend(exn)
+                normss->extend(exnorms);
             }
             else
             {
-                std::err<<"ERROR: extend_dataset_norms called with bool=false\n";
+                std::cout<<"ERROR: extend_dataset_norms called with bool=false\n";
             }
         }
         /**
@@ -674,7 +675,7 @@ namespace waveblocks
             }
             else
             {
-                std::err<<"ERROR: extend_dataset_epot called with bool=false\n";
+                std::cout<<"ERROR: extend_dataset_epot called with bool=false\n";
             }
         }
         /**
@@ -688,7 +689,7 @@ namespace waveblocks
             }
             else
             {
-                std::err<<"ERROR: extend_dataset_ekin called with bool=false\n";
+                std::cout<<"ERROR: extend_dataset_ekin called with bool=false\n";
             }
         }
         /**
@@ -704,7 +705,7 @@ namespace waveblocks
             }
             else
             {
-                std::err<<"ERROR: update_filespace_ekin called with bool=false\n";
+                std::cout<<"ERROR: update_filespace_ekin called with bool=false\n";
             }
         }
         /**
@@ -720,7 +721,7 @@ namespace waveblocks
             }
             else
             {
-                std::err<<"ERROR: update_filespace_epot called with bool=false\n";
+                std::cout<<"ERROR: update_filespace_epot called with bool=false\n";
             }
         }
         /**
@@ -736,7 +737,7 @@ namespace waveblocks
             }
             else
             {
-                std::err<<"ERROR: update_filespace_norms called with bool=false\n";
+                std::cout<<"ERROR: update_filespace_norms called with bool=false\n";
             }
         }
         /**
@@ -764,7 +765,7 @@ namespace waveblocks
             }
             if(!wrlist["coefficients"]&&!wrlist["packet"])
             {
-                std::err<<"ERROR: update_filespace_packet called with bool=false\n";
+                std::cout<<"ERROR: update_filespace_packet called with bool=false\n";
             }
         }
         /**
@@ -897,7 +898,7 @@ namespace waveblocks
             }
             if(!wrlist["coefficients"]&&!wrlist["packet"])
             {
-                std::err<<"ERROR: store_packet called with bool=false\n";
+                std::cout<<"ERROR: store_packet called with bool=false\n";
             }
         }
         /**
@@ -924,7 +925,7 @@ namespace waveblocks
             }
             else
             {
-                std::err<<"ERROR: store_energies called with bool=false\n";
+                std::cout<<"ERROR: store_energies called with bool=false\n";
             }
         }
         /**
@@ -942,7 +943,7 @@ namespace waveblocks
             }
             else
             {
-                std::err<<"ERROR: store_norms called with bool=false\n";
+                std::cout<<"ERROR: store_norms called with bool=false\n";
             }
         }
         /**
