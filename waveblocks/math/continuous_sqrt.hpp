@@ -133,6 +133,14 @@ namespace waveblocks {
             {
                 return sqrt_;
             }
+            /**
+             * @brief getter for state state
+             * @return state_[-pi,pi]
+             */
+            T get_state(void) const
+            {
+                return state_;
+            }
         };
     }
 }
