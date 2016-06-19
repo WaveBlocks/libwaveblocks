@@ -238,7 +238,6 @@ namespace waveblocks
             }
             if(wrlist["norm"])
             {
-                //TODO
                 hsize_t chunk_dims6[]={1,1};
                 plist_norms.setChunk(RANK2,chunk_dims6);
                 plist_norms.setFillValue(PredType::NATIVE_DOUBLE,&dref);
@@ -292,7 +291,6 @@ namespace waveblocks
             }
             if(wrlist["norm"])
             {
-                //TODO
                 normelem[0]=1;
                 normelem[1]=1;
                 DataSpace t6(RANK2,normelem);
@@ -417,6 +415,10 @@ namespace waveblocks
                 hsize_t dim5[]={1,cdim};
                 DataSpace d5(RANK2,dim5,maxdims2);
                 cspace=d5;
+
+                hsize_t dimt1[]={1};
+                DataSpace dt1(RANK1,dimt1,maxdims1);
+                timespace_packet=dt1;
             }
             if(wrlist["energy"])
             {
@@ -425,10 +427,20 @@ namespace waveblocks
                 energyspace_ekin=d4;
                 energyspace_epot=d4;
 
+                hsize_t dimt2[]={1};
+                DataSpace dt2(RANK1,dimt2,maxdims1);
+                timespace_ekin=dt2;
+                timespace_epot=dt2;
             }
             if(wrlist["norm"])
             {
-                //TODO
+                hsize_t dim5[]={1,1};
+                DataSpace d5(RANK2,dim5,maxdims2);
+                normspace=d5;
+
+                hsize_t dimt3[]={1};
+                DataSpace dt3(RANK1,dimt3,maxdims1);
+                timespace_norms=dt3;
             }
         }
         /**
@@ -475,23 +487,48 @@ namespace waveblocks
          */
         void setup_extension_norms(void)
         {
-            //TODO
-            exnorms[0]=index_norm;
-            exnorms[1]=1;
+            if(wrlist["norm"])
+            {
+                exnorms[0]=index_norm;
+                exnorms[1]=1;
+                ex_timegrid_norms[0]=index_norm;
+            }
+            else
+            {
+            std::cout<<"ERROR: setup_extension_norms called with bool=false\n";
+            }
         }
         /**
          * @brief setup extension for epot
          */
         void setup_extension_epot(void)
         {
-            exepot[0]=index_epot;
+            if(wrlist["energy"])
+            {
+                exepot[0]=index_epot;
+                exepot[1]=1;
+                ex_timegrid_epot[0]=index_epot;
+            }
+            else
+            {
+                std::cout<<"ERROR: setup_extension_epot called with bool=false\n";
+            }
         }
         /**
          * @brief setup extension for ekin
          */
         void setup_extension_ekin(void)
         {
-            exekin[0]=index_ekin;
+            if(wrlist["energy"])
+            {
+                exekin[0]=index_ekin;
+                exekin[1]=1;
+                ex_timegrid_ekin[0]=index_ekin;
+            }
+            else
+            {
+                std::cout<<"ERROR: setup_extension_ekin called with bool=false\n";
+            }
         }
         /**
          * @brief setup extension for packet
@@ -514,6 +551,7 @@ namespace waveblocks
                 constexpr int cdim =get_size_coefficients();
                 exc[0]=index_packet;
                 exc[1]=cdim;
+                ex_timegrid_packet[0]=index_packet;
             }
             else
             {
@@ -538,6 +576,7 @@ namespace waveblocks
                 adQs->extend(exS);
 
                 coeffs->extend(exc);
+                times_packet->extend(ex_timegrid_packet);
             }
             else
             {
@@ -552,6 +591,7 @@ namespace waveblocks
             if(wrlist["norm"])
             {
                 normss->extend(exnorms);
+                times_norms->extend(ex_timegrid_norms);
             }
             else
             {
@@ -566,6 +606,7 @@ namespace waveblocks
             if(wrlist["energy"])
             {
                 energys_epot->extend(exepot);
+                times_epot->extend(ex_timegrid_epot);
             }
             else
             {
@@ -580,6 +621,7 @@ namespace waveblocks
             if(wrlist["energy"])
             {
                 energys_ekin->extend(exekin);
+                times_ekin->extend(ex_timegrid_ekin);
             }
             else
             {
@@ -596,6 +638,7 @@ namespace waveblocks
             if(wrlist["energy"])
             {
                 energyspace_ekin=energys_ekin->getSpace();
+                timespace_ekin=times_ekin->getSpace();
             }
             else
             {
@@ -612,6 +655,7 @@ namespace waveblocks
             if(wrlist["energy"])
             {
                 energyspace_epot=energys_epot->getSpace();
+                timespace_epot=times_epot->getSpace();
             }
             else
             {
@@ -627,7 +671,8 @@ namespace waveblocks
         {
             if(wrlist["norm"])
             {
-                //TODO
+                normspace=normss->getSpace();
+                timespace_norms=times_norms->getSpace();
             }
             else
             {
@@ -653,6 +698,7 @@ namespace waveblocks
                 Sspace=Ss->getSpace();
                 adQspace=adQs->getSpace();
                 cspace=coeffs->getSpace();
+                timespace_packet=times_packet->getSpace();
             }
             else
             {
@@ -777,6 +823,9 @@ namespace waveblocks
                     ctype* myadQ=transform(params.sdQ());
                     adQs->write(myadQ,mytype_,Selemspace,adQspace);
 
+                    double t1=1.*(index_packet-1);
+                    times_packet->write(&t1,PredType::NATIVE_DOUBLE,timelemspace,timespace_packet);
+
                     advance_packet();
                 }
             }
@@ -798,12 +847,16 @@ namespace waveblocks
                 {
                     select_file_writespace_ekin();
                     energys_ekin->write(&ekin_,PredType::NATIVE_DOUBLE,energyelemspace,energyspace_ekin);
+                    double t2=1.*(index_ekin-1);
+                    times_ekin->write(&t2,PredType::NATIVE_DOUBLE,timelemspace,timespace_ekin);
                     advance_ekin();
                 }
                 if((index_epot-1)%timestepsize_epot==0)
                 {
                     select_file_writespace_epot();
                     energys_epot->write(&epot_,PredType::NATIVE_DOUBLE,energyelemspace,energyspace_epot);
+                    double t3=1.*(index_epot-1);
+                    times_epot->write(&t3,PredType::NATIVE_DOUBLE,timelemspace,timespace_epot);
                     advance_epot();
                 }
             }
@@ -825,6 +878,8 @@ namespace waveblocks
                     double norms=0.5;
                     select_file_writespace_norms();
                     normss->write(&norms,PredType::NATIVE_DOUBLE,normelemspace,normspace);
+                    double t4=1.*(index_norm-1);
+                    times_norms->write(&t4,PredType::NATIVE_DOUBLE,timelemspace,timespace_norms);
                     advance_norms();
                 }
             }
@@ -884,6 +939,13 @@ namespace waveblocks
                 hsize_t stride4[]={1,1};
                 hsize_t block4[]={1,1};
                 cspace.selectHyperslab(H5S_SELECT_SET, count4, start4, stride4, block4);
+
+                hsize_t countt1[]={1};
+                hsize_t startt1[1];
+                startt1[0]=index_packet-1;
+                hsize_t stridet1[]={1};
+                hsize_t blockt1[]={1};
+                timespace_packet.selectHyperslab(H5S_SELECT_SET, countt1, startt1, stridet1, blockt1);
             }
             else
             {
@@ -914,6 +976,13 @@ namespace waveblocks
                 hsize_t stride5[]={1,1};
                 hsize_t block5[]={1,1};
                 energyspace_ekin.selectHyperslab(H5S_SELECT_SET, count5, start5, stride5, block5);
+
+                hsize_t countt2[]={1};
+                hsize_t startt2[1];
+                startt2[0]=index_ekin-1;
+                hsize_t stridet2[]={1};
+                hsize_t blockt2[]={1};
+                timespace_ekin.selectHyperslab(H5S_SELECT_SET, countt2, startt2, stridet2, blockt2);
             }
             else
             {
@@ -944,6 +1013,13 @@ namespace waveblocks
                 hsize_t stride5[]={1,1};
                 hsize_t block5[]={1,1};
                 energyspace_epot.selectHyperslab(H5S_SELECT_SET, count5, start5, stride5, block5);
+
+                hsize_t countt3[]={1};
+                hsize_t startt3[1];
+                startt3[0]=index_epot-1;
+                hsize_t stridet3[]={1};
+                hsize_t blockt3[]={1};
+                timespace_epot.selectHyperslab(H5S_SELECT_SET, countt3, startt3, stridet3, blockt3);
             }
             else
             {
@@ -967,7 +1043,20 @@ namespace waveblocks
         {
             if(wrlist["norm"])
             {
-                //TODO
+                hsize_t count6[]={1,1};
+                hsize_t start6[2];
+                start6[0]=index_norm-1;
+                start6[1]=0;
+                hsize_t stride6[]={1,1};
+                hsize_t block6[]={1,1};
+                normspace.selectHyperslab(H5S_SELECT_SET, count6, start6, stride6, block6);
+
+                hsize_t countt4[]={1};
+                hsize_t startt4[1];
+                startt4[0]=index_norm-1;
+                hsize_t stridet4[]={1};
+                hsize_t blockt4[]={1};
+                timespace_norms.selectHyperslab(H5S_SELECT_SET, countt4, startt4, stridet4, blockt4);
             }
             else
             {
@@ -993,10 +1082,56 @@ namespace waveblocks
             setup_extension_packet();
             extend_dataset_packet();
         }
+        /**
+         * @brief reverse last dataset extension for ekin
+         */
+        void cleanup_ekin(void)
+        {
+            index_ekin-=1;
+            setup_extension_ekin();
+            extend_dataset_ekin();
+        }
+        /**
+         * @brief reverse last dataset extension for epot
+         */
+        void cleanup_epot(void)
+        {
+            index_epot-=1;
+            setup_extension_epot();
+            extend_dataset_epot();
+        }
+        /**
+         * @brief reverse last dataset extension for norms
+         */
+        void cleanup_norms(void)
+        {
+            index_norm-=1;
+            setup_extension_norms();
+            extend_dataset_norms();
+        }
+        /**
+         * @brief last resize for exact length
+         */
+        void poststructuring(void)
+        {
+            if(wrlist["packet"])
+            {
+                cleanup_packet();
+            }
+            if(wrlist["norm"])
+            {
+                cleanup_norms();
+            }
+            if(wrlist["energy"])
+            {
+                cleanup_ekin();
+                cleanup_epot();
+            }
+        }
 
     private:
-        H5std_string filename_;///<identifier for filename
-        CompType mytype_;///Declaration of H5:CompType member for HDF interface
+        H5std_string filename_;///identifier for filename
+        CompType mytype_;///declaration of H5:CompType member used for HDF interface
         H5File file_; ///H5File member
         std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};///map string->bool for constructing und writing defined variables
 
@@ -1035,7 +1170,7 @@ namespace waveblocks
         hsize_t ex_timegrid_norms[1];///extension for timegrid for norms
         hsize_t ex_timegrid_epot[1];///extension for timegrid for epot
         hsize_t ex_timegrid_ekin[1];///extension for timegrid for ekin
-        hsize_t ex_timegrid__packet[1];///extension for timegrid for packet
+        hsize_t ex_timegrid_packet[1];///extension for timegrid for packet
 
         hsize_t qpelem[3]; ///size of q,p element written from program to file needed by HDF interface
         DataSpace qpelemspace;///space of q,p element written from program to file needed by HDF interface
