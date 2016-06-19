@@ -34,6 +34,16 @@ namespace waveblocks
     }instanceof;
 
     /**
+     * @brief get size of coefficients in compile time
+     * @return
+     */
+    constexpr int get_size_coefficients(void)
+    {
+        //TODO
+        return 16;
+    }
+
+    /**
      * \brief Our HDF5 writer class
      *
      * This class is templated on the Dimension D which is also used to also define the dimensionality
@@ -83,7 +93,7 @@ namespace waveblocks
             select_elem_hyperslabs();
         }
         /**
-         * @brief sets bool value for writing the packet
+         * @brief sets bool value for writing the packet(matrices and coefficients)
          * @param flag
          */
         void set_write_packet(bool flag)
@@ -99,15 +109,7 @@ namespace waveblocks
             wrlist["energy"]=flag;
         }
         /**
-         * @brief sets bool value for writing coefficients
-         * @param flag
-         */
-        void set_write_coefficients(bool flag)
-        {
-            wrlist["coefficients"]=flag;
-        }
-        /**
-         * @brief sets bool value for writing timegrid
+         * @brief sets bool value for writing norms
          * @param flag
          */
         void set_write_norm(bool flag)
@@ -221,20 +223,17 @@ namespace waveblocks
                 hsize_t chunk_dims3[]={1,1,1};
                 plist_S.setChunk(RANK3,chunk_dims3);
                 plist_S.setFillValue(mytype_,&instanceof);
+
+                constexpr int cdim=get_size_coefficients();
+                hsize_t chunk_dims5[]={1,cdim};
+                plist_c.setChunk(RANK2,chunk_dims5);
+                plist_c.setFillValue(mytype_,&instanceof);
             }
             if(wrlist["energy"])
             {
                 hsize_t chunk_dims4[]={1,1};
                 plist_energy.setChunk(RANK2,chunk_dims4);
                 plist_energy.setFillValue(PredType::NATIVE_DOUBLE,&dref);
-
-            }
-            if(wrlist["coefficients"])
-            {
-                constexpr int cdim=get_size_coefficients();
-                hsize_t chunk_dims5[]={1,cdim};
-                plist_c.setChunk(RANK2,chunk_dims5);
-                plist_c.setFillValue(mytype_,&instanceof);
 
             }
             if(wrlist["norm"])
@@ -277,6 +276,12 @@ namespace waveblocks
                 Selem[2]=1;
                 DataSpace t3(RANK3,Selem);
                 Selemspace=t3;
+
+                celem[0]=1;
+                constexpr int cdim=get_size_coefficients();
+                celem[1]=cdim;
+                DataSpace t5(RANK2,celem);
+                celemspace=t5;
             }
             if(wrlist["energy"])
             {
@@ -284,14 +289,6 @@ namespace waveblocks
                 energyelem[1]=1;
                 DataSpace t4(RANK2,energyelem);
                 energyelemspace=t4;
-            }
-            if(wrlist["coefficients"])
-            {
-                celem[0]=1;
-                constexpr int cdim=get_size_coefficients();
-                celem[1]=cdim;
-                DataSpace t5(RANK2,celem);
-                celemspace=t5;
             }
             if(wrlist["norm"])
             {
@@ -309,26 +306,12 @@ namespace waveblocks
         {
             H5std_string a1=datablock_string;
             gblock = std::make_shared<Group>(file_.createGroup(a1));
-            if(wrlist["packet"] && wrlist["coefficients"])
+            if(wrlist["packet"])
             {
                 H5std_string a2=(datablock_string+wavepacket_group_string);
                 gpacket = std::make_shared<Group>(file_.createGroup(a2));
                 H5std_string a3=(datablock_string+wavepacket_group_string+packet_group_string);
                 gPi = std::make_shared<Group>(file_.createGroup(a3));
-                H5std_string a4=(datablock_string+wavepacket_group_string+coefficient_group_string);
-                gcoefficient = std::make_shared<Group>(file_.createGroup(a4));
-            }
-            else if(wrlist["packet"])
-            {
-                H5std_string a2=(datablock_string+wavepacket_group_string);
-                gpacket = std::make_shared<Group>(file_.createGroup(a2));
-                H5std_string a3=(datablock_string+wavepacket_group_string+packet_group_string);
-                gPi = std::make_shared<Group>(file_.createGroup(a3));
-            }
-            else if(wrlist["coefficients"])
-            {
-                H5std_string a2=(datablock_string+wavepacket_group_string);
-                gpacket = std::make_shared<Group>(file_.createGroup(a2));
                 H5std_string a4=(datablock_string+wavepacket_group_string+coefficient_group_string);
                 gcoefficient = std::make_shared<Group>(file_.createGroup(a4));
             }
@@ -382,9 +365,7 @@ namespace waveblocks
                 QPelemspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
                 //Selem also for adQ
                 Selemspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
-            }
-            if(wrlist["coefficients"])
-            {
+
                 constexpr int cdim = get_size_coefficients();
                 //coefficients
                 hsize_t count4[]={1,cdim};
@@ -403,18 +384,10 @@ namespace waveblocks
             }
             if(wrlist["norm"])
             {
-
+                //TODO
             }
         }
-        /**
-         * @brief get size of coefficients in compile time
-         * @return
-         */
-        constexpr int get_size_coefficients(void)
-        {
-            //TODO
-            return 16;
-        }
+
         /**
          * @brief set dataspace used in file
          */
@@ -438,6 +411,12 @@ namespace waveblocks
                 DataSpace d3(RANK3,dim3,maxdims3);
                 Sspace=d3;
                 adQspace=d3;
+
+                constexpr int cdim = get_size_coefficients();
+                //set up coefficients
+                hsize_t dim5[]={1,cdim};
+                DataSpace d5(RANK2,dim5,maxdims2);
+                cspace=d5;
             }
             if(wrlist["energy"])
             {
@@ -447,88 +426,10 @@ namespace waveblocks
                 energyspace_epot=d4;
 
             }
-            if(wrlist["coefficients"])
-            {
-                constexpr int cdim = get_size_coefficients();
-                //set up coefficients
-                hsize_t dim5[]={1,cdim};
-                DataSpace d5(RANK2,dim5,maxdims2);
-                cspace=d5;
-            }
             if(wrlist["norm"])
             {
+                //TODO
             }
-        }
-        /**
-         * @brief set the writespace(block) which is written to in file
-         *
-         * Is dependent on template int D and current_index
-         */
-        void select_file_writespace(void)
-        {
-            //TODO
-            //int tr=current_index-1;
-//            constexpr int dim=D;
-//            if(wrlist["packet"])
-//            {
-//                //qp
-//                hsize_t count1[]={1,dim,1};
-//                hsize_t start1[3];
-//                start1[0]=tr;
-//                start1[1]=0;
-//                start1[2]=0;
-//                hsize_t stride1[]={1,1,1};
-//                hsize_t block1[]={1,1,1};
-//                //QP
-//                hsize_t count2[]={1,dim,dim};
-//                hsize_t start2[3];
-//                start2[0]=tr;
-//                start2[1]=0;
-//                start2[2]=0;
-//                hsize_t stride2[]={1,1,1};
-//                hsize_t block2[]={1,1,1};
-//                //S
-//                hsize_t count3[]={1,1,1};
-//                hsize_t start3[3];
-//                start3[0]=tr;
-//                start3[1]=0;
-//                start3[2]=0;
-//                hsize_t stride3[]={1,1,1};
-//                hsize_t block3[]={1,1,1};
-//                //qp
-//                qspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
-//                pspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
-//                //QP
-//                Qspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-//                Pspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-//                //S
-//                Sspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
-//                adQspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
-//            }
-//            if(wrlist["coefficients"])
-//            {
-//                //coefficients
-//                hsize_t count4[]={1,16};
-//                hsize_t start4[2];
-//                start4[0]=tr;
-//                start4[1]=0;
-//                hsize_t stride4[]={1,1};
-//                hsize_t block4[]={1,1};
-//                cspace.selectHyperslab(H5S_SELECT_SET, count4, start4, stride4, block4);
-//            }
-//            if(wrlist["energy"])
-//            {
-//                hsize_t count5[]={1,1};
-//                hsize_t start5[2];
-//                start5[0]=tr;
-//                start5[1]=0;
-//                hsize_t stride5[]={1,1};
-//                hsize_t block5[]={1,1};
-//            }
-//            if(wrlist["norm"])
-//            {
-//            }
-
         }
         /**
          * @brief allocate space for datasets
@@ -545,9 +446,7 @@ namespace waveblocks
                 Ss=std::make_shared<DataSet>(file_.createDataSet(pack+"/S",mytype_,Sspace,plist_S));
                 adQs=std::make_shared<DataSet>(file_.createDataSet(pack+"/adQ",mytype_,adQspace,plist_S));
                 times_packet=std::make_shared<DataSet>(file_.createDataSet(pack+"/timegrid",PredType::NATIVE_DOUBLE,timespace_packet,plist_time));
-            }
-            if(wrlist["coefficients"])
-            {
+
                 H5std_string cff=datablock_string+wavepacket_group_string+coefficient_group_string;
                 coeffs=std::make_shared<DataSet>(file_.createDataSet(cff+"/c_0",mytype_,cspace,plist_c));
             }
@@ -611,14 +510,12 @@ namespace waveblocks
                 exS[0]=index_packet;
                 exS[1]=1;
                 exS[2]=1;
-            }
-            if(wrlist["coefficients"])
-            {
+
                 constexpr int cdim =get_size_coefficients();
                 exc[0]=index_packet;
                 exc[1]=cdim;
             }
-            if(!wrlist["coefficients"]&&!wrlist["packet"])
+            else
             {
                 std::cout<<"ERROR: setup_extension_packet called with bool=false\n";
             }
@@ -639,13 +536,10 @@ namespace waveblocks
                 //Senergies
                 Ss->extend(exS);
                 adQs->extend(exS);
-            }
-            if(wrlist["coefficients"])
-            {
-                //coefficients
+
                 coeffs->extend(exc);
             }
-            if(!wrlist["coefficients"]&&!wrlist["packet"])
+            else
             {
                 std::cout<<"ERROR: extend_dataset_packet called with bool=false\n";
             }
@@ -758,12 +652,9 @@ namespace waveblocks
                 //S
                 Sspace=Ss->getSpace();
                 adQspace=adQs->getSpace();
-            }
-            if(wrlist["coefficients"])
-            {
                 cspace=coeffs->getSpace();
             }
-            if(!wrlist["coefficients"]&&!wrlist["packet"])
+            else
             {
                 std::cout<<"ERROR: update_filespace_packet called with bool=false\n";
             }
@@ -860,22 +751,15 @@ namespace waveblocks
         template<class MultiIndex>
         void store_packet(const double& time_, const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packetto)
         {
-            if(wrlist["coefficients"])
-            {
-                if((index_packet-1)%timestepsize_packet==0)
-                {
-                select_file_writespace_coefficients();
-                ctype* myc=transform(utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
-                coeffs->write(myc,mytype_,celemspace,cspace);
-                advance_coeffs();
-                }
-            }
             const auto& params = packetto.parameters();
             if(wrlist["packet"])
             {
                 if((index_packet-1)%timestepsize_packet==0)
                 {
                     select_file_writespace_packet();
+
+                    ctype* myc=transform(utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
+                    coeffs->write(myc,mytype_,celemspace,cspace);
 
                     ctype* myQw=transform(params.Q());
                     Qs->write(myQw,mytype_,QPelemspace,Qspace);
@@ -896,7 +780,7 @@ namespace waveblocks
                     advance_packet();
                 }
             }
-            if(!wrlist["coefficients"]&&!wrlist["packet"])
+            else
             {
                 std::cout<<"ERROR: store_packet called with bool=false\n";
             }
@@ -934,12 +818,15 @@ namespace waveblocks
         template<class MultiIndex>
         void store_norms(const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packet)
         {
-            if((index_norm-1)%timestepsize_norms==0)
+            if(wrlist["norm"])
             {
-                double norms=0.5;
-                select_file_writespace_norms();
-                normss->write(&norms,PredType::NATIVE_DOUBLE,normelemspace,normspace);
-                advance_norms();
+                if((index_norm-1)%timestepsize_norms==0)
+                {
+                    double norms=0.5;
+                    select_file_writespace_norms();
+                    normss->write(&norms,PredType::NATIVE_DOUBLE,normelemspace,normspace);
+                    advance_norms();
+                }
             }
             else
             {
@@ -947,31 +834,171 @@ namespace waveblocks
             }
         }
         /**
-         * @brief advance witer after timestep
+         * @brief select file writespace for packet
          */
-        void advance(void)
+        void select_file_writespace_packet(void)
         {
-            increase_index();
-            setup_extensions();
-            extend_datasets();
-            update_filespace();
+            constexpr int dim=D;
+            if(wrlist["packet"])
+            {
+                //qp
+                hsize_t count1[]={1,dim,1};
+                hsize_t start1[3];
+                start1[0]=index_packet-1;
+                start1[1]=0;
+                start1[2]=0;
+                hsize_t stride1[]={1,1,1};
+                hsize_t block1[]={1,1,1};
+                //QP
+                hsize_t count2[]={1,dim,dim};
+                hsize_t start2[3];
+                start2[0]=index_packet-1;
+                start2[1]=0;
+                start2[2]=0;
+                hsize_t stride2[]={1,1,1};
+                hsize_t block2[]={1,1,1};
+                //S
+                hsize_t count3[]={1,1,1};
+                hsize_t start3[3];
+                start3[0]=index_packet-1;
+                start3[1]=0;
+                start3[2]=0;
+                hsize_t stride3[]={1,1,1};
+                hsize_t block3[]={1,1,1};
+                //qp
+                qspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
+                pspace.selectHyperslab(H5S_SELECT_SET, count1, start1, stride1, block1);
+                //QP
+                Qspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                Pspace.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                //S
+                Sspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
+                adQspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
 
+                constexpr int cdim = get_size_coefficients();
+                //coefficients
+                hsize_t count4[]={1,cdim};
+                hsize_t start4[2];
+                start4[0]=index_packet-1;
+                start4[1]=0;
+                hsize_t stride4[]={1,1};
+                hsize_t block4[]={1,1};
+                cspace.selectHyperslab(H5S_SELECT_SET, count4, start4, stride4, block4);
+            }
+            else
+            {
+                std::cout<<"ERROR: select_file_writespace_packet called with bool=false\n";
+            }
         }
         /**
-         * @brief reverse last dataset extension
+         * @brief advance writing position for packet and extends set
          */
-        void cleanup(void)
+        void advance_packet(void)
         {
-            decrease_index();
-            setup_extensions();
-            extend_datasets();
+            index_packet+=1;
+            setup_extension_packet();
+            extend_dataset_packet();
+            update_filespace_packet();
+        }
+        /**
+         * @brief select file writespace for ekin
+         */
+        void select_file_writespace_ekin(void)
+        {
+            if(wrlist["energy"])
+            {
+                hsize_t count5[]={1,1};
+                hsize_t start5[2];
+                start5[0]=index_ekin-1;
+                start5[1]=0;
+                hsize_t stride5[]={1,1};
+                hsize_t block5[]={1,1};
+                energyspace_ekin.selectHyperslab(H5S_SELECT_SET, count5, start5, stride5, block5);
+            }
+            else
+            {
+                std::cout<<"ERROR: select_file_writespace_ekin called with bool=false\n";
+            }
+        }
+        /**
+         * @brief advance writing position for ekin and extends set
+         */
+        void advance_ekin(void)
+        {
+            index_ekin+=1;
+            setup_extension_ekin();
+            extend_dataset_ekin();
+            update_filespace_ekin();
+        }
+        /**
+         * @brief select file writespace for epot
+         */
+        void select_file_writespace_epot(void)
+        {
+            if(wrlist["energy"])
+            {
+                hsize_t count5[]={1,1};
+                hsize_t start5[2];
+                start5[0]=index_epot-1;
+                start5[1]=0;
+                hsize_t stride5[]={1,1};
+                hsize_t block5[]={1,1};
+                energyspace_epot.selectHyperslab(H5S_SELECT_SET, count5, start5, stride5, block5);
+            }
+            else
+            {
+                std::cout<<"ERROR: select_file_writespace_epot called with bool=false\n";
+            }
+        }
+        /**
+         * @brief advance writing position for epot and extends set
+         */
+        void advance_epot(void)
+        {
+            index_epot+=1;
+            setup_extension_epot();
+            extend_dataset_epot();
+            update_filespace_epot();
+        }
+        /**
+         * @brief select file writespace for norms
+         */
+        void select_file_writespace_norms(void)
+        {
+            if(wrlist["norm"])
+            {
+                //TODO
+            }
+            else
+            {
+                std::cout<<"ERROR: select_file_writespace_norms called with bool=false\n";
+            }
+        }
+        /**
+         * @brief advance writing position for norms and extends set
+         */
+        void advance_norms(void)
+        {
+            index_norm+=1;
+            setup_extension_norms();
+            extend_dataset_norms();
+            update_filespace_norms();
+        }
+        /**
+         * @brief reverse last dataset extension for packet
+         */
+        void cleanup_packet(void)
+        {
+            index_packet-=1;
+            setup_extension_packet();
+            extend_dataset_packet();
         }
 
     private:
         H5std_string filename_;///<identifier for filename
         CompType mytype_;///Declaration of H5:CompType member
         H5File file_; ///H5File member
-        std::map<std::string,bool> wrlist={{"packet",1},{"coefficients",1},{"energy",0},{"norm",0}};///map string->bool for constructing und writing defined variables
+        std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};///map string->bool for constructing und writing defined variables
 
         double dref=0.;///fillvalue for energys for allocation
         H5std_string packet_group_string="/Pi";///String for H5Group to save packet to. Default:Pi
