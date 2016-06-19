@@ -996,7 +996,7 @@ namespace waveblocks
 
     private:
         H5std_string filename_;///<identifier for filename
-        CompType mytype_;///Declaration of H5:CompType member
+        CompType mytype_;///Declaration of H5:CompType member for HDF interface
         H5File file_; ///H5File member
         std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};///map string->bool for constructing und writing defined variables
 
