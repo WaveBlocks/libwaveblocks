@@ -89,7 +89,6 @@ int main() {
 
     io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
     mywriter2.set_write_energy(true);
-    mywriter2.set_write_norm(true);
     mywriter2.prestructuring();
 
     //write time = 0
@@ -97,7 +96,6 @@ int main() {
     real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
     mywriter2.store_packet(0,packet);
     mywriter2.store_energies(epot,ekin);
-    mywriter2.advance();
 
 
     std::cout << "Time: " << 0 << std::endl;
@@ -116,7 +114,6 @@ int main() {
 
         mywriter2.store_packet(t+dt,packet);
         mywriter2.store_energies(epot,ekin);
-        mywriter2.advance();
 
         std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
 
@@ -128,5 +125,4 @@ int main() {
 
 
     }
-    mywriter2.cleanup();
 }
