@@ -125,4 +125,5 @@ int main() {
 
 
     }
+    mywriter2.poststructuring();
 }
