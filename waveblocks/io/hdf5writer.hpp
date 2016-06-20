@@ -39,7 +39,7 @@ namespace waveblocks
      */
     constexpr int get_size_coefficients(void)
     {
-        //TODO
+        //TODO getsizecoefficients
         return 16;
     }
 
@@ -382,7 +382,11 @@ namespace waveblocks
             }
             if(wrlist["norm"])
             {
-                //TODO
+                hsize_t count6[]={1,1};
+                hsize_t start6[]={0,0};
+                hsize_t stride6[]={1,1};
+                hsize_t block6[]={1,1};
+                normelemspace.selectHyperslab(H5S_SELECT_SET, count6, start6, stride6, block6);
             }
         }
 
