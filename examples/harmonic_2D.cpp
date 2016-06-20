@@ -90,7 +90,7 @@ int main() {
     io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
     mywriter2.set_write_energy(true);
     mywriter2.set_write_norm(true);
-    mywriter2.prestructuring();
+    mywriter2.prestructuring<MultiIndex>(packet);
 
     //write time = 0
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
@@ -100,16 +100,16 @@ int main() {
     mywriter2.store_energies(epot,ekin);
 
 
-    //std::cout << "Time: " << 0 << std::endl;
-    //std::cout << packet.parameters() << std::endl;
+    std::cout << "Time: " << 0 << std::endl;
+    std::cout << packet.parameters() << std::endl;
 
     // Propagation
     for (real_t t = dt; t < T; t += dt) {
-        //std::cout << "Time: " << t << std::endl;
+        std::cout << "Time: " << t << std::endl;
 
         // Propagate
         propagator.propagate(packet,dt,V);
-        //std::cout << packet.parameters() << std::endl;
+        std::cout << packet.parameters() << std::endl;
 
         real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
         real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
@@ -118,13 +118,13 @@ int main() {
         mywriter2.store_energies(epot,ekin);
         mywriter2.store_norms(packet);
 
-        //std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
+        std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
 
         // Assure constant coefficients
         auto diff = (packet.coefficients() - coefforig).array().abs();
         auto norm = diff.matrix().template lpNorm<Eigen::Infinity>();
         bool flag = norm > tol ? false : true;
-        //std::cout << "Coefficients constant? " << (flag ? "yes" : "no") << std::endl;
+        std::cout << "Coefficients constant? " << (flag ? "yes" : "no") << std::endl;
 
 
     }
