@@ -36,26 +36,6 @@ namespace waveblocks
     }instanceof;
 
     /**
-     * @brief get size of coefficients in compile time
-     * @return
-     */
-
-    constexpr int get_size_coefficients(void)
-    {
-//        template<class Packet>
-//        struct PacketToCoefficients {
-//            static CVector<Eigen::Dynamic> to(const Packet& packet) {
-
-//                // Compute size
-//                int size = 0;
-//                for (const auto& component: packet.components()) {
-//                    size += component.coefficients().size();
-//                }
-        //TODO getsizecoefficients
-        return 16;
-    }
-
-    /**
      * \brief Our HDF5 writer class
      *
      * This class is templated on the Dimension D which is also used to also define the dimensionality
@@ -82,10 +62,26 @@ namespace waveblocks
             mytype_.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
         }
         /**
-         * \brief prestructure after knowing bool values and packet
+         * \brief runtime function to evaluate number of coefficients
          */
-        void prestructuring(void)
+        template<class MultiIndex>
+        void set_coeff_dim(waveblocks::wavepackets::ScalarHaWp<D,MultiIndex> packet)
         {
+            Eigen::Matrix<complex_t, Eigen::Dynamic, 1> coeffs=utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packet);
+            int a=coeffs.rows();
+            int b=coeffs.cols();
+            csize=a*b;
+        }
+        /**
+         * \brief prestructure after knowing bool values and packet
+         * \param packet used for evaluation number of coefficients
+         */
+        template<class MultiIndex>
+        void prestructuring(waveblocks::wavepackets::ScalarHaWp<D,MultiIndex> packet)
+        {
+            //get number
+            set_coeff_dim(packet);
+
             //set group structure
             set_group_structure();
 
@@ -238,7 +234,7 @@ namespace waveblocks
 
                 hsize_t chunk_dims5[2];
                 chunk_dims5[0]=1;
-                chunk_dims5[1]=get_size_coefficients();
+                chunk_dims5[1]=csize;
                 plist_c.setChunk(RANK2,chunk_dims5);
                 plist_c.setFillValue(mytype_,&instanceof);
             }
@@ -290,8 +286,7 @@ namespace waveblocks
                 Selemspace=t3;
 
                 celem[0]=1;
-                constexpr int cdim=get_size_coefficients();
-                celem[1]=cdim;
+                celem[1]=csize;
                 DataSpace t5(RANK2,celem);
                 celemspace=t5;
             }
@@ -377,9 +372,10 @@ namespace waveblocks
                 //Selem also for adQ
                 Selemspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
 
-                constexpr int cdim = get_size_coefficients();
                 //coefficients
-                hsize_t count4[]={1,cdim};
+                hsize_t count4[2];
+                count4[0]=1;
+                count4[1]=csize;
                 hsize_t start4[]={0,0};
                 hsize_t stride4[]={1,1};
                 hsize_t block4[]={1,1};
@@ -427,9 +423,10 @@ namespace waveblocks
                 Sspace=d3;
                 adQspace=d3;
 
-                constexpr int cdim = get_size_coefficients();
                 //set up coefficients
-                hsize_t dim5[]={1,cdim};
+                hsize_t dim5[2];
+                dim5[0]=1;
+                dim5[1]=csize;
                 DataSpace d5(RANK2,dim5,maxdims2);
                 cspace=d5;
 
@@ -565,9 +562,8 @@ namespace waveblocks
                 exS[1]=1;
                 exS[2]=1;
 
-                constexpr int cdim =get_size_coefficients();
                 exc[0]=index_packet;
-                exc[1]=cdim;
+                exc[1]=csize;
                 ex_timegrid_packet[0]=index_packet;
             }
             else
@@ -784,9 +780,9 @@ namespace waveblocks
             //int coldim=cmat.cols();
             //hardcoded because Eigen::dynamic is not const
             //need rowdim = 1 coldim = 16
-            ctype* newdat=new ctype[16];
+            ctype* newdat=new ctype[csize];
 
-            for(int q=0;q<16;++q)
+            for(int q=0;q<csize;++q)
             {
                 newdat[q].real=cmat[q].real();
                 newdat[q].imag=cmat[q].imag();
@@ -840,7 +836,7 @@ namespace waveblocks
                     ctype* myadQ=transform(params.sdQ());
                     adQs->write(myadQ,mytype_,Selemspace,adQspace);
 
-                    double t1=1.*(index_packet-1);
+                    double t1=1.*tindex_packet;
                     times_packet->write(&t1,PredType::NATIVE_DOUBLE,timelemspace,timespace_packet);
 
                     advance_packet();
@@ -898,7 +894,7 @@ namespace waveblocks
                     double norms=0.5;
                     select_file_writespace_norms();
                     normss->write(&norms,PredType::NATIVE_DOUBLE,normelemspace,normspace);
-                    double t4=1.*(index_norm-1);
+                    double t4=1.*tindex_norm;
                     times_norms->write(&t4,PredType::NATIVE_DOUBLE,timelemspace,timespace_norms);
                     advance_norms();
                 }
@@ -951,9 +947,10 @@ namespace waveblocks
                 Sspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
                 adQspace.selectHyperslab(H5S_SELECT_SET, count3, start3, stride3, block3);
 
-                constexpr int cdim = get_size_coefficients();
                 //coefficients
-                hsize_t count4[]={1,cdim};
+                hsize_t count4[2];
+                count4[0]=1;
+                count4[1]=csize;
                 hsize_t start4[2];
                 start4[0]=index_packet-1;
                 start4[1]=0;
@@ -1222,7 +1219,7 @@ namespace waveblocks
         int tindex_norm=0;///timeindex for modulo writing norms
         int tindex_packet=0;///timeindex for modulo writing packet
 
-        int csize=0;///runtime size coefficients
+        int csize;///runtime size coefficients
 
         std::shared_ptr<Group> gblock;///group for datablock
         std::shared_ptr<Group> gpacket;///group for packet
