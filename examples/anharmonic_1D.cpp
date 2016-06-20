@@ -93,14 +93,18 @@ int main() {
     mywriter.prestructuring<MultiIndex>(packet);
 
     //time=0
+    std::cout << "Time: " << 0 << std::endl;
     mywriter.store_packet(0,packet);
+    std::cout << packet.parameters() << std::endl;
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
     mywriter.store_energies(epot,ekin);
+    std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << epot+ekin << std::endl;
+
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
-        std::cout << "Time: " << t << std::endl;
+        std::cout << "Time: " << t+dt << std::endl;
 
         // Propagate
         propagator.propagate(packet,dt,V);
