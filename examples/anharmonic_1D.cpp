@@ -14,7 +14,6 @@
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/observables/energy.hpp"
-#include "waveblocks/utilities/packetWriter.hpp"
 #include "waveblocks/io/hdf5writer.hpp"
 
 
@@ -89,7 +88,15 @@ int main() {
     propagators::Hagedorn<N,D,MultiIndex,QR> propagator;
 
     // Preparing the file
-    utilities::PacketWriter<wavepackets::ScalarHaWp<D,MultiIndex>> writer("anharmonic_1D.hdf5");
+    io::hdf5writer<D> mywriter("anharmonic_1D_cpp.hdf5");
+    mywriter.set_write_energy(true);
+    mywriter.prestructuring();
+
+    //time=0
+    mywriter.store_packet(0,packet);
+    real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+    real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
+    mywriter.store_energies(epot,ekin);
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
@@ -98,13 +105,14 @@ int main() {
         // Propagate
         propagator.propagate(packet,dt,V);
         std::cout << packet.parameters() << std::endl;
-        writer.store_packet(t,packet);
+        mywriter.store_packet(t,packet);
 
         // Compute energies
         real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
         real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
         real_t etot = ekin + epot;
         std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << etot << std::endl;
-        writer.store_energies(t,epot,ekin);
+        mywriter.store_energies(epot,ekin);
     }
+    mywriter.poststructuring();
 }

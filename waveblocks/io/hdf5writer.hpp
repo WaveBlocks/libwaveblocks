@@ -11,6 +11,8 @@
 
 #include "waveblocks/wavepackets/hawp_commons.hpp"
 #include "waveblocks/wavepackets/hawp_paramset.hpp"
+#include "waveblocks/types.hpp"
+#include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 
 namespace waveblocks
 {
@@ -37,8 +39,18 @@ namespace waveblocks
      * @brief get size of coefficients in compile time
      * @return
      */
+
     constexpr int get_size_coefficients(void)
     {
+//        template<class Packet>
+//        struct PacketToCoefficients {
+//            static CVector<Eigen::Dynamic> to(const Packet& packet) {
+
+//                // Compute size
+//                int size = 0;
+//                for (const auto& component: packet.components()) {
+//                    size += component.coefficients().size();
+//                }
         //TODO getsizecoefficients
         return 16;
     }
@@ -70,7 +82,7 @@ namespace waveblocks
             mytype_.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
         }
         /**
-         * \brief prestructure after knowing bool values
+         * \brief prestructure after knowing bool values and packet
          */
         void prestructuring(void)
         {
@@ -224,8 +236,9 @@ namespace waveblocks
                 plist_S.setChunk(RANK3,chunk_dims3);
                 plist_S.setFillValue(mytype_,&instanceof);
 
-                constexpr int cdim=get_size_coefficients();
-                hsize_t chunk_dims5[]={1,cdim};
+                hsize_t chunk_dims5[2];
+                chunk_dims5[0]=1;
+                chunk_dims5[1]=get_size_coefficients();
                 plist_c.setChunk(RANK2,chunk_dims5);
                 plist_c.setFillValue(mytype_,&instanceof);
             }
@@ -1208,6 +1221,8 @@ namespace waveblocks
         int tindex_epot=0;///timeindex for modulo writing epot
         int tindex_norm=0;///timeindex for modulo writing norms
         int tindex_packet=0;///timeindex for modulo writing packet
+
+        int csize=0;///runtime size coefficients
 
         std::shared_ptr<Group> gblock;///group for datablock
         std::shared_ptr<Group> gpacket;///group for packet
