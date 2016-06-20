@@ -89,6 +89,7 @@ int main() {
 
     io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
     mywriter2.set_write_energy(true);
+    mywriter2.set_timestep_ekin(2);
     mywriter2.prestructuring();
 
     //write time = 0

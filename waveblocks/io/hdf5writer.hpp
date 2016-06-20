@@ -800,7 +800,7 @@ namespace waveblocks
             const auto& params = packetto.parameters();
             if(wrlist["packet"])
             {
-                if((index_packet-1)%timestepsize_packet==0)
+                if(tindex_packet%timestepsize_packet==0)
                 {
                     select_file_writespace_packet();
 
@@ -828,6 +828,7 @@ namespace waveblocks
 
                     advance_packet();
                 }
+                tindex_packet+=1;
             }
             else
             {
@@ -843,22 +844,24 @@ namespace waveblocks
         {
             if(wrlist["energy"])
             {
-                if((index_ekin-1)%timestepsize_ekin==0)
+                if(tindex_ekin%timestepsize_ekin==0)
                 {
                     select_file_writespace_ekin();
                     energys_ekin->write(&ekin_,PredType::NATIVE_DOUBLE,energyelemspace,energyspace_ekin);
-                    double t2=1.*(index_ekin-1);
+                    double t2=1.*tindex_ekin;
                     times_ekin->write(&t2,PredType::NATIVE_DOUBLE,timelemspace,timespace_ekin);
                     advance_ekin();
                 }
-                if((index_epot-1)%timestepsize_epot==0)
+                tindex_ekin+=1;
+                if(tindex_epot%timestepsize_epot==0)
                 {
                     select_file_writespace_epot();
                     energys_epot->write(&epot_,PredType::NATIVE_DOUBLE,energyelemspace,energyspace_epot);
-                    double t3=1.*(index_epot-1);
+                    double t3=1.*tindex_epot;
                     times_epot->write(&t3,PredType::NATIVE_DOUBLE,timelemspace,timespace_epot);
                     advance_epot();
                 }
+                tindex_epot+=1;
             }
             else
             {
@@ -873,7 +876,7 @@ namespace waveblocks
         {
             if(wrlist["norm"])
             {
-                if((index_norm-1)%timestepsize_norms==0)
+                if(tindex_norm%timestepsize_norms==0)
                 {
                     double norms=0.5;
                     select_file_writespace_norms();
@@ -882,6 +885,7 @@ namespace waveblocks
                     times_norms->write(&t4,PredType::NATIVE_DOUBLE,timelemspace,timespace_norms);
                     advance_norms();
                 }
+                tindex_norm+=1;
             }
             else
             {
@@ -1151,7 +1155,6 @@ namespace waveblocks
         DSetCreatPropList plist_time;///PropList for timegrids
         DSetCreatPropList plist_norms;///PropList for norms
 
-
         const int RANK1=1;///rank 1 identifier
         const int RANK2=2;///rank 2 identifier
         const int RANK3=3;///rank 3 identifier
@@ -1187,15 +1190,20 @@ namespace waveblocks
         hsize_t normelem[2];///size of coefficient element written from program to file needed by HDF interface
         DataSpace normelemspace;///space of norm element written from program to file needed by HDF interface
 
-        int index_packet=1;///index for storing packet
-        int index_norm=1;///index for storing norm
-        int index_ekin=1;///index for storing ekin
-        int index_epot=1;///index for storing epot
+        int index_packet=1;///index used for storing packet
+        int index_norm=1;///index used for storing norm
+        int index_ekin=1;///index used for storing ekin
+        int index_epot=1;///index used for storing epot
 
         int timestepsize_norms=1;///timestepsize for norm timegrid
         int timestepsize_ekin=1;///timestepsize for ekin timegrid
         int timestepsize_epot=1;///timestepsize for epot timegrid
         int timestepsize_packet=1;///timestepsize for packet timegrid
+
+        int tindex_ekin=0;///timeindex for modulo writing ekin
+        int tindex_epot=0;///timeindex for modulo writing epot
+        int tindex_norm=0;///timeindex for modulo writing norms
+        int tindex_packet=0;///timeindex for modulo writing packet
 
         std::shared_ptr<Group> gblock;///group for datablock
         std::shared_ptr<Group> gpacket;///group for packet
