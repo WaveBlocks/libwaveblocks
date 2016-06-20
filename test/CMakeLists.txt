@@ -28,5 +28,7 @@ add_executable(test_innerproduct_problems test_innerproduct_problems.cpp)
 
 add_executable(test_matexp test_matexp.cpp)
 
-add_executable(test_2hdf_files test_2hdf_files.cpp)
-target_link_libraries(test_2hdf_files ${LINK_LIBS})
+if(GTEST_FOUND)
+    add_executable(test_2hdf_files test_2hdf_files.cpp)
+    target_link_libraries(test_2hdf_files ${LINK_LIBS})
+endif()
