@@ -222,11 +222,12 @@ template <typename T>
 void save_scalar_attribute (const H5::H5Location &h5obj, const std::string &name, const T &value)
 {
     const H5::DataType * const datatype = DatatypeSpecialization<T>::get();
+    //here change dataspace to a reusable one?
     H5::DataSpace dataspace(H5S_SCALAR);
     H5::Attribute att = h5obj.createAttribute(name, *datatype, dataspace);
     att.write(*datatype, &value);
 }
-
+//specialisation of ^ T = string
 template <>
 inline void save_scalar_attribute (const H5::H5Location &h5obj, const std::string &name, const std::string &value)
 {
@@ -240,6 +241,7 @@ void save (H5::CommonFG &h5group, const std::string &name, const Eigen::EigenBas
 {
     typedef typename Derived::Scalar Scalar;
     const Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> row_major_mat(mat);
+    //creat a dataspace? where is the reuse
     const H5::DataSpace dataspace = internal::create_dataspace(mat);
     const H5::DataType * const datatype = DatatypeSpecialization<Scalar>::get();
     H5::DataSet dataset = h5group.createDataSet(name, *datatype, dataspace, plist);

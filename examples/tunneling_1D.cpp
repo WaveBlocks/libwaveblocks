@@ -14,7 +14,7 @@
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/observables/energy.hpp"
-#include "waveblocks/utilities/packetWriter.hpp"
+#include "waveblocks/io/hdf5writer.hpp"
 
 
 using namespace waveblocks;
@@ -60,7 +60,7 @@ int main() {
     const int D = 1;
     const int K = 512;
 
-    const real_t T = 70;
+    const real_t T = 2;
     const real_t dt = 0.005;
 
     const real_t eps = 0.1530417681822;
@@ -95,23 +95,35 @@ int main() {
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
     // Preparing the file
-    utilities::PacketWriter<wavepackets::ScalarHaWp<D,MultiIndex>> writer("tunneling_1D.hdf5");
+    io::hdf5writer<D> mywriter("tunneling1_1D_cpp.hdf5");
+    mywriter.set_write_energy(true);
+    mywriter.prestructuring<MultiIndex>(packet);
+
+
+    //time 0
+    std::cout << "Time: " << 0 << std::endl;
+    std::cout << packet.parameters() << std::endl;
+    real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+    real_t epot = observables::potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
+    mywriter.store_packet(0,packet);
+    mywriter.store_energies(epot,ekin);
+    std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << epot+ekin << std::endl;
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
-        std::cout << "Time: " << t << std::endl;
+        std::cout << "Time: " << t+dt << std::endl;
 
         // Propagate
         propagator.propagate(packet,dt,V);
         std::cout << packet.parameters() << std::endl;
-        writer.store_packet(t,packet);
+        mywriter.store_packet(t,packet);
 
         // Compute energies
-        real_t kinetic = observables::kinetic_energy<D,MultiIndex>(packet);
-        real_t potential = observables::potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
-        real_t total = kinetic+potential;
-        std::cout << "E: (p,k,t) " << potential << ", " << kinetic << ", " << total << std::endl;
-        std::cout << potential << "," << kinetic << ", "<< total << std::endl;
-        writer.store_energies(t,potential,kinetic);
+        real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+        real_t epot = observables::potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
+        std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << epot+ekin << std::endl;
+        mywriter.store_energies(epot,ekin);
+
     }
+    mywriter.poststructuring();
 }
