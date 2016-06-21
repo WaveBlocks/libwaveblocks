@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <memory>
 
 //include GTest
 #include "gtest/gtest.h"
@@ -23,7 +24,7 @@ class Test2files: public ::testing::Test
     {
     //read filenames
     assert(global_argc==3);
-    char* this_file=global_argv[0];
+    //char* this_file=global_argv[0];
     char* filename_1 = global_argv[1];
     char* filename_2 = global_argv[2];
     filename1 = filename_1;
@@ -32,15 +33,8 @@ class Test2files: public ::testing::Test
     mytype.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
     mytype.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
 
-
     file1=H5File(filename1,H5F_ACC_RDONLY);
     file2=H5File(filename2,H5F_ACC_RDONLY);
-
-//    std::cout<<"Objects:"<<file1.getNumObjs()<<'\n';
-//    std::cout<<"Objects:"<<file2.getNumObjs()<<'\n';
-
-//    std::cout<<"Attributes:"<<file1.getNumAttrs()<<'\n';
-//    std::cout<<"Attributes:"<<file2.getNumAttrs()<<'\n';
 
     datasetQpath="/datablock_0/wavepacket/Pi/Q";
     datasetPpath="/datablock_0/wavepacket/Pi/P";
@@ -72,23 +66,19 @@ class Test2files: public ::testing::Test
 
 TEST_F(Test2files,TestdatasetQ)
 {
-
+    //expect RANK=3
     DataSet ds1 = file1.openDataSet(datasetQpath);
     DataSet ds2 = file2.openDataSet(datasetQpath);
 
-    H5T_class_t c1 = ds1.getTypeClass();//gives CompType
-    H5T_class_t c2 = ds2.getTypeClass();//gives CompType
-
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
-
-    EXPECT_EQ(c1,c2);
 
     DataSpace dspace1 = ds1.getSpace();
     DataSpace dspace2 = ds2.getSpace();
 
     int rank1 = dspace1.getSimpleExtentNdims();
     int rank2 = dspace1.getSimpleExtentNdims();
+    EXPECT_EQ(rank1,rank2);
 
     hsize_t* dim1 = new hsize_t[rank1];
     hsize_t* dim2 = new hsize_t[rank2];
@@ -100,33 +90,58 @@ TEST_F(Test2files,TestdatasetQ)
     ASSERT_EQ(dim1[1],dim2[1]);
     ASSERT_EQ(dim1[2],dim2[2]);
     int RANK3=3;
-    hsize_t elem[3]={1,dim1[1],dim1[2]};
+    EXPECT_EQ(rank1,RANK3);
+
+    hsize_t* elem=new hsize_t[rank1];
+    elem[0]=1;
+    elem[1]=dim1[1];
+    elem[2]=dim1[2];
     ctype* outdat1 = new ctype[dim1[1]*dim1[2]];
     ctype* outdat2 = new ctype[dim2[1]*dim2[2]];
 
-    DataSpace elemspace(RANK3,elem);
-    hsize_t start1[3]={0,0,0};
-    hsize_t count1[3]={1,2,2};
-    hsize_t stride1[3]={1,1,1};
-    hsize_t block1[3]={1,1,1};
+    DataSpace elemspace(rank1,elem);
+    hsize_t* start1=new hsize_t[rank1];
+    start1[0]=0;
+    start1[1]=0;
+    start1[2]=0;
+    hsize_t* count1= new hsize_t[rank1];
+    count1[0]=1;
+    count1[1]=dim1[1];
+    count1[2]=dim1[2];
+    hsize_t* stride1=new hsize_t[rank1];
+    stride1[0]=1;
+    stride1[1]=1;
+    stride1[2]=1;
+    hsize_t* block1=new hsize_t[rank1];
+    block1[0]=1;
+    block1[1]=1;
+    block1[2]=1;
 
     elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
     for(unsigned int k=0;k<dim1[0];++k)
     {
-        hsize_t start2[3];
-        hsize_t count2[3]={1,2,2};
-        hsize_t stride2[3]={1,1,1};
-        hsize_t block2[3]={1,1,1};
+        hsize_t* start2 = new hsize_t[rank1];
         start2[0]=k;
         start2[1]=0;
         start2[2]=0;
+        hsize_t* count2 = new hsize_t[rank1];
+        count2[0]=1;
+        count2[1]=dim1[1];
+        count2[2]=dim1[2];
+        hsize_t* stride2 = new hsize_t[rank1];
+        stride2[0]=1;
+        stride2[1]=1;
+        stride2[2]=1;
+        hsize_t* block2 = new hsize_t[rank1];
+        block2[0]=1;
+        block2[1]=1;
+        block2[2]=1;
 
         dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         ds1.read(outdat1,comp1,elemspace,dspace1);
         ds2.read(outdat2,comp2,elemspace,dspace2);
-
 
         EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
         EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
@@ -146,19 +161,16 @@ TEST_F(Test2files,TestdatasetP)
     DataSet ds1 = file1.openDataSet(datasetPpath);
     DataSet ds2 = file2.openDataSet(datasetPpath);
 
-    H5T_class_t c1 = ds1.getTypeClass();//gives CompType
-    H5T_class_t c2 = ds2.getTypeClass();//gives CompType
-
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
-
-    EXPECT_EQ(c1,c2);
 
     DataSpace dspace1 = ds1.getSpace();
     DataSpace dspace2 = ds2.getSpace();
 
     int rank1 = dspace1.getSimpleExtentNdims();
     int rank2 = dspace1.getSimpleExtentNdims();
+    EXPECT_EQ(rank1,rank2);
+
 
     hsize_t* dim1 = new hsize_t[rank1];
     hsize_t* dim2 = new hsize_t[rank2];
@@ -170,33 +182,58 @@ TEST_F(Test2files,TestdatasetP)
     ASSERT_EQ(dim1[1],dim2[1]);
     ASSERT_EQ(dim1[2],dim2[2]);
     int RANK3=3;
-    hsize_t elem[3]={1,dim1[1],dim1[2]};
+    EXPECT_EQ(rank1,RANK3);
+
+    hsize_t* elem=new hsize_t[rank1];
+    elem[0]=1;
+    elem[1]=dim1[1];
+    elem[2]=dim1[2];
     ctype* outdat1 = new ctype[dim1[1]*dim1[2]];
     ctype* outdat2 = new ctype[dim2[1]*dim2[2]];
 
-    DataSpace elemspace(RANK3,elem);
-    hsize_t start1[3]={0,0,0};
-    hsize_t count1[3]={1,2,2};
-    hsize_t stride1[3]={1,1,1};
-    hsize_t block1[3]={1,1,1};
+    DataSpace elemspace(rank1,elem);
+    hsize_t* start1=new hsize_t[rank1];
+    start1[0]=0;
+    start1[1]=0;
+    start1[2]=0;
+    hsize_t* count1= new hsize_t[rank1];
+    count1[0]=1;
+    count1[1]=dim1[1];
+    count1[2]=dim1[2];
+    hsize_t* stride1=new hsize_t[rank1];
+    stride1[0]=1;
+    stride1[1]=1;
+    stride1[2]=1;
+    hsize_t* block1=new hsize_t[rank1];
+    block1[0]=1;
+    block1[1]=1;
+    block1[2]=1;
 
     elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
     for(unsigned int k=0;k<dim1[0];++k)
     {
-        hsize_t start2[3];
-        hsize_t count2[3]={1,2,2};
-        hsize_t stride2[3]={1,1,1};
-        hsize_t block2[3]={1,1,1};
+        hsize_t* start2 = new hsize_t[rank1];
         start2[0]=k;
         start2[1]=0;
         start2[2]=0;
+        hsize_t* count2 = new hsize_t[rank1];
+        count2[0]=1;
+        count2[1]=dim1[1];
+        count2[2]=dim1[2];
+        hsize_t* stride2 = new hsize_t[rank1];
+        stride2[0]=1;
+        stride2[1]=1;
+        stride2[2]=1;
+        hsize_t* block2 = new hsize_t[rank1];
+        block2[0]=1;
+        block2[1]=1;
+        block2[2]=1;
 
         dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         ds1.read(outdat1,comp1,elemspace,dspace1);
         ds2.read(outdat2,comp2,elemspace,dspace2);
-
 
         EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
         EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
@@ -216,19 +253,15 @@ TEST_F(Test2files,Testdatasetq)
     DataSet ds1 = file1.openDataSet(datasetqpath);
     DataSet ds2 = file2.openDataSet(datasetqpath);
 
-    H5T_class_t c1 = ds1.getTypeClass();//gives CompType
-    H5T_class_t c2 = ds2.getTypeClass();//gives CompType
-
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
-
-    EXPECT_EQ(c1,c2);
 
     DataSpace dspace1 = ds1.getSpace();
     DataSpace dspace2 = ds2.getSpace();
 
     int rank1 = dspace1.getSimpleExtentNdims();
     int rank2 = dspace1.getSimpleExtentNdims();
+    EXPECT_EQ(rank1,rank2);
 
     hsize_t* dim1 = new hsize_t[rank1];
     hsize_t* dim2 = new hsize_t[rank2];
@@ -240,33 +273,58 @@ TEST_F(Test2files,Testdatasetq)
     ASSERT_EQ(dim1[1],dim2[1]);
     ASSERT_EQ(dim1[2],dim2[2]);
     int RANK3=3;
-    hsize_t elem[3]={1,dim1[1],dim1[2]};
+    EXPECT_EQ(rank1,RANK3);
+
+    hsize_t* elem=new hsize_t[rank1];
+    elem[0]=1;
+    elem[1]=dim1[1];
+    elem[2]=dim1[2];
     ctype* outdat1 = new ctype[dim1[1]*dim1[2]];
     ctype* outdat2 = new ctype[dim2[1]*dim2[2]];
 
-    DataSpace elemspace(RANK3,elem);
-    hsize_t start1[3]={0,0,0};
-    hsize_t count1[3]={1,2,1};
-    hsize_t stride1[3]={1,1,1};
-    hsize_t block1[3]={1,1,1};
+    DataSpace elemspace(rank1,elem);
+    hsize_t* start1=new hsize_t[rank1];
+    start1[0]=0;
+    start1[1]=0;
+    start1[2]=0;
+    hsize_t* count1= new hsize_t[rank1];
+    count1[0]=1;
+    count1[1]=dim1[1];
+    count1[2]=dim1[2];
+    hsize_t* stride1=new hsize_t[rank1];
+    stride1[0]=1;
+    stride1[1]=1;
+    stride1[2]=1;
+    hsize_t* block1=new hsize_t[rank1];
+    block1[0]=1;
+    block1[1]=1;
+    block1[2]=1;
 
     elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
     for(unsigned int k=0;k<dim1[0];++k)
     {
-        hsize_t start2[3];
-        hsize_t count2[3]={1,2,1};
-        hsize_t stride2[3]={1,1,1};
-        hsize_t block2[3]={1,1,1};
+        hsize_t* start2 = new hsize_t[rank1];
         start2[0]=k;
         start2[1]=0;
         start2[2]=0;
+        hsize_t* count2 = new hsize_t[rank1];
+        count2[0]=1;
+        count2[1]=dim1[1];
+        count2[2]=dim1[2];
+        hsize_t* stride2 = new hsize_t[rank1];
+        stride2[0]=1;
+        stride2[1]=1;
+        stride2[2]=1;
+        hsize_t* block2 = new hsize_t[rank1];
+        block2[0]=1;
+        block2[1]=1;
+        block2[2]=1;
 
         dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         ds1.read(outdat1,comp1,elemspace,dspace1);
         ds2.read(outdat2,comp2,elemspace,dspace2);
-
 
         EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
         EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
@@ -282,13 +340,8 @@ TEST_F(Test2files,Testdatasetp)
     DataSet ds1 = file1.openDataSet(datasetppath);
     DataSet ds2 = file2.openDataSet(datasetppath);
 
-    H5T_class_t c1 = ds1.getTypeClass();//gives CompType
-    H5T_class_t c2 = ds2.getTypeClass();//gives CompType
-
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
-
-    EXPECT_EQ(c1,c2);
 
     DataSpace dspace1 = ds1.getSpace();
     DataSpace dspace2 = ds2.getSpace();
@@ -306,33 +359,58 @@ TEST_F(Test2files,Testdatasetp)
     ASSERT_EQ(dim1[1],dim2[1]);
     ASSERT_EQ(dim1[2],dim2[2]);
     int RANK3=3;
-    hsize_t elem[3]={1,dim1[1],dim1[2]};
+    EXPECT_EQ(rank1,RANK3);
+
+    hsize_t* elem=new hsize_t[rank1];
+    elem[0]=1;
+    elem[1]=dim1[1];
+    elem[2]=dim1[2];
     ctype* outdat1 = new ctype[dim1[1]*dim1[2]];
     ctype* outdat2 = new ctype[dim2[1]*dim2[2]];
 
-    DataSpace elemspace(RANK3,elem);
-    hsize_t start1[3]={0,0,0};
-    hsize_t count1[3]={1,2,1};
-    hsize_t stride1[3]={1,1,1};
-    hsize_t block1[3]={1,1,1};
+    DataSpace elemspace(rank1,elem);
+    hsize_t* start1=new hsize_t[rank1];
+    start1[0]=0;
+    start1[1]=0;
+    start1[2]=0;
+    hsize_t* count1= new hsize_t[rank1];
+    count1[0]=1;
+    count1[1]=dim1[1];
+    count1[2]=dim1[2];
+    hsize_t* stride1=new hsize_t[rank1];
+    stride1[0]=1;
+    stride1[1]=1;
+    stride1[2]=1;
+    hsize_t* block1=new hsize_t[rank1];
+    block1[0]=1;
+    block1[1]=1;
+    block1[2]=1;
 
     elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
     for(unsigned int k=0;k<dim1[0];++k)
     {
-        hsize_t start2[3];
-        hsize_t count2[3]={1,2,1};
-        hsize_t stride2[3]={1,1,1};
-        hsize_t block2[3]={1,1,1};
+        hsize_t* start2 = new hsize_t[rank1];
         start2[0]=k;
         start2[1]=0;
         start2[2]=0;
+        hsize_t* count2 = new hsize_t[rank1];
+        count2[0]=1;
+        count2[1]=dim1[1];
+        count2[2]=dim1[2];
+        hsize_t* stride2 = new hsize_t[rank1];
+        stride2[0]=1;
+        stride2[1]=1;
+        stride2[2]=1;
+        hsize_t* block2 = new hsize_t[rank1];
+        block2[0]=1;
+        block2[1]=1;
+        block2[2]=1;
 
         dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         ds1.read(outdat1,comp1,elemspace,dspace1);
         ds2.read(outdat2,comp2,elemspace,dspace2);
-
 
         EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
         EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
@@ -344,22 +422,21 @@ TEST_F(Test2files,Testdatasetp)
 
 TEST_F(Test2files,Testdatasetcoefficients)
 {
+    //expect rank of coeffs always to be 2
     DataSet ds1 = file1.openDataSet(datasetcpath);
     DataSet ds2 = file2.openDataSet(datasetcpath);
 
-    H5T_class_t c1 = ds1.getTypeClass();//gives CompType
-    H5T_class_t c2 = ds2.getTypeClass();//gives CompType
-
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
-
-    EXPECT_EQ(c1,c2);
 
     DataSpace dspace1 = ds1.getSpace();
     DataSpace dspace2 = ds2.getSpace();
 
     int rank1 = dspace1.getSimpleExtentNdims();
     int rank2 = dspace1.getSimpleExtentNdims();
+    EXPECT_EQ(rank1,rank2);
+    int RANK2=2;
+    ASSERT_EQ(rank1,RANK2);
 
     hsize_t* dim1 = new hsize_t[rank1];
     hsize_t* dim2 = new hsize_t[rank2];
@@ -369,27 +446,44 @@ TEST_F(Test2files,Testdatasetcoefficients)
 
     ASSERT_EQ(dim1[0],dim2[0]);
     ASSERT_EQ(dim1[1],dim2[1]);
-    int RANK2=2;
-    hsize_t elem[2]={1,dim1[1]};
+
+    hsize_t* elem= new hsize_t[rank1];
+    elem[0]=1;
+    elem[1]=dim1[1];
+    DataSpace elemspace(rank1,elem);
+
     ctype* outdat1 = new ctype[dim1[1]];
     ctype* outdat2 = new ctype[dim2[1]];
 
-    DataSpace elemspace(RANK2,elem);
-    hsize_t start1[2]={0,0};
-    hsize_t count1[2]={1,16};
-    hsize_t stride1[2]={1,1};
-    hsize_t block1[2]={1,1};
+    hsize_t* start1 = new hsize_t[rank1];
+    start1[0]=0;
+    start1[1]=0;
+    hsize_t* count1 = new hsize_t[rank1];
+    count1[0]=1;
+    count1[1]=dim1[1];
+    hsize_t* stride1=new hsize_t[rank1];
+    stride1[0]=1;
+    stride1[1]=1;
+    hsize_t* block1=new hsize_t[rank1];
+    block1[0]=1;
+    block1[1]=1;
 
     elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
     for(unsigned int k=0;k<dim1[0];++k)
     {
-        hsize_t start2[2];
-        hsize_t count2[2]={1,16};
-        hsize_t stride2[2]={1,1};
-        hsize_t block2[2]={1,1};
+        hsize_t* start2 = new hsize_t[rank1];
         start2[0]=k;
         start2[1]=0;
+        hsize_t* count2 = new hsize_t[rank1];
+        count2[0]=1;
+        count2[1]=dim1[1];
+        hsize_t* stride2 = new hsize_t[rank1];
+        stride2[0]=1;
+        stride2[1]=1;
+        hsize_t* block2 = new hsize_t[rank1];
+        block2[0]=1;
+        block2[1]=1;
 
         dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
         dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
