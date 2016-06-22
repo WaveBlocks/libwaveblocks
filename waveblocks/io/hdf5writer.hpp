@@ -1262,7 +1262,6 @@ namespace waveblocks
         H5std_string wavepacket_group_string="/wavepacket";//!<String for H5Group for packet and coefficients. Default:wavepacket
         H5std_string energies_group="/energies";//!<name for group energies Default:energies
         H5std_string norms_group="/norms";//!<name for group norms Default:norms
-
         DSetCreatPropList plist_qp;//!<PropList for packet.q() packet.p()
         DSetCreatPropList plist_QP;//!<PropList for packet.Q() packet.P()
         DSetCreatPropList plist_S;//!<PropList for packet.S()
@@ -1270,15 +1269,12 @@ namespace waveblocks
         DSetCreatPropList plist_c;//!<PropList for coefficients
         DSetCreatPropList plist_time;//!<PropList for timegrids
         DSetCreatPropList plist_norms;//!<PropList for norms
-
         const int RANK1=1;//!<rank 1 identifier
         const int RANK2=2;//!<rank 2 identifier
         const int RANK3=3;//!<rank 3 identifier
-
         const hsize_t maxdims1[1]={H5S_UNLIMITED};//!<max dim identifier for rank1 for extension
         const hsize_t maxdims2[2]={H5S_UNLIMITED,H5S_UNLIMITED};//!<max dim identifier for rank2 for extension
         const hsize_t maxdims3[3]={H5S_UNLIMITED,H5S_UNLIMITED,H5S_UNLIMITED};//!<max dim identifier for rank3 for extension
-
         hsize_t exqp[3];//!<extension for packet.q() packet.p()
         hsize_t exQP[3];//!<extension for packet.Q() packet.P()
         hsize_t exS[3];//!<extension for packet.S() and packet.sdQ()
@@ -1290,7 +1286,6 @@ namespace waveblocks
         hsize_t ex_timegrid_epot[1];//!<extension for timegrid for epot
         hsize_t ex_timegrid_ekin[1];//!<extension for timegrid for ekin
         hsize_t ex_timegrid_packet[1];//!<extension for timegrid for packet
-
         hsize_t qpelem[3]; //!<size of q,p element written from program to file needed by HDF interface
         DataSpace qpelemspace;//!<space of q,p element written from program to file needed by HDF interface
         hsize_t QPelem[3];//!<size of Q,P element written from program to file needed by HDF interface
@@ -1305,31 +1300,25 @@ namespace waveblocks
         DataSpace celemspace;//!<space of coefficient element written from program to file needed by HDF interface
         hsize_t normelem[2];//!<size of coefficient element written from program to file needed by HDF interface
         DataSpace normelemspace;//!<space of norm element written from program to file needed by HDF interface
-
         int index_packet=1;//!<index used for storing packet
         int index_norm=1;//!<index used for storing norm
         int index_ekin=1;//!<index used for storing ekin
         int index_epot=1;//!<index used for storing epot
-
         int timestepsize_norms=1;//!<timestepsize for norm timegrid
         int timestepsize_ekin=1;//!<timestepsize for ekin timegrid
         int timestepsize_epot=1;//!<timestepsize for epot timegrid
         int timestepsize_packet=1;//!<timestepsize for packet timegrid
-
         int tindex_ekin=0;//!<timeindex for modulo writing ekin
         int tindex_epot=0;//!<timeindex for modulo writing epot
         int tindex_norm=0;//!<timeindex for modulo writing norms
         int tindex_packet=0;//!<timeindex for modulo writing packet
-
         int csize;//!<runtime size coefficients
-
         std::shared_ptr<Group> gblock;//!<group for datablock
         std::shared_ptr<Group> gpacket;//!<group for packet
         std::shared_ptr<Group> gPi;//!<group for matrices in packet
         std::shared_ptr<Group> gcoefficient;//!<group for coefficients in packet
         std::shared_ptr<Group> genergy;//!<group for energies
         std::shared_ptr<Group> gnorms;//group for norms
-
         DataSpace qspace;//!<space for packet.q() in file
         std::shared_ptr<DataSet> qs;//!<dataset for packet.q() in file
         DataSpace pspace;//!<space for packet.p() in file
