@@ -41,7 +41,9 @@ class Test2files: public ::testing::Test
     aenergy1=datablock_file1->openAttribute("energy");
     anorm1=datablock_file1->openAttribute("norm");
 
-
+    apacket1.read(PredType::NATIVE_INT,&bool_packet);
+    aenergy1.read(PredType::NATIVE_INT,&bool_energy);
+    anorm1.read(PredType::NATIVE_INT,&bool_norm);
 
     datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
     datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
@@ -74,7 +76,6 @@ class Test2files: public ::testing::Test
     H5std_string wavepacket_group="/wavepacket";
     std::shared_ptr<Group> datablock_file1;
     std::shared_ptr<Group> datablock_file2;
-
     H5std_string datasetQpath;
     H5std_string datasetPpath;
     H5std_string datasetqpath;
@@ -89,11 +90,15 @@ class Test2files: public ::testing::Test
     Attribute apacket2;
     Attribute aenergy2;
     Attribute anorm2;
+    int bool_packet;
+    int bool_energy;
+    int bool_norm;
 };
 
 
 TEST_F(Test2files,TestdatasetQ)
 {
+    ASSERT_TRUE(bool_packet);
     //expect RANK=3
     DataSet ds1 = file1.openDataSet(datasetQpath);
     DataSet ds2 = file2.openDataSet(datasetQpath);
@@ -185,7 +190,7 @@ TEST_F(Test2files,TestdatasetQ)
 
 TEST_F(Test2files,TestdatasetP)
 {
-
+    ASSERT_TRUE(bool_packet);
     DataSet ds1 = file1.openDataSet(datasetPpath);
     DataSet ds2 = file2.openDataSet(datasetPpath);
 
@@ -277,7 +282,7 @@ TEST_F(Test2files,TestdatasetP)
 
 TEST_F(Test2files,Testdatasetq)
 {
-
+    ASSERT_TRUE(bool_packet);
     DataSet ds1 = file1.openDataSet(datasetqpath);
     DataSet ds2 = file2.openDataSet(datasetqpath);
 
@@ -364,7 +369,7 @@ TEST_F(Test2files,Testdatasetq)
 
 TEST_F(Test2files,Testdatasetp)
 {
-
+    ASSERT_TRUE(bool_packet);
     DataSet ds1 = file1.openDataSet(datasetppath);
     DataSet ds2 = file2.openDataSet(datasetppath);
 
@@ -450,6 +455,7 @@ TEST_F(Test2files,Testdatasetp)
 
 TEST_F(Test2files,Testdatasetcoefficients)
 {
+    ASSERT_TRUE(bool_packet);
     //expect rank of coeffs always to be 2
     DataSet ds1 = file1.openDataSet(datasetcpath);
     DataSet ds2 = file2.openDataSet(datasetcpath);
@@ -526,6 +532,21 @@ TEST_F(Test2files,Testdatasetcoefficients)
 
     }
 
+}
+
+TEST_F(Test2files,Testdatasetekin)
+{
+    ASSERT_TRUE(bool_energy);
+}
+
+TEST_F(Test2files,Testdatasetepot)
+{
+    ASSERT_TRUE(bool_energy);
+}
+
+TEST_F(Test2files,Testdatasetnorm)
+{
+    ASSERT_TRUE(bool_norm);
 }
 
 int main(int argc,char* argv[])
