@@ -97,7 +97,7 @@ int main() {
     // Preparing the file
     io::hdf5writer<D> mywriter("tunneling1_1D_cpp.hdf5");
     mywriter.set_write_energy(true);
-    mywriter.prestructuring<MultiIndex>(packet);
+    mywriter.prestructuring<MultiIndex>(packet,dt);
 
 
     //time 0
@@ -105,7 +105,7 @@ int main() {
     std::cout << packet.parameters() << std::endl;
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<Remain,D,MultiIndex, TQR>(packet,V);
-    mywriter.store_packet(0,packet);
+    mywriter.store_packet(packet);
     mywriter.store_energies(epot,ekin);
     std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << epot+ekin << std::endl;
 
@@ -116,7 +116,7 @@ int main() {
         // Propagate
         propagator.propagate(packet,dt,V);
         std::cout << packet.parameters() << std::endl;
-        mywriter.store_packet(t,packet);
+        mywriter.store_packet(packet);
 
         // Compute energies
         real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
