@@ -39,7 +39,8 @@ namespace waveblocks
      * \brief Our HDF5 writer class
      *
      * This class is templated on the Dimension D which is also used to also define the dimensionality
-     * of the HaWpBasisVector
+     * of the HaWpBasisVector. Also after ctor is called there has to follow a prestructuring<MultiIndex>()
+     * for correct construction
      */
     template<int D>
     class hdf5writer
@@ -63,6 +64,8 @@ namespace waveblocks
         }
         /**
          * \brief runtime function to evaluate number of coefficients
+         *
+         * Used in prestructuring<MultiIndex>
          */
         template<class MultiIndex>
         void set_coeff_dim(waveblocks::wavepackets::ScalarHaWp<D,MultiIndex> packet)
@@ -174,35 +177,35 @@ namespace waveblocks
         }
         /**
          * @brief set timestep for writing packet
-         * @param a
+         * @param timestep
          */
-        void set_timestep_packet(int a)
+        void set_timestep_packet(int timestep)
         {
-            timestepsize_packet=a;
+            timestepsize_packet=timestep;
         }
         /**
          * @brief set timestep for writing norms
-         * @param a
+         * @param timestep
          */
-        void set_timestep_norms(int a)
+        void set_timestep_norms(int timestep)
         {
-            timestepsize_norms=a;
+            timestepsize_norms=timestep;
         }
         /**
          * @brief set timestep for writing epot
-         * @param a
+         * @param timestep
          */
-        void set_timestep_epot(int a)
+        void set_timestep_epot(int timestep)
         {
-            timestepsize_epot=a;
+            timestepsize_epot=timestep;
         }
         /**
          * @brief set timestep for writing ekin
-         * @param a
+         * @param timestep
          */
-        void set_timestep_ekin(int a)
+        void set_timestep_ekin(int timestep)
         {
-            timestepsize_ekin=a;
+            timestepsize_ekin=timestep;
         }
         /**
          * \brief Set up chunk dimension for the written variables
@@ -307,6 +310,9 @@ namespace waveblocks
         }
         /**
          * @brief set up group structure in file
+         *
+         * This is needed for correct subtructure of all datasets. It also sets Attributes in datablock
+         * to save which datasets were written.
          */
         void set_group_structure(void)
         {
@@ -362,7 +368,8 @@ namespace waveblocks
         /**
          * \brief From HDF interface select element hyperslabs
          *
-         * These elements are selected such that in every timestep it can be written to file
+         * These elements are selected such that in every timestep it can be written to file.
+         * This is onlye called once because the elemantary spaces should never change.
          */
         void select_elem_hyperslabs(void)
         {
@@ -428,6 +435,10 @@ namespace waveblocks
 
         /**
          * @brief set dataspace used in file
+         *
+         * Initial construction of the spaces for all sets.
+         * Also called only once because later with extensions it
+         * has to be resett in every extension call with new sizes.
          */
         void set_file_dataspace(void)
         {
@@ -486,6 +497,9 @@ namespace waveblocks
         }
         /**
          * @brief allocate space for datasets
+         *
+         * Allocate all datasets in file depending on the set bool values. This is called once
+         * and uses shared_ptr for easy use no garbage collection needed.
          */
         void allocate_datasets(void)
         {
@@ -525,6 +539,8 @@ namespace waveblocks
         }
         /**
          * @brief setup extension for norms
+         *
+         * Called after a subset was written.
          */
         void setup_extension_norms(void)
         {
@@ -541,6 +557,8 @@ namespace waveblocks
         }
         /**
          * @brief setup extension for epot
+         *
+         * Called after a subset was written.
          */
         void setup_extension_epot(void)
         {
@@ -557,6 +575,8 @@ namespace waveblocks
         }
         /**
          * @brief setup extension for ekin
+         *
+         * Called after a subset was written.
          */
         void setup_extension_ekin(void)
         {
@@ -573,6 +593,8 @@ namespace waveblocks
         }
         /**
          * @brief setup extension for packet
+         *
+         * Called after a subset was written.
          */
         void setup_extension_packet(void)
         {
@@ -600,6 +622,8 @@ namespace waveblocks
         }
         /**
          * @brief extend dataset for next timestep for packet
+         *
+         * Called after a subset was written and extension is set.
          */
         void extend_dataset_packet(void)
         {
@@ -625,6 +649,8 @@ namespace waveblocks
         }
         /**
          * @brief extend dataset for next timestep for norms
+         *
+         * Called after a subset was written and extension is set.
          */
         void extend_dataset_norms(void)
         {
@@ -640,6 +666,8 @@ namespace waveblocks
         }
         /**
          * @brief extend dataset for next timestep for epot
+         *
+         * Called after a subset was written and extension is set.
          */
         void extend_dataset_epot(void)
         {
@@ -655,6 +683,8 @@ namespace waveblocks
         }
         /**
          * @brief extend dataset for next timestep for ekin
+         *
+         * Called after a subset was written and extension is set.
          */
         void extend_dataset_ekin(void)
         {
@@ -671,7 +701,7 @@ namespace waveblocks
         /**
          * @brief update ekin filespace
          *
-         * Needs to be done after extending a dataset
+         * Needs to be done after extending this dataset
          */
         void update_filespace_ekin(void)
         {
@@ -688,7 +718,7 @@ namespace waveblocks
         /**
          * @brief update epot filespace
          *
-         * Needs to be done after extending a dataset
+         * Needs to be done after extending this dataset
          */
         void update_filespace_epot(void)
         {
@@ -705,7 +735,7 @@ namespace waveblocks
         /**
          * @brief update norms filespace
          *
-         * Needs to be done after extending a dataset
+         * Needs to be done after extending this dataset
          */
         void update_filespace_norms(void)
         {
@@ -722,7 +752,7 @@ namespace waveblocks
         /**
          * @brief update packet filespace
          *
-         * Needs to be done after extending a dataset
+         * Needs to be done after extending this dataset
          */
         void update_filespace_packet(void)
         {
@@ -750,7 +780,7 @@ namespace waveblocks
          * \param mat
          * \return ctype*
          *
-         * TODO in transform fix memory leaks
+         * Transforms an Eigen::Matrix<complex_t,D,1> into a writeable ctype*
          */
         ctype* transform(Eigen::Matrix<complex_t,D,D> mat)
         {
@@ -768,6 +798,8 @@ namespace waveblocks
          * \brief transform Eigen::Matrix<real_t,D,1> into ctype*
          * \param mat
          * \return ctype*
+         *
+         * Transforms an Eigen::Matrix<real_t,D,1> into a writable ctype*
          */
         ctype* transform(Eigen::Matrix<real_t,D,1> mat)
         {
@@ -785,6 +817,8 @@ namespace waveblocks
          * \brief transform a std::complex variable into ctype*
          * \param arg
          * \return ctype*
+         *
+         * Transform a complex_t type into writable ctype*
          */
         ctype* transform(complex_t arg)
         {
@@ -798,15 +832,10 @@ namespace waveblocks
          * \param cmat
          * \return ctype*
          *
-         * Be careful the dimension is hardcoded to a 16x1 matrix from coefficients
-         * and will be written back as 1x16 matrix
+         * Transform a Eigen::Matrix<complex_t,Eigen::Dynamic,1> into writable ctype*
          */
         ctype* transform(Eigen::Matrix<complex_t, Eigen::Dynamic, 1> cmat)
         {
-            //int rowdim=cmat.rows();
-            //int coldim=cmat.cols();
-            //hardcoded because Eigen::dynamic is not const
-            //need rowdim = 1 coldim = 16
             ctype* newdat=new ctype[csize];
 
             for(int q=0;q<csize;++q)
@@ -820,8 +849,10 @@ namespace waveblocks
          * \brief transform real_t to ctype
          * \param arg
          * \return
+         *
+         * Transforms a real_t into writeable ctype*
          */
-        ctype * transform(real_t arg)
+        ctype* transform(real_t arg)
         {
             ctype* newarg = new ctype;
             newarg->real=arg;
@@ -832,7 +863,8 @@ namespace waveblocks
          * \brief store ScalarHaWp<D,Multiindex> packet
          *
          * Uses the the transformer PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>to(packet)
-         * and the packet.parameters() function
+         * and the packet.parameters() function to call their corresponding transform function which then
+         * can be written to dataset.
          */
         template<class MultiIndex>
         void store_packet(const double& time_, const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packetto)
@@ -879,6 +911,7 @@ namespace waveblocks
          * @brief store energies in chosen timestep
          * @param epot_
          * @param ekin_
+         *
          */
         void store_energies(double epot_,double ekin_)
         {
@@ -910,6 +943,8 @@ namespace waveblocks
         }
         /**
          * \brief store norms in chosen timestep
+         *
+         * Extendable for norms user is interested in.
          */
         template<class MultiIndex>
         void store_norms(const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packet)
@@ -934,6 +969,8 @@ namespace waveblocks
         }
         /**
          * @brief select file writespace for packet
+         *
+         * Called always before packet is written to evaluate space to write.
          */
         void select_file_writespace_packet(void)
         {
@@ -999,6 +1036,9 @@ namespace waveblocks
         }
         /**
          * @brief advance writing position for packet and extends set
+         *
+         * Wrapper for index_packet++, set_up_extension_packet(), extend_dataset_packet()
+         * and update_filespace_packet()
          */
         void advance_packet(void)
         {
@@ -1009,6 +1049,8 @@ namespace waveblocks
         }
         /**
          * @brief select file writespace for ekin
+         *
+         * Called always before ekin is written to evaluate space to write.
          */
         void select_file_writespace_ekin(void)
         {
@@ -1036,6 +1078,9 @@ namespace waveblocks
         }
         /**
          * @brief advance writing position for ekin and extends set
+         *
+         * Wrapper for index_ekin++, set_up_extension_ekin(), extend_dataset_ekin()
+         * and update_filespace_ekin()
          */
         void advance_ekin(void)
         {
@@ -1046,6 +1091,8 @@ namespace waveblocks
         }
         /**
          * @brief select file writespace for epot
+         *
+         * Called always before epot is written to evaluate space to write.
          */
         void select_file_writespace_epot(void)
         {
@@ -1073,6 +1120,9 @@ namespace waveblocks
         }
         /**
          * @brief advance writing position for epot and extends set
+         *
+         * Wrapper for index_epot++, set_up_extension_epot(), extend_dataset_epot()
+         * and update_filespace_epot()
          */
         void advance_epot(void)
         {
@@ -1083,6 +1133,8 @@ namespace waveblocks
         }
         /**
          * @brief select file writespace for norms
+         *
+         * Called always before norms are written to evaluate space to write.
          */
         void select_file_writespace_norms(void)
         {
@@ -1110,6 +1162,9 @@ namespace waveblocks
         }
         /**
          * @brief advance writing position for norms and extends set
+         *
+         * Wrapper for index_norm++, set_up_extension_norms(), extend_dataset_norms()
+         * and update_filespace_norms()
          */
         void advance_norms(void)
         {
@@ -1120,6 +1175,10 @@ namespace waveblocks
         }
         /**
          * @brief reverse last dataset extension for packet
+         *
+         * Last writing process extended set although it is the last one.
+         * This just reverses the last extension so the dataset is exactly as big
+         * as the number of timesteps written.
          */
         void cleanup_packet(void)
         {
@@ -1129,6 +1188,10 @@ namespace waveblocks
         }
         /**
          * @brief reverse last dataset extension for ekin
+         *
+         * Last writing process extended set although it is the last one.
+         * This just reverses the last extension so the dataset is exactly as big
+         * as the number of timesteps written.
          */
         void cleanup_ekin(void)
         {
@@ -1138,6 +1201,10 @@ namespace waveblocks
         }
         /**
          * @brief reverse last dataset extension for epot
+         *
+         * Last writing process extended set although it is the last one.
+         * This just reverses the last extension so the dataset is exactly as big
+         * as the number of timesteps written.
          */
         void cleanup_epot(void)
         {
@@ -1147,6 +1214,10 @@ namespace waveblocks
         }
         /**
          * @brief reverse last dataset extension for norms
+         *
+         * Last writing process extended set although it is the last one.
+         * This just reverses the last extension so the dataset is exactly as big
+         * as the number of timesteps written.
          */
         void cleanup_norms(void)
         {
@@ -1156,6 +1227,8 @@ namespace waveblocks
         }
         /**
          * @brief last resize for exact length
+         *
+         * Wrapper for all cleanup calls
          */
         void poststructuring(void)
         {
@@ -1176,9 +1249,9 @@ namespace waveblocks
 
     private:
         H5std_string filename_;///identifier for filename
-        CompType mytype_;///declaration of H5:CompType member used for HDF interface
-        H5File file_; ///H5File member
-        std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};///map string->bool for constructing und writing defined variables
+        CompType mytype_;///declaration of H5:CompType member used for HDF interface to write ctype*
+        H5File file_; ///H5File placeholder
+        std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};///maps string to bool for constructing und writing defined variables
         Attribute apacket;///attribute saved for bool packet
         Attribute aenergy;///attribute saved for bool energy
         Attribute anorm;///attribute saved for bool norm
