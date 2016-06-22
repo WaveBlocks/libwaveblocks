@@ -37,6 +37,11 @@ class Test2files: public ::testing::Test
 
     datablock_file1=std::make_shared<Group>(file1.openGroup(datablock_group));
     datablock_file2=std::make_shared<Group>(file2.openGroup(datablock_group));
+    apacket1=datablock_file1->openAttribute("packet");
+    aenergy1=datablock_file1->openAttribute("energy");
+    anorm1=datablock_file1->openAttribute("norm");
+
+
 
     datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
     datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
@@ -67,8 +72,8 @@ class Test2files: public ::testing::Test
     H5std_string norms_group="/norms";
     H5std_string Pi_group="/Pi";
     H5std_string wavepacket_group="/wavepacket";
-    std:shared_prt<Group> datablock_file1;
-    std:shared_prt<Group> datablock_file2;
+    std::shared_ptr<Group> datablock_file1;
+    std::shared_ptr<Group> datablock_file2;
 
     H5std_string datasetQpath;
     H5std_string datasetPpath;
@@ -78,9 +83,12 @@ class Test2files: public ::testing::Test
     H5std_string datasetekinpath;
     H5std_string datasetepotpath;
     H5std_string datasetnormspath;
-    Attribute apacket;
-    Attribute aenergy;
-    Attribute anorm;
+    Attribute apacket1;
+    Attribute aenergy1;
+    Attribute anorm1;
+    Attribute apacket2;
+    Attribute aenergy2;
+    Attribute anorm2;
 };
 
 
