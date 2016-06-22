@@ -1,8 +1,8 @@
 #pragma once
 
-//need H5 Cpp header
+//need H5 Cpp header for HDF interface
 #include "H5Cpp.h"
-//using strings
+
 #include <string>
 #include <map>
 #include <cstdio>
@@ -80,13 +80,13 @@ namespace waveblocks
          * \param packet used for evaluation number of coefficients
          */
         template<class MultiIndex>
-        void prestructuring(waveblocks::wavepackets::ScalarHaWp<D,MultiIndex> packet)
+        void prestructuring(waveblocks::wavepackets::ScalarHaWp<D,MultiIndex> packet,double dt)
         {
             //get number
             set_coeff_dim(packet);
 
             //set group structure
-            set_group_structure();
+            set_group_structure(dt);
 
             //set up chunk dimension
             set_chunk_dim();
@@ -219,7 +219,7 @@ namespace waveblocks
             //time chunk dimension the same for all
             hsize_t chunk_dims6[]={1};
             plist_time.setChunk(RANK1,chunk_dims6);
-            plist_time.setFillValue(PredType::NATIVE_DOUBLE,&dref);
+            plist_time.setFillValue(PredType::NATIVE_INT,&iref);
 
             if(wrlist["packet"])
             {
@@ -309,12 +309,13 @@ namespace waveblocks
             }
         }
         /**
-         * @brief set up group structure in file
+         * \brief set up group structure in file
+         * \param dt for writing global timestep
          *
-         * This is needed for correct subtructure of all datasets. It also sets Attributes in datablock
-         * to save which datasets were written.
+         * This is needed for the correct subtructure of all datasets. It also sets Attributes in datablock
+         * to save which datasets were written and its correspondig global timestep.
          */
-        void set_group_structure(void)
+        void set_group_structure(double dt)
         {
             H5std_string a1=datablock_string;
             gblock = std::make_shared<Group>(file_.createGroup(a1));
@@ -323,6 +324,8 @@ namespace waveblocks
             apacket=gblock->createAttribute("packet",PredType::NATIVE_INT,s1);
             aenergy=gblock->createAttribute("energy",PredType::NATIVE_INT,s1);
             anorm=gblock->createAttribute("norm",PredType::NATIVE_INT,s1);
+            adt=gblock->createAttribute("dt",PredType::NATIVE_DOUBLE,s1);
+            adt.write(PredType::NATIVE_DOUBLE,&dt);
 
             if(wrlist["packet"])
             {
@@ -512,7 +515,8 @@ namespace waveblocks
                 Ps=std::make_shared<DataSet>(file_.createDataSet(pack+"/P",mytype_,Pspace,plist_QP));
                 Ss=std::make_shared<DataSet>(file_.createDataSet(pack+"/S",mytype_,Sspace,plist_S));
                 adQs=std::make_shared<DataSet>(file_.createDataSet(pack+"/adQ",mytype_,adQspace,plist_S));
-                times_packet=std::make_shared<DataSet>(file_.createDataSet(pack+"/timegrid",PredType::NATIVE_DOUBLE,timespace_packet,plist_time));
+                H5std_string tpack=datablock_string+wavepacket_group_string;
+                times_packet=std::make_shared<DataSet>(file_.createDataSet(tpack+"/timegrid",PredType::NATIVE_INT,timespace_packet,plist_time));
 
                 H5std_string cff=datablock_string+wavepacket_group_string+coefficient_group_string;
                 coeffs=std::make_shared<DataSet>(file_.createDataSet(cff+"/c_0",mytype_,cspace,plist_c));
@@ -525,16 +529,16 @@ namespace waveblocks
                 H5std_string enameekin=ename+"/ekin";
                 energys_ekin=std::make_shared<DataSet>(file_.createDataSet(enameekin,PredType::NATIVE_DOUBLE,energyspace_ekin,plist_energy));
                 H5std_string engtime1=ename+"/timegrid_epot";
-                times_epot=std::make_shared<DataSet>(file_.createDataSet(engtime1,PredType::NATIVE_DOUBLE,timespace_epot,plist_time));
+                times_epot=std::make_shared<DataSet>(file_.createDataSet(engtime1,PredType::NATIVE_INT,timespace_epot,plist_time));
                 H5std_string engtime2=ename+"/timegrid_ekin";
-                times_ekin=std::make_shared<DataSet>(file_.createDataSet(engtime2,PredType::NATIVE_DOUBLE,timespace_ekin,plist_time));
+                times_ekin=std::make_shared<DataSet>(file_.createDataSet(engtime2,PredType::NATIVE_INT,timespace_ekin,plist_time));
             }
             if(wrlist["norm"])
             {
                 H5std_string tmm=datablock_string+norms_group+"/norms";
                 normss=std::make_shared<DataSet>(file_.createDataSet(tmm,PredType::NATIVE_DOUBLE,normspace,plist_norms));
                 H5std_string tmt=datablock_string+norms_group+"/timegrid";
-                times_norms=std::make_shared<DataSet>(file_.createDataSet(tmt,PredType::NATIVE_DOUBLE,timespace_norms,plist_time));
+                times_norms=std::make_shared<DataSet>(file_.createDataSet(tmt,PredType::NATIVE_INT,timespace_norms,plist_time));
             }
         }
         /**
@@ -867,7 +871,7 @@ namespace waveblocks
          * can be written to dataset.
          */
         template<class MultiIndex>
-        void store_packet(const double& time_, const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packetto)
+        void store_packet(const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packetto)
         {
             const auto& params = packetto.parameters();
             if(wrlist["packet"])
@@ -895,8 +899,7 @@ namespace waveblocks
                     ctype* myadQ=transform(params.sdQ());
                     adQs->write(myadQ,mytype_,Selemspace,adQspace);
 
-                    double t1=1.*tindex_packet;
-                    times_packet->write(&t1,PredType::NATIVE_DOUBLE,timelemspace,timespace_packet);
+                    times_packet->write(&tindex_packet,PredType::NATIVE_INT,timelemspace,timespace_packet);
 
                     advance_packet();
                 }
@@ -921,8 +924,7 @@ namespace waveblocks
                 {
                     select_file_writespace_ekin();
                     energys_ekin->write(&ekin_,PredType::NATIVE_DOUBLE,energyelemspace,energyspace_ekin);
-                    double t2=1.*tindex_ekin;
-                    times_ekin->write(&t2,PredType::NATIVE_DOUBLE,timelemspace,timespace_ekin);
+                    times_ekin->write(&tindex_ekin,PredType::NATIVE_INT,timelemspace,timespace_ekin);
                     advance_ekin();
                 }
                 tindex_ekin+=1;
@@ -930,8 +932,7 @@ namespace waveblocks
                 {
                     select_file_writespace_epot();
                     energys_epot->write(&epot_,PredType::NATIVE_DOUBLE,energyelemspace,energyspace_epot);
-                    double t3=1.*tindex_epot;
-                    times_epot->write(&t3,PredType::NATIVE_DOUBLE,timelemspace,timespace_epot);
+                    times_epot->write(&tindex_epot,PredType::NATIVE_INT,timelemspace,timespace_epot);
                     advance_epot();
                 }
                 tindex_epot+=1;
@@ -956,8 +957,7 @@ namespace waveblocks
                     double norms=0.5;
                     select_file_writespace_norms();
                     normss->write(&norms,PredType::NATIVE_DOUBLE,normelemspace,normspace);
-                    double t4=1.*tindex_norm;
-                    times_norms->write(&t4,PredType::NATIVE_DOUBLE,timelemspace,timespace_norms);
+                    times_norms->write(&tindex_norm,PredType::NATIVE_INT,timelemspace,timespace_norms);
                     advance_norms();
                 }
                 tindex_norm+=1;
@@ -1252,10 +1252,12 @@ namespace waveblocks
         CompType mytype_;//!<declaration of H5:CompType member used for HDF interface to write ctype*
         H5File file_; //!<H5File placeholder
         std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};//!<maps string to bool for constructing und writing defined variables
-        Attribute apacket;//!<attribute saved for bool packet
-        Attribute aenergy;//!<attribute saved for bool energy
-        Attribute anorm;//!<attribute saved for bool norm
+        Attribute apacket;//!<attribute to save bool packet in datablock_0
+        Attribute aenergy;//!<attribute to save bool energy in datablock_0
+        Attribute anorm;//!<attribute to save bool norm in datablock_0
+        Attribute adt;//!<attribute to save dt in datablock_0
         double dref=0.;//!<fillvalue for energys for allocation
+        int iref=0;//!<fillvalue for timegrids for allocation
         H5std_string packet_group_string="/Pi";//!<String for H5Group to save packet to. Default:Pi
         H5std_string datablock_string="/datablock_0";//!<String for H5Group for datablock.default. datablock_0
         H5std_string coefficient_group_string="/coefficients";//!<String for H5Group of coefficients. Default:coefficients
