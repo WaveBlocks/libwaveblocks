@@ -312,8 +312,16 @@ namespace waveblocks
         {
             H5std_string a1=datablock_string;
             gblock = std::make_shared<Group>(file_.createGroup(a1));
+            hsize_t q1[]={1};
+            DataSpace s1(RANK1,q1);
+            apacket=gblock->createAttribute("packet",PredType::NATIVE_INT,s1);
+            aenergy=gblock->createAttribute("energy",PredType::NATIVE_INT,s1);
+            anorm=gblock->createAttribute("norm",PredType::NATIVE_INT,s1);
+
             if(wrlist["packet"])
             {
+                int ap=1;
+                apacket.write(PredType::NATIVE_INT,&ap);
                 H5std_string a2=(datablock_string+wavepacket_group_string);
                 gpacket = std::make_shared<Group>(file_.createGroup(a2));
                 H5std_string a3=(datablock_string+wavepacket_group_string+packet_group_string);
@@ -321,15 +329,34 @@ namespace waveblocks
                 H5std_string a4=(datablock_string+wavepacket_group_string+coefficient_group_string);
                 gcoefficient = std::make_shared<Group>(file_.createGroup(a4));
             }
+            else
+            {
+                int ap=0;
+                apacket.write(PredType::NATIVE_INT,&ap);
+            }
             if(wrlist["energy"])
             {
+                int ae=1;
+                aenergy.write(PredType::NATIVE_INT,&ae);
                 H5std_string a5 = (datablock_string+energies_group);
                 genergy = std::make_shared<Group>(file_.createGroup(a5));
             }
+            else
+            {
+                int ae=0;
+                aenergy.write(PredType::NATIVE_INT,&ae);
+            }
             if(wrlist["norm"])
             {
+                int an=1;
+                anorm.write(PredType::NATIVE_INT,&an);
                 H5std_string a6 = (datablock_string+norms_group);
                 gnorms = std::make_shared<Group>(file_.createGroup(a6));
+            }
+            else
+            {
+                int an=0;
+                anorm.write(PredType::NATIVE_INT,&an);
             }
         }
         /**
@@ -1152,6 +1179,9 @@ namespace waveblocks
         CompType mytype_;///declaration of H5:CompType member used for HDF interface
         H5File file_; ///H5File member
         std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};///map string->bool for constructing und writing defined variables
+        Attribute apacket;///attribute saved for bool packet
+        Attribute aenergy;///attribute saved for bool energy
+        Attribute anorm;///attribute saved for bool norm
 
         double dref=0.;///fillvalue for energys for allocation
         H5std_string packet_group_string="/Pi";///String for H5Group to save packet to. Default:Pi
