@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <cmath>
@@ -36,11 +35,17 @@ class Test2files: public ::testing::Test
     file1=H5File(filename1,H5F_ACC_RDONLY);
     file2=H5File(filename2,H5F_ACC_RDONLY);
 
-    datasetQpath="/datablock_0/wavepacket/Pi/Q";
-    datasetPpath="/datablock_0/wavepacket/Pi/P";
-    datasetqpath="/datablock_0/wavepacket/Pi/q";
-    datasetppath="/datablock_0/wavepacket/Pi/p";
-    datasetcpath="/datablock_0/wavepacket/coefficients/c_0";
+    datablock_file1=std::make_shared<Group>(file1.openGroup(datablock_group));
+    datablock_file2=std::make_shared<Group>(file2.openGroup(datablock_group));
+
+    datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
+    datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
+    datasetqpath=datablock_group+wavepacket_group+Pi_group+"/q";
+    datasetppath=datablock_group+wavepacket_group+Pi_group+"/p";
+    datasetcpath=datablock_group+wavepacket_group+coeffs_group+"/c_0";
+    datasetekinpath=datablock_group+energies_group+"/ekin";
+    datasetepotpath=datablock_group+energies_group+"/epot";
+    datasetnormspath=datablock_group+norms_group;//TODO
     }
     void BreakDown()
     {
@@ -56,11 +61,26 @@ class Test2files: public ::testing::Test
     H5std_string filename2;
     H5File file2;
     CompType mytype;
+    H5std_string datablock_group="/datablock_0";
+    H5std_string energies_group="/energies";
+    H5std_string coeffs_group="/coefficients";
+    H5std_string norms_group="/norms";
+    H5std_string Pi_group="/Pi";
+    H5std_string wavepacket_group="/wavepacket";
+    std:shared_prt<Group> datablock_file1;
+    std:shared_prt<Group> datablock_file2;
+
     H5std_string datasetQpath;
     H5std_string datasetPpath;
     H5std_string datasetqpath;
     H5std_string datasetppath;
     H5std_string datasetcpath;
+    H5std_string datasetekinpath;
+    H5std_string datasetepotpath;
+    H5std_string datasetnormspath;
+    Attribute apacket;
+    Attribute aenergy;
+    Attribute anorm;
 };
 
 
