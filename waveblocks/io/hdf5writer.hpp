@@ -1248,117 +1248,116 @@ namespace waveblocks
         }
 
     private:
-        H5std_string filename_;///identifier for filename
-        CompType mytype_;///declaration of H5:CompType member used for HDF interface to write ctype*
-        H5File file_; ///H5File placeholder
-        std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};///maps string to bool for constructing und writing defined variables
-        Attribute apacket;///attribute saved for bool packet
-        Attribute aenergy;///attribute saved for bool energy
-        Attribute anorm;///attribute saved for bool norm
+        H5std_string filename_;//!<placeholder for filename
+        CompType mytype_;//!<declaration of H5:CompType member used for HDF interface to write ctype*
+        H5File file_; //!<H5File placeholder
+        std::map<std::string,bool> wrlist={{"packet",1},{"energy",0},{"norm",0}};//!<maps string to bool for constructing und writing defined variables
+        Attribute apacket;//!<attribute saved for bool packet
+        Attribute aenergy;//!<attribute saved for bool energy
+        Attribute anorm;//!<attribute saved for bool norm
+        double dref=0.;//!<fillvalue for energys for allocation
+        H5std_string packet_group_string="/Pi";//!<String for H5Group to save packet to. Default:Pi
+        H5std_string datablock_string="/datablock_0";//!<String for H5Group for datablock.default. datablock_0
+        H5std_string coefficient_group_string="/coefficients";//!<String for H5Group of coefficients. Default:coefficients
+        H5std_string wavepacket_group_string="/wavepacket";//!<String for H5Group for packet and coefficients. Default:wavepacket
+        H5std_string energies_group="/energies";//!<name for group energies Default:energies
+        H5std_string norms_group="/norms";//!<name for group norms Default:norms
 
-        double dref=0.;///fillvalue for energys for allocation
-        H5std_string packet_group_string="/Pi";///String for H5Group to save packet to. Default:Pi
-        H5std_string datablock_string="/datablock_0";///String for H5Group for datablock.default. datablock_0
-        H5std_string coefficient_group_string="/coefficients";///String for H5Group of coefficients. Default:coefficients
-        H5std_string wavepacket_group_string="/wavepacket";///String for H5Group for packet and coefficients. Default:wavepacket
-        H5std_string energies_group="/energies";///name for group energies Default:energies
-        H5std_string norms_group="/norms";///name for group norms Default:norms
+        DSetCreatPropList plist_qp;//!<PropList for packet.q() packet.p()
+        DSetCreatPropList plist_QP;//!<PropList for packet.Q() packet.P()
+        DSetCreatPropList plist_S;//!<PropList for packet.S()
+        DSetCreatPropList plist_energy;//!<PropList for energies
+        DSetCreatPropList plist_c;//!<PropList for coefficients
+        DSetCreatPropList plist_time;//!<PropList for timegrids
+        DSetCreatPropList plist_norms;//!<PropList for norms
 
-        DSetCreatPropList plist_qp;///PropList for packet.q() packet.p()
-        DSetCreatPropList plist_QP;///PropList for packet.Q() packet.P()
-        DSetCreatPropList plist_S;///PropList for packet.S()
-        DSetCreatPropList plist_energy;///PropList for energies
-        DSetCreatPropList plist_c;///PropList for coefficients
-        DSetCreatPropList plist_time;///PropList for timegrids
-        DSetCreatPropList plist_norms;///PropList for norms
+        const int RANK1=1;//!<rank 1 identifier
+        const int RANK2=2;//!<rank 2 identifier
+        const int RANK3=3;//!<rank 3 identifier
 
-        const int RANK1=1;///rank 1 identifier
-        const int RANK2=2;///rank 2 identifier
-        const int RANK3=3;///rank 3 identifier
+        const hsize_t maxdims1[1]={H5S_UNLIMITED};//!<max dim identifier for rank1 for extension
+        const hsize_t maxdims2[2]={H5S_UNLIMITED,H5S_UNLIMITED};//!<max dim identifier for rank2 for extension
+        const hsize_t maxdims3[3]={H5S_UNLIMITED,H5S_UNLIMITED,H5S_UNLIMITED};//!<max dim identifier for rank3 for extension
 
-        const hsize_t maxdims1[1]={H5S_UNLIMITED};///max dim identifier for rank1 for extension
-        const hsize_t maxdims2[2]={H5S_UNLIMITED,H5S_UNLIMITED};///max dim identifier for rank2 for extension
-        const hsize_t maxdims3[3]={H5S_UNLIMITED,H5S_UNLIMITED,H5S_UNLIMITED};///max dim identifier for rank3 for extension
+        hsize_t exqp[3];//!<extension for packet.q() packet.p()
+        hsize_t exQP[3];//!<extension for packet.Q() packet.P()
+        hsize_t exS[3];//!<extension for packet.S() and packet.sdQ()
+        hsize_t exc[2];//!<extension for coefficients
+        hsize_t exekin[2];//!<extension for ekin
+        hsize_t exepot[2];//!<extension for epot
+        hsize_t exnorms[2];//!<extension for norms
+        hsize_t ex_timegrid_norms[1];//!<extension for timegrid for norms
+        hsize_t ex_timegrid_epot[1];//!<extension for timegrid for epot
+        hsize_t ex_timegrid_ekin[1];//!<extension for timegrid for ekin
+        hsize_t ex_timegrid_packet[1];//!<extension for timegrid for packet
 
-        hsize_t exqp[3];///extension for packet.q() packet.p()
-        hsize_t exQP[3];///extension for packet.Q() packet.P()
-        hsize_t exS[3];///extension for packet.S() and packet.sdQ()
-        hsize_t exc[2];///extension for coefficients
-        hsize_t exekin[2];///extension for ekin
-        hsize_t exepot[2];///extension for epot
-        hsize_t exnorms[2];///extension for norms
-        hsize_t ex_timegrid_norms[1];///extension for timegrid for norms
-        hsize_t ex_timegrid_epot[1];///extension for timegrid for epot
-        hsize_t ex_timegrid_ekin[1];///extension for timegrid for ekin
-        hsize_t ex_timegrid_packet[1];///extension for timegrid for packet
+        hsize_t qpelem[3]; //!<size of q,p element written from program to file needed by HDF interface
+        DataSpace qpelemspace;//!<space of q,p element written from program to file needed by HDF interface
+        hsize_t QPelem[3];//!<size of Q,P element written from program to file needed by HDF interface
+        DataSpace QPelemspace;//!<space of Q,P element written from program to file needed by HDF interface
+        hsize_t Selem[3];//!<size of S element written from program to file needed by HDF interface
+        DataSpace Selemspace;//!<space of S element written from program to file needed by HDF interface
+        hsize_t energyelem[2];//!<size of energy element written from program to file needed by HDF interface
+        DataSpace energyelemspace;//!<space of energy element written from program to file needed by HDF interface
+        hsize_t timeelem[1];//!<size of timegrid element written from program to file needed by HDF interface
+        DataSpace timelemspace;//!<space of timegrid element written from program to file needed by HDF interface
+        hsize_t celem[2];//!<size of coefficient element written from program to file needed by HDF interface
+        DataSpace celemspace;//!<space of coefficient element written from program to file needed by HDF interface
+        hsize_t normelem[2];//!<size of coefficient element written from program to file needed by HDF interface
+        DataSpace normelemspace;//!<space of norm element written from program to file needed by HDF interface
 
-        hsize_t qpelem[3]; ///size of q,p element written from program to file needed by HDF interface
-        DataSpace qpelemspace;///space of q,p element written from program to file needed by HDF interface
-        hsize_t QPelem[3];///size of Q,P element written from program to file needed by HDF interface
-        DataSpace QPelemspace;///space of Q,P element written from program to file needed by HDF interface
-        hsize_t Selem[3];///size of S element written from program to file needed by HDF interface
-        DataSpace Selemspace;///space of S element written from program to file needed by HDF interface
-        hsize_t energyelem[2];///size of energy element written from program to file needed by HDF interface
-        DataSpace energyelemspace;///space of energy element written from program to file needed by HDF interface
-        hsize_t timeelem[1];///size of timegrid element written from program to file needed by HDF interface
-        DataSpace timelemspace;///space of timegrid element written from program to file needed by HDF interface
-        hsize_t celem[2];///size of coefficient element written from program to file needed by HDF interface
-        DataSpace celemspace;///space of coefficient element written from program to file needed by HDF interface
-        hsize_t normelem[2];///size of coefficient element written from program to file needed by HDF interface
-        DataSpace normelemspace;///space of norm element written from program to file needed by HDF interface
+        int index_packet=1;//!<index used for storing packet
+        int index_norm=1;//!<index used for storing norm
+        int index_ekin=1;//!<index used for storing ekin
+        int index_epot=1;//!<index used for storing epot
 
-        int index_packet=1;///index used for storing packet
-        int index_norm=1;///index used for storing norm
-        int index_ekin=1;///index used for storing ekin
-        int index_epot=1;///index used for storing epot
+        int timestepsize_norms=1;//!<timestepsize for norm timegrid
+        int timestepsize_ekin=1;//!<timestepsize for ekin timegrid
+        int timestepsize_epot=1;//!<timestepsize for epot timegrid
+        int timestepsize_packet=1;//!<timestepsize for packet timegrid
 
-        int timestepsize_norms=1;///timestepsize for norm timegrid
-        int timestepsize_ekin=1;///timestepsize for ekin timegrid
-        int timestepsize_epot=1;///timestepsize for epot timegrid
-        int timestepsize_packet=1;///timestepsize for packet timegrid
+        int tindex_ekin=0;//!<timeindex for modulo writing ekin
+        int tindex_epot=0;//!<timeindex for modulo writing epot
+        int tindex_norm=0;//!<timeindex for modulo writing norms
+        int tindex_packet=0;//!<timeindex for modulo writing packet
 
-        int tindex_ekin=0;///timeindex for modulo writing ekin
-        int tindex_epot=0;///timeindex for modulo writing epot
-        int tindex_norm=0;///timeindex for modulo writing norms
-        int tindex_packet=0;///timeindex for modulo writing packet
+        int csize;//!<runtime size coefficients
 
-        int csize;///runtime size coefficients
-
-        std::shared_ptr<Group> gblock;///group for datablock
-        std::shared_ptr<Group> gpacket;///group for packet
-        std::shared_ptr<Group> gPi;///group for matrices in packet
-        std::shared_ptr<Group> gcoefficient;///group for coefficients in packet
-        std::shared_ptr<Group> genergy;///group for energies
+        std::shared_ptr<Group> gblock;//!<group for datablock
+        std::shared_ptr<Group> gpacket;//!<group for packet
+        std::shared_ptr<Group> gPi;//!<group for matrices in packet
+        std::shared_ptr<Group> gcoefficient;//!<group for coefficients in packet
+        std::shared_ptr<Group> genergy;//!<group for energies
         std::shared_ptr<Group> gnorms;//group for norms
 
-        DataSpace qspace;///space for packet.q() in file
-        std::shared_ptr<DataSet> qs;///dataset for packet.q() in file
-        DataSpace pspace;///space for packet.p() in file
-        std::shared_ptr<DataSet> ps;///dataset for packet.p() in file
-        DataSpace Qspace;///space for packet.Q() in file
-        std::shared_ptr<DataSet> Qs;///dataset for packet.Q() in file
-        DataSpace Pspace;///space for packet.P() in file
-        std::shared_ptr<DataSet> Ps;///dataset for packet.P() in file
-        DataSpace Sspace;///space for packet.S() in file
-        std::shared_ptr<DataSet> Ss;///dataset for packet.S() in file
-        DataSpace adQspace;///space for packet.sdQ() in file
-        std::shared_ptr<DataSet> adQs;///dataset for packet.sdQ() in file
-        DataSpace cspace;///space for coefficients in file
-        std::shared_ptr<DataSet> coeffs;///dataset for coefficients in file
-        DataSpace timespace_packet;///space for timegrid for packet in file
-        std::shared_ptr<DataSet> times_packet;///dataset for timegrid for packet in file
-        DataSpace timespace_ekin;///space for timegrid ekin
-        std::shared_ptr<DataSet> times_ekin;///dataset for timegrid for ekin in file
-        DataSpace timespace_epot;///space for timegrid epot
-        std::shared_ptr<DataSet> times_epot;///dataset for timegrid for epot in file
-        DataSpace timespace_norms;///space for timegrid in file
-        std::shared_ptr<DataSet> times_norms;///dataset for timegrid in file
-        DataSpace energyspace_ekin;///space for ekin in file
-        std::shared_ptr<DataSet> energys_ekin;///dataset for ekin in file
-        DataSpace energyspace_epot;///space for epot in file
-        std::shared_ptr<DataSet> energys_epot;///dataset for epot in file
-        DataSpace normspace;///space for norms
-        std::shared_ptr<DataSet> normss;///dataset for norms in file
+        DataSpace qspace;//!<space for packet.q() in file
+        std::shared_ptr<DataSet> qs;//!<dataset for packet.q() in file
+        DataSpace pspace;//!<space for packet.p() in file
+        std::shared_ptr<DataSet> ps;//!<dataset for packet.p() in file
+        DataSpace Qspace;//!<space for packet.Q() in file
+        std::shared_ptr<DataSet> Qs;//!<dataset for packet.Q() in file
+        DataSpace Pspace;//!<space for packet.P() in file
+        std::shared_ptr<DataSet> Ps;//!<dataset for packet.P() in file
+        DataSpace Sspace;//!<space for packet.S() in file
+        std::shared_ptr<DataSet> Ss;//!<dataset for packet.S() in file
+        DataSpace adQspace;//!<space for packet.sdQ() in file
+        std::shared_ptr<DataSet> adQs;//!<dataset for packet.sdQ() in file
+        DataSpace cspace;//!<space for coefficients in file
+        std::shared_ptr<DataSet> coeffs;//!<dataset for coefficients in file
+        DataSpace timespace_packet;//!<space for timegrid for packet in file
+        std::shared_ptr<DataSet> times_packet;//!<dataset for timegrid for packet in file
+        DataSpace timespace_ekin;//!<space for timegrid ekin
+        std::shared_ptr<DataSet> times_ekin;//!<dataset for timegrid for ekin in file
+        DataSpace timespace_epot;//!<space for timegrid epot
+        std::shared_ptr<DataSet> times_epot;//!<dataset for timegrid for epot in file
+        DataSpace timespace_norms;//!<space for timegrid in file
+        std::shared_ptr<DataSet> times_norms;//!<dataset for timegrid in file
+        DataSpace energyspace_ekin;//!<space for ekin in file
+        std::shared_ptr<DataSet> energys_ekin;//!<dataset for ekin in file
+        DataSpace energyspace_epot;//!<space for epot in file
+        std::shared_ptr<DataSet> energys_epot;//!<dataset for epot in file
+        DataSpace normspace;//!<space for norms
+        std::shared_ptr<DataSet> normss;//!<dataset for norms in file
     };
     }
 }
