@@ -634,7 +634,14 @@ TEST_F(Test2files,Testdatasetnorm)
         ADD_FAILURE()<<"Cannot compare. Data missing";
     }
 }
-
+/**
+ * @brief main
+ * @param argc
+ * @param argv
+ * @return run all google defined tests
+ *
+ * Uses global variables to use argv in google SetUp function.
+ */
 int main(int argc,char* argv[])
 {
     global_argc=argc;
