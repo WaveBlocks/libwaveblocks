@@ -24,26 +24,35 @@ class Test2files: public ::testing::Test
     //read filenames
     assert(global_argc==3);
     //char* this_file=global_argv[0];
-    char* filename_1 = global_argv[1];
-    char* filename_2 = global_argv[2];
-    filename1 = filename_1;
-    filename2 = filename_2;
+    std::string filename_1 = global_argv[1];
+    std::string filename_2 = global_argv[2];
+    if(filename_1.find("py"))
+    {
+        pythonname = filename_1;
+        cppname = filename_2;
+    }
+    if(filename_1.find("cpp"))
+    {
+        cppname = filename_1;
+        pythonname = filename_2;
+    }
     mytype=CompType(sizeof(instanceof));
     mytype.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
     mytype.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
 
-    file1=H5File(filename1,H5F_ACC_RDONLY);
-    file2=H5File(filename2,H5F_ACC_RDONLY);
+    cppfile=H5File(cppname,H5F_ACC_RDONLY);
+    pyfile=H5File(pythonname,H5F_ACC_RDONLY);
 
-    datablock_file1=std::make_shared<Group>(file1.openGroup(datablock_group));
-    datablock_file2=std::make_shared<Group>(file2.openGroup(datablock_group));
-    apacket1=datablock_file1->openAttribute("packet");
-    aenergy1=datablock_file1->openAttribute("energy");
-    anorm1=datablock_file1->openAttribute("norm");
-
-    apacket1.read(PredType::NATIVE_INT,&bool_packet);
-    aenergy1.read(PredType::NATIVE_INT,&bool_energy);
-    anorm1.read(PredType::NATIVE_INT,&bool_norm);
+    datablock_cpp=std::make_shared<Group>(cppfile.openGroup(datablock_group));
+    datablock_py=std::make_shared<Group>(pyfile.openGroup(datablock_group));
+    apacket_cpp=datablock_cpp->openAttribute("packet");
+    aenergy_cpp=datablock_cpp->openAttribute("energy");
+    anorm_cpp=datablock_cpp->openAttribute("norm");
+    adt_cpp=datablock_cpp->openAttribute("dt");
+    adt_py=datablock_py->openAttribute("ext:dt");
+    apacket_cpp.read(PredType::NATIVE_INT,&bool_packet);
+    aenergy_cpp.read(PredType::NATIVE_INT,&bool_energy);
+    anorm_cpp.read(PredType::NATIVE_INT,&bool_norm);
 
     datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
     datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
@@ -63,10 +72,10 @@ class Test2files: public ::testing::Test
         double imag=0.;
     } instanceof;
 
-    H5std_string filename1;
-    H5File file1;
-    H5std_string filename2;
-    H5File file2;
+    H5std_string cppname;
+    H5File cppfile;
+    H5std_string pythonname;
+    H5File pyfile;
     CompType mytype;
     H5std_string datablock_group="/datablock_0";
     H5std_string energies_group="/energies";
@@ -74,8 +83,8 @@ class Test2files: public ::testing::Test
     H5std_string norms_group="/norms";
     H5std_string Pi_group="/Pi";
     H5std_string wavepacket_group="/wavepacket";
-    std::shared_ptr<Group> datablock_file1;
-    std::shared_ptr<Group> datablock_file2;
+    std::shared_ptr<Group> datablock_cpp;
+    std::shared_ptr<Group> datablock_py;
     H5std_string datasetQpath;
     H5std_string datasetPpath;
     H5std_string datasetqpath;
@@ -84,12 +93,11 @@ class Test2files: public ::testing::Test
     H5std_string datasetekinpath;
     H5std_string datasetepotpath;
     H5std_string datasetnormspath;
-    Attribute apacket1;
-    Attribute aenergy1;
-    Attribute anorm1;
-    Attribute apacket2;
-    Attribute aenergy2;
-    Attribute anorm2;
+    Attribute apacket_cpp;
+    Attribute aenergy_cpp;
+    Attribute anorm_cpp;
+    Attribute adt_cpp;
+    Attribute adt_py;
     int bool_packet;
     int bool_energy;
     int bool_norm;
@@ -100,8 +108,8 @@ TEST_F(Test2files,TestdatasetQ)
 {
     ASSERT_TRUE(bool_packet);
     //expect RANK=3
-    DataSet ds1 = file1.openDataSet(datasetQpath);
-    DataSet ds2 = file2.openDataSet(datasetQpath);
+    DataSet ds1 = cppfile.openDataSet(datasetQpath);
+    DataSet ds2 = pyfile.openDataSet(datasetQpath);
 
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
@@ -191,8 +199,8 @@ TEST_F(Test2files,TestdatasetQ)
 TEST_F(Test2files,TestdatasetP)
 {
     ASSERT_TRUE(bool_packet);
-    DataSet ds1 = file1.openDataSet(datasetPpath);
-    DataSet ds2 = file2.openDataSet(datasetPpath);
+    DataSet ds1 = cppfile.openDataSet(datasetPpath);
+    DataSet ds2 = pyfile.openDataSet(datasetPpath);
 
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
@@ -283,8 +291,8 @@ TEST_F(Test2files,TestdatasetP)
 TEST_F(Test2files,Testdatasetq)
 {
     ASSERT_TRUE(bool_packet);
-    DataSet ds1 = file1.openDataSet(datasetqpath);
-    DataSet ds2 = file2.openDataSet(datasetqpath);
+    DataSet ds1 = cppfile.openDataSet(datasetqpath);
+    DataSet ds2 = pyfile.openDataSet(datasetqpath);
 
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
@@ -370,8 +378,8 @@ TEST_F(Test2files,Testdatasetq)
 TEST_F(Test2files,Testdatasetp)
 {
     ASSERT_TRUE(bool_packet);
-    DataSet ds1 = file1.openDataSet(datasetppath);
-    DataSet ds2 = file2.openDataSet(datasetppath);
+    DataSet ds1 = cppfile.openDataSet(datasetppath);
+    DataSet ds2 = pyfile.openDataSet(datasetppath);
 
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
@@ -457,8 +465,8 @@ TEST_F(Test2files,Testdatasetcoefficients)
 {
     ASSERT_TRUE(bool_packet);
     //expect rank of coeffs always to be 2
-    DataSet ds1 = file1.openDataSet(datasetcpath);
-    DataSet ds2 = file2.openDataSet(datasetcpath);
+    DataSet ds1 = cppfile.openDataSet(datasetcpath);
+    DataSet ds2 = pyfile.openDataSet(datasetcpath);
 
     CompType comp1=ds1.getCompType(); //should be equal to mytype
     CompType comp2=ds2.getCompType(); //should be equal to mytype
