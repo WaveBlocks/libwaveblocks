@@ -781,21 +781,24 @@ namespace waveblocks
             }
         }
         /**
-         * \brief transform Eigen::Matrix<complex_t,D,1> into ctype*
+         * \brief transform Eigen::Matrix<complex_t,D,D> into ctype*
          * \param mat
          * \return ctype*
          *
-         * Transforms an Eigen::Matrix<complex_t,D,1> into a writeable ctype*
+         * Transforms an Eigen::Matrix<complex_t,D,D> into a writeable ctype*
          */
         ctype* transform(Eigen::Matrix<complex_t,D,D> mat)
         {
             constexpr int dim=D;
+            //std::shared_ptr<ctype> newtae(new ctype[dim*dim]);
             ctype* newdat= new ctype[dim*dim];
             std::complex<double>* tmp(mat.data());
             for(int p=0;p<dim*dim;++p)
             {
                 newdat[p].real=tmp[p].real();
                 newdat[p].imag=tmp[p].imag();
+                //(newtae.get()+p)->real=tmp[p].real();
+                //(newtae.get()+p)->imag=tmp[p].imag();
             }
             return newdat;
         }
@@ -884,7 +887,8 @@ namespace waveblocks
                     ctype* myc=transform(utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
                     coeffs->write(myc,mytype_,celemspace,cspace);
 
-                    ctype* myQw=transform(params.Q());
+                    //std::shared_ptr<ctype> myQw=std::make_shared<ctype>(transform(params.Q()));
+                    ctype* myQw = transform(params.Q());
                     Qs->write(myQw,mytype_,QPelemspace,Qspace);
                     ctype* myP=transform(params.P());
                     Ps->write(myP,mytype_,QPelemspace,Pspace);
