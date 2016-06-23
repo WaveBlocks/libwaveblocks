@@ -16,9 +16,21 @@ char** global_argv;
 //namespace for h5
 using namespace H5;
 
+/**
+ * @brief Testclass needed for GTest interface
+ *
+ * This class need to be derived from ::testing::Test in gtest.h and has to define two functions.
+ * SetUp and BreakDown. SetUp for initialization of variables/parameters for different testfissures.
+ * BreakDown for cleanup of variables/parameters if needed.
+ */
 class Test2files: public ::testing::Test
 {
     public:
+    /**
+     * @brief SetUp for TEST_F
+     *
+     * Initialize variables/parameters
+     */
     void SetUp()
     {
     //read filenames
@@ -58,6 +70,15 @@ class Test2files: public ::testing::Test
     aenergy_cpp.read(PredType::NATIVE_INT,&bool_energy);
     anorm_cpp.read(PredType::NATIVE_INT,&bool_norm);
 
+    adt_cpp.read(PredType::NATIVE_DOUBLE,&dt_cpp);
+    CompType comp1=adt_py.getCompType();
+    DataType dt1=adt_py.getDataType();
+    if(comp1==mytype){std::cout<<"is mytype";}
+    if(dt1==PredType::NATIVE_DOUBLE){std::cout<<"is native double";}
+    if(dt1==PredType::NATIVE_FLOAT){std::cout<<"is native float";}
+
+    //adt_py.read(PredType::NATIVE_DOUBLE,&dt_py);
+
     datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
     datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
     datasetqpath=datablock_group+wavepacket_group+Pi_group+"/q";
@@ -65,8 +86,13 @@ class Test2files: public ::testing::Test
     datasetcpath=datablock_group+wavepacket_group+coeffs_group+"/c_0";
     datasetekinpath=datablock_group+energies_group+"/ekin";
     datasetepotpath=datablock_group+energies_group+"/epot";
-    datasetnormspath=datablock_group+norms_group;//TODO
+    datasetnormspath=datablock_group+norms_group;
     }
+    /**
+     * @brief BreakDown for TEST_F
+     *
+     * Cleanup for variables/parameters
+     */
     void BreakDown()
     {
     
@@ -76,41 +102,43 @@ class Test2files: public ::testing::Test
         double imag=0.;
     } instanceof;
 
-    H5std_string cppname;
-    H5File cppfile;
-    H5std_string pythonname;
-    H5File pyfile;
-    CompType mytype;
-    H5std_string datablock_group="/datablock_0";
-    H5std_string energies_group="/energies";
-    H5std_string coeffs_group="/coefficients";
-    H5std_string norms_group="/norms";
-    H5std_string Pi_group="/Pi";
-    H5std_string wavepacket_group="/wavepacket";
-    std::shared_ptr<Group> datablock_cpp;
-    std::shared_ptr<Group> datablock_py;
-    H5std_string datasetQpath;
-    H5std_string datasetPpath;
-    H5std_string datasetqpath;
-    H5std_string datasetppath;
-    H5std_string datasetcpath;
-    H5std_string datasetekinpath;
-    H5std_string datasetepotpath;
-    H5std_string datasetnormspath;
-    Attribute apacket_cpp;
-    Attribute aenergy_cpp;
-    Attribute anorm_cpp;
-    Attribute adt_cpp;
-    Attribute adt_py;
-    int bool_packet;
-    int bool_energy;
-    int bool_norm;
+    H5std_string cppname;//!<filename of cpp file
+    H5File cppfile;//!<instance of cpp file
+    H5std_string pythonname;//!<filename of py file
+    H5File pyfile;//!<instance of py file
+    CompType mytype;//!<predefined type used to write and read data
+    H5std_string datablock_group="/datablock_0";//!<name for datablock group. DEFAULT:/datablock_0
+    H5std_string energies_group="/energies";//!<name for energies group. DEFAULT:/energies
+    H5std_string coeffs_group="/coefficients";//!<name for coefficients group. DEFAULT:/coefficients
+    H5std_string norms_group="/norms";//!<name for norms group. DEFAULT:/norms
+    H5std_string Pi_group="/Pi";//!<name for Pi group. DEFAULT:/Pi
+    H5std_string wavepacket_group="/wavepacket";//!<name for wavepacket group. DEFAULT:/wavepacket
+    std::shared_ptr<Group> datablock_cpp;//!<datablockgroup for cppfile identifier
+    std::shared_ptr<Group> datablock_py;//!<datablockgroup for pyfile identifier
+    H5std_string datasetQpath;//!<string for path to dataset Q
+    H5std_string datasetPpath;//!<string for path to dataset P
+    H5std_string datasetqpath;//!<string for path to dataset p
+    H5std_string datasetppath;//!<string for path to dataset q
+    H5std_string datasetcpath;//!<string for path to dataset c_0
+    H5std_string datasetekinpath;//!<string for path to dataset ekin
+    H5std_string datasetepotpath;//!<string for path to dataset epot
+    H5std_string datasetnormspath;//!<string for path to dataset norm
+    Attribute apacket_cpp;//!<attribute identifier for packet for cpp file
+    Attribute aenergy_cpp;//!<attribute identifier for energy for cpp file
+    Attribute anorm_cpp;//!<attribute identifier for norm for cpp file
+    Attribute adt_cpp;//!<attribute identifier for dt for cpp file
+    Attribute adt_py;//!<attribute identifier for dt for py file
+    int bool_packet;//!<bool if packet is written in cpp file
+    int bool_energy;//!<bool if energy is written in cpp file
+    int bool_norm;//!<bool if norm is written in cpp file
+    double dt_cpp;//!<timestep in cpp file
+    double dt_py;//!<timestep in py file
 };
 
 
 TEST_F(Test2files,TestdatasetQ)
 {
-    ASSERT_TRUE(bool_packet);
+    ASSERT_TRUE(bool_packet)<<"Cannot compare. Data missing";
     //expect RANK=3
     DataSet ds1 = cppfile.openDataSet(datasetQpath);
     DataSet ds2 = pyfile.openDataSet(datasetQpath);
@@ -202,7 +230,7 @@ TEST_F(Test2files,TestdatasetQ)
 
 TEST_F(Test2files,TestdatasetP)
 {
-    ASSERT_TRUE(bool_packet);
+    ASSERT_TRUE(bool_packet)<<"Cannot compare. Data missing";
     DataSet ds1 = cppfile.openDataSet(datasetPpath);
     DataSet ds2 = pyfile.openDataSet(datasetPpath);
 
@@ -294,7 +322,7 @@ TEST_F(Test2files,TestdatasetP)
 
 TEST_F(Test2files,Testdatasetq)
 {
-    ASSERT_TRUE(bool_packet);
+    ASSERT_TRUE(bool_packet)<<"Cannot compare. Data missing";
     DataSet ds1 = cppfile.openDataSet(datasetqpath);
     DataSet ds2 = pyfile.openDataSet(datasetqpath);
 
@@ -381,7 +409,7 @@ TEST_F(Test2files,Testdatasetq)
 
 TEST_F(Test2files,Testdatasetp)
 {
-    ASSERT_TRUE(bool_packet);
+    ASSERT_TRUE(bool_packet)<<"Cannot compare. Data missing";
     DataSet ds1 = cppfile.openDataSet(datasetppath);
     DataSet ds2 = pyfile.openDataSet(datasetppath);
 
@@ -467,7 +495,7 @@ TEST_F(Test2files,Testdatasetp)
 
 TEST_F(Test2files,Testdatasetcoefficients)
 {
-    ASSERT_TRUE(bool_packet);
+    ASSERT_TRUE(bool_packet)<<"Cannot compare. Data missing";
     //expect rank of coeffs always to be 2
     DataSet ds1 = cppfile.openDataSet(datasetcpath);
     DataSet ds2 = pyfile.openDataSet(datasetcpath);
@@ -548,17 +576,17 @@ TEST_F(Test2files,Testdatasetcoefficients)
 
 TEST_F(Test2files,Testdatasetekin)
 {
-    ASSERT_TRUE(bool_energy);
+    ASSERT_TRUE(bool_energy)<<"Cannot compare. Data missing";
 }
 
 TEST_F(Test2files,Testdatasetepot)
 {
-    ASSERT_TRUE(bool_energy);
+    ASSERT_TRUE(bool_energy)<<"Cannot compare. Data missing";
 }
 
 TEST_F(Test2files,Testdatasetnorm)
 {
-    ASSERT_TRUE(bool_norm);
+    ASSERT_TRUE(bool_norm)<<"Cannot compare. Data missing";
 }
 
 int main(int argc,char* argv[])
