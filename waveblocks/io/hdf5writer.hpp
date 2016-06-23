@@ -64,7 +64,7 @@ namespace waveblocks
         }
         /**
          * \brief runtime function to evaluate number of coefficients
-         *
+         * \param packet to deduce number of coefficients
          * Used in prestructuring<MultiIndex>
          */
         template<class MultiIndex>
@@ -78,11 +78,12 @@ namespace waveblocks
         /**
          * \brief prestructure after knowing bool values and packet
          * \param packet used for evaluation number of coefficients
+         * \param dt to save timestepsize as attribute
          */
         template<class MultiIndex>
         void prestructuring(waveblocks::wavepackets::ScalarHaWp<D,MultiIndex> packet,double dt)
         {
-            //get number
+            //get number of coefficients
             set_coeff_dim(packet);
 
             //set group structure
@@ -97,10 +98,10 @@ namespace waveblocks
             //allocate datasets needs to be after select writespace
             allocate_datasets();
 
-            //set up elem space
+            //set up elementary spaces
             set_elem_space();
 
-            //select elemtary space
+            //select space within elemtary space
             select_elem_hyperslabs();
         }
         /**
