@@ -959,9 +959,9 @@ namespace waveblocks
             {
                 if(tindex_norm%timestepsize_norms==0)
                 {
-                    double norms=0.5;
+                    double mynorm = waveblocks::observables::norm<D,MultiIndex>(packet);
                     select_file_writespace_norms();
-                    normss->write(&norms,PredType::NATIVE_DOUBLE,normelemspace,normspace);
+                    normss->write(&mynorm,PredType::NATIVE_DOUBLE,normelemspace,normspace);
                     times_norms->write(&tindex_norm,PredType::NATIVE_INT,timelemspace,timespace_norms);
                     advance_norms();
                 }
