@@ -26,15 +26,19 @@ class Test2files: public ::testing::Test
     //char* this_file=global_argv[0];
     std::string filename_1 = global_argv[1];
     std::string filename_2 = global_argv[2];
-    if(filename_1.find("py"))
+    if(filename_1.find("py")!=std::string::npos)
     {
         pythonname = filename_1;
         cppname = filename_2;
     }
-    if(filename_1.find("cpp"))
+    else if(filename_1.find("cpp")!=std::string::npos)
     {
         cppname = filename_1;
         pythonname = filename_2;
+    }
+    else
+    {
+        FAIL()<< "Failed to compare. In argv *cpp.hdf5 and *py.hdf5 file needed";
     }
     mytype=CompType(sizeof(instanceof));
     mytype.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
