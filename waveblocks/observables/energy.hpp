@@ -70,14 +70,9 @@ namespace waveblocks {
         template<int D,class MultiIndex>
         real_t norm(const ScalarHaWp<D,MultiIndex>& packet)
         {
-//            HaWpGradientOperator<D,MultiIndex> nabla;
-//            HaWpGradient<D,MultiIndex> gradwp = nabla(packet);
-//            complex_t result(0,0);
-//            for (size_t i = 0 ; i < gradwp.n_components(); ++i) {
-//                result += gradwp.component(i).coefficients().dot(gradwp.component(i).coefficients());
-//            }
-//            return 0.5 * result.real();
-
+            complex_t result(0,0);
+            result += packet.coefficients().dot(packet.coefficients());
+            return 0.5*result.real();
         }
     }
 }
