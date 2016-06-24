@@ -2,6 +2,8 @@
 #include <string>
 #include <cmath>
 #include <memory>
+#include <vector>
+#include <cassert>
 
 //include GTest
 #include "gtest/gtest.h"
@@ -26,28 +28,6 @@ using namespace H5;
 class Test2files: public ::testing::Test
 {
     public:
-    std::vector<int*> compute_time_matching(H5std_string timegridpath_cpp,H5std_string timegridpath_py)
-    {
-        std::vector<int*> res(10);
-
-        //expect RANK=3
-        DataSet ds1 = cppfile.openDataSet(timegridpath_cpp);
-        DataSet ds2 = pyfile.openDataSet(timegridpath_py);
-
-        DataSpace dspace1 = ds1.getSpace();
-        DataSpace dspace2 = ds2.getSpace();
-
-        int rank1 = dspace1.getSimpleExtentNdims();
-        int rank2 = dspace1.getSimpleExtentNdims();
-
-        hsize_t* dim1 = new hsize_t[rank1];
-        hsize_t* dim2 = new hsize_t[rank2];
-
-        dspace1.getSimpleExtentDims(dim1);
-        dspace2.getSimpleExtentDims(dim2);
-
-        return res;
-    }
     /**
      * @brief SetUp for TEST_F
      *
@@ -102,9 +82,13 @@ class Test2files: public ::testing::Test
     datasetqpath=datablock_group+wavepacket_group+Pi_group+"/q";
     datasetppath=datablock_group+wavepacket_group+Pi_group+"/p";
     datasetcpath=datablock_group+wavepacket_group+coeffs_group+"/c_0";
+    //timepathpacket=datablock_group+wavepacket_group+"/timegrid";
     datasetekinpath=datablock_group+energies_group+"/ekin";
+    timepathekin=datablock_group+energies_group+"/timegrid_ekin";
     datasetepotpath=datablock_group+energies_group+"/epot";
-    datasetnormpath=datablock_group+norms_group;
+    timepathepot=datablock_group+energies_group+"/timegrid_epot";
+    datasetnormpath=datablock_group+norm_group+"/norm";
+    timepathnorm=datablock_group+norm_group+"/timegrid";
     }
     /**
      * @brief BreakDown for TEST_F
@@ -113,6 +97,8 @@ class Test2files: public ::testing::Test
      */
     void BreakDown()
     {
+        cppfile.close();
+        pyfile.close();
     }
     struct ctype{ //our complex datatype
         double real=0.;
@@ -127,7 +113,7 @@ class Test2files: public ::testing::Test
     H5std_string datablock_group="/datablock_0";//!<name for datablock group. DEFAULT:/datablock_0
     H5std_string energies_group="/energies";//!<name for energies group. DEFAULT:/energies
     H5std_string coeffs_group="/coefficients";//!<name for coefficients group. DEFAULT:/coefficients
-    H5std_string norms_group="/norms";//!<name for norms group. DEFAULT:/norms
+    H5std_string norm_group="/norm";//!<name for norm group. DEFAULT:/norms
     H5std_string Pi_group="/Pi";//!<name for Pi group. DEFAULT:/Pi
     H5std_string wavepacket_group="/wavepacket";//!<name for wavepacket group. DEFAULT:/wavepacket
     std::shared_ptr<Group> datablock_cpp;//!<datablockgroup for cppfile identifier
@@ -162,6 +148,77 @@ TEST_F(Test2files,TestdatasetQ)
     if(bool_packet)
     {
         //expect RANK=3
+
+        //***********************injection
+        std::vector<int*> res;
+
+        std::cout<<"*****************************";
+        //expect RANK=1
+        DataSet its1 = cppfile.openDataSet("");
+        DataSet its2 = pyfile.openDataSet("");
+
+        IntType it1 = its1.getIntType();
+        IntType it2 = its2.getIntType();
+
+        DataSpace itspace1 = its1.getSpace();
+        DataSpace itspace2 = its2.getSpace();
+
+        int itrank1 = itspace1.getSimpleExtentNdims();
+        int itrank2 = itspace1.getSimpleExtentNdims();
+
+        hsize_t* itdim1 = new hsize_t[itrank1];
+        hsize_t* itdim2 = new hsize_t[itrank2];
+
+        itspace1.getSimpleExtentDims(itdim1);
+        itspace2.getSimpleExtentDims(itdim2);
+
+        int* index_array_cpp = new int[itdim1[0]];
+        int* index_array_py = new int[itdim2[0]];
+
+        hsize_t* itelem=new hsize_t[itrank1];
+        itelem[0]=itdim1[0];
+
+        DataSpace itelemspace(itrank1,itelem);
+        hsize_t* itstart1=new hsize_t[itrank1];
+        itstart1[0]=0;
+        hsize_t* itcount1= new hsize_t[itrank1];
+        itcount1[0]=itdim1[0];
+        hsize_t* itstride1=new hsize_t[itrank1];
+        itstride1[0]=1;
+        hsize_t* itblock1=new hsize_t[itrank1];
+        itblock1[0]=1;
+
+        itelemspace.selectHyperslab(H5S_SELECT_SET,itcount1,itstart1,itstride1,itblock1);
+        itspace1.selectHyperslab(H5S_SELECT_SET,itcount1,itstart1,itstride1,itblock1);
+        itspace2.selectHyperslab(H5S_SELECT_SET,itcount1,itstart1,itstride1,itblock1);
+
+        its1.read(index_array_cpp,it1,itelemspace,itspace1);
+        its2.read(index_array_py,it2,itelemspace,itspace2);
+
+        int acc[2]={-1,-1};
+        for(unsigned int k=0;k<itdim1[0];++k)
+        {
+            int index_i_cpp=index_array_cpp[k];
+            for(unsigned int p=0;p<itdim2[0];++p)
+            {
+                int index_j_py=index_array_py[p];
+                int temp = index_j_py*(dt_py/dt_cpp);
+                if(index_i_cpp==temp)
+                {
+                    acc[0]=index_i_cpp;
+                    acc[1]=index_j_py;
+                    res.push_back(acc);
+                }
+            }
+        }
+        if(res.empty())
+        {
+            res.push_back(acc);
+        }
+//        its1.close();
+//        its2.close();
+        //*******************************************
+
         DataSet ds1 = cppfile.openDataSet(datasetQpath);
         DataSet ds2 = pyfile.openDataSet(datasetQpath);
 
@@ -216,10 +273,19 @@ TEST_F(Test2files,TestdatasetQ)
 
         elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
-        for(unsigned int k=0;k<dim1[0];++k)
+        if(res.empty())
         {
+            FAIL()<<"No matching timepoint.Abort!";
+        }
+        for(auto index_element:res)
+        {
+            if(index_element[0]==-1)
+            {
+                FAIL()<<"No matching timepoint.Abort!";
+            }
+
             hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
+            start2[0]=index_element[0];
             start2[1]=0;
             start2[2]=0;
             hsize_t* count2 = new hsize_t[rank1];
@@ -234,9 +300,13 @@ TEST_F(Test2files,TestdatasetQ)
             block2[0]=1;
             block2[1]=1;
             block2[2]=1;
+            hsize_t* start3 = new hsize_t[rank1];
+            start3[0]=index_element[1];
+            start3[1]=0;
+            start3[2]=0;
 
             dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
             ds1.read(outdat1,comp1,elemspace,dspace1);
             ds2.read(outdat2,comp2,elemspace,dspace2);
 
@@ -250,6 +320,41 @@ TEST_F(Test2files,TestdatasetQ)
             EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
             EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
         }
+
+//        for(unsigned int k=0;k<dim1[0];++k)
+//        {
+//            hsize_t* start2 = new hsize_t[rank1];
+//            start2[0]=k;
+//            start2[1]=0;
+//            start2[2]=0;
+//            hsize_t* count2 = new hsize_t[rank1];
+//            count2[0]=1;
+//            count2[1]=dim1[1];
+//            count2[2]=dim1[2];
+//            hsize_t* stride2 = new hsize_t[rank1];
+//            stride2[0]=1;
+//            stride2[1]=1;
+//            stride2[2]=1;
+//            hsize_t* block2 = new hsize_t[rank1];
+//            block2[0]=1;
+//            block2[1]=1;
+//            block2[2]=1;
+
+//            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+//            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+//            ds1.read(outdat1,comp1,elemspace,dspace1);
+//            ds2.read(outdat2,comp2,elemspace,dspace2);
+
+//            EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
+//            EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
+//            EXPECT_NEAR(outdat1[2].real,outdat2[2].real,abstol);
+//            EXPECT_NEAR(outdat1[3].real,outdat2[3].real,abstol);
+
+//            EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
+//            EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
+//            EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
+//            EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
+//        }
     }
     else
     {
@@ -891,3 +996,73 @@ int main(int argc,char* argv[])
     ::testing::InitGoogleTest(&argc,argv);
     return RUN_ALL_TESTS();
 }
+//void compute_time_matching(H5std_string timegridpath_cpp,H5std_string timegridpath_py)
+//{
+//    std::vector<int*> res;
+
+//    //expect RANK=1
+//    DataSet its1 = cppfile.openDataSet(timegridpath_cpp);
+//    DataSet its2 = pyfile.openDataSet(timegridpath_py);
+
+//    IntType it1 = its1.getIntType();
+//    IntType it2 = its2.getIntType();
+
+//    DataSpace dspace1 = its1.getSpace();
+//    DataSpace dspace2 = its2.getSpace();
+
+//    int rank1 = dspace1.getSimpleExtentNdims();
+//    int rank2 = dspace1.getSimpleExtentNdims();
+//    assert(rank1==1);
+//    assert(rank2==1);
+//    hsize_t* dim1 = new hsize_t[rank1];
+//    hsize_t* dim2 = new hsize_t[rank2];
+
+//    dspace1.getSimpleExtentDims(dim1);
+//    dspace2.getSimpleExtentDims(dim2);
+//    assert(dim1[0]==dim2[0]);
+
+//    int* index_array_cpp = new int[dim1[0]];
+//    int* index_array_py = new int[dim2[0]];
+
+//    hsize_t* elem=new hsize_t[rank1];
+//    elem[0]=dim1[0];
+
+//    DataSpace elemspace(rank1,elem);
+//    hsize_t* start1=new hsize_t[rank1];
+//    start1[0]=0;
+//    hsize_t* count1= new hsize_t[rank1];
+//    count1[0]=dim1[0];
+//    hsize_t* stride1=new hsize_t[rank1];
+//    stride1[0]=1;
+//    hsize_t* block1=new hsize_t[rank1];
+//    block1[0]=1;
+
+//    elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+//    dspace1.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+//    dspace2.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+
+//    its1.read(index_array_cpp,it1,elemspace,dspace1);
+//    its2.read(index_array_py,it2,elemspace,dspace2);
+
+//    int acc[2]={-1,-1};
+//    for(unsigned int k=0;k<dim1[0];++k)
+//    {
+//        int index_i_cpp=index_array_cpp[k];
+//        for(unsigned int p=0;p<dim2[0];++p)
+//        {
+//            int index_j_py=index_array_py[p];
+//            int temp = index_j_py*(dt_py/dt_cpp);
+//            if(index_i_cpp==temp)
+//            {
+//                acc[0]=index_i_cpp;
+//                acc[1]=index_j_py;
+//                res.push_back(acc);
+//            }
+//        }
+//    }
+//    if(res.empty())
+//    {
+//        res.push_back(acc);
+//    }
+
+//}
