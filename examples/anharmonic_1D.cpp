@@ -90,6 +90,7 @@ int main() {
     // Preparing the file
     io::hdf5writer<D> mywriter("anharmonic_1D_cpp.hdf5");
     mywriter.set_write_energy(true);
+    mywriter.set_write_norm(true);
     mywriter.prestructuring<MultiIndex>(packet,dt);
 
     //time=0
@@ -99,6 +100,7 @@ int main() {
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
     mywriter.store_energies(epot,ekin);
+    mywriter.store_norm(packet);
     std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << epot+ekin << std::endl;
 
 
@@ -117,6 +119,7 @@ int main() {
         real_t etot = ekin + epot;
         std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << etot << std::endl;
         mywriter.store_energies(epot,ekin);
+        mywriter.store_norm(packet);
     }
     mywriter.poststructuring();
 }
