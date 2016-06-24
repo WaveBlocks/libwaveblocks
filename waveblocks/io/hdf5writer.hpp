@@ -536,7 +536,7 @@ namespace waveblocks
             }
             if(wrlist["norm"])
             {
-                H5std_string tmm=datablock_string+norms_group+"/norms";
+                H5std_string tmm=datablock_string+norms_group+"/norm";
                 normss=std::make_shared<DataSet>(file_.createDataSet(tmm,PredType::NATIVE_DOUBLE,normspace,plist_norms));
                 H5std_string tmt=datablock_string+norms_group+"/timegrid";
                 times_norms=std::make_shared<DataSet>(file_.createDataSet(tmt,PredType::NATIVE_INT,timespace_norms,plist_time));
@@ -922,7 +922,6 @@ namespace waveblocks
          * @brief store energies in chosen timestep
          * @param epot_
          * @param ekin_
-         *
          */
         void store_energies(double epot_,double ekin_)
         {

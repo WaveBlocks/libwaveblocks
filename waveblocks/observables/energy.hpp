@@ -72,7 +72,7 @@ namespace waveblocks {
         {
             complex_t result(0,0);
             result += packet.coefficients().dot(packet.coefficients());
-            return 0.5*result.real();
+            return std::sqrt(result.real());
         }
     }
 }
