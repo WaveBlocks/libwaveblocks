@@ -82,7 +82,7 @@ class Test2files: public ::testing::Test
     datasetcpath=datablock_group+wavepacket_group+coeffs_group+"/c_0";
     datasetekinpath=datablock_group+energies_group+"/ekin";
     datasetepotpath=datablock_group+energies_group+"/epot";
-    datasetnormspath=datablock_group+norms_group;
+    datasetnormpath=datablock_group+norms_group;
     }
     /**
      * @brief BreakDown for TEST_F
@@ -117,7 +117,7 @@ class Test2files: public ::testing::Test
     H5std_string datasetcpath;//!<string for path to dataset c_0
     H5std_string datasetekinpath;//!<string for path to dataset ekin
     H5std_string datasetepotpath;//!<string for path to dataset epot
-    H5std_string datasetnormspath;//!<string for path to dataset norm
+    H5std_string datasetnormpath;//!<string for path to dataset norm
     Attribute apacket_cpp;//!<attribute identifier for packet for cpp file
     Attribute aenergy_cpp;//!<attribute identifier for energy for cpp file
     Attribute anorm_cpp;//!<attribute identifier for norm for cpp file
@@ -599,10 +599,79 @@ TEST_F(Test2files,Testdatasetcoefficients)
     }
 }
 
-TEST_F(Test2files,Testdatasetekin)
+TEST_F(Test2files,DISABLED_Testdatasetekin)
 {
     if(bool_energy)
     {
+        //expect rank of ekin always be 2
+        DataSet ds1 = cppfile.openDataSet(datasetekinpath);
+        DataSet ds2 = pyfile.openDataSet(datasetekinpath);
+
+        CompType comp1=ds1.getCompType(); //should be equal to mytype
+        CompType comp2=ds2.getCompType(); //should be equal to mytype
+
+        DataSpace dspace1 = ds1.getSpace();
+        DataSpace dspace2 = ds2.getSpace();
+
+        int rank1 = dspace1.getSimpleExtentNdims();
+        int rank2 = dspace1.getSimpleExtentNdims();
+        ASSERT_EQ(rank1,rank2);
+
+        hsize_t* dim1 = new hsize_t[rank1];
+        hsize_t* dim2 = new hsize_t[rank2];
+
+        dspace1.getSimpleExtentDims(dim1);
+        dspace2.getSimpleExtentDims(dim2);
+
+        ASSERT_EQ(dim1[0],dim2[0]);
+        ASSERT_EQ(dim1[1],dim2[1]);
+        int RANK2=2;
+        ASSERT_EQ(rank1,RANK2);
+
+        hsize_t* elem=new hsize_t[rank1];
+        elem[0]=1;
+        elem[1]=dim1[1];
+        double* outdat1 = new double[dim1[1]];
+        double* outdat2 = new double[dim2[1]];
+
+        DataSpace elemspace(rank1,elem);
+        hsize_t* start1=new hsize_t[rank1];
+        start1[0]=0;
+        start1[1]=0;
+        hsize_t* count1= new hsize_t[rank1];
+        count1[0]=1;
+        count1[1]=dim1[1];
+        hsize_t* stride1=new hsize_t[rank1];
+        stride1[0]=1;
+        stride1[1]=1;
+        hsize_t* block1=new hsize_t[rank1];
+        block1[0]=1;
+        block1[1]=1;
+
+        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+
+        for(unsigned int k=0;k<dim1[0];++k)
+        {
+            hsize_t* start2 = new hsize_t[rank1];
+            start2[0]=k;
+            start2[1]=0;
+            hsize_t* count2 = new hsize_t[rank1];
+            count2[0]=1;
+            count2[1]=dim1[1];
+            hsize_t* stride2 = new hsize_t[rank1];
+            stride2[0]=1;
+            stride2[1]=1;
+            hsize_t* block2 = new hsize_t[rank1];
+            block2[0]=1;
+            block2[1]=1;
+
+            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+            ds1.read(outdat1,comp1,elemspace,dspace1);
+            ds2.read(outdat2,comp2,elemspace,dspace2);
+
+            EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
+        }
 
     }
     else
@@ -611,10 +680,79 @@ TEST_F(Test2files,Testdatasetekin)
     }
 }
 
-TEST_F(Test2files,Testdatasetepot)
+TEST_F(Test2files,DISABLED_Testdatasetepot)
 {
     if(bool_energy)
     {
+        //expect rank of epot always be 2
+        DataSet ds1 = cppfile.openDataSet(datasetepotpath);
+        DataSet ds2 = pyfile.openDataSet(datasetepotpath);
+
+        CompType comp1=ds1.getCompType(); //should be equal to mytype
+        CompType comp2=ds2.getCompType(); //should be equal to mytype
+
+        DataSpace dspace1 = ds1.getSpace();
+        DataSpace dspace2 = ds2.getSpace();
+
+        int rank1 = dspace1.getSimpleExtentNdims();
+        int rank2 = dspace1.getSimpleExtentNdims();
+        ASSERT_EQ(rank1,rank2);
+
+        hsize_t* dim1 = new hsize_t[rank1];
+        hsize_t* dim2 = new hsize_t[rank2];
+
+        dspace1.getSimpleExtentDims(dim1);
+        dspace2.getSimpleExtentDims(dim2);
+
+        ASSERT_EQ(dim1[0],dim2[0]);
+        ASSERT_EQ(dim1[1],dim2[1]);
+        int RANK2=2;
+        ASSERT_EQ(rank1,RANK2);
+
+        hsize_t* elem=new hsize_t[rank1];
+        elem[0]=1;
+        elem[1]=dim1[1];
+        double* outdat1 = new double[dim1[1]];
+        double* outdat2 = new double[dim2[1]];
+
+        DataSpace elemspace(rank1,elem);
+        hsize_t* start1=new hsize_t[rank1];
+        start1[0]=0;
+        start1[1]=0;
+        hsize_t* count1= new hsize_t[rank1];
+        count1[0]=1;
+        count1[1]=dim1[1];
+        hsize_t* stride1=new hsize_t[rank1];
+        stride1[0]=1;
+        stride1[1]=1;
+        hsize_t* block1=new hsize_t[rank1];
+        block1[0]=1;
+        block1[1]=1;
+
+        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+
+        for(unsigned int k=0;k<dim1[0];++k)
+        {
+            hsize_t* start2 = new hsize_t[rank1];
+            start2[0]=k;
+            start2[1]=0;
+            hsize_t* count2 = new hsize_t[rank1];
+            count2[0]=1;
+            count2[1]=dim1[1];
+            hsize_t* stride2 = new hsize_t[rank1];
+            stride2[0]=1;
+            stride2[1]=1;
+            hsize_t* block2 = new hsize_t[rank1];
+            block2[0]=1;
+            block2[1]=1;
+
+            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+            ds1.read(outdat1,comp1,elemspace,dspace1);
+            ds2.read(outdat2,comp2,elemspace,dspace2);
+
+            EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
+        }
 
     }
     else
@@ -623,10 +761,79 @@ TEST_F(Test2files,Testdatasetepot)
     }
 }
 
-TEST_F(Test2files,Testdatasetnorm)
+TEST_F(Test2files,DISABLED_Testdatasetnorm)
 {
     if(bool_norm)
     {
+        //expect rank of norm always be 2
+        DataSet ds1 = cppfile.openDataSet(datasetnormpath);
+        DataSet ds2 = pyfile.openDataSet(datasetnormpath);
+
+        CompType comp1=ds1.getCompType(); //should be equal to mytype
+        CompType comp2=ds2.getCompType(); //should be equal to mytype
+
+        DataSpace dspace1 = ds1.getSpace();
+        DataSpace dspace2 = ds2.getSpace();
+
+        int rank1 = dspace1.getSimpleExtentNdims();
+        int rank2 = dspace1.getSimpleExtentNdims();
+        ASSERT_EQ(rank1,rank2);
+
+        hsize_t* dim1 = new hsize_t[rank1];
+        hsize_t* dim2 = new hsize_t[rank2];
+
+        dspace1.getSimpleExtentDims(dim1);
+        dspace2.getSimpleExtentDims(dim2);
+
+        ASSERT_EQ(dim1[0],dim2[0]);
+        ASSERT_EQ(dim1[1],dim2[1]);
+        int RANK2=2;
+        ASSERT_EQ(rank1,RANK2);
+
+        hsize_t* elem=new hsize_t[rank1];
+        elem[0]=1;
+        elem[1]=dim1[1];
+        double* outdat1 = new double[dim1[1]];
+        double* outdat2 = new double[dim2[1]];
+
+        DataSpace elemspace(rank1,elem);
+        hsize_t* start1=new hsize_t[rank1];
+        start1[0]=0;
+        start1[1]=0;
+        hsize_t* count1= new hsize_t[rank1];
+        count1[0]=1;
+        count1[1]=dim1[1];
+        hsize_t* stride1=new hsize_t[rank1];
+        stride1[0]=1;
+        stride1[1]=1;
+        hsize_t* block1=new hsize_t[rank1];
+        block1[0]=1;
+        block1[1]=1;
+
+        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+
+        for(unsigned int k=0;k<dim1[0];++k)
+        {
+            hsize_t* start2 = new hsize_t[rank1];
+            start2[0]=k;
+            start2[1]=0;
+            hsize_t* count2 = new hsize_t[rank1];
+            count2[0]=1;
+            count2[1]=dim1[1];
+            hsize_t* stride2 = new hsize_t[rank1];
+            stride2[0]=1;
+            stride2[1]=1;
+            hsize_t* block2 = new hsize_t[rank1];
+            block2[0]=1;
+            block2[1]=1;
+
+            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+            ds1.read(outdat1,comp1,elemspace,dspace1);
+            ds2.read(outdat2,comp2,elemspace,dspace2);
+
+            EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
+        }
 
     }
     else
