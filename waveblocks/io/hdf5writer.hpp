@@ -188,7 +188,7 @@ namespace waveblocks
          * @brief set timestep for writing norms
          * @param timestep
          */
-        void set_timestep_norms(int timestep)
+        void set_timestep_norm(int timestep)
         {
             timestepsize_norms=timestep;
         }
@@ -547,7 +547,7 @@ namespace waveblocks
          *
          * Called after a subset was written.
          */
-        void setup_extension_norms(void)
+        void setup_extension_norm(void)
         {
             if(wrlist["norm"])
             {
@@ -657,7 +657,7 @@ namespace waveblocks
          *
          * Called after a subset was written and extension is set.
          */
-        void extend_dataset_norms(void)
+        void extend_dataset_norm(void)
         {
             if(wrlist["norm"])
             {
@@ -742,7 +742,7 @@ namespace waveblocks
          *
          * Needs to be done after extending this dataset
          */
-        void update_filespace_norms(void)
+        void update_filespace_norm(void)
         {
             if(wrlist["norm"])
             {
@@ -790,15 +790,12 @@ namespace waveblocks
         ctype* transform(Eigen::Matrix<complex_t,D,D> mat)
         {
             constexpr int dim=D;
-            //std::shared_ptr<ctype> newtae(new ctype[dim*dim]);
             ctype* newdat= new ctype[dim*dim];
             std::complex<double>* tmp(mat.data());
             for(int p=0;p<dim*dim;++p)
             {
                 newdat[p].real=tmp[p].real();
                 newdat[p].imag=tmp[p].imag();
-                //(newtae.get()+p)->real=tmp[p].real();
-                //(newtae.get()+p)->imag=tmp[p].imag();
             }
             return newdat;
         }
@@ -886,23 +883,29 @@ namespace waveblocks
 
                     ctype* myc=transform(utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
                     coeffs->write(myc,mytype_,celemspace,cspace);
+                    delete myc;
 
-                    //std::shared_ptr<ctype> myQw=std::make_shared<ctype>(transform(params.Q()));
-                    ctype* myQw = transform(params.Q());
-                    Qs->write(myQw,mytype_,QPelemspace,Qspace);
+                    ctype* myQ = transform(params.Q());
+                    Qs->write(myQ,mytype_,QPelemspace,Qspace);
+                    delete myQ;
                     ctype* myP=transform(params.P());
                     Ps->write(myP,mytype_,QPelemspace,Pspace);
+                    delete myP;
 
                     ctype* myq=transform(params.q());
                     qs->write(myq,mytype_,qpelemspace,qspace);
+                    delete myq;
                     ctype* myp=transform(params.p());
                     ps->write(myp,mytype_,qpelemspace,pspace);
+                    delete myp;
 
                     ctype* myS=transform(params.S());
                     Ss->write(myS,mytype_,Selemspace,Sspace);
+                    delete myS;
 
                     ctype* myadQ=transform(params.sdQ());
                     adQs->write(myadQ,mytype_,Selemspace,adQspace);
+                    delete myadQ;
 
                     times_packet->write(&tindex_packet,PredType::NATIVE_INT,timelemspace,timespace_packet);
 
@@ -953,17 +956,17 @@ namespace waveblocks
          * Extendable for norms user is interested in.
          */
         template<class MultiIndex>
-        void store_norms(const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packet)
+        void store_norm(const waveblocks::wavepackets::ScalarHaWp<D,MultiIndex>& packet)
         {
             if(wrlist["norm"])
             {
                 if(tindex_norm%timestepsize_norms==0)
                 {
                     double mynorm = waveblocks::observables::norm<D,MultiIndex>(packet);
-                    select_file_writespace_norms();
+                    select_file_writespace_norm();
                     normss->write(&mynorm,PredType::NATIVE_DOUBLE,normelemspace,normspace);
                     times_norms->write(&tindex_norm,PredType::NATIVE_INT,timelemspace,timespace_norms);
-                    advance_norms();
+                    advance_norm();
                 }
                 tindex_norm+=1;
             }
@@ -1141,7 +1144,7 @@ namespace waveblocks
          *
          * Called always before norms are written to evaluate space to write.
          */
-        void select_file_writespace_norms(void)
+        void select_file_writespace_norm(void)
         {
             if(wrlist["norm"])
             {
@@ -1171,12 +1174,12 @@ namespace waveblocks
          * Wrapper for index_norm++, set_up_extension_norms(), extend_dataset_norms()
          * and update_filespace_norms()
          */
-        void advance_norms(void)
+        void advance_norm(void)
         {
             index_norm+=1;
-            setup_extension_norms();
-            extend_dataset_norms();
-            update_filespace_norms();
+            setup_extension_norm();
+            extend_dataset_norm();
+            update_filespace_norm();
         }
         /**
          * @brief reverse last dataset extension for packet
@@ -1224,11 +1227,11 @@ namespace waveblocks
          * This just reverses the last extension so the dataset is exactly as big
          * as the number of timesteps written.
          */
-        void cleanup_norms(void)
+        void cleanup_norm(void)
         {
             index_norm-=1;
-            setup_extension_norms();
-            extend_dataset_norms();
+            setup_extension_norm();
+            extend_dataset_norm();
         }
         /**
          * @brief last resize for exact length
@@ -1243,7 +1246,7 @@ namespace waveblocks
             }
             if(wrlist["norm"])
             {
-                cleanup_norms();
+                cleanup_norm();
             }
             if(wrlist["energy"])
             {
@@ -1268,7 +1271,7 @@ namespace waveblocks
         H5std_string coefficient_group_string="/coefficients";//!<String for H5Group of coefficients. Default:coefficients
         H5std_string wavepacket_group_string="/wavepacket";//!<String for H5Group for packet and coefficients. Default:wavepacket
         H5std_string energies_group="/energies";//!<name for group energies Default:energies
-        H5std_string norms_group="/norms";//!<name for group norms Default:norms
+        H5std_string norms_group="/norm";//!<name for group norms Default:norm
         DSetCreatPropList plist_qp;//!<PropList for packet.q() packet.p()
         DSetCreatPropList plist_QP;//!<PropList for packet.Q() packet.P()
         DSetCreatPropList plist_S;//!<PropList for packet.S()
