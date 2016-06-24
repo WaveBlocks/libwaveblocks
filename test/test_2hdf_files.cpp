@@ -26,9 +26,27 @@ using namespace H5;
 class Test2files: public ::testing::Test
 {
     public:
-    int* compute_time_matching(H5std_string timegridpath1,H5std_string timegridpath2)
+    std::vector<int*> compute_time_matching(H5std_string timegridpath_cpp,H5std_string timegridpath_py)
     {
-    return nullptr;
+        std::vector<int*> res(10);
+
+        //expect RANK=3
+        DataSet ds1 = cppfile.openDataSet(timegridpath_cpp);
+        DataSet ds2 = pyfile.openDataSet(timegridpath_py);
+
+        DataSpace dspace1 = ds1.getSpace();
+        DataSpace dspace2 = ds2.getSpace();
+
+        int rank1 = dspace1.getSimpleExtentNdims();
+        int rank2 = dspace1.getSimpleExtentNdims();
+
+        hsize_t* dim1 = new hsize_t[rank1];
+        hsize_t* dim2 = new hsize_t[rank2];
+
+        dspace1.getSimpleExtentDims(dim1);
+        dspace2.getSimpleExtentDims(dim2);
+
+        return res;
     }
     /**
      * @brief SetUp for TEST_F
@@ -133,6 +151,10 @@ class Test2files: public ::testing::Test
     double dt_cpp;//!<timestep in cpp file
     double dt_py;//!<timestep in py file
     H5std_string buff_dt_py="";//!<stringbuffer needed for reading Attribute adt_py
+    H5std_string timepathpacket;
+    H5std_string timepathnorm;
+    H5std_string timepathekin;
+    H5std_string timepathepot;
 };
 
 TEST_F(Test2files,TestdatasetQ)
@@ -145,6 +167,8 @@ TEST_F(Test2files,TestdatasetQ)
 
         CompType comp1=ds1.getCompType(); //should be equal to mytype
         CompType comp2=ds2.getCompType(); //should be equal to mytype
+        ASSERT_EQ(comp1,comp2);
+        ASSERT_EQ(comp1,mytype);
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -242,6 +266,8 @@ TEST_F(Test2files,TestdatasetP)
 
         CompType comp1=ds1.getCompType(); //should be equal to mytype
         CompType comp2=ds2.getCompType(); //should be equal to mytype
+        ASSERT_EQ(comp1,comp2);
+        ASSERT_EQ(comp1,mytype);
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -249,7 +275,6 @@ TEST_F(Test2files,TestdatasetP)
         int rank1 = dspace1.getSimpleExtentNdims();
         int rank2 = dspace1.getSimpleExtentNdims();
         ASSERT_EQ(rank1,rank2);
-
 
         hsize_t* dim1 = new hsize_t[rank1];
         hsize_t* dim2 = new hsize_t[rank2];
@@ -340,6 +365,8 @@ TEST_F(Test2files,Testdatasetq)
 
         CompType comp1=ds1.getCompType(); //should be equal to mytype
         CompType comp2=ds2.getCompType(); //should be equal to mytype
+        ASSERT_EQ(comp1,comp2);
+        ASSERT_EQ(comp1,mytype);
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -433,6 +460,8 @@ TEST_F(Test2files,Testdatasetp)
 
         CompType comp1=ds1.getCompType(); //should be equal to mytype
         CompType comp2=ds2.getCompType(); //should be equal to mytype
+        ASSERT_EQ(comp1,comp2);
+        ASSERT_EQ(comp1,mytype);
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -527,6 +556,8 @@ TEST_F(Test2files,Testdatasetcoefficients)
 
         CompType comp1=ds1.getCompType(); //should be equal to mytype
         CompType comp2=ds2.getCompType(); //should be equal to mytype
+        ASSERT_EQ(comp1,comp2);
+        ASSERT_EQ(comp1,mytype);
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -611,8 +642,8 @@ TEST_F(Test2files,DISABLED_Testdatasetekin)
         DataSet ds1 = cppfile.openDataSet(datasetekinpath);
         DataSet ds2 = pyfile.openDataSet(datasetekinpath);
 
-        CompType comp1=ds1.getCompType(); //should be equal to mytype
-        CompType comp2=ds2.getCompType(); //should be equal to mytype
+        DataType tp1 = ds1.getDataType();
+        DataType tp2 = ds1.getDataType();
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -671,8 +702,8 @@ TEST_F(Test2files,DISABLED_Testdatasetekin)
 
             dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
             dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
+            ds1.read(outdat1,tp1,elemspace,dspace1);
+            ds2.read(outdat2,tp2,elemspace,dspace2);
 
             EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
         }
@@ -692,8 +723,8 @@ TEST_F(Test2files,DISABLED_Testdatasetepot)
         DataSet ds1 = cppfile.openDataSet(datasetepotpath);
         DataSet ds2 = pyfile.openDataSet(datasetepotpath);
 
-        CompType comp1=ds1.getCompType(); //should be equal to mytype
-        CompType comp2=ds2.getCompType(); //should be equal to mytype
+        DataType tp1 = ds1.getDataType();
+        DataType tp2 = ds1.getDataType();
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -752,8 +783,8 @@ TEST_F(Test2files,DISABLED_Testdatasetepot)
 
             dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
             dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
+            ds1.read(outdat1,tp1,elemspace,dspace1);
+            ds2.read(outdat2,tp2,elemspace,dspace2);
 
             EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
         }
@@ -773,8 +804,8 @@ TEST_F(Test2files,DISABLED_Testdatasetnorm)
         DataSet ds1 = cppfile.openDataSet(datasetnormpath);
         DataSet ds2 = pyfile.openDataSet(datasetnormpath);
 
-        CompType comp1=ds1.getCompType(); //should be equal to mytype
-        CompType comp2=ds2.getCompType(); //should be equal to mytype
+        DataType tp1 = ds1.getDataType();
+        DataType tp2 = ds1.getDataType();
 
         DataSpace dspace1 = ds1.getSpace();
         DataSpace dspace2 = ds2.getSpace();
@@ -833,8 +864,8 @@ TEST_F(Test2files,DISABLED_Testdatasetnorm)
 
             dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
             dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
+            ds1.read(outdat1,tp1,elemspace,dspace1);
+            ds2.read(outdat2,tp2,elemspace,dspace2);
 
             EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
         }
