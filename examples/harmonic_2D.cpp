@@ -96,7 +96,7 @@ int main() {
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
     mywriter2.store_packet(packet);
-    mywriter2.store_norms(packet);
+    mywriter2.store_norm(packet);
     mywriter2.store_energies(epot,ekin);
 
 
@@ -116,7 +116,7 @@ int main() {
 
         mywriter2.store_packet(packet);
         mywriter2.store_energies(epot,ekin);
-        mywriter2.store_norms(packet);
+        mywriter2.store_norm(packet);
 
         std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
 
