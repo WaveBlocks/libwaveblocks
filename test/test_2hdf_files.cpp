@@ -26,6 +26,10 @@ using namespace H5;
 class Test2files: public ::testing::Test
 {
     public:
+    int* compute_time_matching(H5std_string timegridpath1,H5std_string timegridpath2)
+    {
+    return nullptr;
+    }
     /**
      * @brief SetUp for TEST_F
      *
