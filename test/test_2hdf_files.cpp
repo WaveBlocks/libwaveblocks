@@ -28,6 +28,7 @@ using namespace H5;
 class Test2files: public ::testing::Test
 {
     public:
+
     /**
      * @brief SetUp for TEST_F
      *
@@ -166,17 +167,14 @@ TEST_F(Test2files,TestdatasetQ)
         //expect RANK=1
         DataSet its1 = cppfile.openDataSet(timepathpacket);
 
-        std::cout<<"**************************1";
         //segfault dataspace close()
         DataSet its2 = pyfile.openDataSet("/datablock_0/wavepacket/timegrid");
 
-        std::cout<<"**************************2";
 
         IntType it1 = its1.getIntType();
         IntType it2 = its2.getIntType();
 
         DataSpace itspace1 = its1.getSpace();
-        std::cout<<"**************************3";
         DataSpace itspace2 = its2.getSpace();
 
         int itrank1 = itspace1.getSimpleExtentNdims();
@@ -198,18 +196,25 @@ TEST_F(Test2files,TestdatasetQ)
         hsize_t* itstart1=new hsize_t[itrank1];
         itstart1[0]=0;
         hsize_t* itcount1= new hsize_t[itrank1];
-        itcount1[0]=itdim1[0];
+        itcount1[0]=1;
         hsize_t* itstride1=new hsize_t[itrank1];
         itstride1[0]=1;
         hsize_t* itblock1=new hsize_t[itrank1];
         itblock1[0]=1;
 
         itelemspace.selectHyperslab(H5S_SELECT_SET,itcount1,itstart1,itstride1,itblock1);
-        itspace1.selectHyperslab(H5S_SELECT_SET,itcount1,itstart1,itstride1,itblock1);
-        itspace2.selectHyperslab(H5S_SELECT_SET,itcount1,itstart1,itstride1,itblock1);
 
-        its1.read(index_array_cpp,it1,itelemspace,itspace1);
-        its2.read(index_array_py,it2,itelemspace,itspace2);
+        for(unsigned int k=0;k<itdim1[0];++k)
+        {
+            hsize_t* it_dyn_start=new hsize_t[itrank1];
+            it_dyn_start[0]=k;
+            itspace1.selectHyperslab(H5S_SELECT_SET,itcount1,it_dyn_start,itstride1,itblock1);
+            itspace2.selectHyperslab(H5S_SELECT_SET,itcount1,it_dyn_start,itstride1,itblock1);
+
+            its1.read(&index_array_cpp[k],it1,itelemspace,itspace1);
+            its2.read(&index_array_py[k],it2,itelemspace,itspace2);
+
+        }
 
         int acc[2]={-1,-1};
         for(unsigned int k=0;k<itdim1[0];++k)
