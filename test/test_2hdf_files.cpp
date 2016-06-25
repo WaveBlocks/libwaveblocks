@@ -21,155 +21,137 @@ using namespace H5;
 /**
  * @brief Testclass needed for GTest interface
  *
- * This class need to be derived from ::testing::Test in gtest.h and has to define two functions.
- * SetUp and BreakDown. SetUp for initialization of variables/parameters for different testfissures.
- * BreakDown for cleanup of variables/parameters if needed.
+ * This class need to be derived from ::testing::Test in gtest.h. This class is used afterwards in a testfissure TEST_F
+ * to make test with the given initalized variables/parameters.
  */
-class Test2files: public ::testing::Test
+class Test2HDFfiles: public ::testing::Test
 {
     public:
-
     /**
-     * @brief SetUp for TEST_F
+     * @brief Test2HDFfiles
      *
-     * Initialize variables/parameters
+     * Constructor used to open the two give files over argv.
      */
-    void SetUp()
+    Test2HDFfiles()
     {
-    //read filenames
-    assert(global_argc==3);
-    //char* this_file=global_argv[0];
-    std::string filename_1 = global_argv[1];
-    std::string filename_2 = global_argv[2];
-    if(filename_1.find("py")!=std::string::npos)
-    {
-        pythonname = filename_1;
-        cppname = filename_2;
-    }
-    else if(filename_1.find("cpp")!=std::string::npos)
-    {
-        cppname = filename_1;
-        pythonname = filename_2;
-    }
-    else
-    {
-        FAIL()<< "Failed to compare. In argv *cpp.hdf5 and *py.hdf5 file needed";
-    }
-    cppfile=H5File(cppname,H5F_ACC_RDONLY);
-    pyfile=H5File(pythonname,H5F_ACC_RDONLY);
-
-    datablock_cpp=std::make_shared<Group>(cppfile.openGroup(datablock_group));
-    datablock_py=std::make_shared<Group>(pyfile.openGroup(datablock_group));
-    apacket_cpp=datablock_cpp->openAttribute("packet");
-    aenergy_cpp=datablock_cpp->openAttribute("energy");
-    anorm_cpp=datablock_cpp->openAttribute("norm");
-    adt_cpp=datablock_cpp->openAttribute("dt");
-    adt_py=datablock_py->openAttribute("ext:dt");
-    apacket_cpp.read(PredType::NATIVE_INT,&bool_packet);
-    apacket_cpp.close();
-    aenergy_cpp.read(PredType::NATIVE_INT,&bool_energy);
-    aenergy_cpp.close();
-    anorm_cpp.read(PredType::NATIVE_INT,&bool_norm);
-    anorm_cpp.close();
-    adt_cpp.read(PredType::NATIVE_DOUBLE,&dt_cpp);
-    adt_cpp.close();
-
-    StrType mystrtype=adt_py.getStrType();
-    adt_py.read(mystrtype,buff_dt_py);
-    dt_py=std::strtod(buff_dt_py.c_str(),NULL);
-    mystrtype.close();
-    adt_py.close();
-
-    mytype=CompType(sizeof(instanceof));
-    mytype.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
-    mytype.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
-
-    datablock_cpp->close();
-    datablock_py->close();
-
-    datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
-    datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
-    datasetqpath=datablock_group+wavepacket_group+Pi_group+"/q";
-    datasetppath=datablock_group+wavepacket_group+Pi_group+"/p";
-    datasetcpath=datablock_group+wavepacket_group+coeffs_group+"/c_0";
-    timepathpacket=datablock_group+wavepacket_group+"/timegrid";
-    datasetekinpath=datablock_group+energies_group+"/ekin";
-    timepathekin=datablock_group+energies_group+"/timegrid_ekin";
-    datasetepotpath=datablock_group+energies_group+"/epot";
-    timepathepot=datablock_group+energies_group+"/timegrid_epot";
-    datasetnormpath=datablock_group+norm_group+"/norm";
-    timepathnorm=datablock_group+norm_group+"/timegrid";
+        if(global_argc<=2)
+        {
+        std::cout<<"Not enough arguments given!\n";
+        std::abort();
+        }
+        else
+        {
+            std::string filename_1 = global_argv[1];
+            std::string filename_2 = global_argv[2];
+            if(filename_1.find("py")!=std::string::npos)
+            {
+                pyname = filename_1;
+                cppname = filename_2;
+            }
+            else if(filename_1.find("cpp")!=std::string::npos)
+            {
+                cppname = filename_1;
+                pyname = filename_2;
+            }
+            else
+            {
+                std::cout<<"Failed to open. In argv *cpp.hdf5 and *py.hdf5 file needed";
+                std::abort();
+            }
+            cppfile=H5File(cppname,H5F_ACC_RDONLY);
+            pyfile=H5File(pyname,H5F_ACC_RDONLY);
+        }
     }
     /**
-     * @brief BreakDown for TEST_F
+     * @brief ~Test2HDFfiles
      *
-     * Cleanup for variables/parameters. In our case empty.
+     * Destructor to close used files.
      */
-    void BreakDown()
+    virtual ~Test2HDFfiles()
     {
         cppfile.close();
         pyfile.close();
     }
-    struct ctype{ //our complex datatype
+    /**
+     * @brief SetUp for TEST_F
+     *
+     * Initialize strings, ints and doubles.
+     */
+    void SetUp()
+    {
+        Group block_0 = cppfile.openGroup("/datablock_0");
+        Attribute apacket = block_0.openAttribute("packet");
+        Attribute aenergy = block_0.openAttribute("energy");
+        Attribute anorm = block_0.openAttribute("norm");
+        Attribute adt_cpp = block_0.openAttribute("dt");
+        apacket.read(PredType::NATIVE_INT,&bool_packet);
+        aenergy.read(PredType::NATIVE_INT,&bool_energy);
+        anorm.read(PredType::NATIVE_INT,&bool_norm);
+        adt_cpp.read(PredType::NATIVE_DOUBLE,&dt_cpp);
+        apacket.close();
+        aenergy.close();
+        anorm.close();
+        adt_cpp.close();
+        block_0.close();
+
+        block_0 = pyfile.openGroup("/datablock_0");
+        Attribute adt_py = block_0.openAttribute("ext:dt");
+        StrType mystrtype=adt_py.getStrType();
+        H5std_string buff_dt_py="";
+        adt_py.read(mystrtype,buff_dt_py);
+        dt_py=std::strtod(buff_dt_py.c_str(),NULL);
+        mystrtype.close();
+        adt_py.close();
+        block_0.close();
+
+        mytype=CompType(sizeof(instanceof));
+        mytype.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
+        mytype.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
+
+        datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
+        datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
+        datasetqpath=datablock_group+wavepacket_group+Pi_group+"/q";
+        datasetppath=datablock_group+wavepacket_group+Pi_group+"/p";
+        datasetcpath=datablock_group+wavepacket_group+coeffs_group+"/c_0";
+        timepathpacket=datablock_group+wavepacket_group+"/timegrid";
+        datasetekinpath=datablock_group+energies_group+"/ekin";
+        timepathekin=datablock_group+energies_group+"/timegrid_ekin";
+        datasetepotpath=datablock_group+energies_group+"/epot";
+        timepathepot=datablock_group+energies_group+"/timegrid_epot";
+        datasetnormpath=datablock_group+norm_group+"/norm";
+        timepathnorm=datablock_group+norm_group+"/timegrid";
+    }
+    /**
+     * @brief BreakDown for TEST_F
+     *
+     * Cleanup for used Type
+     */
+    void BreakDown()
+    {
+        mytype.close();
+    }
+    /**
+     * @brief The ctype struct
+     *
+     * Our used struct for complex datatypes compatible with python interface.
+     */
+    struct ctype{
         double real=0.;
         double imag=0.;
     } instanceof;
-
-    H5std_string cppname;//!<filename of cpp file
-    H5File cppfile;//!<instance of cpp file
-    H5std_string pythonname;//!<filename of py file
-    H5File pyfile;//!<instance of py file
-    CompType mytype;//!<predefined type used to write and read data
-    H5std_string datablock_group="/datablock_0";//!<name for datablock group. DEFAULT:/datablock_0
-    H5std_string energies_group="/energies";//!<name for energies group. DEFAULT:/energies
-    H5std_string coeffs_group="/coefficients";//!<name for coefficients group. DEFAULT:/coefficients
-    H5std_string norm_group="/norm";//!<name for norm group. DEFAULT:/norms
-    H5std_string Pi_group="/Pi";//!<name for Pi group. DEFAULT:/Pi
-    H5std_string wavepacket_group="/wavepacket";//!<name for wavepacket group. DEFAULT:/wavepacket
-    std::shared_ptr<Group> datablock_cpp;//!<datablockgroup for cppfile identifier
-    std::shared_ptr<Group> datablock_py;//!<datablockgroup for pyfile identifier
-    H5std_string datasetQpath;//!<string for path to dataset Q
-    H5std_string datasetPpath;//!<string for path to dataset P
-    H5std_string datasetqpath;//!<string for path to dataset p
-    H5std_string datasetppath;//!<string for path to dataset q
-    H5std_string datasetcpath;//!<string for path to dataset c_0
-    H5std_string datasetekinpath;//!<string for path to dataset ekin
-    H5std_string datasetepotpath;//!<string for path to dataset epot
-    H5std_string datasetnormpath;//!<string for path to dataset norm
-    Attribute apacket_cpp;//!<attribute identifier for packet for cpp file
-    Attribute aenergy_cpp;//!<attribute identifier for energy for cpp file
-    Attribute anorm_cpp;//!<attribute identifier for norm for cpp file
-    Attribute adt_cpp;//!<attribute identifier for dt for cpp file
-    Attribute adt_py;//!<attribute identifier for dt for py file
-    int bool_packet;//!<bool if packet is written in cpp file
-    int bool_energy;//!<bool if energy is written in cpp file
-    int bool_norm;//!<bool if norm is written in cpp file
-    double dt_cpp;//!<timestep in cpp file
-    double dt_py=0.01;//!<timestep in py file
-    H5std_string buff_dt_py="";//!<stringbuffer needed for reading Attribute adt_py
-    H5std_string timepathpacket;
-    H5std_string timepathnorm;
-    H5std_string timepathekin;
-    H5std_string timepathepot;
-};
-
-TEST_F(Test2files,TestdatasetQ)
-{
-    std::cout<<"**************************0";
-
-    if(bool_packet)
+    /**
+     * @brief compute time matching for two timegrid paths
+     * @param res
+     * @param timegridpath_cpp
+     * @param timegridpath_py
+     *
+     * The output is a matching vector with minimal length of one.
+     */
+    void compute_time_matching(std::vector<int*>& res,H5std_string timegridpath_cpp,H5std_string timegridpath_py)
     {
-        //expect RANK=3
-
-        //***********************injection
-        std::vector<int*> res;
-
         //expect RANK=1
-        DataSet its1 = cppfile.openDataSet(timepathpacket);
-
-        //segfault dataspace close()
-        DataSet its2 = pyfile.openDataSet("/datablock_0/wavepacket/timegrid");
-
+        DataSet its1 = cppfile.openDataSet(timegridpath_cpp);
+        DataSet its2 = pyfile.openDataSet(timegridpath_py);
 
         IntType it1 = its1.getIntType();
         IntType it2 = its2.getIntType();
@@ -236,9 +218,45 @@ TEST_F(Test2files,TestdatasetQ)
         {
             res.push_back(acc);
         }
-//        its1.close();
-//        its2.close();
-        //*******************************************
+    }
+    H5std_string cppname;//!<filename of cpp file
+    H5File cppfile;//!<instance of cpp file
+    H5std_string pyname;//!<filename of py file
+    H5File pyfile;//!<instance of py file
+    CompType mytype;//!<predefined type used to write and read data
+    H5std_string datablock_group="/datablock_0";//!<name for datablock group. DEFAULT:/datablock_0
+    H5std_string energies_group="/energies";//!<name for energies group. DEFAULT:/energies
+    H5std_string coeffs_group="/coefficients";//!<name for coefficients group. DEFAULT:/coefficients
+    H5std_string norm_group="/norm";//!<name for norm group. DEFAULT:/norms
+    H5std_string Pi_group="/Pi";//!<name for Pi group. DEFAULT:/Pi
+    H5std_string wavepacket_group="/wavepacket";//!<name for wavepacket group. DEFAULT:/wavepacket
+    H5std_string datasetQpath;//!<string for path to dataset Q
+    H5std_string datasetPpath;//!<string for path to dataset P
+    H5std_string datasetqpath;//!<string for path to dataset p
+    H5std_string datasetppath;//!<string for path to dataset q
+    H5std_string datasetcpath;//!<string for path to dataset c_0
+    H5std_string datasetekinpath;//!<string for path to dataset ekin
+    H5std_string datasetepotpath;//!<string for path to dataset epot
+    H5std_string datasetnormpath;//!<string for path to dataset norm
+    int bool_packet;//!<bool if packet is written in cpp file
+    int bool_energy;//!<bool if energy is written in cpp file
+    int bool_norm;//!<bool if norm is written in cpp file
+    double dt_cpp;//!<timestep in cpp file
+    double dt_py=0.01;//!<timestep in py file
+    H5std_string buff_dt_py="";//!<stringbuffer needed for reading Attribute adt_py
+    H5std_string timepathpacket;
+    H5std_string timepathnorm;
+    H5std_string timepathekin;
+    H5std_string timepathepot;
+};
+
+TEST_F(Test2HDFfiles,Testpacket)
+{
+    if(bool_packet)
+    {
+        std::vector<int*> res;
+
+        compute_time_matching(res,timepathpacket,timepathpacket);
 
         DataSet ds1 = cppfile.openDataSet(datasetQpath);
         DataSet ds2 = pyfile.openDataSet(datasetQpath);
@@ -341,41 +359,6 @@ TEST_F(Test2files,TestdatasetQ)
             EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
             EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
         }
-
-//        for(unsigned int k=0;k<dim1[0];++k)
-//        {
-//            hsize_t* start2 = new hsize_t[rank1];
-//            start2[0]=k;
-//            start2[1]=0;
-//            start2[2]=0;
-//            hsize_t* count2 = new hsize_t[rank1];
-//            count2[0]=1;
-//            count2[1]=dim1[1];
-//            count2[2]=dim1[2];
-//            hsize_t* stride2 = new hsize_t[rank1];
-//            stride2[0]=1;
-//            stride2[1]=1;
-//            stride2[2]=1;
-//            hsize_t* block2 = new hsize_t[rank1];
-//            block2[0]=1;
-//            block2[1]=1;
-//            block2[2]=1;
-
-//            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-//            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-//            ds1.read(outdat1,comp1,elemspace,dspace1);
-//            ds2.read(outdat2,comp2,elemspace,dspace2);
-
-//            EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
-//            EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
-//            EXPECT_NEAR(outdat1[2].real,outdat2[2].real,abstol);
-//            EXPECT_NEAR(outdat1[3].real,outdat2[3].real,abstol);
-
-//            EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
-//            EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
-//            EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
-//            EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
-//        }
     }
     else
     {
@@ -383,7 +366,7 @@ TEST_F(Test2files,TestdatasetQ)
     }
 }
 
-TEST_F(Test2files,TestdatasetP)
+TEST_F(Test2HDFfiles,TestdatasetP)
 {
     if(bool_packet)
     {
@@ -482,7 +465,7 @@ TEST_F(Test2files,TestdatasetP)
     }
 }
 
-TEST_F(Test2files,Testdatasetq)
+TEST_F(Test2HDFfiles,Testdatasetq)
 {
     if(bool_packet)
     {
@@ -577,7 +560,7 @@ TEST_F(Test2files,Testdatasetq)
     }
 }
 
-TEST_F(Test2files,Testdatasetp)
+TEST_F(Test2HDFfiles,Testdatasetp)
 {
     if(bool_packet)
     {
@@ -672,7 +655,7 @@ TEST_F(Test2files,Testdatasetp)
     }
 }
 
-TEST_F(Test2files,Testdatasetcoefficients)
+TEST_F(Test2HDFfiles,Testdatasetcoefficients)
 {
     if(bool_packet)
     {
@@ -760,7 +743,7 @@ TEST_F(Test2files,Testdatasetcoefficients)
     }
 }
 
-TEST_F(Test2files,DISABLED_Testdatasetekin)
+TEST_F(Test2HDFfiles,DISABLED_Testdatasetekin)
 {
     if(bool_energy)
     {
@@ -841,7 +824,7 @@ TEST_F(Test2files,DISABLED_Testdatasetekin)
     }
 }
 
-TEST_F(Test2files,DISABLED_Testdatasetepot)
+TEST_F(Test2HDFfiles,DISABLED_Testdatasetepot)
 {
     if(bool_energy)
     {
@@ -922,7 +905,7 @@ TEST_F(Test2files,DISABLED_Testdatasetepot)
     }
 }
 
-TEST_F(Test2files,DISABLED_Testdatasetnorm)
+TEST_F(Test2HDFfiles,DISABLED_Testdatasetnorm)
 {
     if(bool_norm)
     {
@@ -1017,73 +1000,3 @@ int main(int argc,char* argv[])
     ::testing::InitGoogleTest(&argc,argv);
     return RUN_ALL_TESTS();
 }
-//void compute_time_matching(H5std_string timegridpath_cpp,H5std_string timegridpath_py)
-//{
-//    std::vector<int*> res;
-
-//    //expect RANK=1
-//    DataSet its1 = cppfile.openDataSet(timegridpath_cpp);
-//    DataSet its2 = pyfile.openDataSet(timegridpath_py);
-
-//    IntType it1 = its1.getIntType();
-//    IntType it2 = its2.getIntType();
-
-//    DataSpace dspace1 = its1.getSpace();
-//    DataSpace dspace2 = its2.getSpace();
-
-//    int rank1 = dspace1.getSimpleExtentNdims();
-//    int rank2 = dspace1.getSimpleExtentNdims();
-//    assert(rank1==1);
-//    assert(rank2==1);
-//    hsize_t* dim1 = new hsize_t[rank1];
-//    hsize_t* dim2 = new hsize_t[rank2];
-
-//    dspace1.getSimpleExtentDims(dim1);
-//    dspace2.getSimpleExtentDims(dim2);
-//    assert(dim1[0]==dim2[0]);
-
-//    int* index_array_cpp = new int[dim1[0]];
-//    int* index_array_py = new int[dim2[0]];
-
-//    hsize_t* elem=new hsize_t[rank1];
-//    elem[0]=dim1[0];
-
-//    DataSpace elemspace(rank1,elem);
-//    hsize_t* start1=new hsize_t[rank1];
-//    start1[0]=0;
-//    hsize_t* count1= new hsize_t[rank1];
-//    count1[0]=dim1[0];
-//    hsize_t* stride1=new hsize_t[rank1];
-//    stride1[0]=1;
-//    hsize_t* block1=new hsize_t[rank1];
-//    block1[0]=1;
-
-//    elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
-//    dspace1.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
-//    dspace2.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
-
-//    its1.read(index_array_cpp,it1,elemspace,dspace1);
-//    its2.read(index_array_py,it2,elemspace,dspace2);
-
-//    int acc[2]={-1,-1};
-//    for(unsigned int k=0;k<dim1[0];++k)
-//    {
-//        int index_i_cpp=index_array_cpp[k];
-//        for(unsigned int p=0;p<dim2[0];++p)
-//        {
-//            int index_j_py=index_array_py[p];
-//            int temp = index_j_py*(dt_py/dt_cpp);
-//            if(index_i_cpp==temp)
-//            {
-//                acc[0]=index_i_cpp;
-//                acc[1]=index_j_py;
-//                res.push_back(acc);
-//            }
-//        }
-//    }
-//    if(res.empty())
-//    {
-//        res.push_back(acc);
-//    }
-
-//}
