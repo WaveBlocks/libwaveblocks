@@ -760,6 +760,284 @@ class Test2HDFfiles: public ::testing::Test
             }
         }
     }
+    /**
+     * @brief Test dataset ekin
+     * @param res time matching
+     *
+     * Test dataset ekin over all elements in the time matching.
+     */
+    void Test_ekin(std::vector<int*>& res)
+    {
+        //expect rank of ekin always be 2
+        DataSet ds1 = cppfile.openDataSet(datasetekinpath);
+        DataSet ds2 = pyfile.openDataSet(datasetekinpath);
+
+        DataType tp1 = ds1.getDataType();
+        DataType tp2 = ds1.getDataType();
+
+        DataSpace dspace1 = ds1.getSpace();
+        DataSpace dspace2 = ds2.getSpace();
+
+        int rank1 = dspace1.getSimpleExtentNdims();
+        int rank2 = dspace1.getSimpleExtentNdims();
+        ASSERT_EQ(rank1,rank2);
+
+        hsize_t* dim1 = new hsize_t[rank1];
+        hsize_t* dim2 = new hsize_t[rank2];
+
+        dspace1.getSimpleExtentDims(dim1);
+        dspace2.getSimpleExtentDims(dim2);
+
+        ASSERT_EQ(dim1[0],dim2[0]);
+        ASSERT_EQ(dim1[1],dim2[1]);
+        int RANK2=2;
+        ASSERT_EQ(rank1,RANK2);
+
+        hsize_t* elem=new hsize_t[rank1];
+        elem[0]=1;
+        elem[1]=dim1[1];
+        double* outdat1 = new double[dim1[1]];
+        double* outdat2 = new double[dim2[1]];
+
+        DataSpace elemspace(rank1,elem);
+        hsize_t* start1=new hsize_t[rank1];
+        start1[0]=0;
+        start1[1]=0;
+        hsize_t* count1= new hsize_t[rank1];
+        count1[0]=1;
+        count1[1]=dim1[1];
+        hsize_t* stride1=new hsize_t[rank1];
+        stride1[0]=1;
+        stride1[1]=1;
+        hsize_t* block1=new hsize_t[rank1];
+        block1[0]=1;
+        block1[1]=1;
+
+        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+
+        if(res.empty())
+        {
+            ADD_FAILURE()<<"No matching timepoint for ekin.Abort!";
+        }
+        else if(res.data()[0][0]==-1)
+        {
+            ADD_FAILURE()<<"No matching timepoint for ekin.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in ekin\n";
+            for(auto index_element:res)
+            {
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,tp1,elemspace,dspace1);
+                ds2.read(outdat2,tp2,elemspace,dspace2);
+
+                EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
+            }
+        }
+    }
+    /**
+     * @brief Test dataset epot
+     * @param res time matching
+     *
+     * Test dataset epot over all elements in the time matching.
+     */
+    void Test_epot(std::vector<int*>& res)
+    {
+        //expect rank of epot always be 2
+        DataSet ds1 = cppfile.openDataSet(datasetepotpath);
+        DataSet ds2 = pyfile.openDataSet(datasetepotpath);
+
+        DataType tp1 = ds1.getDataType();
+        DataType tp2 = ds1.getDataType();
+
+        DataSpace dspace1 = ds1.getSpace();
+        DataSpace dspace2 = ds2.getSpace();
+
+        int rank1 = dspace1.getSimpleExtentNdims();
+        int rank2 = dspace1.getSimpleExtentNdims();
+        ASSERT_EQ(rank1,rank2);
+
+        hsize_t* dim1 = new hsize_t[rank1];
+        hsize_t* dim2 = new hsize_t[rank2];
+
+        dspace1.getSimpleExtentDims(dim1);
+        dspace2.getSimpleExtentDims(dim2);
+
+        ASSERT_EQ(dim1[0],dim2[0]);
+        ASSERT_EQ(dim1[1],dim2[1]);
+        int RANK2=2;
+        ASSERT_EQ(rank1,RANK2);
+
+        hsize_t* elem=new hsize_t[rank1];
+        elem[0]=1;
+        elem[1]=dim1[1];
+        double* outdat1 = new double[dim1[1]];
+        double* outdat2 = new double[dim2[1]];
+
+        DataSpace elemspace(rank1,elem);
+        hsize_t* start1=new hsize_t[rank1];
+        start1[0]=0;
+        start1[1]=0;
+        hsize_t* count1= new hsize_t[rank1];
+        count1[0]=1;
+        count1[1]=dim1[1];
+        hsize_t* stride1=new hsize_t[rank1];
+        stride1[0]=1;
+        stride1[1]=1;
+        hsize_t* block1=new hsize_t[rank1];
+        block1[0]=1;
+        block1[1]=1;
+
+        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+
+        if(res.empty())
+        {
+            ADD_FAILURE()<<"No matching timepoint for epot.Abort!";
+        }
+        else if(res.data()[0][0]==-1)
+        {
+            ADD_FAILURE()<<"No matching timepoint for epot.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in epot\n";
+            for(auto index_element:res)
+            {
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,tp1,elemspace,dspace1);
+                ds2.read(outdat2,tp2,elemspace,dspace2);
+
+                EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
+            }
+        }
+    }
+    /**
+     * @brief Test dataset norm
+     * @param res time matching
+     *
+     * Test dataset norm over all elements in the time matching.
+     */
+    void Test_norm(std::vector<int*>& res)
+    {
+        //expect rank of norm always be 2
+        DataSet ds1 = cppfile.openDataSet(datasetnormpath);
+        DataSet ds2 = pyfile.openDataSet(datasetnormpath);
+
+        DataType tp1 = ds1.getDataType();
+        DataType tp2 = ds1.getDataType();
+
+        DataSpace dspace1 = ds1.getSpace();
+        DataSpace dspace2 = ds2.getSpace();
+
+        int rank1 = dspace1.getSimpleExtentNdims();
+        int rank2 = dspace1.getSimpleExtentNdims();
+        ASSERT_EQ(rank1,rank2);
+
+        hsize_t* dim1 = new hsize_t[rank1];
+        hsize_t* dim2 = new hsize_t[rank2];
+
+        dspace1.getSimpleExtentDims(dim1);
+        dspace2.getSimpleExtentDims(dim2);
+
+        ASSERT_EQ(dim1[0],dim2[0]);
+        ASSERT_EQ(dim1[1],dim2[1]);
+        int RANK2=2;
+        ASSERT_EQ(rank1,RANK2);
+
+        hsize_t* elem=new hsize_t[rank1];
+        elem[0]=1;
+        elem[1]=dim1[1];
+        double* outdat1 = new double[dim1[1]];
+        double* outdat2 = new double[dim2[1]];
+
+        DataSpace elemspace(rank1,elem);
+        hsize_t* start1=new hsize_t[rank1];
+        start1[0]=0;
+        start1[1]=0;
+        hsize_t* count1= new hsize_t[rank1];
+        count1[0]=1;
+        count1[1]=dim1[1];
+        hsize_t* stride1=new hsize_t[rank1];
+        stride1[0]=1;
+        stride1[1]=1;
+        hsize_t* block1=new hsize_t[rank1];
+        block1[0]=1;
+        block1[1]=1;
+
+        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
+
+        if(res.empty())
+        {
+            ADD_FAILURE()<<"No matching timepoint for norm.Abort!";
+        }
+        else if(res.data()[0][0]==-1)
+        {
+            ADD_FAILURE()<<"No matching timepoint for norm.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in norm\n";
+            for(auto index_element:res)
+            {
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,tp1,elemspace,dspace1);
+                ds2.read(outdat2,tp2,elemspace,dspace2);
+
+                EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
+            }
+        }
+    }
     H5std_string cppname;//!<filename of cpp file
     H5File cppfile;//!<instance of cpp file
     H5std_string pyname;//!<filename of py file
@@ -811,80 +1089,21 @@ TEST_F(Test2HDFfiles,Testpacket)
     }
 }
 
-TEST_F(Test2HDFfiles,DISABLED_Testdatasetekin)
+TEST_F(Test2HDFfiles,DISABLED_Testenergies)
 {
     if(bool_energy)
     {
-        //expect rank of ekin always be 2
-        DataSet ds1 = cppfile.openDataSet(datasetekinpath);
-        DataSet ds2 = pyfile.openDataSet(datasetekinpath);
+        std::vector<int*> res;
 
-        DataType tp1 = ds1.getDataType();
-        DataType tp2 = ds1.getDataType();
+        compute_time_matching(res,timepathekin,timepathekin);
 
-        DataSpace dspace1 = ds1.getSpace();
-        DataSpace dspace2 = ds2.getSpace();
+        Test_ekin(res);
 
-        int rank1 = dspace1.getSimpleExtentNdims();
-        int rank2 = dspace1.getSimpleExtentNdims();
-        ASSERT_EQ(rank1,rank2);
+        res.clear();
 
-        hsize_t* dim1 = new hsize_t[rank1];
-        hsize_t* dim2 = new hsize_t[rank2];
+        compute_time_matching(res,timepathepot,timepathepot);
 
-        dspace1.getSimpleExtentDims(dim1);
-        dspace2.getSimpleExtentDims(dim2);
-
-        ASSERT_EQ(dim1[0],dim2[0]);
-        ASSERT_EQ(dim1[1],dim2[1]);
-        int RANK2=2;
-        ASSERT_EQ(rank1,RANK2);
-
-        hsize_t* elem=new hsize_t[rank1];
-        elem[0]=1;
-        elem[1]=dim1[1];
-        double* outdat1 = new double[dim1[1]];
-        double* outdat2 = new double[dim2[1]];
-
-        DataSpace elemspace(rank1,elem);
-        hsize_t* start1=new hsize_t[rank1];
-        start1[0]=0;
-        start1[1]=0;
-        hsize_t* count1= new hsize_t[rank1];
-        count1[0]=1;
-        count1[1]=dim1[1];
-        hsize_t* stride1=new hsize_t[rank1];
-        stride1[0]=1;
-        stride1[1]=1;
-        hsize_t* block1=new hsize_t[rank1];
-        block1[0]=1;
-        block1[1]=1;
-
-        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
-
-        for(unsigned int k=0;k<dim1[0];++k)
-        {
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
-            start2[1]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,tp1,elemspace,dspace1);
-            ds2.read(outdat2,tp2,elemspace,dspace2);
-
-            EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
-        }
-
+        Test_epot(res);
     }
     else
     {
@@ -892,161 +1111,15 @@ TEST_F(Test2HDFfiles,DISABLED_Testdatasetekin)
     }
 }
 
-TEST_F(Test2HDFfiles,DISABLED_Testdatasetepot)
-{
-    if(bool_energy)
-    {
-        //expect rank of epot always be 2
-        DataSet ds1 = cppfile.openDataSet(datasetepotpath);
-        DataSet ds2 = pyfile.openDataSet(datasetepotpath);
-
-        DataType tp1 = ds1.getDataType();
-        DataType tp2 = ds1.getDataType();
-
-        DataSpace dspace1 = ds1.getSpace();
-        DataSpace dspace2 = ds2.getSpace();
-
-        int rank1 = dspace1.getSimpleExtentNdims();
-        int rank2 = dspace1.getSimpleExtentNdims();
-        ASSERT_EQ(rank1,rank2);
-
-        hsize_t* dim1 = new hsize_t[rank1];
-        hsize_t* dim2 = new hsize_t[rank2];
-
-        dspace1.getSimpleExtentDims(dim1);
-        dspace2.getSimpleExtentDims(dim2);
-
-        ASSERT_EQ(dim1[0],dim2[0]);
-        ASSERT_EQ(dim1[1],dim2[1]);
-        int RANK2=2;
-        ASSERT_EQ(rank1,RANK2);
-
-        hsize_t* elem=new hsize_t[rank1];
-        elem[0]=1;
-        elem[1]=dim1[1];
-        double* outdat1 = new double[dim1[1]];
-        double* outdat2 = new double[dim2[1]];
-
-        DataSpace elemspace(rank1,elem);
-        hsize_t* start1=new hsize_t[rank1];
-        start1[0]=0;
-        start1[1]=0;
-        hsize_t* count1= new hsize_t[rank1];
-        count1[0]=1;
-        count1[1]=dim1[1];
-        hsize_t* stride1=new hsize_t[rank1];
-        stride1[0]=1;
-        stride1[1]=1;
-        hsize_t* block1=new hsize_t[rank1];
-        block1[0]=1;
-        block1[1]=1;
-
-        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
-
-        for(unsigned int k=0;k<dim1[0];++k)
-        {
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
-            start2[1]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,tp1,elemspace,dspace1);
-            ds2.read(outdat2,tp2,elemspace,dspace2);
-
-            EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
-        }
-
-    }
-    else
-    {
-        ADD_FAILURE()<<"Cannot compare. Data missing";
-    }
-}
-
-TEST_F(Test2HDFfiles,DISABLED_Testdatasetnorm)
+TEST_F(Test2HDFfiles,DISABLED_Testnorm)
 {
     if(bool_norm)
     {
-        //expect rank of norm always be 2
-        DataSet ds1 = cppfile.openDataSet(datasetnormpath);
-        DataSet ds2 = pyfile.openDataSet(datasetnormpath);
+        std::vector<int*> res;
 
-        DataType tp1 = ds1.getDataType();
-        DataType tp2 = ds1.getDataType();
+        compute_time_matching(res,timepathnorm,timepathnorm);
 
-        DataSpace dspace1 = ds1.getSpace();
-        DataSpace dspace2 = ds2.getSpace();
-
-        int rank1 = dspace1.getSimpleExtentNdims();
-        int rank2 = dspace1.getSimpleExtentNdims();
-        ASSERT_EQ(rank1,rank2);
-
-        hsize_t* dim1 = new hsize_t[rank1];
-        hsize_t* dim2 = new hsize_t[rank2];
-
-        dspace1.getSimpleExtentDims(dim1);
-        dspace2.getSimpleExtentDims(dim2);
-
-        ASSERT_EQ(dim1[0],dim2[0]);
-        ASSERT_EQ(dim1[1],dim2[1]);
-        int RANK2=2;
-        ASSERT_EQ(rank1,RANK2);
-
-        hsize_t* elem=new hsize_t[rank1];
-        elem[0]=1;
-        elem[1]=dim1[1];
-        double* outdat1 = new double[dim1[1]];
-        double* outdat2 = new double[dim2[1]];
-
-        DataSpace elemspace(rank1,elem);
-        hsize_t* start1=new hsize_t[rank1];
-        start1[0]=0;
-        start1[1]=0;
-        hsize_t* count1= new hsize_t[rank1];
-        count1[0]=1;
-        count1[1]=dim1[1];
-        hsize_t* stride1=new hsize_t[rank1];
-        stride1[0]=1;
-        stride1[1]=1;
-        hsize_t* block1=new hsize_t[rank1];
-        block1[0]=1;
-        block1[1]=1;
-
-        elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
-
-        for(unsigned int k=0;k<dim1[0];++k)
-        {
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
-            start2[1]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,tp1,elemspace,dspace1);
-            ds2.read(outdat2,tp2,elemspace,dspace2);
-
-            EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
-        }
-
+        Test_norm(res);
     }
     else
     {
