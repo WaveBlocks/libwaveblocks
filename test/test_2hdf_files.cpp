@@ -54,10 +54,6 @@ class Test2files: public ::testing::Test
     {
         FAIL()<< "Failed to compare. In argv *cpp.hdf5 and *py.hdf5 file needed";
     }
-    mytype=CompType(sizeof(instanceof));
-    mytype.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
-    mytype.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
-
     cppfile=H5File(cppname,H5F_ACC_RDONLY);
     pyfile=H5File(pythonname,H5F_ACC_RDONLY);
 
@@ -69,20 +65,33 @@ class Test2files: public ::testing::Test
     adt_cpp=datablock_cpp->openAttribute("dt");
     adt_py=datablock_py->openAttribute("ext:dt");
     apacket_cpp.read(PredType::NATIVE_INT,&bool_packet);
+    apacket_cpp.close();
     aenergy_cpp.read(PredType::NATIVE_INT,&bool_energy);
+    aenergy_cpp.close();
     anorm_cpp.read(PredType::NATIVE_INT,&bool_norm);
+    anorm_cpp.close();
     adt_cpp.read(PredType::NATIVE_DOUBLE,&dt_cpp);
+    adt_cpp.close();
 
     StrType mystrtype=adt_py.getStrType();
     adt_py.read(mystrtype,buff_dt_py);
     dt_py=std::strtod(buff_dt_py.c_str(),NULL);
+    mystrtype.close();
+    adt_py.close();
+
+    mytype=CompType(sizeof(instanceof));
+    mytype.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
+    mytype.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
+
+    datablock_cpp->close();
+    datablock_py->close();
 
     datasetQpath=datablock_group+wavepacket_group+Pi_group+"/Q";
     datasetPpath=datablock_group+wavepacket_group+Pi_group+"/P";
     datasetqpath=datablock_group+wavepacket_group+Pi_group+"/q";
     datasetppath=datablock_group+wavepacket_group+Pi_group+"/p";
     datasetcpath=datablock_group+wavepacket_group+coeffs_group+"/c_0";
-    //timepathpacket=datablock_group+wavepacket_group+"/timegrid";
+    timepathpacket=datablock_group+wavepacket_group+"/timegrid";
     datasetekinpath=datablock_group+energies_group+"/ekin";
     timepathekin=datablock_group+energies_group+"/timegrid_ekin";
     datasetepotpath=datablock_group+energies_group+"/epot";
@@ -135,7 +144,7 @@ class Test2files: public ::testing::Test
     int bool_energy;//!<bool if energy is written in cpp file
     int bool_norm;//!<bool if norm is written in cpp file
     double dt_cpp;//!<timestep in cpp file
-    double dt_py;//!<timestep in py file
+    double dt_py=0.01;//!<timestep in py file
     H5std_string buff_dt_py="";//!<stringbuffer needed for reading Attribute adt_py
     H5std_string timepathpacket;
     H5std_string timepathnorm;
@@ -145,6 +154,8 @@ class Test2files: public ::testing::Test
 
 TEST_F(Test2files,TestdatasetQ)
 {
+    std::cout<<"**************************0";
+
     if(bool_packet)
     {
         //expect RANK=3
@@ -152,15 +163,20 @@ TEST_F(Test2files,TestdatasetQ)
         //***********************injection
         std::vector<int*> res;
 
-        std::cout<<"*****************************";
         //expect RANK=1
-        DataSet its1 = cppfile.openDataSet("");
-        DataSet its2 = pyfile.openDataSet("");
+        DataSet its1 = cppfile.openDataSet(timepathpacket);
+
+        std::cout<<"**************************1";
+        //segfault dataspace close()
+        DataSet its2 = pyfile.openDataSet("/datablock_0/wavepacket/timegrid");
+
+        std::cout<<"**************************2";
 
         IntType it1 = its1.getIntType();
         IntType it2 = its2.getIntType();
 
         DataSpace itspace1 = its1.getSpace();
+        std::cout<<"**************************3";
         DataSpace itspace2 = its2.getSpace();
 
         int itrank1 = itspace1.getSimpleExtentNdims();
