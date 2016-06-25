@@ -1,9 +1,6 @@
 #include <iostream>
 #include <string>
-#include <cmath>
-#include <memory>
 #include <vector>
-#include <cassert>
 
 //include GTest
 #include "gtest/gtest.h"
@@ -219,45 +216,14 @@ class Test2HDFfiles: public ::testing::Test
             res.push_back(acc);
         }
     }
-    H5std_string cppname;//!<filename of cpp file
-    H5File cppfile;//!<instance of cpp file
-    H5std_string pyname;//!<filename of py file
-    H5File pyfile;//!<instance of py file
-    CompType mytype;//!<predefined type used to write and read data
-    H5std_string datablock_group="/datablock_0";//!<name for datablock group. DEFAULT:/datablock_0
-    H5std_string energies_group="/energies";//!<name for energies group. DEFAULT:/energies
-    H5std_string coeffs_group="/coefficients";//!<name for coefficients group. DEFAULT:/coefficients
-    H5std_string norm_group="/norm";//!<name for norm group. DEFAULT:/norms
-    H5std_string Pi_group="/Pi";//!<name for Pi group. DEFAULT:/Pi
-    H5std_string wavepacket_group="/wavepacket";//!<name for wavepacket group. DEFAULT:/wavepacket
-    H5std_string datasetQpath;//!<string for path to dataset Q
-    H5std_string datasetPpath;//!<string for path to dataset P
-    H5std_string datasetqpath;//!<string for path to dataset p
-    H5std_string datasetppath;//!<string for path to dataset q
-    H5std_string datasetcpath;//!<string for path to dataset c_0
-    H5std_string datasetekinpath;//!<string for path to dataset ekin
-    H5std_string datasetepotpath;//!<string for path to dataset epot
-    H5std_string datasetnormpath;//!<string for path to dataset norm
-    int bool_packet;//!<bool if packet is written in cpp file
-    int bool_energy;//!<bool if energy is written in cpp file
-    int bool_norm;//!<bool if norm is written in cpp file
-    double dt_cpp;//!<timestep in cpp file
-    double dt_py=0.01;//!<timestep in py file
-    H5std_string buff_dt_py="";//!<stringbuffer needed for reading Attribute adt_py
-    H5std_string timepathpacket;
-    H5std_string timepathnorm;
-    H5std_string timepathekin;
-    H5std_string timepathepot;
-};
-
-TEST_F(Test2HDFfiles,Testpacket)
-{
-    if(bool_packet)
+    /**
+     * @brief Test dataset Q
+     * @param res time matching
+     *
+     * Test dataset Q over all elements in the time matching.
+     */
+    void Test_Q(std::vector<int*>& res)
     {
-        std::vector<int*> res;
-
-        compute_time_matching(res,timepathpacket,timepathpacket);
-
         DataSet ds1 = cppfile.openDataSet(datasetQpath);
         DataSet ds2 = pyfile.openDataSet(datasetQpath);
 
@@ -314,61 +280,62 @@ TEST_F(Test2HDFfiles,Testpacket)
 
         if(res.empty())
         {
-            FAIL()<<"No matching timepoint.Abort!";
+            ADD_FAILURE()<<"No matching timepoint for Q.Abort!";
         }
-        for(auto index_element:res)
+        else if(res.data()[0][0]==-1)
         {
-            if(index_element[0]==-1)
+            ADD_FAILURE()<<"No matching timepoint for P.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in Q\n";
+            for(auto index_element:res)
             {
-                FAIL()<<"No matching timepoint.Abort!";
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                start2[2]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                count2[2]=dim1[2];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                stride2[2]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                block2[2]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+                start3[2]=0;
+
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,comp1,elemspace,dspace1);
+                ds2.read(outdat2,comp2,elemspace,dspace2);
+
+                EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
+                EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
+                EXPECT_NEAR(outdat1[2].real,outdat2[2].real,abstol);
+                EXPECT_NEAR(outdat1[3].real,outdat2[3].real,abstol);
+
+                EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
+                EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
+                EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
+                EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
             }
-
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=index_element[0];
-            start2[1]=0;
-            start2[2]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            count2[2]=dim1[2];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            stride2[2]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-            block2[2]=1;
-            hsize_t* start3 = new hsize_t[rank1];
-            start3[0]=index_element[1];
-            start3[1]=0;
-            start3[2]=0;
-
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
-
-            EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
-            EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
-            EXPECT_NEAR(outdat1[2].real,outdat2[2].real,abstol);
-            EXPECT_NEAR(outdat1[3].real,outdat2[3].real,abstol);
-
-            EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
-            EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
-            EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
-            EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
         }
     }
-    else
-    {
-        ADD_FAILURE()<<"Cannot compare. Data missing";
-    }
-}
-
-TEST_F(Test2HDFfiles,TestdatasetP)
-{
-    if(bool_packet)
+    /**
+     * @brief Test dataset P
+     * @param res time matching
+     *
+     * Test dataset P over all elements in the time matching.
+     */
+    void Test_P(std::vector<int*>& res)
     {
         DataSet ds1 = cppfile.openDataSet(datasetPpath);
         DataSet ds2 = pyfile.openDataSet(datasetPpath);
@@ -424,50 +391,64 @@ TEST_F(Test2HDFfiles,TestdatasetP)
 
         elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
-        for(unsigned int k=0;k<dim1[0];++k)
+        if(res.empty())
         {
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
-            start2[1]=0;
-            start2[2]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            count2[2]=dim1[2];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            stride2[2]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-            block2[2]=1;
+            ADD_FAILURE()<<"No matching timepoint for P.Abort!";
+        }
+        else if(res.data()[0][0]==-1)
+        {
+            ADD_FAILURE()<<"No matching timepoint for P.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in P\n";
+            for(auto index_element:res)
+            {
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                start2[2]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                count2[2]=dim1[2];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                stride2[2]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                block2[2]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+                start3[2]=0;
 
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,comp1,elemspace,dspace1);
+                ds2.read(outdat2,comp2,elemspace,dspace2);
 
-            EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
-            EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
-            EXPECT_NEAR(outdat1[2].real,outdat2[2].real,abstol);
-            EXPECT_NEAR(outdat1[3].real,outdat2[3].real,abstol);
+                EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
+                EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
+                EXPECT_NEAR(outdat1[2].real,outdat2[2].real,abstol);
+                EXPECT_NEAR(outdat1[3].real,outdat2[3].real,abstol);
 
-            EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
-            EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
-            EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
-            EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
+                EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
+                EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
+                EXPECT_NEAR(outdat1[2].imag,outdat2[2].imag,abstol);
+                EXPECT_NEAR(outdat1[3].imag,outdat2[3].imag,abstol);
+            }
         }
     }
-    else
-    {
-        ADD_FAILURE()<<"Cannot compare. Data missing";
-    }
-}
-
-TEST_F(Test2HDFfiles,Testdatasetq)
-{
-    if(bool_packet)
+    /**
+     * @brief Test dataset q
+     * @param res time matching
+     *
+     * Test dataset q over all elements in the time matching.
+     */
+    void Test_q(std::vector<int*>& res)
     {
         DataSet ds1 = cppfile.openDataSet(datasetqpath);
         DataSet ds2 = pyfile.openDataSet(datasetqpath);
@@ -523,46 +504,60 @@ TEST_F(Test2HDFfiles,Testdatasetq)
 
         elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
-        for(unsigned int k=0;k<dim1[0];++k)
+        if(res.empty())
         {
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
-            start2[1]=0;
-            start2[2]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            count2[2]=dim1[2];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            stride2[2]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-            block2[2]=1;
+            ADD_FAILURE()<<"No matching timepoint for q.Abort!";
+        }
+        else if(res.data()[0][0]==-1)
+        {
+            ADD_FAILURE()<<"No matching timepoint for q.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in q\n";
+            for(auto index_element:res)
+            {
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                start2[2]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                count2[2]=dim1[2];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                stride2[2]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                block2[2]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+                start3[2]=0;
 
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,comp1,elemspace,dspace1);
+                ds2.read(outdat2,comp2,elemspace,dspace2);
 
-            EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
-            EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
+                EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
+                EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
 
-            EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
-            EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
+                EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
+                EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
+            }
         }
     }
-    else
-    {
-        ADD_FAILURE()<<"Cannot compare. Data missing";
-    }
-}
-
-TEST_F(Test2HDFfiles,Testdatasetp)
-{
-    if(bool_packet)
+    /**
+     * @brief Test dataset p
+     * @param res time matching
+     *
+     * Test dataset p over all elements in the time matching.
+     */
+    void Test_p(std::vector<int*>& res)
     {
         DataSet ds1 = cppfile.openDataSet(datasetppath);
         DataSet ds2 = pyfile.openDataSet(datasetppath);
@@ -618,46 +613,60 @@ TEST_F(Test2HDFfiles,Testdatasetp)
 
         elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
-        for(unsigned int k=0;k<dim1[0];++k)
+        if(res.empty())
         {
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
-            start2[1]=0;
-            start2[2]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            count2[2]=dim1[2];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            stride2[2]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-            block2[2]=1;
+            ADD_FAILURE()<<"No matching timepoint for p.Abort!";
+        }
+        else if(res.data()[0][0]==-1)
+        {
+            ADD_FAILURE()<<"No matching timepoint for p.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in p\n";
+            for(auto index_element:res)
+            {
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                start2[2]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                count2[2]=dim1[2];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                stride2[2]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                block2[2]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+                start3[2]=0;
 
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,comp1,elemspace,dspace1);
+                ds2.read(outdat2,comp2,elemspace,dspace2);
 
-            EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
-            EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
+                EXPECT_NEAR(outdat1[0].real,outdat2[0].real,abstol);
+                EXPECT_NEAR(outdat1[1].real,outdat2[1].real,abstol);
 
-            EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
-            EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
+                EXPECT_NEAR(outdat1[0].imag,outdat2[0].imag,abstol);
+                EXPECT_NEAR(outdat1[1].imag,outdat2[1].imag,abstol);
+            }
         }
     }
-    else
-    {
-        ADD_FAILURE()<<"Cannot compare. Data missing";
-    }
-}
-
-TEST_F(Test2HDFfiles,Testdatasetcoefficients)
-{
-    if(bool_packet)
+    /**
+     * @brief Test dataset coefficients
+     * @param res time matching
+     *
+     * Test dataset coefficients over all elements in the time matching.
+     */
+    void Test_coefficients(std::vector<int*>& res)
     {
         //expect rank of coeffs always to be 2
         DataSet ds1 = cppfile.openDataSet(datasetcpath);
@@ -709,33 +718,92 @@ TEST_F(Test2HDFfiles,Testdatasetcoefficients)
 
         elemspace.selectHyperslab(H5S_SELECT_SET,count1,start1,stride1,block1);
 
-        for(unsigned int k=0;k<dim1[0];++k)
+        if(res.empty())
         {
-            hsize_t* start2 = new hsize_t[rank1];
-            start2[0]=k;
-            start2[1]=0;
-            hsize_t* count2 = new hsize_t[rank1];
-            count2[0]=1;
-            count2[1]=dim1[1];
-            hsize_t* stride2 = new hsize_t[rank1];
-            stride2[0]=1;
-            stride2[1]=1;
-            hsize_t* block2 = new hsize_t[rank1];
-            block2[0]=1;
-            block2[1]=1;
-
-            dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            dspace2.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
-            ds1.read(outdat1,comp1,elemspace,dspace1);
-            ds2.read(outdat2,comp2,elemspace,dspace2);
-
-            for(unsigned int i=0;i<dim1[1];++i)
-            {
-            EXPECT_NEAR(outdat1[i].real,outdat2[i].real,abstol);
-            EXPECT_NEAR(outdat1[i].imag,outdat2[i].imag,abstol);
-            }
-
+            ADD_FAILURE()<<"No matching timepoint for coefficients.Abort!";
         }
+        else if(res.data()[0][0]==-1)
+        {
+            ADD_FAILURE()<<"No matching timepoint for coefficients.Abort!";
+        }
+        else
+        {
+            std::cout<<res.size()<<" matching timepoints found in coefficients\n";
+            for(auto index_element:res)
+            {
+                hsize_t* start2 = new hsize_t[rank1];
+                start2[0]=index_element[0];
+                start2[1]=0;
+                hsize_t* count2 = new hsize_t[rank1];
+                count2[0]=1;
+                count2[1]=dim1[1];
+                hsize_t* stride2 = new hsize_t[rank1];
+                stride2[0]=1;
+                stride2[1]=1;
+                hsize_t* block2 = new hsize_t[rank1];
+                block2[0]=1;
+                block2[1]=1;
+                hsize_t* start3 = new hsize_t[rank1];
+                start3[0]=index_element[1];
+                start3[1]=0;
+
+                dspace1.selectHyperslab(H5S_SELECT_SET, count2, start2, stride2, block2);
+                dspace2.selectHyperslab(H5S_SELECT_SET, count2, start3, stride2, block2);
+                ds1.read(outdat1,comp1,elemspace,dspace1);
+                ds2.read(outdat2,comp2,elemspace,dspace2);
+
+                for(unsigned int i=0;i<dim1[1];++i)
+                {
+                EXPECT_NEAR(outdat1[i].real,outdat2[i].real,abstol);
+                EXPECT_NEAR(outdat1[i].imag,outdat2[i].imag,abstol);
+                }
+            }
+        }
+    }
+    H5std_string cppname;//!<filename of cpp file
+    H5File cppfile;//!<instance of cpp file
+    H5std_string pyname;//!<filename of py file
+    H5File pyfile;//!<instance of py file
+    CompType mytype;//!<predefined type used to write and read data
+    H5std_string datablock_group="/datablock_0";//!<name for datablock group. DEFAULT:/datablock_0
+    H5std_string energies_group="/energies";//!<name for energies group. DEFAULT:/energies
+    H5std_string coeffs_group="/coefficients";//!<name for coefficients group. DEFAULT:/coefficients
+    H5std_string norm_group="/norm";//!<name for norm group. DEFAULT:/norms
+    H5std_string Pi_group="/Pi";//!<name for Pi group. DEFAULT:/Pi
+    H5std_string wavepacket_group="/wavepacket";//!<name for wavepacket group. DEFAULT:/wavepacket
+    H5std_string datasetQpath;//!<string for path to dataset Q
+    H5std_string datasetPpath;//!<string for path to dataset P
+    H5std_string datasetqpath;//!<string for path to dataset p
+    H5std_string datasetppath;//!<string for path to dataset q
+    H5std_string datasetcpath;//!<string for path to dataset c_0
+    H5std_string datasetekinpath;//!<string for path to dataset ekin
+    H5std_string datasetepotpath;//!<string for path to dataset epot
+    H5std_string datasetnormpath;//!<string for path to dataset norm
+    int bool_packet;//!<bool if packet is written in cpp file
+    int bool_energy;//!<bool if energy is written in cpp file
+    int bool_norm;//!<bool if norm is written in cpp file
+    double dt_cpp;//!<timestep in cpp file
+    double dt_py;//!<timestep in py file
+    H5std_string buff_dt_py="";//!<stringbuffer needed for reading Attribute adt_py
+    H5std_string timepathpacket;//!<string for path timegrid packet
+    H5std_string timepathnorm;//!<string for path timegrid norm
+    H5std_string timepathekin;//!<string for path timegrid ekin
+    H5std_string timepathepot;//!<string for path timegrid epot
+};
+
+TEST_F(Test2HDFfiles,Testpacket)
+{
+    if(bool_packet)
+    {
+        std::vector<int*> res;
+
+        compute_time_matching(res,timepathpacket,timepathpacket);
+
+        Test_Q(res);
+        Test_q(res);
+        Test_P(res);
+        Test_p(res);
+        Test_coefficients(res);
     }
     else
     {
