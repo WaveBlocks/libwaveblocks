@@ -759,6 +759,12 @@ class Test2HDFfiles: public ::testing::Test
                 }
             }
         }
+        ds1.close();
+        ds2.close();
+        comp1.close();
+        comp2.close();
+        dspace1.close();
+        dspace2.close();
     }
     /**
      * @brief Test dataset ekin
@@ -851,6 +857,12 @@ class Test2HDFfiles: public ::testing::Test
                 EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
             }
         }
+        ds1.close();
+        ds2.close();
+        tp1.close();
+        tp2.close();
+        dspace1.close();
+        dspace2.close();
     }
     /**
      * @brief Test dataset epot
@@ -943,25 +955,14 @@ class Test2HDFfiles: public ::testing::Test
 
                 EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
             }
-//            delete [] start2;
-//            delete [] count2;
-//            delete [] stride2;
-//            delete [] block2;
-//            delete [] start3;
         }
-//        delete [] dim1;
-//        delete [] dim2;
-//        delete [] elem;
-//        delete [] start1;
-//        delete [] stride1;
-//        delete [] block1;
-//        delete [] count1;
-//        ds1.close();
-//        ds2.close();
-//        tp1.close();
-//        tp2.close();
-//        dspace1.close();
-//        dspace2.close();
+
+        ds1.close();
+        ds2.close();
+        tp1.close();
+        tp2.close();
+        dspace1.close();
+        dspace2.close();
     }
 
     H5std_string cppname;//!<filename of cpp file
