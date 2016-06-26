@@ -183,16 +183,16 @@ class Test2HDFfiles: public ::testing::Test
 
         itelemspace.selectHyperslab(H5S_SELECT_SET,itcount1,itstart1,itstride1,itblock1);
 
+        hsize_t* it_dyn_start=new hsize_t[itrank1];
+
         for(unsigned int k=0;k<itdim1[0];++k)
         {
-            hsize_t* it_dyn_start=new hsize_t[itrank1];
             it_dyn_start[0]=k;
             itspace1.selectHyperslab(H5S_SELECT_SET,itcount1,it_dyn_start,itstride1,itblock1);
             itspace2.selectHyperslab(H5S_SELECT_SET,itcount1,it_dyn_start,itstride1,itblock1);
 
             its1.read(&index_array_cpp[k],it1,itelemspace,itspace1);
             its2.read(&index_array_py[k],it2,itelemspace,itspace2);
-
         }
 
         int acc[2]={-1,-1};
@@ -289,25 +289,25 @@ class Test2HDFfiles: public ::testing::Test
         else
         {
             std::cout<<res.size()<<" matching timepoints found in Q\n";
+            hsize_t* start2 = new hsize_t[rank1];
+            hsize_t* count2 = new hsize_t[rank1];
+            hsize_t* stride2 = new hsize_t[rank1];
+            hsize_t* block2 = new hsize_t[rank1];
+            hsize_t* start3 = new hsize_t[rank1];
             for(auto index_element:res)
             {
-                hsize_t* start2 = new hsize_t[rank1];
                 start2[0]=index_element[0];
                 start2[1]=0;
                 start2[2]=0;
-                hsize_t* count2 = new hsize_t[rank1];
                 count2[0]=1;
                 count2[1]=dim1[1];
                 count2[2]=dim1[2];
-                hsize_t* stride2 = new hsize_t[rank1];
                 stride2[0]=1;
                 stride2[1]=1;
                 stride2[2]=1;
-                hsize_t* block2 = new hsize_t[rank1];
                 block2[0]=1;
                 block2[1]=1;
                 block2[2]=1;
-                hsize_t* start3 = new hsize_t[rank1];
                 start3[0]=index_element[1];
                 start3[1]=0;
                 start3[2]=0;
@@ -402,25 +402,25 @@ class Test2HDFfiles: public ::testing::Test
         else
         {
             std::cout<<res.size()<<" matching timepoints found in P\n";
+            hsize_t* start2 = new hsize_t[rank1];
+            hsize_t* count2 = new hsize_t[rank1];
+            hsize_t* stride2 = new hsize_t[rank1];
+            hsize_t* block2 = new hsize_t[rank1];
+            hsize_t* start3 = new hsize_t[rank1];
             for(auto index_element:res)
             {
-                hsize_t* start2 = new hsize_t[rank1];
                 start2[0]=index_element[0];
                 start2[1]=0;
                 start2[2]=0;
-                hsize_t* count2 = new hsize_t[rank1];
                 count2[0]=1;
                 count2[1]=dim1[1];
                 count2[2]=dim1[2];
-                hsize_t* stride2 = new hsize_t[rank1];
                 stride2[0]=1;
                 stride2[1]=1;
                 stride2[2]=1;
-                hsize_t* block2 = new hsize_t[rank1];
                 block2[0]=1;
                 block2[1]=1;
                 block2[2]=1;
-                hsize_t* start3 = new hsize_t[rank1];
                 start3[0]=index_element[1];
                 start3[1]=0;
                 start3[2]=0;
@@ -917,22 +917,23 @@ class Test2HDFfiles: public ::testing::Test
         }
         else
         {
+            hsize_t* start2 = new hsize_t[rank1];
+            hsize_t* count2 = new hsize_t[rank1];
+            hsize_t* stride2 = new hsize_t[rank1];
+            hsize_t* block2 = new hsize_t[rank1];
+            hsize_t* start3 = new hsize_t[rank1];
+
             std::cout<<res.size()<<" matching timepoints found in epot\n";
             for(auto index_element:res)
             {
-                hsize_t* start2 = new hsize_t[rank1];
                 start2[0]=index_element[0];
                 start2[1]=0;
-                hsize_t* count2 = new hsize_t[rank1];
                 count2[0]=1;
                 count2[1]=dim1[1];
-                hsize_t* stride2 = new hsize_t[rank1];
                 stride2[0]=1;
                 stride2[1]=1;
-                hsize_t* block2 = new hsize_t[rank1];
                 block2[0]=1;
                 block2[1]=1;
-                hsize_t* start3 = new hsize_t[rank1];
                 start3[0]=index_element[1];
                 start3[1]=0;
 
@@ -943,7 +944,25 @@ class Test2HDFfiles: public ::testing::Test
 
                 EXPECT_NEAR(outdat1[0],outdat2[0],abstol);
             }
+//            delete [] start2;
+//            delete [] count2;
+//            delete [] stride2;
+//            delete [] block2;
+//            delete [] start3;
         }
+//        delete [] dim1;
+//        delete [] dim2;
+//        delete [] elem;
+//        delete [] start1;
+//        delete [] stride1;
+//        delete [] block1;
+//        delete [] count1;
+//        ds1.close();
+//        ds2.close();
+//        tp1.close();
+//        tp2.close();
+//        dspace1.close();
+//        dspace2.close();
     }
 
     H5std_string cppname;//!<filename of cpp file
