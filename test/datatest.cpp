@@ -696,6 +696,7 @@ TEST_F(TestHDF,DISABLED_Testenergies)
          }
          else
          {
+             std::cout<<time_matching_ekin.size()<<" matching datapoints for ekin.\n";
              for(auto index_elem:time_matching_ekin)
              {
                   EXPECT_NEAR(ekin_cpp[index_elem[0]],ekin_py[index_elem[1]],abstol);
@@ -780,6 +781,7 @@ TEST_F(TestHDF,DISABLED_Testenergies)
           }
           else
           {
+              std::cout<<time_matching_epot.size()<<" matching datapoints for epot.\n";
               for(auto index_elem:time_matching_epot)
               {
                    EXPECT_NEAR(epot_cpp[index_elem[0]],epot_py[index_elem[1]],abstol);
@@ -874,6 +876,7 @@ TEST_F(TestHDF,DISABLED_Testnorm)
          }
          else
          {
+             std::cout<<time_matching_norm.size()<<" matching datapoints for norm.\n";
              for(auto index_elem:time_matching_norm)
              {
                   EXPECT_NEAR(norm_cpp[index_elem[0]],norm_py[index_elem[1]],abstol);
