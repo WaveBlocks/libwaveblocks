@@ -194,6 +194,15 @@ class Test2HDFfiles: public ::testing::Test
             its1.read(&index_array_cpp[k],it1,itelemspace,itspace1);
             its2.read(&index_array_py[k],it2,itelemspace,itspace2);
         }
+//        for(unsigned int j=0;j<itdim2[0];++j)
+//        {
+//            it_dyn_start[0]=j;
+//            itspace1.selectHyperslab(H5S_SELECT_SET,itcount1,it_dyn_start,itstride1,itblock1);
+//            itspace2.selectHyperslab(H5S_SELECT_SET,itcount1,it_dyn_start,itstride1,itblock1);
+
+//            its1.read(&index_array_cpp[j],it1,itelemspace,itspace1);
+//            its2.read(&index_array_py[j],it2,itelemspace,itspace2);
+//        }
 
         int acc[2]={-1,-1};
         for(unsigned int k=0;k<itdim1[0];++k)
