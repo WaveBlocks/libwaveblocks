@@ -136,7 +136,7 @@ class TestHDF : public ::testing::Test
         {
             dyn_start2[0]=j;
             itsp_py.selectHyperslab(H5S_SELECT_SET,elemnt,dyn_start2);
-            its_py.read(&read_data_py[j],it_py_tp,itelem,itsp_py);
+            its_py.read(&read_data_py[j],it_py_tp,itelem,itsp_py);//Invalid write of size 8
         }
 
         itelem.close();
