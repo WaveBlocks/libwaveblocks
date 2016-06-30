@@ -345,11 +345,13 @@ namespace waveblocks
                 int ap=0;
                 apacket.write(PredType::NATIVE_INT,&ap);
             }
+            H5std_string a7=datablock_string+observables_group;
+            gobservables=std::make_shared<Group>(file_.createGroup(a7));
             if(wrlist["energy"])
             {
                 int ae=1;
                 aenergy.write(PredType::NATIVE_INT,&ae);
-                H5std_string a5 = (datablock_string+energies_group);
+                H5std_string a5 = (datablock_string+observables_group+energies_group);
                 genergy = std::make_shared<Group>(file_.createGroup(a5));
             }
             else
@@ -361,7 +363,7 @@ namespace waveblocks
             {
                 int an=1;
                 anorm.write(PredType::NATIVE_INT,&an);
-                H5std_string a6 = (datablock_string+norms_group);
+                H5std_string a6 = (datablock_string+observables_group+norms_group);
                 gnorms = std::make_shared<Group>(file_.createGroup(a6));
             }
             else
@@ -525,7 +527,7 @@ namespace waveblocks
             }
             if(wrlist["energy"])
             {
-                H5std_string ename=datablock_string+energies_group;
+                H5std_string ename=datablock_string+observables_group+energies_group;
                 H5std_string enameepot=ename+"/epot";
                 energys_epot=std::make_shared<DataSet>(file_.createDataSet(enameepot,PredType::NATIVE_DOUBLE,energyspace_epot,plist_energy));
                 H5std_string enameekin=ename+"/ekin";
@@ -537,9 +539,9 @@ namespace waveblocks
             }
             if(wrlist["norm"])
             {
-                H5std_string tmm=datablock_string+norms_group+"/norm";
+                H5std_string tmm=datablock_string+observables_group+norms_group+"/norm";
                 normss=std::make_shared<DataSet>(file_.createDataSet(tmm,PredType::NATIVE_DOUBLE,normspace,plist_norms));
-                H5std_string tmt=datablock_string+norms_group+"/timegrid";
+                H5std_string tmt=datablock_string+observables_group+norms_group+"/timegrid";
                 times_norms=std::make_shared<DataSet>(file_.createDataSet(tmt,PredType::NATIVE_INT,timespace_norms,plist_time));
             }
         }
@@ -1270,6 +1272,7 @@ namespace waveblocks
         H5std_string wavepacket_group_string="/wavepacket";//!<String for H5Group for packet and coefficients. Default:wavepacket
         H5std_string energies_group="/energies";//!<name for group energies Default:energies
         H5std_string norms_group="/norm";//!<name for group norms Default:norm
+        H5std_string observables_group="/observables";//!<name for group observables Default:observables
         DSetCreatPropList plist_qp;//!<PropList for packet.q() packet.p()
         DSetCreatPropList plist_QP;//!<PropList for packet.Q() packet.P()
         DSetCreatPropList plist_S;//!<PropList for packet.S()
@@ -1326,7 +1329,8 @@ namespace waveblocks
         std::shared_ptr<Group> gPi;//!<group for matrices in packet
         std::shared_ptr<Group> gcoefficient;//!<group for coefficients in packet
         std::shared_ptr<Group> genergy;//!<group for energies
-        std::shared_ptr<Group> gnorms;//group for norms
+        std::shared_ptr<Group> gnorms;//!<group for norms
+        std::shared_ptr<Group> gobservables;//!<group for observables
         DataSpace qspace;//!<space for packet.q() in file
         std::shared_ptr<DataSet> qs;//!<dataset for packet.q() in file
         DataSpace pspace;//!<space for packet.p() in file
