@@ -99,11 +99,8 @@ class TestHDF : public ::testing::Test
         itsp_cpp=its_cpp.getSpace();
         itsp_py=its_py.getSpace();
 
-        int itrank_cpp=itsp_cpp.getSimpleExtentNdims();
-        int itrank_py=itsp_py.getSimpleExtentNdims();
-
-        hsize_t* itdim_cpp=new hsize_t[itrank_cpp];
-        hsize_t* itdim_py=new hsize_t[itrank_py];
+        hsize_t itdim_cpp[1];
+        hsize_t itdim_py[1];
 
         IntType it_cpp_tp=its_cpp.getIntType();
         IntType it_py_tp=its_py.getIntType();
@@ -111,19 +108,22 @@ class TestHDF : public ::testing::Test
         itsp_cpp.getSimpleExtentDims(itdim_cpp);
         itsp_py.getSimpleExtentDims(itdim_py);
 
-        hsize_t* elemt=new hsize_t[itrank_cpp];
+        hsize_t elemt[1];
         elemt[0]=0;
-        hsize_t* elemnt=new hsize_t[itrank_cpp];
+        hsize_t elemnt[1];
         elemnt[0]=1;
 
-        DataSpace itelem(itrank_cpp,elemnt);
+        int RANK1=1;
+        DataSpace itelem(RANK1,elemnt);
         itelem.selectHyperslab(H5S_SELECT_SET,elemnt,elemt);
 
-        hsize_t* dyn_start=new hsize_t[itrank_cpp];
-        hsize_t* dyn_start2=new hsize_t[itrank_py];
+        hsize_t dyn_start[1];
+        hsize_t dyn_start2[1];
 
-        int* read_data_cpp=new int[itdim_cpp[0]];
-        int* read_data_py=new int[itdim_py[0]];
+        std::vector<int> read_data_cpp;
+        read_data_cpp.resize(itdim_cpp[0]);
+        std::vector<int> read_data_py;
+        read_data_py.resize(itdim_py[0]);
 
         for(unsigned int k=0;k<itdim_cpp[0];++k)
         {
@@ -137,11 +137,6 @@ class TestHDF : public ::testing::Test
             itsp_py.selectHyperslab(H5S_SELECT_SET,elemnt,dyn_start2);
             its_py.read(&read_data_py[j],it_py_tp,itelem,itsp_py);
         }
-        delete [] elemt;
-        delete [] elemnt;
-        delete [] dyn_start;
-        delete [] dyn_start2;
-
 
         itelem.close();
         it_cpp_tp.close();
@@ -174,11 +169,6 @@ class TestHDF : public ::testing::Test
         {
             match.push_back(acc);
         }
-        delete [] read_data_cpp;
-        delete [] read_data_py;
-
-        delete [] itdim_cpp;
-        delete [] itdim_py;
 
         itsp_cpp.close();
         itsp_py.close();
@@ -211,8 +201,6 @@ TEST_F(TestHDF,Testpacket)
         time_matching(time_matching_packet,timepath_cpp,timepath_py);
 
         H5std_string path_Q="/datablock_0/wavepacket/Pi/Q";
-        ctype* Q_cpp;
-        ctype* Q_py;
 
         DataSet ds_cpp;
         DataSet ds_py;
@@ -225,11 +213,8 @@ TEST_F(TestHDF,Testpacket)
         sp_cpp=ds_cpp.getSpace();
         sp_py=ds_py.getSpace();
 
-        int Q_rank_cpp=sp_cpp.getSimpleExtentNdims();
-        int Q_rank_py=sp_py.getSimpleExtentNdims();
-
-        hsize_t* Q_dim_cpp=new hsize_t[Q_rank_cpp];
-        hsize_t* Q_dim_py=new hsize_t[Q_rank_py];
+        hsize_t Q_dim_cpp[3];
+        hsize_t Q_dim_py[3];
 
         sp_cpp.getSimpleExtentDims(Q_dim_cpp);
         sp_py.getSimpleExtentDims(Q_dim_py);
@@ -239,27 +224,30 @@ TEST_F(TestHDF,Testpacket)
 
         int index_Q_cpp=Q_dim_cpp[1]*Q_dim_cpp[2];
         int index_Q_py=Q_dim_py[1]*Q_dim_py[2];
-        ctype* tmp1 = new ctype[Q_dim_cpp[0]*index_Q_cpp];
-        ctype* tmp2 = new ctype[Q_dim_py[0]*index_Q_py];
-        Q_cpp=tmp1;
-        Q_py=tmp2;
+        std::vector<ctype> Q_cpp;
+        Q_cpp.resize(Q_dim_cpp[0]*index_Q_cpp);
+        std::vector<ctype> Q_py;
+        Q_py.resize(Q_dim_py[0]*index_Q_py);
 
         ASSERT_EQ(Q_dim_cpp[1],Q_dim_py[1])<<"Dimension mismatch. Abort!";
         ASSERT_EQ(Q_dim_cpp[2],Q_dim_py[2])<<"Dimension mismatch. Abort!";
 
-        hsize_t* Q_elem=new hsize_t[Q_rank_cpp];
+        hsize_t Q_elem[3];
         Q_elem[0]=1;
         Q_elem[1]=Q_dim_cpp[1];
         Q_elem[2]=Q_dim_cpp[2];
-        hsize_t* Q_elem_start=new hsize_t[Q_rank_cpp];
+        hsize_t Q_elem_start[3];
         Q_elem_start[0]=0;Q_elem_start[1]=0;Q_elem_start[2]=0;
-        hsize_t* Q_elem_count=new hsize_t[Q_rank_cpp];
+        hsize_t Q_elem_count[3];
         Q_elem_count[0]=1;Q_elem_count[1]=Q_dim_cpp[1];Q_elem_count[2]=Q_dim_cpp[2];
 
-        DataSpace Q_elem_sp(Q_rank_cpp,Q_elem);
+        int RANK3=3;
+        DataSpace Q_elem_sp(RANK3,Q_elem);
         Q_elem_sp.selectHyperslab(H5S_SELECT_SET,Q_elem_count,Q_elem_start);
 
-        hsize_t* Q_dyn_start=new hsize_t[Q_rank_cpp];
+        hsize_t Q_dyn_start[3];
+        hsize_t Q_dyn_start2[3];
+
         for(unsigned int k=0;k<Q_dim_cpp[0];++k)
         {
             Q_dyn_start[0]=k;
@@ -270,22 +258,16 @@ TEST_F(TestHDF,Testpacket)
         }
         for(unsigned int j=0;j<Q_dim_py[0];++j)
         {
-            Q_dyn_start[0]=j;
-            Q_dyn_start[1]=0;
-            Q_dyn_start[2]=0;
-            sp_py.selectHyperslab(H5S_SELECT_SET,Q_elem_count,Q_dyn_start);
+            Q_dyn_start2[0]=j;
+            Q_dyn_start2[1]=0;
+            Q_dyn_start2[2]=0;
+            sp_py.selectHyperslab(H5S_SELECT_SET,Q_elem_count,Q_dyn_start2);
             ds_py.read(&(Q_py[index_Q_py*j]),Q_type_py,Q_elem_sp,sp_py);
         }
 
-        delete [] Q_dim_cpp;
-        delete [] Q_dim_py;
-        delete [] Q_elem;
-        delete [] Q_elem_start;
-        delete [] Q_elem_count;
-        delete [] Q_dyn_start;
-
         Q_type_cpp.close();
         Q_type_py.close();
+        Q_elem_sp.close();
         sp_cpp.close();
         sp_py.close();
         ds_cpp.close();
@@ -325,11 +307,8 @@ TEST_F(TestHDF,Testpacket)
         sp2_cpp=ds2_cpp.getSpace();
         sp2_py=ds2_py.getSpace();
 
-        int P_rank_cpp=sp2_cpp.getSimpleExtentNdims();
-        int P_rank_py=sp2_py.getSimpleExtentNdims();
-
-        hsize_t* P_dim_cpp=new hsize_t[P_rank_cpp];
-        hsize_t* P_dim_py=new hsize_t[P_rank_py];
+        hsize_t P_dim_cpp[3];
+        hsize_t P_dim_py[3];
 
         sp2_cpp.getSimpleExtentDims(P_dim_cpp);
         sp2_py.getSimpleExtentDims(P_dim_py);
@@ -339,25 +318,28 @@ TEST_F(TestHDF,Testpacket)
 
         int index_P_cpp=P_dim_cpp[1]*P_dim_cpp[2];
         int index_P_py=P_dim_py[1]*P_dim_py[2];
-        ctype* P_cpp = new ctype[P_dim_cpp[0]*index_P_cpp];
-        ctype* P_py = new ctype[P_dim_py[0]*index_P_py];
+        std::vector<ctype> P_cpp;
+        P_cpp.resize(P_dim_cpp[0]*index_P_cpp);
+        std::vector<ctype> P_py;
+        P_py.resize(P_dim_py[0]*index_P_py);
 
         ASSERT_EQ(P_dim_cpp[1],P_dim_py[1])<<"Dimension mismatch. Abort!";
         ASSERT_EQ(P_dim_cpp[2],P_dim_py[2])<<"Dimension mismatch. Abort!";
 
-        hsize_t* P_elem=new hsize_t[P_rank_cpp];
+        hsize_t P_elem[3];
         P_elem[0]=1;
         P_elem[1]=P_dim_cpp[1];
         P_elem[2]=P_dim_cpp[2];
-        hsize_t* P_elem_start=new hsize_t[P_rank_cpp];
+        hsize_t P_elem_start[3];
         P_elem_start[0]=0;P_elem_start[1]=0;P_elem_start[2]=0;
-        hsize_t* P_elem_count=new hsize_t[P_rank_cpp];
+        hsize_t P_elem_count[3];
         P_elem_count[0]=1;P_elem_count[1]=P_dim_cpp[1];P_elem_count[2]=P_dim_cpp[2];
 
-        DataSpace P_elem_sp(P_rank_cpp,P_elem);
+        DataSpace P_elem_sp(RANK3,P_elem);
         P_elem_sp.selectHyperslab(H5S_SELECT_SET,P_elem_count,P_elem_start);
 
-        hsize_t* P_dyn_start=new hsize_t[P_rank_cpp];
+        hsize_t P_dyn_start[3];
+        hsize_t P_dyn_start2[3];
         for(unsigned int k=0;k<P_dim_cpp[0];++k)
         {
             P_dyn_start[0]=k;
@@ -368,15 +350,16 @@ TEST_F(TestHDF,Testpacket)
         }
         for(unsigned int j=0;j<P_dim_py[0];++j)
         {
-            P_dyn_start[0]=j;
-            P_dyn_start[1]=0;
-            P_dyn_start[2]=0;
-            sp2_py.selectHyperslab(H5S_SELECT_SET,P_elem_count,P_dyn_start);
+            P_dyn_start2[0]=j;
+            P_dyn_start2[1]=0;
+            P_dyn_start2[2]=0;
+            sp2_py.selectHyperslab(H5S_SELECT_SET,P_elem_count,P_dyn_start2);
             ds2_py.read(&(P_py[index_P_py*j]),P_type_py,P_elem_sp,sp2_py);
         }
 
         P_type_cpp.close();
         P_type_py.close();
+        P_elem_sp.close();
         sp2_cpp.close();
         sp2_py.close();
         ds2_cpp.close();
@@ -404,11 +387,8 @@ TEST_F(TestHDF,Testpacket)
         sp3_cpp=ds3_cpp.getSpace();
         sp3_py=ds3_py.getSpace();
 
-        int q_rank_cpp=sp3_cpp.getSimpleExtentNdims();
-        int q_rank_py=sp3_py.getSimpleExtentNdims();
-
-        hsize_t* q_dim_cpp=new hsize_t[q_rank_cpp];
-        hsize_t* q_dim_py=new hsize_t[q_rank_py];
+        hsize_t q_dim_cpp[3];
+        hsize_t q_dim_py[3];
 
         sp3_cpp.getSimpleExtentDims(q_dim_cpp);
         sp3_py.getSimpleExtentDims(q_dim_py);
@@ -418,26 +398,28 @@ TEST_F(TestHDF,Testpacket)
 
         int index_q_cpp=q_dim_cpp[1]*q_dim_cpp[2];
         int index_q_py=q_dim_py[1]*q_dim_py[2];
-        ctype* q_cpp = new ctype[q_dim_cpp[0]*index_q_cpp];
-        ctype* q_py = new ctype[q_dim_py[0]*index_q_py];
+        std::vector<ctype> q_cpp;
+        q_cpp.resize(q_dim_cpp[0]*index_q_cpp);
+        std::vector<ctype> q_py;
+        q_py.resize(q_dim_py[0]*index_q_py);
 
         ASSERT_EQ(q_dim_cpp[1],q_dim_py[1])<<"Dimension mismatch. Abort!";
         ASSERT_EQ(q_dim_cpp[2],q_dim_py[2])<<"Dimension mismatch. Abort!";
 
-        hsize_t* q_elem=new hsize_t[q_rank_cpp];
+        hsize_t q_elem[3];
         q_elem[0]=1;
         q_elem[1]=q_dim_cpp[1];
         q_elem[2]=q_dim_cpp[2];
-        hsize_t* q_elem_start=new hsize_t[q_rank_cpp];
+        hsize_t q_elem_start[3];
         q_elem_start[0]=0;q_elem_start[1]=0;q_elem_start[2]=0;
-        hsize_t* q_elem_count=new hsize_t[q_rank_cpp];
+        hsize_t q_elem_count[3];
         q_elem_count[0]=1;q_elem_count[1]=q_dim_cpp[1];q_elem_count[2]=q_dim_cpp[2];
 
-        DataSpace q_elem_sp(q_rank_cpp,q_elem);
+        DataSpace q_elem_sp(RANK3,q_elem);
         q_elem_sp.selectHyperslab(H5S_SELECT_SET,q_elem_count,q_elem_start);
 
-        hsize_t* q_dyn_start=new hsize_t[q_rank_cpp];
-
+        hsize_t q_dyn_start[3];
+        hsize_t q_dyn_start2[3];
         for(unsigned int k=0;k<q_dim_cpp[0];++k)
         {
             q_dyn_start[0]=k;
@@ -448,15 +430,16 @@ TEST_F(TestHDF,Testpacket)
         }
         for(unsigned int j=0;j<q_dim_py[0];++j)
         {
-            q_dyn_start[0]=j;
-            q_dyn_start[1]=0;
-            q_dyn_start[2]=0;
-            sp3_py.selectHyperslab(H5S_SELECT_SET,q_elem_count,q_dyn_start);
+            q_dyn_start2[0]=j;
+            q_dyn_start2[1]=0;
+            q_dyn_start2[2]=0;
+            sp3_py.selectHyperslab(H5S_SELECT_SET,q_elem_count,q_dyn_start2);
             ds3_py.read(&(q_py[index_q_py*j]),q_type_py,q_elem_sp,sp3_py);
         }
 
         q_type_cpp.close();
         q_type_py.close();
+        q_elem_sp.close();
         sp3_cpp.close();
         sp3_py.close();
         ds3_cpp.close();
@@ -483,11 +466,8 @@ TEST_F(TestHDF,Testpacket)
         sp4_cpp=ds4_cpp.getSpace();
         sp4_py=ds4_py.getSpace();
 
-        int p_rank_cpp=sp4_cpp.getSimpleExtentNdims();
-        int p_rank_py=sp4_py.getSimpleExtentNdims();
-
-        hsize_t* p_dim_cpp=new hsize_t[p_rank_cpp];
-        hsize_t* p_dim_py=new hsize_t[p_rank_py];
+        hsize_t p_dim_cpp[3];
+        hsize_t p_dim_py[3];
 
         sp4_cpp.getSimpleExtentDims(p_dim_cpp);
         sp4_py.getSimpleExtentDims(p_dim_py);
@@ -497,26 +477,28 @@ TEST_F(TestHDF,Testpacket)
 
         int index_p_cpp=p_dim_cpp[1]*p_dim_cpp[2];
         int index_p_py=p_dim_py[1]*p_dim_py[2];
-        ctype* p_cpp = new ctype[p_dim_cpp[0]*index_p_cpp];
-        ctype* p_py = new ctype[p_dim_py[0]*index_p_py];
+        std::vector<ctype> p_cpp;
+        p_cpp.resize(p_dim_cpp[0]*index_p_cpp);
+        std::vector<ctype> p_py;
+        p_py.resize(p_dim_py[0]*index_p_py);
 
         ASSERT_EQ(p_dim_cpp[1],p_dim_py[1])<<"Dimension mismatch. Abort!";
         ASSERT_EQ(p_dim_cpp[2],p_dim_py[2])<<"Dimension mismatch. Abort!";
 
-        hsize_t* p_elem=new hsize_t[p_rank_cpp];
+        hsize_t p_elem[3];
         p_elem[0]=1;
         p_elem[1]=p_dim_cpp[1];
         p_elem[2]=p_dim_cpp[2];
-        hsize_t* p_elem_start=new hsize_t[p_rank_cpp];
+        hsize_t p_elem_start[3];
         p_elem_start[0]=0;p_elem_start[1]=0;p_elem_start[2]=0;
-        hsize_t* p_elem_count=new hsize_t[p_rank_cpp];
+        hsize_t p_elem_count[3];
         p_elem_count[0]=1;p_elem_count[1]=p_dim_cpp[1];p_elem_count[2]=p_dim_cpp[2];
 
-        DataSpace p_elem_sp(p_rank_cpp,p_elem);
+        DataSpace p_elem_sp(RANK3,p_elem);
         p_elem_sp.selectHyperslab(H5S_SELECT_SET,p_elem_count,p_elem_start);
 
-        hsize_t* p_dyn_start=new hsize_t[p_rank_cpp];
-
+        hsize_t p_dyn_start[3];
+        hsize_t p_dyn_start2[3];
         for(unsigned int k=0;k<p_dim_cpp[0];++k)
         {
             p_dyn_start[0]=k;
@@ -527,15 +509,16 @@ TEST_F(TestHDF,Testpacket)
         }
         for(unsigned int j=0;j<p_dim_py[0];++j)
         {
-            p_dyn_start[0]=j;
-            p_dyn_start[1]=0;
-            p_dyn_start[2]=0;
-            sp4_py.selectHyperslab(H5S_SELECT_SET,p_elem_count,p_dyn_start);
+            p_dyn_start2[0]=j;
+            p_dyn_start2[1]=0;
+            p_dyn_start2[2]=0;
+            sp4_py.selectHyperslab(H5S_SELECT_SET,p_elem_count,p_dyn_start2);
             ds4_py.read(&(p_py[index_p_py*j]),p_type_py,p_elem_sp,sp4_py);
         }
 
         p_type_cpp.close();
         p_type_py.close();
+        p_elem_sp.close();
         sp4_cpp.close();
         sp4_py.close();
         ds4_cpp.close();
@@ -562,11 +545,8 @@ TEST_F(TestHDF,Testpacket)
         sp5_cpp=ds5_cpp.getSpace();
         sp5_py=ds5_py.getSpace();
 
-        int c_rank_cpp=sp5_cpp.getSimpleExtentNdims();
-        int c_rank_py=sp5_py.getSimpleExtentNdims();
-
-        hsize_t* c_dim_cpp=new hsize_t[c_rank_cpp];
-        hsize_t* c_dim_py=new hsize_t[c_rank_py];
+        hsize_t c_dim_cpp[2];
+        hsize_t c_dim_py[2];
 
         sp5_cpp.getSimpleExtentDims(c_dim_cpp);
         sp5_py.getSimpleExtentDims(c_dim_py);
@@ -576,23 +556,27 @@ TEST_F(TestHDF,Testpacket)
 
         int index_c_cpp=c_dim_cpp[1];
         int index_c_py=c_dim_py[1];
-        ctype* c_cpp = new ctype[c_dim_cpp[0]*index_c_cpp];
-        ctype* c_py = new ctype[c_dim_py[0]*index_c_py];
+        std::vector<ctype> c_cpp;
+        c_cpp.resize(c_dim_cpp[0]*index_c_cpp);
+        std::vector<ctype> c_py;
+        c_py.resize(c_dim_py[0]*index_c_py);
 
         ASSERT_EQ(c_dim_cpp[1],c_dim_py[1])<<"Dimension mismatch. Abort!";
 
-        hsize_t* c_elem=new hsize_t[c_rank_cpp];
+        hsize_t c_elem[2];
         c_elem[0]=1;
         c_elem[1]=c_dim_cpp[1];
-        hsize_t* c_elem_start=new hsize_t[c_rank_cpp];
+        hsize_t c_elem_start[2];
         c_elem_start[0]=0;c_elem_start[1]=0;
-        hsize_t* c_elem_count=new hsize_t[c_rank_cpp];
+        hsize_t c_elem_count[2];
         c_elem_count[0]=1;c_elem_count[1]=c_dim_cpp[1];
 
-        DataSpace c_elem_sp(c_rank_cpp,c_elem);
+        int RANK2=2;
+        DataSpace c_elem_sp(RANK2,c_elem);
         c_elem_sp.selectHyperslab(H5S_SELECT_SET,c_elem_count,c_elem_start);
 
-        hsize_t* c_dyn_start=new hsize_t[c_rank_cpp];
+        hsize_t c_dyn_start[2];
+        hsize_t c_dyn_start2[2];
 
         for(unsigned int k=0;k<c_dim_cpp[0];++k)
         {
@@ -603,14 +587,15 @@ TEST_F(TestHDF,Testpacket)
         }
         for(unsigned int j=0;j<c_dim_py[0];++j)
         {
-            c_dyn_start[0]=j;
-            c_dyn_start[1]=0;
-            sp5_py.selectHyperslab(H5S_SELECT_SET,c_elem_count,c_dyn_start);
+            c_dyn_start2[0]=j;
+            c_dyn_start2[1]=0;
+            sp5_py.selectHyperslab(H5S_SELECT_SET,c_elem_count,c_dyn_start2);
             ds5_py.read(&(c_py[index_c_py*j]),c_type_py,c_elem_sp,sp5_py);
         }
 
         c_type_cpp.close();
         c_type_py.close();
+        c_elem_sp.close();
         sp5_cpp.close();
         sp5_py.close();
         ds5_cpp.close();
@@ -624,6 +609,7 @@ TEST_F(TestHDF,Testpacket)
                 EXPECT_NEAR(c_cpp[index_c_cpp*index_elem[0]+p].imag,c_py[index_c_py*index_elem[1]+p].imag,abstol);
             }
         }
+        time_matching_packet.clear();
 
     }
     else
@@ -654,55 +640,57 @@ TEST_F(TestHDF,Testenergies)
         sp1_cpp=ds1_cpp.getSpace();
         sp1_py=ds1_py.getSpace();
 
-        int ekin_rank_cpp=sp1_cpp.getSimpleExtentNdims();
-        int ekin_rank_py=sp1_py.getSimpleExtentNdims();
-
-        hsize_t* ekin_dim_cpp=new hsize_t[ekin_rank_cpp];
-        hsize_t* ekin_dim_py=new hsize_t[ekin_rank_py];
+        hsize_t ekin_dim_cpp[2];
+        hsize_t ekin_dim_py[2];
 
         sp1_cpp.getSimpleExtentDims(ekin_dim_cpp);
         sp1_py.getSimpleExtentDims(ekin_dim_py);
 
-         DataType ekin_type_cpp = ds1_cpp.getDataType();
-         DataType ekin_type_py = ds1_py.getDataType();
+        DataType ekin_type_cpp = ds1_cpp.getDataType();
+        DataType ekin_type_py = ds1_py.getDataType();
 
-         double* ekin_cpp=new double[ekin_dim_cpp[0]];
-         double* ekin_py=new double[ekin_dim_py[0]];
+        std::vector<double> ekin_cpp;
+        ekin_cpp.resize(ekin_dim_cpp[0]);
+        std::vector<double> ekin_py;
+        ekin_py.resize(ekin_dim_py[0]);
 
-         hsize_t* ekin_elem=new hsize_t[ekin_rank_cpp];
-         ekin_elem[0]=1;
-         ekin_elem[1]=1;
-         hsize_t* ekin_elem_start=new hsize_t[ekin_rank_cpp];
-         ekin_elem_start[0]=0;ekin_elem_start[1]=0;
-         hsize_t* ekin_elem_count=new hsize_t[ekin_rank_cpp];
-         ekin_elem_count[0]=1;ekin_elem_count[1]=1;
+        hsize_t ekin_elem[2];
+        ekin_elem[0]=1;
+        ekin_elem[1]=1;
+        hsize_t ekin_elem_start[2];
+        ekin_elem_start[0]=0;ekin_elem_start[1]=0;
+        hsize_t ekin_elem_count[2];
+        ekin_elem_count[0]=1;ekin_elem_count[1]=1;
 
-         DataSpace ekin_elem_sp(ekin_rank_cpp,ekin_elem);
-         ekin_elem_sp.selectHyperslab(H5S_SELECT_SET,ekin_elem_count,ekin_elem_start);
+        int RANK2=2;
+        DataSpace ekin_elem_sp(RANK2,ekin_elem);
+        ekin_elem_sp.selectHyperslab(H5S_SELECT_SET,ekin_elem_count,ekin_elem_start);
 
-         hsize_t* ekin_dyn_start=new hsize_t[ekin_rank_cpp];
+        hsize_t ekin_dyn_start[2];
+        hsize_t ekin_dyn_start2[2];
 
-         for(unsigned int k=0;k<ekin_dim_cpp[0];++k)
-         {
-             ekin_dyn_start[0]=k;
-             ekin_dyn_start[1]=0;
-             sp1_cpp.selectHyperslab(H5S_SELECT_SET,ekin_elem_count,ekin_dyn_start);
-             ds1_cpp.read(&(ekin_cpp[k]),ekin_type_cpp,ekin_elem_sp,sp1_cpp);
-         }
-         for(unsigned int j=0;j<ekin_dim_py[0];++j)
-         {
-             ekin_dyn_start[0]=j;
-             ekin_dyn_start[1]=0;
-             sp1_py.selectHyperslab(H5S_SELECT_SET,ekin_elem_count,ekin_dyn_start);
-             ds1_py.read(&(ekin_py[j]),ekin_type_py,ekin_elem_sp,sp1_py);
-         }
+        for(unsigned int k=0;k<ekin_dim_cpp[0];++k)
+        {
+            ekin_dyn_start[0]=k;
+            ekin_dyn_start[1]=0;
+            sp1_cpp.selectHyperslab(H5S_SELECT_SET,ekin_elem_count,ekin_dyn_start);
+            ds1_cpp.read(&(ekin_cpp[k]),ekin_type_cpp,ekin_elem_sp,sp1_cpp);
+        }
+        for(unsigned int j=0;j<ekin_dim_py[0];++j)
+        {
+            ekin_dyn_start2[0]=j;
+            ekin_dyn_start2[1]=0;
+            sp1_py.selectHyperslab(H5S_SELECT_SET,ekin_elem_count,ekin_dyn_start2);
+            ds1_py.read(&(ekin_py[j]),ekin_type_py,ekin_elem_sp,sp1_py);
+        }
 
-         ekin_type_cpp.close();
-         ekin_type_py.close();
-         sp1_cpp.close();
-         sp1_py.close();
-         ds1_cpp.close();
-         ds1_py.close();
+        ekin_type_cpp.close();
+        ekin_type_py.close();
+        ekin_elem_sp.close();
+        sp1_cpp.close();
+        sp1_py.close();
+        ds1_cpp.close();
+        ds1_py.close();
 
          if(time_matching_ekin.empty())
          {
@@ -720,6 +708,7 @@ TEST_F(TestHDF,Testenergies)
                   EXPECT_NEAR(ekin_cpp[index_elem[0]],ekin_py[index_elem[1]],abstol);
              }
          }
+         time_matching_ekin.clear();
 
          //epot
          H5std_string timepath_epot_cpp="/datablock_0/observables/energies/timegrid_epot";
@@ -740,73 +729,74 @@ TEST_F(TestHDF,Testenergies)
          sp2_cpp=ds2_cpp.getSpace();
          sp2_py=ds2_py.getSpace();
 
-         int epot_rank_cpp=sp2_cpp.getSimpleExtentNdims();
-         int epot_rank_py=sp2_py.getSimpleExtentNdims();
-
-         hsize_t* epot_dim_cpp=new hsize_t[epot_rank_cpp];
-         hsize_t* epot_dim_py=new hsize_t[epot_rank_py];
+         hsize_t epot_dim_cpp[2];
+         hsize_t epot_dim_py[2];
 
          sp2_cpp.getSimpleExtentDims(epot_dim_cpp);
          sp2_py.getSimpleExtentDims(epot_dim_py);
 
-          DataType epot_type_cpp = ds2_cpp.getDataType();
-          DataType epot_type_py = ds2_py.getDataType();
+         DataType epot_type_cpp = ds2_cpp.getDataType();
+         DataType epot_type_py = ds2_py.getDataType();
 
-          double* epot_cpp=new double[epot_dim_cpp[0]];
-          double* epot_py=new double[epot_dim_py[0]];
+         std::vector<double> epot_cpp;
+         epot_cpp.resize(epot_dim_cpp[0]);
+         std::vector<double> epot_py;
+         epot_py.resize(epot_dim_py[0]);
 
-          hsize_t* epot_elem=new hsize_t[epot_rank_cpp];
-          epot_elem[0]=1;
-          epot_elem[1]=1;
-          hsize_t* epot_elem_start=new hsize_t[epot_rank_cpp];
-          epot_elem_start[0]=0;epot_elem_start[1]=0;
-          hsize_t* epot_elem_count=new hsize_t[epot_rank_cpp];
-          epot_elem_count[0]=1;epot_elem_count[1]=1;
+         hsize_t epot_elem[2];
+         epot_elem[0]=1;
+         epot_elem[1]=1;
+         hsize_t epot_elem_start[2];
+         epot_elem_start[0]=0;epot_elem_start[1]=0;
+         hsize_t epot_elem_count[2];
+         epot_elem_count[0]=1;epot_elem_count[1]=1;
 
-          DataSpace epot_elem_sp(epot_rank_cpp,epot_elem);
-          epot_elem_sp.selectHyperslab(H5S_SELECT_SET,epot_elem_count,epot_elem_start);
+         DataSpace epot_elem_sp(RANK2,epot_elem);
+         epot_elem_sp.selectHyperslab(H5S_SELECT_SET,epot_elem_count,epot_elem_start);
 
-          hsize_t* epot_dyn_start=new hsize_t[epot_rank_cpp];
+         hsize_t epot_dyn_start[2];
+         hsize_t epot_dyn_start2[2];
 
-          for(unsigned int k=0;k<epot_dim_cpp[0];++k)
-          {
-              epot_dyn_start[0]=k;
-              epot_dyn_start[1]=0;
-              sp2_cpp.selectHyperslab(H5S_SELECT_SET,epot_elem_count,epot_dyn_start);
-              ds2_cpp.read(&(epot_cpp[k]),epot_type_cpp,epot_elem_sp,sp2_cpp);
-          }
-          for(unsigned int j=0;j<epot_dim_py[0];++j)
-          {
-              epot_dyn_start[0]=j;
-              epot_dyn_start[1]=0;
-              sp2_py.selectHyperslab(H5S_SELECT_SET,epot_elem_count,epot_dyn_start);
-              ds2_py.read(&(epot_py[j]),epot_type_py,epot_elem_sp,sp2_py);
-          }
+         for(unsigned int k=0;k<epot_dim_cpp[0];++k)
+         {
+             epot_dyn_start[0]=k;
+             epot_dyn_start[1]=0;
+             sp2_cpp.selectHyperslab(H5S_SELECT_SET,epot_elem_count,epot_dyn_start);
+             ds2_cpp.read(&(epot_cpp[k]),epot_type_cpp,epot_elem_sp,sp2_cpp);
+         }
+         for(unsigned int j=0;j<epot_dim_py[0];++j)
+         {
+             epot_dyn_start2[0]=j;
+             epot_dyn_start2[1]=0;
+             sp2_py.selectHyperslab(H5S_SELECT_SET,epot_elem_count,epot_dyn_start2);
+             ds2_py.read(&(epot_py[j]),epot_type_py,epot_elem_sp,sp2_py);
+         }
 
-          epot_type_cpp.close();
-          epot_type_py.close();
-          sp2_cpp.close();
-          sp2_py.close();
-          ds2_cpp.close();
-          ds2_py.close();
+         epot_type_cpp.close();
+         epot_type_py.close();
+         epot_elem_sp.close();
+         sp2_cpp.close();
+         sp2_py.close();
+         ds2_cpp.close();
+         ds2_py.close();
 
-          if(time_matching_epot.empty())
-          {
-              ADD_FAILURE() << "No matching timepoints for epot. Abort!";
-          }
-          else if(time_matching_epot[0][0]==-1)
-          {
-              ADD_FAILURE() << "No matching timepoints for epot. Abort!";
-          }
-          else
-          {
-              std::cout<<time_matching_epot.size()<<" matching datapoints for epot.\n";
-              for(auto index_elem:time_matching_epot)
-              {
-                   EXPECT_NEAR(epot_cpp[index_elem[0]],epot_py[index_elem[1]],abstol);
-              }
-          }
-
+        if(time_matching_epot.empty())
+        {
+            ADD_FAILURE() << "No matching timepoints for epot. Abort!";
+        }
+        else if(time_matching_epot[0][0]==-1)
+        {
+            ADD_FAILURE() << "No matching timepoints for epot. Abort!";
+        }
+        else
+        {
+            std::cout<<time_matching_epot.size()<<" matching datapoints for epot.\n";
+            for(auto index_elem:time_matching_epot)
+            {
+                EXPECT_NEAR(epot_cpp[index_elem[0]],epot_py[index_elem[1]],abstol);
+            }
+        }
+        time_matching_epot.clear();
     }
     else
     {
@@ -835,72 +825,75 @@ TEST_F(TestHDF,Testnorm)
         sp3_cpp=ds3_cpp.getSpace();
         sp3_py=ds3_py.getSpace();
 
-        int norm_rank_cpp=sp3_cpp.getSimpleExtentNdims();
-        int norm_rank_py=sp3_py.getSimpleExtentNdims();
-
-        hsize_t* norm_dim_cpp=new hsize_t[norm_rank_cpp];
-        hsize_t* norm_dim_py=new hsize_t[norm_rank_py];
+        hsize_t norm_dim_cpp[2];
+        hsize_t norm_dim_py[2];
 
         sp3_cpp.getSimpleExtentDims(norm_dim_cpp);
         sp3_py.getSimpleExtentDims(norm_dim_py);
 
-         DataType norm_type_cpp = ds3_cpp.getDataType();
-         DataType norm_type_py = ds3_py.getDataType();
+        DataType norm_type_cpp = ds3_cpp.getDataType();
+        DataType norm_type_py = ds3_py.getDataType();
 
-         double* norm_cpp=new double[norm_dim_cpp[0]];
-         double* norm_py=new double[norm_dim_py[0]];
+        std::vector<double> norm_cpp;
+        norm_cpp.resize(norm_dim_cpp[0]);
+        std::vector<double> norm_py;
+        norm_py.resize(norm_dim_py[0]);
 
-         hsize_t* norm_elem=new hsize_t[norm_rank_cpp];
-         norm_elem[0]=1;
-         norm_elem[1]=1;
-         hsize_t* norm_elem_start=new hsize_t[norm_rank_cpp];
-         norm_elem_start[0]=0;norm_elem_start[1]=0;
-         hsize_t* norm_elem_count=new hsize_t[norm_rank_cpp];
-         norm_elem_count[0]=1;norm_elem_count[1]=1;
+        hsize_t norm_elem[2];
+        norm_elem[0]=1;
+        norm_elem[1]=1;
+        hsize_t norm_elem_start[2];
+        norm_elem_start[0]=0;norm_elem_start[1]=0;
+        hsize_t norm_elem_count[2];
+        norm_elem_count[0]=1;norm_elem_count[1]=1;
 
-         DataSpace norm_elem_sp(norm_rank_cpp,norm_elem);
-         norm_elem_sp.selectHyperslab(H5S_SELECT_SET,norm_elem_count,norm_elem_start);
+        int RANK2=2;
+        DataSpace norm_elem_sp(RANK2,norm_elem);
+        norm_elem_sp.selectHyperslab(H5S_SELECT_SET,norm_elem_count,norm_elem_start);
 
-         hsize_t* norm_dyn_start=new hsize_t[norm_rank_cpp];
+        hsize_t norm_dyn_start[2];
+        hsize_t norm_dyn_start2[2];
 
-         for(unsigned int k=0;k<norm_dim_cpp[0];++k)
-         {
-             norm_dyn_start[0]=k;
-             norm_dyn_start[1]=0;
-             sp3_cpp.selectHyperslab(H5S_SELECT_SET,norm_elem_count,norm_dyn_start);
-             ds3_cpp.read(&(norm_cpp[k]),norm_type_cpp,norm_elem_sp,sp3_cpp);
-         }
-         for(unsigned int j=0;j<norm_dim_py[0];++j)
-         {
-             norm_dyn_start[0]=j;
-             norm_dyn_start[1]=0;
-             sp3_py.selectHyperslab(H5S_SELECT_SET,norm_elem_count,norm_dyn_start);
-             ds3_py.read(&(norm_py[j]),norm_type_py,norm_elem_sp,sp3_py);
-         }
+        for(unsigned int k=0;k<norm_dim_cpp[0];++k)
+        {
+            norm_dyn_start[0]=k;
+            norm_dyn_start[1]=0;
+            sp3_cpp.selectHyperslab(H5S_SELECT_SET,norm_elem_count,norm_dyn_start);
+            ds3_cpp.read(&(norm_cpp[k]),norm_type_cpp,norm_elem_sp,sp3_cpp);
+        }
+        for(unsigned int j=0;j<norm_dim_py[0];++j)
+        {
+            norm_dyn_start2[0]=j;
+            norm_dyn_start2[1]=0;
+            sp3_py.selectHyperslab(H5S_SELECT_SET,norm_elem_count,norm_dyn_start2);
+            ds3_py.read(&(norm_py[j]),norm_type_py,norm_elem_sp,sp3_py);
+        }
 
-         norm_type_cpp.close();
-         norm_type_py.close();
-         sp3_cpp.close();
-         sp3_py.close();
-         ds3_cpp.close();
-         ds3_py.close();
+        norm_type_cpp.close();
+        norm_type_py.close();
+        norm_elem_sp.close();
+        sp3_cpp.close();
+        sp3_py.close();
+        ds3_cpp.close();
+        ds3_py.close();
 
-         if(time_matching_norm.empty())
-         {
-             ADD_FAILURE() << "No matching timepoints for norm. Abort!";
-         }
-         else if(time_matching_norm[0][0]==-1)
-         {
-             ADD_FAILURE() << "No matching timepoints for norm. Abort!";
-         }
-         else
-         {
-             std::cout<<time_matching_norm.size()<<" matching datapoints for norm.\n";
-             for(auto index_elem:time_matching_norm)
-             {
-                  EXPECT_NEAR(norm_cpp[index_elem[0]],norm_py[index_elem[1]],abstol);
-             }
-         }
+        if(time_matching_norm.empty())
+        {
+            ADD_FAILURE() << "No matching timepoints for norm. Abort!";
+        }
+        else if(time_matching_norm[0][0]==-1)
+        {
+            ADD_FAILURE() << "No matching timepoints for norm. Abort!";
+        }
+        else
+        {
+            std::cout<<time_matching_norm.size()<<" matching datapoints for norm.\n";
+            for(auto index_elem:time_matching_norm)
+            {
+                EXPECT_NEAR(norm_cpp[index_elem[0]],norm_py[index_elem[1]],abstol);
+            }
+        }
+        time_matching_norm.clear();
 
     }
     else
