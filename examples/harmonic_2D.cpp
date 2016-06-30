@@ -28,7 +28,7 @@ int main() {
 
     const real_t tol = 1e-14;
 
-    const real_t T = 0.1;
+    const real_t T = 12;
     const real_t dt = 0.01;
 
     const real_t eps = 0.1;
