@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <cstdio>
+#include <vector>
 
 #include <Eigen/Core>
 
@@ -781,88 +782,84 @@ namespace waveblocks
             }
         }
         /**
-         * \brief transform Eigen::Matrix<complex_t,D,D> into ctype*
+         * \brief transform Eigen::Matrix<complex_t,D,D> into std::vector<ctype>
+         * \param newdata
          * \param mat
-         * \return ctype*
          *
          * Transforms an Eigen::Matrix<complex_t,D,D> into a writeable ctype*
          */
-        ctype* transform(Eigen::Matrix<complex_t,D,D> mat)
+        void transform(std::vector<ctype>& newdata,Eigen::Matrix<complex_t,D,D> mat)
         {
             constexpr int dim=D;
-            ctype* newdat= new ctype[dim*dim];
+            newdata.resize(dim*dim);
             std::complex<double>* tmp(mat.data());
             for(int p=0;p<dim*dim;++p)
             {
-                newdat[p].real=tmp[p].real();
-                newdat[p].imag=tmp[p].imag();
+                newdata[p].real=tmp[p].real();
+                newdata[p].imag=tmp[p].imag();
             }
-            return newdat;
         }
         /**
-         * \brief transform Eigen::Matrix<real_t,D,1> into ctype*
+         * \brief transform Eigen::Matrix<real_t,D,1> into std::vector<ctype>
+         * \param newdata
          * \param mat
-         * \return ctype*
          *
-         * Transforms an Eigen::Matrix<real_t,D,1> into a writable ctype*
+         * Transforms an Eigen::Matrix<real_t,D,1> into a writable std::vector<ctype>
          */
-        ctype* transform(Eigen::Matrix<real_t,D,1> mat)
+        void transform(std::vector<ctype>& newdata,Eigen::Matrix<real_t,D,1> mat)
         {
             constexpr int dim=D;
-            ctype* newdat = new ctype[dim];
+            newdata.resize(dim);
             double* tmp(mat.data());
             for(int p=0;p<dim;++p)
             {
-                newdat[p].real=tmp[p];
-                newdat[p].imag=0.;
+                newdata[p].real=tmp[p];
+                newdata[p].imag=0.;
             }
-            return newdat;
         }
         /**
-         * \brief transform a std::complex variable into ctype*
+         * \brief transform a std::complex variable into std::vector<ctype>
+         * \param newdata
          * \param arg
-         * \return ctype*
          *
-         * Transform a complex_t type into writable ctype*
+         * Transform a complex_t type into writable std::vector<ctype>
          */
-        ctype* transform(complex_t arg)
+        void transform(std::vector<ctype>& newdata,complex_t arg)
         {
-            ctype* newarg = new ctype;
-            newarg->real=arg.real();
-            newarg->imag=arg.imag();
-            return newarg;
+            ctype newarg;
+            newarg.real=arg.real();
+            newarg.imag=arg.imag();
+            newdata.push_back(newarg);
         }
         /**
-         * \brief transform an Eigen::Matrix<complex_t,Eigen::Dynamic,1> to ctype*
+         * \brief transform an Eigen::Matrix<complex_t,Eigen::Dynamic,1> to std::vector<ctype>
+         * \param newdata
          * \param cmat
-         * \return ctype*
          *
-         * Transform a Eigen::Matrix<complex_t,Eigen::Dynamic,1> into writable ctype*
+         * Transform a Eigen::Matrix<complex_t,Eigen::Dynamic,1> into writable std::vector<ctype>
          */
-        ctype* transform(Eigen::Matrix<complex_t, Eigen::Dynamic, 1> cmat)
+        void transform(std::vector<ctype>& newdata,Eigen::Matrix<complex_t, Eigen::Dynamic, 1> cmat)
         {
-            ctype* newdat=new ctype[csize];
-
+            newdata.resize(csize);
             for(int q=0;q<csize;++q)
             {
-                newdat[q].real=cmat[q].real();
-                newdat[q].imag=cmat[q].imag();
+                newdata[q].real=cmat[q].real();
+                newdata[q].imag=cmat[q].imag();
             }
-            return newdat;
         }
         /**
-         * \brief transform real_t to ctype
+         * \brief transform real_t to std::vector<ctype>
+         * \param newdata
          * \param arg
-         * \return
          *
-         * Transforms a real_t into writeable ctype*
+         * Transforms a real_t into writeable std::vector<ctype>
          */
-        ctype* transform(real_t arg)
+        void transform(std::vector<ctype>& newdata,real_t arg)
         {
-            ctype* newarg = new ctype;
-            newarg->real=arg;
-            newarg->imag=0.;
-            return newarg;
+            ctype newarg;
+            newarg.real=arg;
+            newarg.imag=0.;
+            newdata.push_back(newarg);
         }
         /**
          * \brief store ScalarHaWp<D,Multiindex> packet
@@ -881,31 +878,33 @@ namespace waveblocks
                 {
                     select_file_writespace_packet();
 
-                    ctype* myc=transform(utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
-                    coeffs->write(myc,mytype_,celemspace,cspace);
-                    delete myc;
+                    std::vector<ctype> myc;
+                    transform(myc,utilities::PacketToCoefficients<wavepackets::ScalarHaWp<D,MultiIndex>>::to(packetto));
+                    coeffs->write(myc.data(),mytype_,celemspace,cspace);
 
-                    ctype* myQ = transform(params.Q());
-                    Qs->write(myQ,mytype_,QPelemspace,Qspace);
-                    delete myQ;
-                    ctype* myP=transform(params.P());
-                    Ps->write(myP,mytype_,QPelemspace,Pspace);
-                    delete myP;
+                    std::vector<ctype> myQ;
+                    transform(myQ,params.Q());
+                    Qs->write(myQ.data(),mytype_,QPelemspace,Qspace);
 
-                    ctype* myq=transform(params.q());
-                    qs->write(myq,mytype_,qpelemspace,qspace);
-                    delete myq;
-                    ctype* myp=transform(params.p());
-                    ps->write(myp,mytype_,qpelemspace,pspace);
-                    delete myp;
+                    std::vector<ctype> myP;
+                    transform(myP,params.P());
+                    Ps->write(myP.data(),mytype_,QPelemspace,Pspace);
 
-                    ctype* myS=transform(params.S());
-                    Ss->write(myS,mytype_,Selemspace,Sspace);
-                    delete myS;
+                    std::vector<ctype> myq;
+                    transform(myq,params.q());
+                    qs->write(myq.data(),mytype_,qpelemspace,qspace);
 
-                    ctype* myadQ=transform(params.sdQ());
-                    adQs->write(myadQ,mytype_,Selemspace,adQspace);
-                    delete myadQ;
+                    std::vector<ctype> myp;
+                    transform(myp,params.p());
+                    ps->write(myp.data(),mytype_,qpelemspace,pspace);
+
+                    std::vector<ctype> myS;
+                    transform(myS,params.S());
+                    Ss->write(myS.data(),mytype_,Selemspace,Sspace);
+
+                    std::vector<ctype> myadQ;
+                    transform(myadQ,params.sdQ());
+                    adQs->write(myadQ.data(),mytype_,Selemspace,adQspace);
 
                     times_packet->write(&tindex_packet,PredType::NATIVE_INT,timelemspace,timespace_packet);
 
