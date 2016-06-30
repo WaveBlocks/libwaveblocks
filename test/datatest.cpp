@@ -120,6 +120,7 @@ class TestHDF : public ::testing::Test
         itelem.selectHyperslab(H5S_SELECT_SET,elemnt,elemt);
 
         hsize_t* dyn_start=new hsize_t[itrank_cpp];
+        hsize_t* dyn_start2=new hsize_t[itrank_py];
 
         int* read_data_cpp=new int[itdim_cpp[0]];
         int* read_data_py=new int[itdim_py[0]];
@@ -132,10 +133,15 @@ class TestHDF : public ::testing::Test
         }
         for(unsigned int j=0;j<itdim_py[0];++j)
         {
-            dyn_start[0]=j;
-            itsp_py.selectHyperslab(H5S_SELECT_SET,elemnt,dyn_start);
+            dyn_start2[0]=j;
+            itsp_py.selectHyperslab(H5S_SELECT_SET,elemnt,dyn_start2);
             its_py.read(&read_data_py[j],it_py_tp,itelem,itsp_py);
         }
+        delete [] elemt;
+        delete [] elemnt;
+        delete [] dyn_start;
+        delete [] dyn_start2;
+
 
         itelem.close();
         it_cpp_tp.close();
@@ -170,6 +176,9 @@ class TestHDF : public ::testing::Test
         }
         delete [] read_data_cpp;
         delete [] read_data_py;
+
+        delete [] itdim_cpp;
+        delete [] itdim_py;
 
         itsp_cpp.close();
         itsp_py.close();
@@ -267,6 +276,14 @@ TEST_F(TestHDF,Testpacket)
             sp_py.selectHyperslab(H5S_SELECT_SET,Q_elem_count,Q_dyn_start);
             ds_py.read(&(Q_py[index_Q_py*j]),Q_type_py,Q_elem_sp,sp_py);
         }
+
+        delete [] Q_dim_cpp;
+        delete [] Q_dim_py;
+        delete [] Q_elem;
+        delete [] Q_elem_start;
+        delete [] Q_elem_count;
+        delete [] Q_dyn_start;
+
         Q_type_cpp.close();
         Q_type_py.close();
         sp_cpp.close();
@@ -614,24 +631,25 @@ TEST_F(TestHDF,Testpacket)
         ADD_FAILURE() << "Packet data missing cannot compare. Abort!";
     }
 }
-TEST_F(TestHDF,DISABLED_Testenergies)
+TEST_F(TestHDF,Testenergies)
 {
     if(bool_energy)
     {
         //ekin
-        H5std_string timepath_cpp="/datablock_0/energies/timegrid_ekin";
-        H5std_string timepath_py="/datablock_0/energies/timegrid_ekin";
+        H5std_string timepath_cpp="/datablock_0/observables/energies/timegrid_ekin";
+        H5std_string timepath_py="/datablock_0/observables/energies/timegrid_kin";
         std::vector<int*> time_matching_ekin;
         time_matching(time_matching_ekin,timepath_cpp,timepath_py);
 
-        H5std_string path_ekin="/datablock_0/energies/ekin";
+        H5std_string path_ekin_cpp="/datablock_0/observables/energies/ekin";
+        H5std_string path_ekin_py="/datablock_0/observables/energies/kinetic";
         DataSet ds1_cpp;
         DataSet ds1_py;
         DataSpace sp1_cpp;
         DataSpace sp1_py;
 
-        ds1_cpp=cppfile.openDataSet(path_ekin);
-        ds1_py=pyfile.openDataSet(path_ekin);
+        ds1_cpp=cppfile.openDataSet(path_ekin_cpp);
+        ds1_py=pyfile.openDataSet(path_ekin_py);
 
         sp1_cpp=ds1_cpp.getSpace();
         sp1_py=ds1_py.getSpace();
@@ -704,19 +722,20 @@ TEST_F(TestHDF,DISABLED_Testenergies)
          }
 
          //epot
-         H5std_string timepath_epot_cpp="/datablock_0/energies/timegrid_epot";
-         H5std_string timepath_epot_py="/datablock_0/energies/timegrid_epot";
+         H5std_string timepath_epot_cpp="/datablock_0/observables/energies/timegrid_epot";
+         H5std_string timepath_epot_py="/datablock_0/observables/energies/timegrid_pot";
          std::vector<int*> time_matching_epot;
          time_matching(time_matching_epot,timepath_epot_cpp,timepath_epot_py);
 
-         H5std_string path_epot="/datablock_0/energies/epot";
+         H5std_string path_epot_cpp="/datablock_0/observables/energies/epot";
+         H5std_string path_epot_py="/datablock_0/observables/energies/potential";
          DataSet ds2_cpp;
          DataSet ds2_py;
          DataSpace sp2_cpp;
          DataSpace sp2_py;
 
-         ds2_cpp=cppfile.openDataSet(path_epot);
-         ds2_py=pyfile.openDataSet(path_epot);
+         ds2_cpp=cppfile.openDataSet(path_epot_cpp);
+         ds2_py=pyfile.openDataSet(path_epot_py);
 
          sp2_cpp=ds2_cpp.getSpace();
          sp2_py=ds2_py.getSpace();
@@ -795,16 +814,16 @@ TEST_F(TestHDF,DISABLED_Testenergies)
     }
 }
 
-TEST_F(TestHDF,DISABLED_Testnorm)
+TEST_F(TestHDF,Testnorm)
 {
     if(bool_norm)
     {
-        H5std_string timepath_norm_cpp="/datablock_0/norm/timegrid";
-        H5std_string timepath_norm_py="/datablock_0/norm/timegrid";
+        H5std_string timepath_norm_cpp="/datablock_0/observables/norm/timegrid";
+        H5std_string timepath_norm_py="/datablock_0/observables/norm/timegrid";
         std::vector<int*> time_matching_norm;
         time_matching(time_matching_norm,timepath_norm_cpp,timepath_norm_py);
 
-        H5std_string path_norm="/datablock_0/norm/norm";
+        H5std_string path_norm="/datablock_0/observables/norm/norm";
         DataSet ds3_cpp;
         DataSet ds3_py;
         DataSpace sp3_cpp;
