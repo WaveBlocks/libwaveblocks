@@ -11,6 +11,7 @@ add_definitions(
   -Wno-deprecated-declarations
   -Wextra
   -pedantic
+  -g
   -Ofast # 03 and some optimization not valid for all standard-compliant programs (such as -ffast-math
   -fprofile-use # conditions optimizations on a profiling run
   -static # statically links library calls
