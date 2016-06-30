@@ -147,7 +147,6 @@ class TestHDF : public ::testing::Test
         its_py.close();
 
 
-        int acc[2]={-1,-1};
         for(unsigned int k=0;k<itdim_cpp[0];++k)
         {
             int index_i_cpp=read_data_cpp[k];
@@ -164,10 +163,6 @@ class TestHDF : public ::testing::Test
                     break;
                 }
             }
-        }
-        if(match.empty())
-        {
-            match.push_back(acc);
         }
 
         itsp_cpp.close();
@@ -274,10 +269,6 @@ TEST_F(TestHDF,Testpacket)
         ds_py.close();
 
         if(time_matching_packet.empty())
-        {
-            ADD_FAILURE() << "No matching timepoints for this packet. Abort!";
-        }
-        else if(time_matching_packet[0][0]==-1)
         {
             ADD_FAILURE() << "No matching timepoints for this packet. Abort!";
         }
@@ -696,10 +687,6 @@ TEST_F(TestHDF,Testenergies)
          {
              ADD_FAILURE() << "No matching timepoints for ekin. Abort!";
          }
-         else if(time_matching_ekin[0][0]==-1)
-         {
-             ADD_FAILURE() << "No matching timepoints for ekin. Abort!";
-         }
          else
          {
              std::cout<<time_matching_ekin.size()<<" matching datapoints for ekin.\n";
@@ -781,10 +768,6 @@ TEST_F(TestHDF,Testenergies)
          ds2_py.close();
 
         if(time_matching_epot.empty())
-        {
-            ADD_FAILURE() << "No matching timepoints for epot. Abort!";
-        }
-        else if(time_matching_epot[0][0]==-1)
         {
             ADD_FAILURE() << "No matching timepoints for epot. Abort!";
         }
@@ -878,10 +861,6 @@ TEST_F(TestHDF,Testnorm)
         ds3_py.close();
 
         if(time_matching_norm.empty())
-        {
-            ADD_FAILURE() << "No matching timepoints for norm. Abort!";
-        }
-        else if(time_matching_norm[0][0]==-1)
         {
             ADD_FAILURE() << "No matching timepoints for norm. Abort!";
         }
