@@ -178,6 +178,14 @@ namespace waveblocks
             norms_group=name;
         }
         /**
+         * @brief set string for observables group
+         * @param name
+         */
+        void set_observablesgroupstring(std::string name)
+        {
+            observables_group=name;
+        }
+        /**
          * @brief set timestep for writing packet
          * @param timestep
          */
