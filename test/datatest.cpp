@@ -87,8 +87,7 @@ class TestHDF : public ::testing::Test
     {
 
     }
-    struct ittype;
-    void time_matching(std::vector<ittype>& match,H5std_string timepath_cpp,H5std_string timepath_py)
+    void time_matching(std::vector<std::array<int,2>>& match,H5std_string timepath_cpp,H5std_string timepath_py)
     {
         DataSet its_cpp;
         DataSet its_py;
@@ -159,8 +158,8 @@ class TestHDF : public ::testing::Test
                 if(index_i_cpp==temp)
                 {
                     match.resize(number+1);
-                    match[number].a=q;
-                    match[number].b=p;
+                    match[number][0]=q;
+                    match[number][1]=p;
                     number+=1;
                     break;
                 }
@@ -176,10 +175,6 @@ class TestHDF : public ::testing::Test
         double real=0.;
         double imag=0.;
     } instanceof;
-    struct ittype{
-        int a=0;
-        int b=0;
-    };
     H5File cppfile;
     H5File pyfile;
     H5std_string cppname;
@@ -198,7 +193,7 @@ TEST_F(TestHDF,Testpacket)
     {
         H5std_string timepath_cpp="/datablock_0/wavepacket/timegrid";
         H5std_string timepath_py="/datablock_0/wavepacket/timegrid";
-        std::vector<ittype> time_matching_packet;
+        std::vector<std::array<int,2>> time_matching_packet;
         time_matching(time_matching_packet,timepath_cpp,timepath_py);
 
         H5std_string path_Q="/datablock_0/wavepacket/Pi/Q";
@@ -285,8 +280,8 @@ TEST_F(TestHDF,Testpacket)
             {
                 for(int p=0;p<index_Q_cpp;++p)
                 {
-                    EXPECT_NEAR(Q_cpp[index_Q_cpp*index_elem.a+p].real,Q_py[index_Q_py*index_elem.b+p].real,abstol);
-                    EXPECT_NEAR(Q_cpp[index_Q_cpp*index_elem.a+p].imag,Q_py[index_Q_py*index_elem.b+p].imag,abstol);
+                    EXPECT_NEAR(Q_cpp[index_Q_cpp*index_elem[0]+p].real,Q_py[index_Q_py*index_elem[1]+p].real,abstol);
+                    EXPECT_NEAR(Q_cpp[index_Q_cpp*index_elem[0]+p].imag,Q_py[index_Q_py*index_elem[1]+p].imag,abstol);
                 }
 
             }
@@ -366,8 +361,8 @@ TEST_F(TestHDF,Testpacket)
         {
             for(int p=0;p<index_P_cpp;++p)
             {
-                EXPECT_NEAR(P_cpp[index_P_cpp*index_elem.a+p].real,P_py[index_P_py*index_elem.b+p].real,abstol);
-                EXPECT_NEAR(P_cpp[index_P_cpp*index_elem.a+p].imag,P_py[index_P_py*index_elem.b+p].imag,abstol);
+                EXPECT_NEAR(P_cpp[index_P_cpp*index_elem[0]+p].real,P_py[index_P_py*index_elem[1]+p].real,abstol);
+                EXPECT_NEAR(P_cpp[index_P_cpp*index_elem[0]+p].imag,P_py[index_P_py*index_elem[1]+p].imag,abstol);
             }
         }
 
@@ -446,8 +441,8 @@ TEST_F(TestHDF,Testpacket)
         {
             for(int p=0;p<index_q_cpp;++p)
             {
-                EXPECT_NEAR(q_cpp[index_q_cpp*index_elem.a+p].real,q_py[index_q_py*index_elem.b+p].real,abstol);
-                EXPECT_NEAR(q_cpp[index_q_cpp*index_elem.a+p].imag,q_py[index_q_py*index_elem.b+p].imag,abstol);
+                EXPECT_NEAR(q_cpp[index_q_cpp*index_elem[0]+p].real,q_py[index_q_py*index_elem[1]+p].real,abstol);
+                EXPECT_NEAR(q_cpp[index_q_cpp*index_elem[0]+p].imag,q_py[index_q_py*index_elem[1]+p].imag,abstol);
             }
         }
 
@@ -525,8 +520,8 @@ TEST_F(TestHDF,Testpacket)
         {
             for(int p=0;p<index_p_cpp;++p)
             {
-                EXPECT_NEAR(p_cpp[index_p_cpp*index_elem.a+p].real,p_py[index_p_py*index_elem.b+p].real,abstol);
-                EXPECT_NEAR(p_cpp[index_p_cpp*index_elem.a+p].imag,p_py[index_p_py*index_elem.b+p].imag,abstol);
+                EXPECT_NEAR(p_cpp[index_p_cpp*index_elem[0]+p].real,p_py[index_p_py*index_elem[1]+p].real,abstol);
+                EXPECT_NEAR(p_cpp[index_p_cpp*index_elem[0]+p].imag,p_py[index_p_py*index_elem[1]+p].imag,abstol);
             }
         }
 
@@ -602,8 +597,8 @@ TEST_F(TestHDF,Testpacket)
         {
             for(int p=0;p<index_c_cpp;++p)
             {
-                EXPECT_NEAR(c_cpp[index_c_cpp*index_elem.a+p].real,c_py[index_c_py*index_elem.a+p].real,abstol);
-                EXPECT_NEAR(c_cpp[index_c_cpp*index_elem.b+p].imag,c_py[index_c_py*index_elem.b+p].imag,abstol);
+                EXPECT_NEAR(c_cpp[index_c_cpp*index_elem[0]+p].real,c_py[index_c_py*index_elem[1]+p].real,abstol);
+                EXPECT_NEAR(c_cpp[index_c_cpp*index_elem[0]+p].imag,c_py[index_c_py*index_elem[1]+p].imag,abstol);
             }
         }
         time_matching_packet.clear();
@@ -621,7 +616,7 @@ TEST_F(TestHDF,Testenergies)
         //ekin
         H5std_string timepath_cpp="/datablock_0/observables/energies/timegrid_ekin";
         H5std_string timepath_py="/datablock_0/observables/energies/timegrid_kin";
-        std::vector<ittype> time_matching_ekin;
+        std::vector<std::array<int,2>> time_matching_ekin;
         time_matching(time_matching_ekin,timepath_cpp,timepath_py);
 
         H5std_string path_ekin_cpp="/datablock_0/observables/energies/ekin";
@@ -698,7 +693,7 @@ TEST_F(TestHDF,Testenergies)
              std::cout<<time_matching_ekin.size()<<" matching datapoints for ekin.\n";
              for(auto index_elem:time_matching_ekin)
              {
-                  EXPECT_NEAR(ekin_cpp[index_elem.a],ekin_py[index_elem.b],abstol);
+                  EXPECT_NEAR(ekin_cpp[index_elem[0]],ekin_py[index_elem[1]],abstol);
              }
          }
          time_matching_ekin.clear();
@@ -706,7 +701,7 @@ TEST_F(TestHDF,Testenergies)
          //epot
          H5std_string timepath_epot_cpp="/datablock_0/observables/energies/timegrid_epot";
          H5std_string timepath_epot_py="/datablock_0/observables/energies/timegrid_pot";
-         std::vector<ittype> time_matching_epot;
+         std::vector<std::array<int,2>> time_matching_epot;
          time_matching(time_matching_epot,timepath_epot_cpp,timepath_epot_py);
 
          H5std_string path_epot_cpp="/datablock_0/observables/energies/epot";
@@ -782,7 +777,7 @@ TEST_F(TestHDF,Testenergies)
             std::cout<<time_matching_epot.size()<<" matching datapoints for epot.\n";
             for(auto index_elem:time_matching_epot)
             {
-                EXPECT_NEAR(epot_cpp[index_elem.a],epot_py[index_elem.b],abstol);
+                EXPECT_NEAR(epot_cpp[index_elem[0]],epot_py[index_elem[1]],abstol);
             }
         }
         time_matching_epot.clear();
@@ -799,7 +794,7 @@ TEST_F(TestHDF,Testnorm)
     {
         H5std_string timepath_norm_cpp="/datablock_0/observables/norm/timegrid";
         H5std_string timepath_norm_py="/datablock_0/observables/norm/timegrid";
-        std::vector<ittype> time_matching_norm;
+        std::vector<std::array<int,2>> time_matching_norm;
         time_matching(time_matching_norm,timepath_norm_cpp,timepath_norm_py);
 
         H5std_string path_norm="/datablock_0/observables/norm/norm";
@@ -875,7 +870,7 @@ TEST_F(TestHDF,Testnorm)
             std::cout<<time_matching_norm.size()<<" matching datapoints for norm.\n";
             for(auto index_elem:time_matching_norm)
             {
-                EXPECT_NEAR(norm_cpp[index_elem.a],norm_py[index_elem.b],abstol);
+                EXPECT_NEAR(norm_cpp[index_elem[0]],norm_py[index_elem[1]],abstol);
             }
         }
         time_matching_norm.clear();
