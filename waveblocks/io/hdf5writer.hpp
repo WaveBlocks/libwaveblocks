@@ -117,7 +117,7 @@ namespace waveblocks
          * @brief sets bool value for writing the energies
          * @param flag
          */
-        void set_write_energy(bool flag)
+        void set_write_energies(bool flag)
         {
             wrlist["energy"]=flag;
         }
@@ -200,6 +200,15 @@ namespace waveblocks
         void set_timestep_norm(int timestep)
         {
             timestepsize_norms=timestep;
+        }
+        /**
+         * @brief set timestep for writing energies
+         * @param timestep
+         */
+        void set_timestep_energies(int timestep)
+        {
+            timestepsize_epot=timestep;
+            timestepsize_ekin=timestep;
         }
         /**
          * @brief set timestep for writing epot
