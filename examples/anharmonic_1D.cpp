@@ -89,7 +89,7 @@ int main() {
 
     // Preparing the file
     io::hdf5writer<D> mywriter("anharmonic_1D_cpp.hdf5");
-    mywriter.set_write_energy(true);
+    mywriter.set_write_energies(true);
     mywriter.set_write_norm(true);
     mywriter.prestructuring<MultiIndex>(packet,dt);
 
