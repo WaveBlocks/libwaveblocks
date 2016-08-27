@@ -130,62 +130,6 @@ namespace waveblocks
             wrlist["norm"]=flag;
         }
         /**
-         * @brief set string for root group
-         * @param name
-         */
-        void set_datablockstring(std::string name)
-        {
-            datablock_string=name;
-        }
-        /**
-         * @brief set string for wavepacket group
-         * @param name
-         */
-        void set_wavepacketstring(std::string name)
-        {
-            wavepacket_group_string=name;
-        }
-        /**
-         * @brief set string for packet group
-         * @param name
-         */
-        void set_packetgroupstring(std::string name)
-        {
-            packet_group_string=name;
-        }
-        /**
-         * @brief set string for coefficient group
-         * @param name
-         */
-        void set_coefficientgroupstring(std::string name)
-        {
-            coefficient_group_string=name;
-        }
-        /**
-         * @brief set string for energy group
-         * @param name
-         */
-        void set_energiesgroupstring(std::string name)
-        {
-            energies_group=name;
-        }
-        /**
-         * @brief set string for norm group
-         * @param name
-         */
-        void set_normsgroupstring(std::string name)
-        {
-            norms_group=name;
-        }
-        /**
-         * @brief set string for observables group
-         * @param name
-         */
-        void set_observablesgroupstring(std::string name)
-        {
-            observables_group=name;
-        }
-        /**
          * @brief set timestep for writing packet
          * @param timestep
          */
