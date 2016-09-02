@@ -20,7 +20,8 @@ class TestHDF : public ::testing::Test
     {
         if(global_argc<=2)
         {
-        std::cout<<"Not enough arguments given!\n";
+        std::cout<<"Usage:./datatest filename1 filename2\n";
+        std::cout<<"Both files have to be in directory of the testfile\n";
         std::abort();
         }
         else
