@@ -620,7 +620,7 @@ TEST_F(TestHDF,Testenergies)
         std::vector<std::array<int,2>> time_matching_ekin;
         time_matching(time_matching_ekin,timepath_cpp,timepath_py);
 
-        H5std_string path_ekin_cpp="/datablock_0/observables/energies/ekin";
+        H5std_string path_ekin_cpp="/datablock_0/observables/energies/kinetic";
         H5std_string path_ekin_py="/datablock_0/observables/energies/kinetic";
         DataSet ds1_cpp;
         DataSet ds1_py;
@@ -705,7 +705,7 @@ TEST_F(TestHDF,Testenergies)
          std::vector<std::array<int,2>> time_matching_epot;
          time_matching(time_matching_epot,timepath_epot_cpp,timepath_epot_py);
 
-         H5std_string path_epot_cpp="/datablock_0/observables/energies/epot";
+         H5std_string path_epot_cpp="/datablock_0/observables/energies/potential";
          H5std_string path_epot_py="/datablock_0/observables/energies/potential";
          DataSet ds2_cpp;
          DataSet ds2_py;
