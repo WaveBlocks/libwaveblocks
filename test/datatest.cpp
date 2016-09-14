@@ -615,7 +615,7 @@ TEST_F(TestHDF,Testenergies)
     if(bool_energy)
     {
         //ekin
-        H5std_string timepath_cpp="/datablock_0/observables/energies/timegrid_ekin";
+        H5std_string timepath_cpp="/datablock_0/observables/energies/timegrid_kin";
         H5std_string timepath_py="/datablock_0/observables/energies/timegrid_kin";
         std::vector<std::array<int,2>> time_matching_ekin;
         time_matching(time_matching_ekin,timepath_cpp,timepath_py);
@@ -700,7 +700,7 @@ TEST_F(TestHDF,Testenergies)
          time_matching_ekin.clear();
 
          //epot
-         H5std_string timepath_epot_cpp="/datablock_0/observables/energies/timegrid_epot";
+         H5std_string timepath_epot_cpp="/datablock_0/observables/energies/timegrid_pot";
          H5std_string timepath_epot_py="/datablock_0/observables/energies/timegrid_pot";
          std::vector<std::array<int,2>> time_matching_epot;
          time_matching(time_matching_epot,timepath_epot_cpp,timepath_epot_py);
