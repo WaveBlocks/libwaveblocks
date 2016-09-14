@@ -62,6 +62,11 @@ namespace waveblocks
             //fixed writing type for easy overlap with python interface
             mytype_.insertMember( "r", HOFFSET(ctype, real), PredType::NATIVE_DOUBLE);
             mytype_.insertMember( "i", HOFFSET(ctype, imag), PredType::NATIVE_DOUBLE);
+
+            hsize_t q1[]={1};
+            DataSpace s1(RANK1,q1);
+            aversion=file_.createAttribute("file_version",PredType::NATIVE_INT,s1);
+            aversion.write(PredType::NATIVE_INT,&version);
         }
         /**
          * \brief runtime function to evaluate number of coefficients
@@ -1225,7 +1230,9 @@ namespace waveblocks
         Attribute aenergy;//!<attribute to save bool energy in datablock_0
         Attribute anorm;//!<attribute to save bool norm in datablock_0
         Attribute adt;//!<attribute to save dt in datablock_0
+        Attribute aversion;//!<attribute to save file version
         double dref=0.;//!<fillvalue for energys for allocation
+        int version=2;//!<version number
         int iref=0;//!<fillvalue for timegrids for allocation
         H5std_string packet_group_string="/Pi";//!<String for H5Group to save packet to. Default:Pi
         H5std_string datablock_string="/datablock_0";//!<String for H5Group for datablock.default. datablock_0
