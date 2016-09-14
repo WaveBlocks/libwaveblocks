@@ -493,9 +493,9 @@ namespace waveblocks
                 energys_epot=std::make_shared<DataSet>(file_.createDataSet(enameepot,PredType::NATIVE_DOUBLE,energyspace_epot,plist_energy));
                 H5std_string enameekin=ename+"/kinetic";
                 energys_ekin=std::make_shared<DataSet>(file_.createDataSet(enameekin,PredType::NATIVE_DOUBLE,energyspace_ekin,plist_energy));
-                H5std_string engtime1=ename+"/timegrid_epot";
+                H5std_string engtime1=ename+"/timegrid_pot";
                 times_epot=std::make_shared<DataSet>(file_.createDataSet(engtime1,PredType::NATIVE_INT,timespace_epot,plist_time));
-                H5std_string engtime2=ename+"/timegrid_ekin";
+                H5std_string engtime2=ename+"/timegrid_kin";
                 times_ekin=std::make_shared<DataSet>(file_.createDataSet(engtime2,PredType::NATIVE_INT,timespace_ekin,plist_time));
             }
             if(wrlist["norm"])
