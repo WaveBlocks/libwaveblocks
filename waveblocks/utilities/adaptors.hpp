@@ -151,7 +151,6 @@ namespace waveblocks {
                 for (const auto& component: packet.components()) {
                     size += component.coefficients().size();
                 }
-
                 // Allocate memory
                 CVector<Eigen::Dynamic> coefficients;
                 coefficients.resize(size);
@@ -198,6 +197,7 @@ namespace waveblocks {
             static void from(const CVector<Eigen::Dynamic>& coefficients, wavepackets::ScalarHaWp<D,MultiIndex>& packet) {
                 packet.coefficients() = coefficients;
             }
+
         };
     }
 }

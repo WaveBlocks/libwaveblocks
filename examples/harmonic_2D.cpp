@@ -13,9 +13,7 @@
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/observables/energy.hpp"
-//#include "waveblocks/utilities/packetWriter.hpp"
-//#include "waveblocks/utilities/hdf5writer.hpp"
-#include "waveblocks/utilities/hdf5templatewriter.hpp"
+#include "waveblocks/io/hdf5writer.hpp"
 
 
 using namespace waveblocks;
@@ -89,48 +87,47 @@ int main() {
     propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
 
 
-    utilities::hdf5writertemplate<D> mywriter2("harmonic_2D_cpp.hdf5");
-    mywriter2.set_write_energy(true);
-    mywriter2.set_write_timegrid(true);
-    mywriter2.prestructuring();
-    // Preparing the file
-    //utilities::hdf5writer mywriter("harmonic_2D_cpp.hdf5");
+    io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
+    mywriter2.set_write_energies(true);
+    mywriter2.set_write_norm(true);
+    //mywriter2.set_timestep_packet(2);
+    mywriter2.prestructuring<MultiIndex>(packet,dt);
 
     //write time = 0
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
-    mywriter2.store_packet(0,packet);
+    mywriter2.store_packet(packet);
+    mywriter2.store_norm(packet);
     mywriter2.store_energies(epot,ekin);
-    mywriter2.advance();
 
 
-    std::cout << "Time: " << 0 << std::endl;
-    std::cout << packet.parameters() << std::endl;
+//    std::cout << "Time: " << 0 << std::endl;
+//    std::cout << packet.parameters() << std::endl;
 
     // Propagation
     for (real_t t = dt; t < T; t += dt) {
-        std::cout << "Time: " << t << std::endl;
+//        std::cout << "Time: " << t << std::endl;
 
         // Propagate
         propagator.propagate(packet,dt,V);
-        std::cout << packet.parameters() << std::endl;
+//        std::cout << packet.parameters() << std::endl;
 
         real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
         real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
 
-        mywriter2.store_packet(t+dt,packet);
+        mywriter2.store_packet(packet);
         mywriter2.store_energies(epot,ekin);
-        mywriter2.advance();
+        mywriter2.store_norm(packet);
 
-        std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
+//        std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
 
         // Assure constant coefficients
         auto diff = (packet.coefficients() - coefforig).array().abs();
         auto norm = diff.matrix().template lpNorm<Eigen::Infinity>();
         bool flag = norm > tol ? false : true;
-        std::cout << "Coefficients constant? " << (flag ? "yes" : "no") << std::endl;
+//        std::cout << "Coefficients constant? " << (flag ? "yes" : "no") << std::endl;
 
 
     }
-    mywriter2.cleanup();
+    mywriter2.poststructuring();
 }
