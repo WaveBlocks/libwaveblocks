@@ -19,14 +19,13 @@
 using namespace waveblocks;
 
 int main() {
+    // General parameters
     const int N = 1;
     const int D = 2;
     const int K = 4;
 
     const real_t sigma_x = 0.5;
     const real_t sigma_y = 0.5;
-
-    const real_t tol = 1e-14;
 
     const real_t T = 12;
     const real_t dt = 0.01;
@@ -50,7 +49,6 @@ int main() {
     // Gaussian Wavepacket phi_00 with c_00 = 1
     Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
     coeffs[0] = 1.0;
-    Coefficients coefforig = Coefficients(coeffs);
 
     // Assemble packet
     wavepackets::ScalarHaWp<D,MultiIndex> packet;
@@ -84,50 +82,37 @@ int main() {
                                                innerproducts::GaussHermiteQR<K+4>>;
 
     // Defining the propagator
-    propagators::Hagedorn<N,D,MultiIndex, TQR> propagator;
+    propagators::Hagedorn<N,D,MultiIndex,TQR> propagator;
 
-
+    // Preparing the file and I/O writer
     io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
-    mywriter2.set_write_energies(true);
     mywriter2.set_write_norm(true);
-    //mywriter2.set_timestep_packet(2);
+    mywriter2.set_write_energies(true);
     mywriter2.prestructuring<MultiIndex>(packet,dt);
 
-    //write time = 0
+    // Write at time = 0
+    std::cout << "Time: " << 0 << std::endl;
+
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
+
     mywriter2.store_packet(packet);
     mywriter2.store_norm(packet);
     mywriter2.store_energies(epot,ekin);
 
-
-//    std::cout << "Time: " << 0 << std::endl;
-//    std::cout << packet.parameters() << std::endl;
-
     // Propagation
     for (real_t t = dt; t < T; t += dt) {
-//        std::cout << "Time: " << t << std::endl;
+        std::cout << "Time: " << t << std::endl;
 
         // Propagate
         propagator.propagate(packet,dt,V);
-//        std::cout << packet.parameters() << std::endl;
 
         real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
         real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
 
         mywriter2.store_packet(packet);
-        mywriter2.store_energies(epot,ekin);
         mywriter2.store_norm(packet);
-
-//        std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << ekin+epot << std::endl;
-
-        // Assure constant coefficients
-        auto diff = (packet.coefficients() - coefforig).array().abs();
-        auto norm = diff.matrix().template lpNorm<Eigen::Infinity>();
-        bool flag = norm > tol ? false : true;
-//        std::cout << "Coefficients constant? " << (flag ? "yes" : "no") << std::endl;
-
-
+        mywriter2.store_energies(epot,ekin);
     }
     mywriter2.poststructuring();
 }

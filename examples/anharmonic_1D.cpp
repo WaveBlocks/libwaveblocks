@@ -48,6 +48,7 @@ struct Remain : public potentials::modules::localRemainder::Abstract<Remain, 1,1
 
 
 int main() {
+    // General parameters
     const int N = 1;
     const int D = 1;
     const int K = 128;
@@ -65,20 +66,24 @@ int main() {
     RVector<D> q; q[0] = 0.0;
     RVector<D> p; p[0] = 1.0;
     complex_t S = 0.0;
+    wavepackets::HaWpParamSet<D> param_set(q,p,Q,P,S);
 
-    // Setting up the wavepacket
+    // Basis shape
     wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
     wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
-    wavepackets::HaWpParamSet<D> param_set(q,p,Q,P,S);
+
+    // Gaussian Wavepacket phi_0 with c_0 = 1
     Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
     coeffs[0] = 1.0;
-    wavepackets::ScalarHaWp<D,MultiIndex> packet;
 
+    // Assemble packet
+    wavepackets::ScalarHaWp<D,MultiIndex> packet;
     packet.eps() = eps;
     packet.parameters() = param_set;
     packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
     packet.coefficients() = coeffs;
 
+    // Defining the potential
     Remain V;
 
     // Quadrature rules
@@ -87,22 +92,21 @@ int main() {
     // Defining the propagator
     propagators::Hagedorn<N,D,MultiIndex,QR> propagator;
 
-    // Preparing the file
+    // Preparing the file and I/O writer
     io::hdf5writer<D> mywriter("anharmonic_1D_cpp.hdf5");
-    mywriter.set_write_energies(true);
     mywriter.set_write_norm(true);
+    mywriter.set_write_energies(true);
     mywriter.prestructuring<MultiIndex>(packet,dt);
 
-    //time=0
+    // Write at time = 0
     std::cout << "Time: " << 0 << std::endl;
-    mywriter.store_packet(packet);
-    std::cout << packet.parameters() << std::endl;
+
     real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
     real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
-    mywriter.store_energies(epot,ekin);
-    mywriter.store_norm(packet);
-    std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << epot+ekin << std::endl;
 
+    mywriter.store_packet(packet);
+    mywriter.store_norm(packet);
+    mywriter.store_energies(epot,ekin);
 
     // Propagation
     for (real_t t = 0; t < T; t += dt) {
@@ -110,16 +114,14 @@ int main() {
 
         // Propagate
         propagator.propagate(packet,dt,V);
-        std::cout << packet.parameters() << std::endl;
-        mywriter.store_packet(packet);
 
         // Compute energies
         real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
         real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
-        real_t etot = ekin + epot;
-        std::cout << "E: (p,k,t) " << epot << ", " << ekin << ", " << etot << std::endl;
-        mywriter.store_energies(epot,ekin);
+
+        mywriter.store_packet(packet);
         mywriter.store_norm(packet);
+        mywriter.store_energies(epot,ekin);
     }
     mywriter.poststructuring();
 }
