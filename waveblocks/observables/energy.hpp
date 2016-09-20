@@ -66,5 +66,13 @@ namespace waveblocks {
             }
             return 0.5 * result.real();
         }
+
+        template<int D,class MultiIndex>
+        real_t norm(const ScalarHaWp<D,MultiIndex>& packet)
+        {
+            complex_t result(0,0);
+            result += packet.coefficients().dot(packet.coefficients());
+            return std::sqrt(result.real());
+        }
     }
 }

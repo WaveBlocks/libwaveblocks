@@ -38,6 +38,12 @@ profiling/
 *.png
 *.csv
 
+#specific files
+CMakeLists.txt.user
+
+#folder
+*.idea/
+
 # build files
 build/
 test/.ipynb_checkpoints/

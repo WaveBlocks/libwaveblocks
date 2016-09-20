@@ -11,6 +11,7 @@ add_definitions(
   -Wno-deprecated-declarations
   -Wextra
   -pedantic
+  -g
   -Ofast # 03 and some optimization not valid for all standard-compliant programs (such as -ffast-math
   -fprofile-use # conditions optimizations on a profiling run
   -static # statically links library calls
@@ -30,10 +31,15 @@ add_definitions(
 #  -fopenmp
 #  )
 
+#add all headers to source tree to let Qtcreator know all files
+file(GLOB_RECURSE WAVBLOCK_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/waveblocks
+    ${CMAKE_CURRENT_SOURCE_DIR}/waveblocks/*.hpp)
+
 add_library(waveblocks-static STATIC
   waveblocks/csv/coefficients_file_parser.cpp
   waveblocks/utilities/complexnumber_parser.cpp
-  )
+  ${WAVBLOCK_HEADERS})
 
 
 include(FindPkgConfig)
@@ -41,9 +47,23 @@ if(PKG_CONFIG_FOUND)
   pkg_search_module(EIGEN REQUIRED eigen3)
   if(EIGEN_FOUND)
     include_directories(${EIGEN_INCLUDE_DIRS})
+    message("EIGEN_INCLUDE_DIRS" ${EIGEN_INCLUDE_DIRS})
   endif()
 endif()
 
+#add google test framework needs pthreads
+find_package(GTest)
+if(GTEST_FOUND)
+    include_directories(${GTEST_INCLUDE_DIRS})
+    set(LINK_LIBS ${LINK_LIBS} ${GTEST_BOTH_LIBRARIES})
+    message("GTEST_INCLUDE_DIRS" ${GTEST_INCLUDE_DIRS})
+endif()
+
+find_package(Threads)
+set(LINK_LIBS ${LINK_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+
+#define "gtest.h" include directory
+#/usr/local/include/gtest/gtest.h
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
