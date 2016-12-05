@@ -111,10 +111,10 @@ namespace waveblocks {
             inline complex_t const& S() const {return S_;}
 
             // Undocumented
-            inline complex_t const sdQ() const {return sqrt_detQ_();}
+            inline complex_t /*const*/ sdQ() const {return sqrt_detQ_();}
 
             // Undocumented
-            inline real_t const state() const {return sqrt_detQ_.get_state();}
+            inline real_t /*const*/ state() const {return sqrt_detQ_.get_state();}
 
             /** \brief Set the parameter \f$ q \f$ */
             inline void q(const RMatrix<D,1>& qnew) {q_ = qnew;}
