@@ -138,17 +138,17 @@ class Propagator {
 			auto& params = wpacket_.parameters();
 			// TODO: what does get_leading_level do???
 			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * Squeeze<D,RVector<D>>::apply(params.q()));
-			params.updatep( -h * Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) );
-			params.updateP( -h * std::get<2>(taylorV)*params.Q() );
-			params.updateS( -h * std::get<0>(taylorV) );
+			params.updatep( -h * Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) ); ///> p = p - h * jac(V(q))
+			params.updateP( -h * std::get<2>(taylorV)*params.Q() ); ///> P = P - h * hess(V(q)) * Q
+			params.updateS( -h * std::get<0>(taylorV) ); ///> S = S - h * V(q)
 		}
 		void stepT(real_t h) {
 			// TODO: add inverse mass Minv
 			real_t Minv = 1.;
 			auto& params = wpacket_.parameters();
-			params.updateq(h*Minv*params.p()); ///> q = q + h * M^{-1} * p
-			params.updateQ(h*Minv*params.P()); ///> Q = Q + h * M^{-1} * P
-			params.updateS(.5*h*params.p().dot(Minv*params.p())); ///> S = S + h/2 * p^T M p
+			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
+			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
+			params.updateS( +.5*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
 		}
 
 		void stepW(real_t h) {
@@ -196,6 +196,10 @@ class HagedornPropagator : public Propagator<Potential_t> /* TODO: implement Spl
 
 	public:
 
+		// TODO: remove these, make template parameters
+		static const int D = 1;
+		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
+		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>; // What's up with ScalarHaWp
 		using Propagator<Potential_t>::Propagator; // inherit constructor
 
 		void propagate(real_t Dt) override {
@@ -216,53 +220,64 @@ class HagedornPropagator : public Propagator<Potential_t> /* TODO: implement Spl
 			this->intSplit(Dt/2,N/2);
 
 
-		// 	// Magnus
-		// 	// TODO: introduce additional temporary variables A1_, A2_ for derived class
-		// 	// TODO: consider saving sqrt(3) as a private class constant
-		// 	real_t h1 = (3-std::sqrt(3))/6;
-		// 	real_t h2 = std::sqrt(3)/6;
-		// 	int N1 = 2; // TODO: put right formula
-		// 	int N2 = 2; // TODO: put right formula
-		// 	intSplit(h1,N1);
-		// 	buildF(A1_);
-		// 	A1_ *= complex_t(0,-Dt/(wpacket_.eps()*wpacket_.eps()));
-		// 	intSplit(h2,N2);
-		// 	buildF(A2_);
-		// 	A2_ *= complex_t(0,-Dt/(wpacket_.eps()*wpacket_.eps()));
-		// 	F_ = .5*(A1_+A2_) + std::sqrt(3)/12*(A1_*A2_-A2_*A1_);
-		// 	// TODO: matrix exponential c = exp(F_) * c
-		// 	intSplit(h1,N1);
+			// Magnus
+			// TODO: solve problems with continuous square root
+			// TODO: introduce additional temporary variables A1_, A2_ for derived class
+			CMatrix<Eigen::Dynamic,Eigen::Dynamic> A1_, A2_;
+			// TODO: consider saving sqrt(3) as a private class constant
+			// TODO: auto& wpacket = this->wpacket_;
+			real_t h1 = (3-std::sqrt(3))/6;
+			real_t h2 = std::sqrt(3)/6;
+			int N1 = 2; // TODO: put right formula
+			int N2 = 2; // TODO: put right formula
+			// this->intSplit(h1,N1); // TODO: uncomment
+			this->buildF(A1_);
+			A1_ *= complex_t(0,-Dt/(this->wpacket_.eps()*this->wpacket_.eps()));
+			// this->intSplit(h2,N2); // TODO: uncomment
+			this->buildF(A2_);
+			A2_ *= complex_t(0,-Dt/(this->wpacket_.eps()*this->wpacket_.eps()));
+			this->F_ = .5*(A1_+A2_) + std::sqrt(3)/12*(A1_*A2_-A2_*A1_);
+			CVector<Eigen::Dynamic> coefs = PacketToCoefficients<Packet_t>::to(this->wpacket_); // get coefficients from packet
+			coefs = (this->F_).exp() * coefs;
+			PacketToCoefficients<Packet_t>::from(coefs,this->wpacket_); // update packet from coefficients
+			// this->intSplit(h1,N1); // TODO: uncomment
 
-		// 	// Pre764
-		// 	// TODO: introduce additional coefficient vectors Z_, Y_, alpha_, beta_ for derived class
-		// 	const int N = 1 + std::floor(std::sqrt(Dt*std::pow(wpacket_.eps(),-.75)));
-		// 	// TODO: v, k could even be class constants v_, k_
-		// 	const int v = 6;
-		// 	const int k = 4;
+			// Pre764
+			// TODO: introduce additional coefficient vectors Z_, Y_, alpha_, beta_ for derived class
+			/*const int*/ N = 1 + std::floor(std::sqrt(Dt*std::pow(this->wpacket_.eps(),-.75)));
+			// TODO: v, k could even be class constants v_, k_
+			const int v = 6;
+			const int k = 4;
 
-		// 	// PRE: TODO: move to separate function, not in propagate
-		// 	for(unsigned j=0; j<v; ++j) {
-		// 		intSplit(-Z_[j]*Dt,N);
-		// 		propW(-Y_[j]*Dt);
-		// 	}
-		// 	// PROPAGATE:
-		// 	for(unsigned j=0; j<k; ++j) {
-		// 		propW(alpha_[j]*Dt);
-		// 		intSplit(beta_[j]*Dt);
-		// 	}
-		// 	// POST: TODO: move to separate function, not in propagate
-		// 	for(unsigned j=0; j<v; ++j) {
-		// 		propW(Y_[j]*Dt);
-		// 		intSplit(Z_[j]*Dt,N);
-		// 	}
+			std::vector<real_t> Z_(v), Y_(v); // TODO: populate with coefficients
+			std::vector<real_t> alpha_(k), beta_(k); // TODO: populate with coefficients
+
+			// PRE: TODO: move to separate function, not in stepagate
+			for(unsigned j=0; j<v; ++j) {
+				this->intSplit(-Z_[j]*Dt,N);
+				this->stepW(-Y_[j]*Dt);
+			}
+			// PROPAGATE:
+			for(unsigned j=0; j<k; ++j) {
+				this->stepW(alpha_[j]*Dt);
+				this->intSplit(beta_[j]*Dt,N);
+			}
+			// POST: TODO: move to separate function, not in stepagate
+			for(unsigned j=0; j<v; ++j) {
+				this->stepW(Y_[j]*Dt);
+				this->intSplit(Z_[j]*Dt,N);
+			}
 
 
-		// 	// McL42
-		// 	intSplit(A_[0]*Dt,N);
-		// 	propW(B_[0]*Dt);
-		// 	intSplit(A_[1]*Dt,N);
-		// 	propW(B_[1]*Dt);
-		// 	intSplit(A_[2]*Dt,N);
+
+			// McL42
+			std::vector<real_t> a_(3), b_(2); // TODO: a_ b_ rename
+			// int N = 10; // TODO: compute N
+			this->intSplit(a_[0]*Dt,N);
+			this->stepW(b_[0]*Dt);
+			this->intSplit(a_[1]*Dt,N);
+			this->stepW(b_[1]*Dt);
+			this->intSplit(a_[2]*Dt,N);
 
 		}
 
