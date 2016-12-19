@@ -55,8 +55,8 @@ int main() {
     const int D = 1;
     const int K = 128;
 
-    const real_t T = 6;
-    const real_t Dt = 0.01;
+    const real_t T = 1; // 6;
+    const real_t Dt = 0.02; // 0.01;
 
     const real_t eps = 0.1;
 
@@ -101,7 +101,7 @@ int main() {
 	// Propagate
 	/////////////////////////////////////////////////////
 
-	propagators::steps::HagedornPropagator<Remain> propagator(packet,V); // <typename Remain> propagator(packet,V);
+	propagators::HagedornPropagator<Remain> propagator(packet,V); // <typename Remain> propagator(packet,V);
 	propagator.simulate(T,Dt);
 
 
