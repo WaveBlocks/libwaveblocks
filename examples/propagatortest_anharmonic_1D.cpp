@@ -13,7 +13,7 @@
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/propagators/Hagedorn.hpp"
-#include "waveblocks/propagators/Propagator.hpp"
+#include "waveblocks/propagators/HagedornPropagator.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/io/hdf5writer.hpp"
 
@@ -101,7 +101,7 @@ int main() {
 	// Propagate
 	/////////////////////////////////////////////////////
 
-	propagators::HagedornPropagator<Remain> propagator(packet,V); // <typename Remain> propagator(packet,V);
+	propagators::HagedornPropagator<N,MultiIndex,QR,Remain> propagator(packet,V); // <typename Remain> propagator(packet,V);
 	propagator.simulate(T,Dt);
 
 
