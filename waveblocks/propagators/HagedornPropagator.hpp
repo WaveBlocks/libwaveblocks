@@ -14,15 +14,14 @@ using wavepackets::HaWpParamSet;
 /** \file
  * \brief Implements the Hagedorn Propagator
  */
-template <int N, typename MultiIndex, typename MDQR, typename Potential_t>
-class HagedornPropagator : public Propagator<N,MultiIndex,MDQR,Potential_t> /* TODO: implement SplittingParameters , public SplittingParameters */ /* TODO: make CRTP */ {
+template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t>
+class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t> /* TODO: implement SplittingParameters , public SplittingParameters */ /* TODO: make CRTP */ {
 
 	public:
 
-		// TODO: remove these, make template parameters
-		static const int D = 1;
 		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>; // What's up with ScalarHaWp
-		using Propagator<N,MultiIndex,MDQR,Potential_t>::Propagator; // inherit constructor
+
+		using Propagator<N,D,MultiIndex,MDQR,Potential_t>::Propagator; // inherit constructor
 
 		void propagate(real_t Dt) override {
 
@@ -33,15 +32,14 @@ class HagedornPropagator : public Propagator<N,MultiIndex,MDQR,Potential_t> /* T
 			this->stepT(Dt/2);
 
 
-			/*
-			// Semiclassical
-			// TODO: compute M
-			// TODO: make sure that M is even, otherwise M/2 + M/2 != M
-			int M = 2;
-			assert(M%2==0);
-			this->intSplit(Dt/2,M/2);
-			this->stepW(Dt);
-			this->intSplit(Dt/2,M/2);
+			// // Semiclassical
+			// // TODO: compute M
+			// // TODO: make sure that M is even, otherwise M/2 + M/2 != M
+			// int M = 2;
+			// assert(M%2==0);
+			// this->intSplit(Dt/2,M/2);
+			// this->stepW(Dt);
+			// this->intSplit(Dt/2,M/2);
 
 
 			// // Magnus
@@ -66,43 +64,42 @@ class HagedornPropagator : public Propagator<N,MultiIndex,MDQR,Potential_t> /* T
 			// PacketToCoefficients<Packet_t>::from(coefs,this->wpacket_); // update packet from coefficients
 			// this->intSplit(h1,N1); // TODO: uncomment
 
-			// Pre764
-			// TODO: introduce additional coefficient vectors Z_, Y_, alpha_, beta_ for derived class
-			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(this->wpacket_.eps(),-.75)));
-			// TODO: v, k could even be class constants v_, k_
-			const int v = 6;
-			const int k = 4;
+			// // Pre764
+			// // TODO: introduce additional coefficient vectors Z_, Y_, alpha_, beta_ for derived class
+			// const int M = 1 + std::floor(std::sqrt(Dt*std::pow(this->wpacket_.eps(),-.75)));
+			// // TODO: v, k could even be class constants v_, k_
+			// const int v = 6;
+			// const int k = 4;
 
-			std::vector<real_t> Z_(v), Y_(v); // TODO: populate with coefficients
-			std::vector<real_t> alpha_(k), beta_(k); // TODO: populate with coefficients
+			// std::vector<real_t> Z_(v), Y_(v); // TODO: populate with coefficients
+			// std::vector<real_t> alpha_(k), beta_(k); // TODO: populate with coefficients
 
-			// PRE: TODO: move to separate function, not in stepagate
-			for(unsigned j=0; j<v; ++j) {
-				this->intSplit(-Z_[j]*Dt,M);
-				this->stepW(-Y_[j]*Dt);
-			}
-			// PROPAGATE:
-			for(unsigned j=0; j<k; ++j) {
-				this->stepW(alpha_[j]*Dt);
-				this->intSplit(beta_[j]*Dt,M);
-			}
-			// POST: TODO: move to separate function, not in stepagate
-			for(unsigned j=0; j<v; ++j) {
-				this->stepW(Y_[j]*Dt);
-				this->intSplit(Z_[j]*Dt,M);
-			}
+			// // PRE: TODO: move to separate function, not in propagate
+			// for(unsigned j=0; j<v; ++j) {
+			// 	this->intSplit(-Z_[j]*Dt,M);
+			// 	this->stepW(-Y_[j]*Dt);
+			// }
+			// // PROPAGATE:
+			// for(unsigned j=0; j<k; ++j) {
+			// 	this->stepW(alpha_[j]*Dt);
+			// 	this->intSplit(beta_[j]*Dt,M);
+			// }
+			// // POST: TODO: move to separate function, not in propagate
+			// for(unsigned j=0; j<v; ++j) {
+			// 	this->stepW(Y_[j]*Dt);
+			// 	this->intSplit(Z_[j]*Dt,M);
+			// }
 
 
 
-			// McL42
-			std::vector<real_t> a_(3), b_(2); // TODO: a_ b_ rename
-			// int M = 10; // TODO: compute M
-			this->intSplit(a_[0]*Dt,M);
-			this->stepW(b_[0]*Dt);
-			this->intSplit(a_[1]*Dt,M);
-			this->stepW(b_[1]*Dt);
-			this->intSplit(a_[2]*Dt,M);
-			*/
+			// // McL42
+			// std::vector<real_t> a_(3), b_(2); // TODO: a_ b_ rename
+			// // int M = 10; // TODO: compute M
+			// this->intSplit(a_[0]*Dt,M);
+			// this->stepW(b_[0]*Dt);
+			// this->intSplit(a_[1]*Dt,M);
+			// this->stepW(b_[1]*Dt);
+			// this->intSplit(a_[2]*Dt,M);
 
 		}
 

@@ -56,7 +56,7 @@ int main() {
     const int K = 128;
 
     const real_t T = 0.1; // 6;
-    const real_t Dt = 0.002; // 0.01;
+    const real_t Dt = 0.02; // 0.01;
 
     const real_t eps = 0.1;
 
@@ -97,13 +97,39 @@ int main() {
     // propagators::Hagedorn<N,D,MultiIndex,QR> propagator;
 
 
-	/////////////////////////////////////////////////////
-	// Propagate
-	/////////////////////////////////////////////////////
+	// Define propagator
+	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain> propagator(packet,V); // <typename Remain> propagator(packet,V);
 
-	propagators::HagedornPropagator<N,MultiIndex,QR,Remain> propagator(packet,V); // <typename Remain> propagator(packet,V);
-	propagator.simulate(T,Dt);
 
+	////////////////////////////////////////////////////
+	// Callback Function - writing to file
+	////////////////////////////////////////////////////
+	// set up writer
+	// Preparing the file and I/O writer
+	io::hdf5writer<D> mywriter("data.hdf5");
+	mywriter.set_write_norm(true);
+	mywriter.set_write_energies(true);
+	//////////////////////////////////////////////////////////////////////////////
+	
+	std::function<void(unsigned,real_t)> callback = [&](unsigned i, real_t t) {
+		(void) i; // avoid unused variable warning
+		(void) t; // avoid unused variable warning 
+
+		// Write Data
+		// TODO: provide getekin, getepot functions here in propagator
+		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+		real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
+		// TODO: pre/post processing requires applying transformations before measuring
+
+		mywriter.store_packet(packet);
+		mywriter.store_norm(packet);
+		mywriter.store_energies(epot,ekin);
+	};
+	//////////////////////////////////////////////////////////////////////////////
+
+	mywriter.prestructuring<MultiIndex>(packet,Dt);
+	propagator.simulate(T,Dt,callback);
+	mywriter.poststructuring();
 
 	return 0;
 

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <functional>
 
 #include "../innerproducts/homogeneous_inner_product.hpp"
 #include "../innerproducts/vector_inner_product.hpp"
@@ -31,6 +32,26 @@ using wavepackets::HaWpParamSet;
 
 
 
+namespace print {
+	static unsigned WIDTH = 60;
+
+	template <typename T>
+	void pair(const std::string&& s, const T v, const std::string&& s0="\n") {
+		std::streamsize default_precision = std::cout.precision();
+		std::cout << s0 << "\t"
+			<< std::setw(WIDTH/2) << std::left << s
+			<< std::setw(WIDTH/2) << std::right << std::fixed << std::setprecision(4) << v
+			<< std::scientific << std::setprecision(default_precision) << std::flush;
+	}
+
+	inline void separator(char c='-') {
+		std::cout << "\n\t" << std::string(WIDTH,c) << std::flush;
+	}
+
+}
+
+
+
 /**
  * \brief Implements the Hagedorn propagator for
  * vector valued wavepackets. Offers a method for
@@ -46,14 +67,13 @@ using wavepackets::HaWpParamSet;
  * Multi-dimensional quadrature rule
  */
 
-template <int N, typename MultiIndex, typename MDQR, typename Potential_t>
+template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t>
 class Propagator {
 
 	public:
 
-		static const int D = 1;
 		// TODO: genrealize to more dimensions, more multiindices, Quadrature Rules
-		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>; // What's up with ScalarHaWp
+		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
 
 		Propagator(Packet_t& pack, Potential_t& V)
 		 : t_(0)
@@ -66,53 +86,49 @@ class Propagator {
 			// 	size += c.coefficients.size();
 			// }
 			// F_.resize(size,size);
+			print::separator();
+			print::pair("Number of Dimensions D",D);
+			print::pair("Number of Energy Levels N",N);
+			print::separator();
+			// scalar / homogeneous / inhomogeneous?
+			// quadrature rule?
+			// order of method?
 		}
 
 		// TODO: make CRTP instead
-		void simulate(const real_t T, const real_t Dt, const std::string outfilename="data") {
+		void simulate(const real_t T, const real_t Dt,
+				std::function<void(unsigned, real_t)> callback = [](unsigned i, real_t t) { (void)i; (void)t; }) {
 
+			std::cout << "\n\n";
+			print::separator();
+			print::pair("Final Time T",T);
+			print::pair("Stepsize Dt",Dt);
+			print::separator();
+			std::cout << "\n";
 			// TODO: introduce an extra callback function that is called in every iteration
-			// TODO: provide public functions setupfile, savefile
 
-			//////////////////////////////////////////////////////////////////////////////
-			// TODO: wrap in its own function
-			
-			// Preparing the file and I/O writer
-			io::hdf5writer<D> mywriter(outfilename+".hdf5");
-			mywriter.set_write_norm(true);
-			mywriter.set_write_energies(true);
-			mywriter.prestructuring<MultiIndex>(wpacket_,Dt);
 
-			writeData(mywriter);
-			//////////////////////////////////////////////////////////////////////////////
 
 			unsigned M = std::round(T/Dt);
 			pre_propagate(Dt);
-			std::cout << "\n\n";
 
 			for(unsigned m=0; m<M; ++m) {
-				propagate(Dt);
 				t_ += Dt;
-				writeData(mywriter); // TODO: if condition
-				std::cout << "\rProgress: " << std::setw(6) << std::fixed << std::setprecision(1) << std::right << (100.*(m+1))/M << "%"
-				          << "\t\tTime: " << std::setw(10) << std::fixed << std::setprecision(4) << std::right << t_ << std::flush;
+				callback(m,t_);
+				print::pair("Time t",t_,"\r");
+				propagate(Dt);
 			}
-			std::cout << "\n\n";
+			callback(M,t_);
+			print::pair("","COMPLETE","\r");
+			print::separator();
+
 			post_propagate(Dt);
 
-			mywriter.poststructuring();
-
 		}
 
-		virtual void writeData(io::hdf5writer<D>& writer) const {
-			// Compute energies
-			real_t ekin = observables::kinetic_energy<D,MultiIndex>(wpacket_);
-			real_t epot = 0; // observables::potential_energy<Packet_t,D,MultiIndex,MDQR>(wpacket_,V_);
-
-			writer.store_packet(wpacket_);
-			writer.store_norm(wpacket_);
-			writer.store_energies(epot,ekin);
-		}
+		// virtual Packet_t& getWavepacket() final {
+		// 	return wpacket_;
+		// }
 
 		virtual void propagate(real_t) = 0;
 		virtual void pre_propagate(real_t) {}
@@ -136,7 +152,7 @@ class Propagator {
 					const dim_t R = x.cols(); ///> Order of the quadrature rule
 					CMatrix<1,Eigen::Dynamic> f(1,R); ///> Result f(x,[q_1,...,q_R])
 
-					#pragma omp parallel for schedule(guided)
+					// #pragma omp parallel for schedule(guided)
 					for(int r=0; r<R; ++r) {
 						f(0,r) = V_.evaluate_local_remainder_at(
 						            Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
@@ -154,12 +170,15 @@ class Propagator {
 			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
 			auto& params = wpacket_.parameters();
 			// TODO: what does get_leading_level do???
+			// TODO: add inhomogeneous implementation: loop over components
+			//  --> get leading level for homogeneous packets only
 			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * Squeeze<D,RVector<D>>::apply(params.q()));
 			params.updatep( -h * Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) ); ///> p = p - h * jac(V(q))
 			params.updateP( -h * std::get<2>(taylorV)*params.Q() ); ///> P = P - h * hess(V(q)) * Q
 			params.updateS( -h * std::get<0>(taylorV) ); ///> S = S - h * V(q)
 		}
 		void stepT(real_t h) {
+			// TODO: add inhomogeneous implementation: loop over components
 			// TODO: add inverse mass Minv
 			real_t Minv = 1.;
 			auto& params = wpacket_.parameters();
@@ -180,22 +199,44 @@ class Propagator {
 			PacketConverter<Packet_t>::CoefToPack(packet,coefs)
 			*/
 
-			buildF();
+			// TODO: Pi' = ?
+			// TODO: Pi_i' = ? for all i=0,..,N-1
+			buildF(); // TODO: hom/inhom
 			CVector<Eigen::Dynamic> coefs = PacketToCoefficients<Packet_t>::to(wpacket_); // get coefficients from packet
 			complex_t factor(0,-h/(wpacket_.eps()*wpacket_.eps()));
 			coefs = (factor*F_).exp() * coefs; ///> c = exp(-i*h/eps^2 * F) * c
 			PacketToCoefficients<Packet_t>::from(coefs,wpacket_); // update packet from coefficients
 		}
 
-		void intSplit(real_t Dt, unsigned M) {
+		void intSplit(const real_t Dt, const unsigned M) {
 			real_t dt = Dt/M;
+			const std::vector<real_t> a = { 1,2,3 };
+			const std::vector<real_t> b = { 4,5,6 };
 			for(unsigned m=0; m<M; ++m) {
 				// TODO: do this properly!! With weights!!
 				// alternating templates!!
-				stepU(dt);
-				stepT(dt);
+				splitTU(a,b,dt);
 			}
 		}
+		
+		void splitTU(const std::vector<real_t>& w_T, const std::vector<real_t>& w_U, const real_t dt) {
+			assert(w_T.size() == w_U.size() || w_T.size() == w_U.size()+1);
+			if(w_T.size()>0) {
+				stepT(w_T.at(0)*dt); // do a step of size w_T[0]
+				std::vector<real_t> w_T_new(w_T.begin()+1,w_T.end()); // pass on all element but first w_T[1..N-1]
+				splitUT(dt,w_U,w_T_new);
+			}
+		}
+		
+		void splitUT(const std::vector<real_t>& w_U, const std::vector<real_t>& w_T, const real_t dt) {
+			assert(w_U.size() == w_T.size() || w_U.size() == w_T.size()+1);
+			if(w_U.size()>0) {
+				stepU(w_U.at(0)*dt); // do a step of size w_U[0]
+				std::vector<real_t> w_U_new(w_U.begin()+1,w_U.end()); // pass on all element but first w_U[1..N-1]
+				splitTU(dt,w_T,w_U_new);
+			}
+		}
+
 
 		real_t t_;
 		Packet_t& wpacket_;
