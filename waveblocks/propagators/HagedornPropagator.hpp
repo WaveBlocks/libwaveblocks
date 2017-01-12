@@ -14,16 +14,14 @@ using wavepackets::HaWpParamSet;
 /** \file
  * \brief Implements the Hagedorn Propagator
  */
-template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t>
-class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t> /* TODO: implement SplittingParameters , public SplittingParameters */ /* TODO: make CRTP */ {
+template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t, typename Packet_t>
+class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Packet_t> /* TODO: implement SplittingParameters , public SplittingParameters */ /* TODO: make CRTP */ {
 
 	public:
 
-		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>; // What's up with ScalarHaWp
+		using Propagator<N,D,MultiIndex,MDQR,Potential_t,Packet_t>::Propagator; // inherit constructor
 
-		using Propagator<N,D,MultiIndex,MDQR,Potential_t>::Propagator; // inherit constructor
-
-		void propagate(real_t Dt) override {
+		void propagate(const real_t Dt) override {
 
 			// Hagedorn
 			this->stepT(Dt/2);

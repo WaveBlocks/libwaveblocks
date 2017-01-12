@@ -98,7 +98,9 @@ int main() {
 
 
 	// Define propagator
-	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain> propagator(packet,V); // <typename Remain> propagator(packet,V);
+
+	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
+	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> propagator(packet,V); // <typename Remain> propagator(packet,V);
 
 
 	////////////////////////////////////////////////////

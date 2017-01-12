@@ -44,7 +44,7 @@ namespace print {
 			<< std::scientific << std::setprecision(default_precision) << std::flush;
 	}
 
-	inline void separator(char c='-') {
+	inline void separator(const char c='-') {
 		std::cout << "\n\t" << std::string(WIDTH,c) << std::flush;
 	}
 
@@ -67,13 +67,10 @@ namespace print {
  * Multi-dimensional quadrature rule
  */
 
-template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t>
+template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t, typename Packet_t>
 class Propagator {
 
 	public:
-
-		// TODO: genrealize to more dimensions, more multiindices, Quadrature Rules
-		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
 
 		Propagator(Packet_t& pack, Potential_t& V)
 		 : t_(0)
@@ -96,8 +93,12 @@ class Propagator {
 		}
 
 		// TODO: make CRTP instead
+		/**
+		 * \param callback An optional callback function that is called before doing any time step and at the end of the propagation
+		 *  The callback function must take two arguments: the index of the current iteration (unsigned integer) and the current time (real_t)
+		 */
 		void simulate(const real_t T, const real_t Dt,
-				std::function<void(unsigned, real_t)> callback = [](unsigned i, real_t t) { (void)i; (void)t; }) {
+				const std::function<void(unsigned, real_t)> callback = [](unsigned i, real_t t) { (void)i; (void)t; }) {
 
 			std::cout << "\n\n";
 			print::separator();
@@ -105,9 +106,6 @@ class Propagator {
 			print::pair("Stepsize Dt",Dt);
 			print::separator();
 			std::cout << "\n";
-			// TODO: introduce an extra callback function that is called in every iteration
-
-
 
 			unsigned M = std::round(T/Dt);
 			pre_propagate(Dt);
@@ -126,13 +124,9 @@ class Propagator {
 
 		}
 
-		// virtual Packet_t& getWavepacket() final {
-		// 	return wpacket_;
-		// }
-
-		virtual void propagate(real_t) = 0;
-		virtual void pre_propagate(real_t) {}
-		virtual void post_propagate(real_t) {}
+		virtual void propagate(const real_t) = 0;
+		virtual void pre_propagate(const real_t) {}
+		virtual void post_propagate(const real_t) {}
 
 	protected:
 		
@@ -166,7 +160,7 @@ class Propagator {
 
 		}
 
-		void stepU(real_t h) {
+		void stepU(const real_t h) {
 			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
 			auto& params = wpacket_.parameters();
 			// TODO: what does get_leading_level do???
@@ -177,17 +171,16 @@ class Propagator {
 			params.updateP( -h * std::get<2>(taylorV)*params.Q() ); ///> P = P - h * hess(V(q)) * Q
 			params.updateS( -h * std::get<0>(taylorV) ); ///> S = S - h * V(q)
 		}
-		void stepT(real_t h) {
+		void stepT(const real_t h) {
 			// TODO: add inhomogeneous implementation: loop over components
-			// TODO: add inverse mass Minv
-			real_t Minv = 1.;
+			real_t Minv = 1.f; // inverse mass
 			auto& params = wpacket_.parameters();
 			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
 			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
 			params.updateS( +.5*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
 		}
 
-		void stepW(real_t h) {
+		void stepW(const real_t h) {
 			/*
 			// IMPROVEMENT SUGGESTION: change signature of PacketToCoefficients
 			//  --> this would be much more readable + self explanatory with the syntax
