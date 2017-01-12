@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iomanip>
 #include <functional>
+#include <type_traits>
 
 #include "../innerproducts/homogeneous_inner_product.hpp"
 #include "../innerproducts/vector_inner_product.hpp"
@@ -156,6 +157,11 @@ class Propagator {
 					return f;
 				};
 
+			using Innerproduct_t = typename std::conditional<
+			                           std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value, // scalar wavepacket?
+			                           HomogeneousInnerProduct<D,MultiIndex,MDQR>, // 1 dimensional
+			                           VectorInnerProduct<D,MultiIndex,MDQR>       // N dimensional
+			                        >;
 			M = HomogeneousInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
 
 		}
