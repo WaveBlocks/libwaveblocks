@@ -31,6 +31,8 @@ using utilities::PacketToCoefficients;
 using utilities::Unsqueeze;
 using wavepackets::HaWpParamSet;
 
+using innerproducts::HomogeneousInnerProduct;
+using innerproducts::VectorInnerProduct;
 
 
 namespace print {
@@ -43,6 +45,16 @@ namespace print {
 			<< std::setw(WIDTH/2) << std::left << s
 			<< std::setw(WIDTH/2) << std::right << std::fixed << std::setprecision(4) << v
 			<< std::scientific << std::setprecision(default_precision) << std::flush;
+	}
+	
+	inline void title(const std::string&& s, const char c='-') {
+		int str_length = s.length();
+		int w1 = (WIDTH-str_length-2)/2;
+		int w2 = (WIDTH-str_length-2) - w1;
+		std::cout
+			<< "\n\t" << std::string(WIDTH,c)
+			<< "\n\t" << c << std::string(w1,' ') << s << std::string(w2,' ') << c
+			<< "\n\t" << std::string(WIDTH,c);
 	}
 
 	inline void separator(const char c='-') {
@@ -74,8 +86,7 @@ class Propagator {
 	public:
 
 		Propagator(Packet_t& pack, Potential_t& V)
-		 : t_(0)
-		 , wpacket_(pack)
+		 : wpacket_(pack)
 		 , V_(V)
 		{
 			// unsigned size = 0;
@@ -84,13 +95,8 @@ class Propagator {
 			// 	size += c.coefficients.size();
 			// }
 			// F_.resize(size,size);
-			print::separator();
-			print::pair("Number of Dimensions D",D);
-			print::pair("Number of Energy Levels N",N);
-			print::separator();
-			// scalar / homogeneous / inhomogeneous?
-			// quadrature rule?
-			// order of method?
+			const bool scalar = std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value;
+			static_assert(scalar == (N==1),"Scalar wave packets must have N==1");
 		}
 
 		// TODO: make CRTP instead
@@ -98,26 +104,41 @@ class Propagator {
 		 * \param callback An optional callback function that is called before doing any time step and at the end of the propagation
 		 *  The callback function must take two arguments: the index of the current iteration (unsigned integer) and the current time (real_t)
 		 */
-		void simulate(const real_t T, const real_t Dt,
+		void evolve(const real_t T, const real_t Dt,
 				const std::function<void(unsigned, real_t)> callback = [](unsigned i, real_t t) { (void)i; (void)t; }) {
 
-			std::cout << "\n\n";
-			print::separator();
-			print::pair("Final Time T",T);
-			print::pair("Stepsize Dt",Dt);
-			print::separator();
-			std::cout << "\n";
+			if(T<0) return;
+
+			real_t t = 0;
+
+			// TODO: ifdef verbose
+			{
+				const bool scalar = std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value;
+				std::cout << "\n\n";
+				print::title(getName() + " Propagator");
+				print::pair((scalar ? "Scalar" : "Vectorial") + std::string(" Wave Packet"),"");
+				// TODO: homogeneous / inhomogeneous?
+				print::pair("D (number of dimensions)",D);
+				print::pair("N (number of energy levels)",N);
+				print::pair("Quadrature Rule","TODO: which quadrature rule");
+				print::pair("Order of the scheme","TODO: order of method");
+				print::separator();
+				print::pair("Time Span T",T);
+				print::pair("Stepsize Dt",Dt);
+				print::separator();
+				std::cout << "\n";
+			}
 
 			unsigned M = std::round(T/Dt);
 			pre_propagate(Dt);
 
 			for(unsigned m=0; m<M; ++m) {
-				t_ += Dt;
-				callback(m,t_);
-				print::pair("Time t",t_,"\r");
+				t += Dt;
+				callback(m,t);
+				print::pair("Time t",t,"\r");
 				propagate(Dt);
 			}
-			callback(M,t_);
+			callback(M,t);
 			print::pair("","COMPLETE","\r");
 			print::separator();
 
@@ -125,6 +146,7 @@ class Propagator {
 
 		}
 
+		virtual std::string getName() const = 0;
 		virtual void propagate(const real_t) = 0;
 		virtual void pre_propagate(const real_t) {}
 		virtual void post_propagate(const real_t) {}
@@ -161,8 +183,8 @@ class Propagator {
 			                           std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value, // scalar wavepacket?
 			                           HomogeneousInnerProduct<D,MultiIndex,MDQR>, // 1 dimensional
 			                           VectorInnerProduct<D,MultiIndex,MDQR>       // N dimensional
-			                        >;
-			M = HomogeneousInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
+			                        >::type;
+			M = Innerproduct_t::build_matrix(wpacket_,op);
 
 		}
 
@@ -237,7 +259,6 @@ class Propagator {
 		}
 
 
-		real_t t_;
 		Packet_t& wpacket_;
 		Potential_t& V_;
 		CMatrix<Eigen::Dynamic,Eigen::Dynamic> F_; // TODO: consider renaming from F_ to something more "correct"

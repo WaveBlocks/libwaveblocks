@@ -21,6 +21,10 @@ class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Pac
 
 		using Propagator<N,D,MultiIndex,MDQR,Potential_t,Packet_t>::Propagator; // inherit constructor
 
+		std::string getName() const override {
+			return "Hagedorn";
+		}
+
 		void propagate(const real_t Dt) override {
 
 			// Hagedorn

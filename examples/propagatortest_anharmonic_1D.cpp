@@ -130,7 +130,7 @@ int main() {
 	//////////////////////////////////////////////////////////////////////////////
 
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
-	propagator.simulate(T,Dt,callback);
+	propagator.evolve(T,Dt,callback);
 	mywriter.poststructuring();
 
 	return 0;
