@@ -23,19 +23,10 @@
  */
 
 namespace waveblocks {
-namespace propagators {
 
 
-using utilities::Squeeze;
-using utilities::PacketToCoefficients;
-using utilities::Unsqueeze;
-using wavepackets::HaWpParamSet;
-
-using innerproducts::HomogeneousInnerProduct;
-using innerproducts::VectorInnerProduct;
-
-
-namespace print {
+namespace utilities {
+namespace prettyprint {
 	static unsigned WIDTH = 60;
 
 	template <typename T>
@@ -61,9 +52,17 @@ namespace print {
 		std::cout << "\n\t" << std::string(WIDTH,c) << std::flush;
 	}
 
-}
+} // namespace prettyprint
+} // namespace utilities
 
 
+
+namespace propagators {
+
+namespace print = utilities::prettyprint;
+namespace utils = utilities;
+
+using wavepackets::HaWpParamSet; // TODO: remove
 
 /**
  * \brief Implements the Hagedorn propagator for
@@ -172,42 +171,69 @@ class Propagator {
 					// #pragma omp parallel for schedule(guided)
 					for(int r=0; r<R; ++r) {
 						f(0,r) = V_.evaluate_local_remainder_at(
-						            Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
-						     	    Squeeze<D,CVector<D>>::apply(complex_t(1,0)*q)
+						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
+						     	    utils::Squeeze<D,CVector<D>>::apply(complex_t(1,0)*q)
 						     	   );
 					}
 					return f;
 				};
 
-			using Innerproduct_t = typename std::conditional<
-			                           std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value, // scalar wavepacket?
-			                           HomogeneousInnerProduct<D,MultiIndex,MDQR>, // 1 dimensional
-			                           VectorInnerProduct<D,MultiIndex,MDQR>       // N dimensional
-			                        >::type;
+			using Innerproduct_t = 
+				typename std::conditional<
+				                 std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value, // scalar wavepacket?
+				                 innerproducts::HomogeneousInnerProduct<D,MultiIndex,MDQR>, // 1 dimensional
+				                 innerproducts::VectorInnerProduct<D,MultiIndex,MDQR>       // N dimensional
+				            >::type;
 			M = Innerproduct_t::build_matrix(wpacket_,op);
 
 		}
 
+		// TODO: add loop-implementation for inhomogeneous case using enable_if
 		void stepU(const real_t h) {
 			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
-			auto& params = wpacket_.parameters();
-			// TODO: what does get_leading_level do???
 			// TODO: add inhomogeneous implementation: loop over components
+			// TODO: is this only valid for homogeneous? 
+			// const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
 			//  --> get leading level for homogeneous packets only
-			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * Squeeze<D,RVector<D>>::apply(params.q()));
-			params.updatep( -h * Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) ); ///> p = p - h * jac(V(q))
+			stepU_params(h,wpacket_.parameters());
+		}
+
+		// TODO: use enable_if to distinguish inhom case
+		// TODO: is this inlined as a template?? cause it is a normal function!!
+		// TODO: make this inline // template <typename T=void>
+		// TODO: add inhomogeneous implementation with enable_if: loop over components
+		// Something like
+		// template<typename = typename std::enable_if<std::is_same<Packet_t,wavepackets::InhomogeneousHaWp<D,MultiIndex>::value>::type>
+		void stepT(const real_t h) {
+			// // Inhomogeneous
+			// TODO: same for stepU
+			// for(auto& comp : wpacket_.components()) {
+			// 	stepT_params(h,comp.parameters());
+			// }
+			stepT_params(h,wpacket_.parameters());
+		}
+		
+	private:
+		void stepT_params(const real_t h, HaWpParamSet<D>& params) {
+			real_t Minv = 1.f; // inverse mass // TODO: make this a matrix // TODO: remove mass if not required
+			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
+			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
+			params.updateS( +.5f*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
+		}
+		void stepU_params(const real_t h, HaWpParamSet<D>& params) {
+			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
+			// TODO: what does get_leading_level do???
+			//  --> get leading level for homogeneous packets only // TODO: check this for inhom
+			//  TODO: consider passing Level& as an additional parameter
+			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
+			params.updatep( -h * utils::Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) ); ///> p = p - h * jac(V(q))
 			params.updateP( -h * std::get<2>(taylorV)*params.Q() ); ///> P = P - h * hess(V(q)) * Q
 			params.updateS( -h * std::get<0>(taylorV) ); ///> S = S - h * V(q)
 		}
-		void stepT(const real_t h) {
-			// TODO: add inhomogeneous implementation: loop over components
-			real_t Minv = 1.f; // inverse mass
-			auto& params = wpacket_.parameters();
-			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
-			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
-			params.updateS( +.5*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
-		}
 
+		// TODO: introduce private functions update_qQS(params,dt) and update_pPS(params,dt)
+
+	public:
 		void stepW(const real_t h) {
 			/*
 			// IMPROVEMENT SUGGESTION: change signature of PacketToCoefficients
@@ -217,16 +243,16 @@ class Propagator {
 			CVector<Eigen::Dynamic> coefs;
 			PacketConverter<Packet_t>::PackToCoef(packet,coefs)
 			coefs = (factor*F_).exp() * coefs; ///> c = exp(-i*h/eps^2 * F) * c
-			PacketConverter<Packet_t>::CoefToPack(packet,coefs)
+			PacketConverter<Packet_t>::CoefToPack(coefs,packet)
 			*/
 
 			// TODO: Pi' = ?
 			// TODO: Pi_i' = ? for all i=0,..,N-1
 			buildF(); // TODO: hom/inhom
-			CVector<Eigen::Dynamic> coefs = PacketToCoefficients<Packet_t>::to(wpacket_); // get coefficients from packet
+			CVector<Eigen::Dynamic> coefs = utils::PacketToCoefficients<Packet_t>::to(wpacket_); // get coefficients from packet
 			complex_t factor(0,-h/(wpacket_.eps()*wpacket_.eps()));
 			coefs = (factor*F_).exp() * coefs; ///> c = exp(-i*h/eps^2 * F) * c
-			PacketToCoefficients<Packet_t>::from(coefs,wpacket_); // update packet from coefficients
+			utils::PacketToCoefficients<Packet_t>::from(coefs,wpacket_); // update packet from coefficients
 		}
 
 		void intSplit(const real_t Dt, const unsigned M) {

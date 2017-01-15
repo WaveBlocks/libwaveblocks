@@ -5,11 +5,7 @@
 namespace waveblocks {
 namespace propagators {
 
-
-using utilities::Squeeze;
-using utilities::PacketToCoefficients;
-using utilities::Unsqueeze;
-using wavepackets::HaWpParamSet;
+namespace utils = utilities;
 
 /** \file
  * \brief Implements the Hagedorn Propagator
@@ -61,9 +57,9 @@ class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Pac
 			// this->buildF(A2_);
 			// A2_ *= complex_t(0,-Dt/(this->wpacket_.eps()*this->wpacket_.eps()));
 			// this->F_ = .5*(A1_+A2_) + std::sqrt(3)/12*(A1_*A2_-A2_*A1_);
-			// CVector<Eigen::Dynamic> coefs = PacketToCoefficients<Packet_t>::to(this->wpacket_); // get coefficients from packet
+			// CVector<Eigen::Dynamic> coefs = utils::PacketToCoefficients<Packet_t>::to(this->wpacket_); // get coefficients from packet
 			// coefs = (this->F_).exp() * coefs;
-			// PacketToCoefficients<Packet_t>::from(coefs,this->wpacket_); // update packet from coefficients
+			// utils::PacketToCoefficients<Packet_t>::from(coefs,this->wpacket_); // update packet from coefficients
 			// this->intSplit(h1,N1); // TODO: uncomment
 
 			// // Pre764
