@@ -12,6 +12,7 @@
 #include "../types.hpp"
 #include "../utilities/adaptors.hpp"
 #include "../utilities/squeeze.hpp"
+#include "../utilities/prettyprint.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/io/hdf5writer.hpp"
 
@@ -23,51 +24,13 @@
  */
 
 namespace waveblocks {
-
-
-namespace utilities {
-namespace prettyprint {
-	static unsigned WIDTH = 60;
-
-	template <typename T>
-	void pair(const std::string&& s, const T v, const std::string&& s0="\n") {
-		std::streamsize default_precision = std::cout.precision();
-		std::cout << s0 << "\t"
-			<< std::setw(WIDTH/2) << std::left << s
-			<< std::setw(WIDTH/2) << std::right << std::fixed << std::setprecision(4) << v
-			<< std::scientific << std::setprecision(default_precision) << std::flush;
-	}
-	
-	inline void title(const std::string&& s, const char c='-') {
-		int str_length = s.length();
-		int w1 = (WIDTH-str_length-2)/2;
-		int w2 = (WIDTH-str_length-2) - w1;
-		std::cout
-			<< "\n\t" << std::string(WIDTH,c)
-			<< "\n\t" << c << std::string(w1,' ') << s << std::string(w2,' ') << c
-			<< "\n\t" << std::string(WIDTH,c);
-	}
-
-	inline void separator(const char c='-') {
-		std::cout << "\n\t" << std::string(WIDTH,c) << std::flush;
-	}
-
-} // namespace prettyprint
-} // namespace utilities
-
-
-
 namespace propagators {
 
 namespace print = utilities::prettyprint;
 namespace utils = utilities;
 
-using wavepackets::HaWpParamSet; // TODO: remove
-
 /**
- * \brief Implements the Hagedorn propagator for
- * vector valued wavepackets. Offers a method for
- * time propagation.
+ * \brief generic propagator class for Hagedorn Wave Packets
  *
  * \tparam N
  * Number of energy levels
@@ -77,10 +40,22 @@ using wavepackets::HaWpParamSet; // TODO: remove
  * Type of multi index used in the basis shape
  * \tparam MDQR
  * Multi-dimensional quadrature rule
+ * \tparam Potential_t
+ * Type of the Potential to be used
+ * \tparam Packet_t
+ * Type of the Wavepacket to be propagated
  */
 
+// TODO: consider making Potential_t a parameter of propagate only (but then needs to be passed around a lot, right?)
 template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t, typename Packet_t>
 class Propagator {
+	
+	private:
+
+		Packet_t& wpacket_;
+		Potential_t& V_;
+		CMatrix<Eigen::Dynamic,Eigen::Dynamic> F_; // TODO: consider renaming from F_ to something more "correct"
+
 
 	public:
 
@@ -145,10 +120,10 @@ class Propagator {
 
 		}
 
-		virtual std::string getName() const = 0;
-		virtual void propagate(const real_t) = 0;
-		virtual void pre_propagate(const real_t) {}
-		virtual void post_propagate(const real_t) {}
+		virtual std::string getName() const = 0; ///< get the name of the current propagator
+		virtual void propagate(const real_t) = 0; ///< do the main propagation loop
+		virtual void pre_propagate(const real_t) {} ///< pre-propagation work
+		virtual void post_propagate(const real_t) {} ///< post-propagation work
 
 	protected:
 		
@@ -188,52 +163,59 @@ class Propagator {
 
 		}
 
-		// TODO: add loop-implementation for inhomogeneous case using enable_if
+		/**
+		 * \brief single step with quadratic potential energy U 
+		 */
+		// Homogeneous
+        template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
 		void stepU(const real_t h) {
+			// Homogeneous
+			// TODO: implement
+			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
+			// TODO: is this only valid for homogeneous? 
+			// const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
+			//  --> get leading level for homogeneous packets only
+			// TODO: stepU params pass leading level
+			stepU_params(h,wpacket_.parameters());
+		}
+		// Inhomogeneous
+        template <typename U=Packet_t, typename std::enable_if<std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
+		void stepU(const real_t h) {
+			// Inhomogeneous
+			// TODO: implement
 			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
 			// TODO: add inhomogeneous implementation: loop over components
 			// TODO: is this only valid for homogeneous? 
 			// const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
 			//  --> get leading level for homogeneous packets only
+			// TODO: stepU params pass leading level
 			stepU_params(h,wpacket_.parameters());
 		}
 
-		// TODO: use enable_if to distinguish inhom case
 		// TODO: is this inlined as a template?? cause it is a normal function!!
 		// TODO: make this inline // template <typename T=void>
-		// TODO: add inhomogeneous implementation with enable_if: loop over components
-		// Something like
-		// template<typename = typename std::enable_if<std::is_same<Packet_t,wavepackets::InhomogeneousHaWp<D,MultiIndex>::value>::type>
+
+		/**
+		 * \brief single step with kinetic energy operator T
+		 */
+		// Homogeneous
+        template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
 		void stepT(const real_t h) {
-			// // Inhomogeneous
-			// TODO: same for stepU
-			// for(auto& comp : wpacket_.components()) {
-			// 	stepT_params(h,comp.parameters());
-			// }
+			// Homogeneous
 			stepT_params(h,wpacket_.parameters());
 		}
+		// Inhomogeneous
+        template <typename U=Packet_t, typename std::enable_if<std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
+		void stepT(const real_t h) {
+			// Inhomogeneous
+			for(auto& comp : wpacket_.components()) {
+				stepT_params(h,comp.parameters());
+			}
+		}
 		
-	private:
-		void stepT_params(const real_t h, HaWpParamSet<D>& params) {
-			real_t Minv = 1.f; // inverse mass // TODO: make this a matrix // TODO: remove mass if not required
-			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
-			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
-			params.updateS( +.5f*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
-		}
-		void stepU_params(const real_t h, HaWpParamSet<D>& params) {
-			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
-			// TODO: what does get_leading_level do???
-			//  --> get leading level for homogeneous packets only // TODO: check this for inhom
-			//  TODO: consider passing Level& as an additional parameter
-			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
-			params.updatep( -h * utils::Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) ); ///> p = p - h * jac(V(q))
-			params.updateP( -h * std::get<2>(taylorV)*params.Q() ); ///> P = P - h * hess(V(q)) * Q
-			params.updateS( -h * std::get<0>(taylorV) ); ///> S = S - h * V(q)
-		}
-
-		// TODO: introduce private functions update_qQS(params,dt) and update_pPS(params,dt)
-
-	public:
+		/**
+		 * \brief single step with potential energy remainder W
+		 */
 		void stepW(const real_t h) {
 			/*
 			// IMPROVEMENT SUGGESTION: change signature of PacketToCoefficients
@@ -266,6 +248,9 @@ class Propagator {
 			}
 		}
 		
+		/**
+		 * \brief alternately apply T and U, starting with T
+		 */
 		void splitTU(const std::vector<real_t>& w_T, const std::vector<real_t>& w_U, const real_t dt) {
 			assert(w_T.size() == w_U.size() || w_T.size() == w_U.size()+1);
 			if(w_T.size()>0) {
@@ -275,6 +260,9 @@ class Propagator {
 			}
 		}
 		
+		/**
+		 * \brief alternately apply T and U, starting with U
+		 */
 		void splitUT(const std::vector<real_t>& w_U, const std::vector<real_t>& w_T, const real_t dt) {
 			assert(w_U.size() == w_T.size() || w_U.size() == w_T.size()+1);
 			if(w_U.size()>0) {
@@ -284,10 +272,35 @@ class Propagator {
 			}
 		}
 
+	
+	private:
 
-		Packet_t& wpacket_;
-		Potential_t& V_;
-		CMatrix<Eigen::Dynamic,Eigen::Dynamic> F_; // TODO: consider renaming from F_ to something more "correct"
+		/**
+		 * \brief update q,Q,S according to operator T
+		 */
+		void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
+			real_t Minv = 1.f; // inverse mass // TODO: make this a matrix // TODO: remove mass if not required
+			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
+			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
+			params.updateS( +.5f*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
+		}
+
+		/**
+		 * \brief update p,P,S according to operator U
+		 */
+		void stepU_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
+			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
+			// TODO: what does get_leading_level do???
+			//  --> get leading level for homogeneous packets only // TODO: check this for inhom
+			//  TODO: consider passing Level& as an additional parameter
+			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
+			params.updatep( -h * utils::Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) ); ///> p = p - h * jac(V(q))
+			params.updateP( -h * std::get<2>(taylorV)*params.Q() ); ///> P = P - h * hess(V(q)) * Q
+			params.updateS( -h * std::get<0>(taylorV) ); ///> S = S - h * V(q)
+		}
+
+		// TODO: introduce private functions update_qQS(params,dt) and update_pPS(params,dt)
+
 
 };
 
