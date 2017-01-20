@@ -32,18 +32,12 @@ namespace utils = utilities;
 /**
  * \brief generic propagator class for Hagedorn Wave Packets
  *
- * \tparam N
- * Number of energy levels
- * \tparam D
- * Dimension of space
- * \tparam MultiIndex
- * Type of multi index used in the basis shape
- * \tparam MDQR
- * Multi-dimensional quadrature rule
- * \tparam Potential_t
- * Type of the Potential to be used
- * \tparam Packet_t
- * Type of the Wavepacket to be propagated
+ * \tparam N Number of energy levels
+ * \tparam D Dimension of space
+ * \tparam MultiIndex Type of multi index used in the basis shape
+ * \tparam MDQR Multi-dimensional quadrature rule
+ * \tparam Potential_t Type of the Potential to be used
+ * \tparam Packet_t Type of the Wavepacket to be propagated
  */
 
 // TODO: consider making Potential_t a parameter of propagate only (but then needs to be passed around a lot, right?)
@@ -63,6 +57,15 @@ class Propagator {
 		 : wpacket_(pack)
 		 , V_(V)
 		{
+
+			/*
+                    int size = 0;
+                    for (auto& component : packet.components()) {
+                        size += component.coefficients().size();
+                    }
+                    F.resize(size,size);
+            */
+
 			// unsigned size = 0;
 			// size = 1; // Scalar Case
 			// for(auto& c : wpacket_.components()) {
@@ -131,11 +134,39 @@ class Propagator {
 			buildF(F_);
 		}
 
-		void buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
+		// N>1
+        template <int N_LEVELS=N>
+        typename std::enable_if<(N_LEVELS>1),void>::type
+		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
 
-			// TODO: generalize to multidimensional case (efficiently)
+			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q, const dim_t i, const dim_t j)
+				{
+					///> R: order of the quadrature rule
+					///> x: nodal points of quadrature rule (dimension DxR)
+					///> q: position (dimension Dx1)
+					const dim_t R = x.cols(); ///> Order of the quadrature rule
+					CMatrix<1,Eigen::Dynamic> f(1,R); ///> Result f(x,[q_1,...,q_R])
 
-			auto op = [this] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q)
+					// #pragma omp parallel for schedule(guided)
+					for(int r=0; r<R; ++r) {
+						f(0,r) = V_.evaluate_local_remainder_at(
+						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
+						     	    utils::Squeeze<D,CVector<D>>::apply(complex_t(1,0)*q)
+						     	   ) (i,j);
+					}
+					return f;
+				};
+
+			M = innerproducts::VectorInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
+
+		}
+
+		// N=1
+        template <int N_LEVELS=N>
+        typename std::enable_if<(N_LEVELS==1),void>::type
+		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
+
+			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q)
 				{
 					///> R: order of the quadrature rule
 					///> x: nodal points of quadrature rule (dimension DxR)
@@ -153,22 +184,16 @@ class Propagator {
 					return f;
 				};
 
-			using Innerproduct_t = 
-				typename std::conditional<
-				                 std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value, // scalar wavepacket?
-				                 innerproducts::HomogeneousInnerProduct<D,MultiIndex,MDQR>, // 1 dimensional
-				                 innerproducts::VectorInnerProduct<D,MultiIndex,MDQR>       // N dimensional
-				            >::type;
-			M = Innerproduct_t::build_matrix(wpacket_,op);
-
+			M = innerproducts::HomogeneousInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
 		}
 
 		/**
 		 * \brief single step with quadratic potential energy U 
 		 */
 		// Homogeneous
-        template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
-		void stepU(const real_t h) {
+        template <typename P=Packet_t>
+        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+		stepU(const real_t h) {
 			// Homogeneous
 			// TODO: implement
 			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
@@ -179,8 +204,9 @@ class Propagator {
 			stepU_params(h,wpacket_.parameters());
 		}
 		// Inhomogeneous
-        template <typename U=Packet_t, typename std::enable_if<std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
-		void stepU(const real_t h) {
+        template <typename P=Packet_t>
+        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+		stepU(const real_t h) {
 			// Inhomogeneous
 			// TODO: implement
 			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
@@ -199,14 +225,16 @@ class Propagator {
 		 * \brief single step with kinetic energy operator T
 		 */
 		// Homogeneous
-        template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
-		void stepT(const real_t h) {
+        template <typename P=Packet_t>
+        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+		stepT(const real_t h) {
 			// Homogeneous
 			stepT_params(h,wpacket_.parameters());
 		}
 		// Inhomogeneous
-        template <typename U=Packet_t, typename std::enable_if<std::is_same<U,InhomogeneousHaWp<D,MultiIndex>>::value,int>::type = 0>
-		void stepT(const real_t h) {
+        template <typename P=Packet_t>
+        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+		stepT(const real_t h) {
 			// Inhomogeneous
 			for(auto& comp : wpacket_.components()) {
 				stepT_params(h,comp.parameters());
@@ -279,7 +307,8 @@ class Propagator {
 		 * \brief update q,Q,S according to operator T
 		 */
 		void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
-			real_t Minv = 1.f; // inverse mass // TODO: make this a matrix // TODO: remove mass if not required
+			// NB: remove mass if not required
+			RMatrix<Eigen::Dynamic,Eigen::Dynamic> Minv = RMatrix<D,D>::Identity();
 			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
 			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
 			params.updateS( +.5f*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
