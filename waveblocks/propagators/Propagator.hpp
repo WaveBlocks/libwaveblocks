@@ -195,27 +195,25 @@ class Propagator {
         typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
 		stepU(const real_t h) {
 			// Homogeneous
-			// TODO: implement
-			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
-			// TODO: is this only valid for homogeneous? 
-			// const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
-			//  --> get leading level for homogeneous packets only
-			// TODO: stepU params pass leading level
-			stepU_params(h,wpacket_.parameters());
+			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
+			auto& params = wpacket_.parameters();
+			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
+			stepU_params(h,params,std::get<0>(taylorV),std::get<1>(taylorV),std::get<2>(taylorV));
 		}
 		// Inhomogeneous
         template <typename P=Packet_t>
         typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
 		stepU(const real_t h) {
 			// Inhomogeneous
-			// TODO: implement
-			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
-			// TODO: add inhomogeneous implementation: loop over components
-			// TODO: is this only valid for homogeneous? 
-			// const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
-			//  --> get leading level for homogeneous packets only
-			// TODO: stepU params pass leading level
-			stepU_params(h,wpacket_.parameters());
+			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
+			// NB: inefficient, since all levels 0 <= i < N are evaluated for each single level
+			int i=0;
+			for(auto& comp : wpacket_.components()) {
+				auto& params = comp.parameters();
+				const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
+				stepU_params(h,params,std::get<0>(taylorV)[i],std::get<1>(taylorV)[i],std::get<2>(taylorV)[i]);
+				++i;
+			}
 		}
 
 		// TODO: is this inlined as a template?? cause it is a normal function!!
@@ -304,7 +302,7 @@ class Propagator {
 	private:
 
 		/**
-		 * \brief update q,Q,S according to operator T
+		 * \brief update q,Q,S according to kinetic operator T
 		 */
 		void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
 			// NB: remove mass if not required
@@ -315,21 +313,18 @@ class Propagator {
 		}
 
 		/**
-		 * \brief update p,P,S according to operator U
+		 * \brief update p,P,S according to quadratic potential operator U
 		 */
-		void stepU_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
+		template <typename V_T, typename DV_T, typename DDV_T>
+		void stepU_params(const real_t h, wavepackets::HaWpParamSet<D>& params, const V_T& potential, const DV_T& jacobian, const DDV_T& hessian) {
 			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
 			// TODO: what does get_leading_level do???
 			//  --> get leading level for homogeneous packets only // TODO: check this for inhom
 			//  TODO: consider passing Level& as an additional parameter
-			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
-			params.updatep( -h * utils::Unsqueeze<D,RVector<D>>::apply(std::get<1>(taylorV).real()) ); ///> p = p - h * jac(V(q))
-			params.updateP( -h * std::get<2>(taylorV)*params.Q() ); ///> P = P - h * hess(V(q)) * Q
-			params.updateS( -h * std::get<0>(taylorV) ); ///> S = S - h * V(q)
+			params.updatep( -h * utils::Unsqueeze<D,RVector<D>>::apply(jacobian.real()) ); ///> p = p - h * jac(V(q))
+			params.updateP( -h * hessian*params.Q() ); ///> P = P - h * hess(V(q)) * Q
+			params.updateS( -h * potential ); ///> S = S - h * V(q)
 		}
-
-		// TODO: introduce private functions update_qQS(params,dt) and update_pPS(params,dt)
-
 
 };
 
