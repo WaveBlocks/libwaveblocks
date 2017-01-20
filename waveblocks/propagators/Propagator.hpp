@@ -53,31 +53,51 @@ class Propagator {
 
 	public:
 
+		/**
+		 * \brief Propagator constructor for scalar wave packets
+		 *
+		 * Constructs a propagator for N=1 energy levels
+		 *
+		 * \param pack wave packet to be propagated
+		 * \param V potential to use for propagation
+		 */
+		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V)
 		 : wpacket_(pack)
 		 , V_(V)
 		{
-
-			/*
-                    int size = 0;
-                    for (auto& component : packet.components()) {
-                        size += component.coefficients().size();
-                    }
-                    F.resize(size,size);
-            */
-
-			// unsigned size = 0;
-			// size = 1; // Scalar Case
-			// for(auto& c : wpacket_.components()) {
-			// 	size += c.coefficients.size();
-			// }
-			// F_.resize(size,size);
-			const bool scalar = std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value;
-			static_assert(scalar == (N==1),"Scalar wave packets must have N==1");
+			static_assert(N==1,"Scalar wave packets must have N==1");
 		}
 
-		// TODO: make CRTP instead
 		/**
+		 * \brief Propagator constructor for multi-level wave packets
+		 *
+		 * Constructs a propagator for N>1 energy levels, resizes the matrix F_ to the correct size for future computations
+		 *
+		 * \param pack wave packet to be propagated
+		 * \param V potential to use for propagation
+		 */
+		template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,ScalarHaWp<D,MultiIndex>>::value,int>::type = 0>
+		Propagator(Packet_t& pack, Potential_t& V)
+		 : wpacket_(pack)
+		 , V_(V)
+		{
+			static_assert(N>1,"Multi-Level wave packets must have N>1");
+			unsigned size = 0;
+			for(auto& comp : wpacket_.components()) {
+				size += comp.coefficients.size();
+			}
+			F_.resize(size,size);
+		}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Quadratic Potential Energy Operator U
+/////////////////////////////////////////////////////////////////////////////////
+
+		/**
+		 * \brief function for time evolution
 		 * \param callback An optional callback function that is called before doing any time step and at the end of the propagation
 		 *  The callback function must take two arguments: the index of the current iteration (unsigned integer) and the current time (real_t)
 		 */
@@ -123,70 +143,69 @@ class Propagator {
 
 		}
 
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Functions to be provided by derived classes (CRTP)
+/////////////////////////////////////////////////////////////////////////////////
+
+	// TODO: make CRTP instead
+	protected:
 		virtual std::string getName() const = 0; ///< get the name of the current propagator
 		virtual void propagate(const real_t) = 0; ///< do the main propagation loop
 		virtual void pre_propagate(const real_t) {} ///< pre-propagation work
 		virtual void post_propagate(const real_t) {} ///< post-propagation work
 
-	protected:
+
+
 		
-		void buildF() {
-			buildF(F_);
+		// TODO: is this inlined as a template?? cause it is a normal function!!
+		// TODO: make this inline // template <typename T=void>
+
+/////////////////////////////////////////////////////////////////////////////////
+// Kinetic Energy Operator T
+/////////////////////////////////////////////////////////////////////////////////
+
+	protected:
+		/**
+		 * \brief single step with kinetic energy operator T
+		 */
+		// Homogeneous
+        template <typename P=Packet_t>
+        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+		stepT(const real_t h) {
+			// Homogeneous
+			stepT_params(h,wpacket_.parameters());
+		}
+		// Inhomogeneous
+        template <typename P=Packet_t>
+        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+		stepT(const real_t h) {
+			// Inhomogeneous
+			for(auto& comp : wpacket_.components()) {
+				stepT_params(h,comp.parameters());
+			}
+		}
+	
+	private:
+		/**
+		 * \brief update q,Q,S according to kinetic operator T
+		 */
+		void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
+			// NB: remove mass if not required
+			RMatrix<Eigen::Dynamic,Eigen::Dynamic> Minv = RMatrix<D,D>::Identity();
+			params.updateq( +h * Minv*params.p() ); ///< q = q + h * M^{-1} * p
+			params.updateQ( +h * Minv*params.P() ); ///< Q = Q + h * M^{-1} * P
+			params.updateS( +.5f*h * params.p().dot(Minv*params.p()) ); ///< S = S + h/2 * p^T M p
 		}
 
-		// N>1
-        template <int N_LEVELS=N>
-        typename std::enable_if<(N_LEVELS>1),void>::type
-		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
 
-			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q, const dim_t i, const dim_t j)
-				{
-					///> R: order of the quadrature rule
-					///> x: nodal points of quadrature rule (dimension DxR)
-					///> q: position (dimension Dx1)
-					const dim_t R = x.cols(); ///> Order of the quadrature rule
-					CMatrix<1,Eigen::Dynamic> f(1,R); ///> Result f(x,[q_1,...,q_R])
 
-					// #pragma omp parallel for schedule(guided)
-					for(int r=0; r<R; ++r) {
-						f(0,r) = V_.evaluate_local_remainder_at(
-						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
-						     	    utils::Squeeze<D,CVector<D>>::apply(complex_t(1,0)*q)
-						     	   ) (i,j);
-					}
-					return f;
-				};
-
-			M = innerproducts::VectorInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
-
-		}
-
-		// N=1
-        template <int N_LEVELS=N>
-        typename std::enable_if<(N_LEVELS==1),void>::type
-		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
-
-			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q)
-				{
-					///> R: order of the quadrature rule
-					///> x: nodal points of quadrature rule (dimension DxR)
-					///> q: position (dimension Dx1)
-					const dim_t R = x.cols(); ///> Order of the quadrature rule
-					CMatrix<1,Eigen::Dynamic> f(1,R); ///> Result f(x,[q_1,...,q_R])
-
-					// #pragma omp parallel for schedule(guided)
-					for(int r=0; r<R; ++r) {
-						f(0,r) = V_.evaluate_local_remainder_at(
-						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
-						     	    utils::Squeeze<D,CVector<D>>::apply(complex_t(1,0)*q)
-						     	   );
-					}
-					return f;
-				};
-
-			M = innerproducts::HomogeneousInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
-		}
-
+/////////////////////////////////////////////////////////////////////////////////
+// Quadratic Potential Energy Operator U
+/////////////////////////////////////////////////////////////////////////////////
+		
+	protected:
 		/**
 		 * \brief single step with quadratic potential energy U 
 		 */
@@ -215,30 +234,25 @@ class Propagator {
 				++i;
 			}
 		}
-
-		// TODO: is this inlined as a template?? cause it is a normal function!!
-		// TODO: make this inline // template <typename T=void>
-
+	
+	private:
 		/**
-		 * \brief single step with kinetic energy operator T
+		 * \brief update p,P,S according to quadratic potential operator U
 		 */
-		// Homogeneous
-        template <typename P=Packet_t>
-        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
-		stepT(const real_t h) {
-			// Homogeneous
-			stepT_params(h,wpacket_.parameters());
+		template <typename V_T, typename DV_T, typename DDV_T>
+		void stepU_params(const real_t h, wavepackets::HaWpParamSet<D>& params, const V_T& potential, const DV_T& jacobian, const DDV_T& hessian) {
+			params.updatep( -h * utils::Unsqueeze<D,RVector<D>>::apply(jacobian.real()) ); ///< p = p - h * jac(V(q))
+			params.updateP( -h * hessian*params.Q() ); ///< P = P - h * hess(V(q)) * Q
+			params.updateS( -h * potential ); ///< S = S - h * V(q)
 		}
-		// Inhomogeneous
-        template <typename P=Packet_t>
-        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
-		stepT(const real_t h) {
-			// Inhomogeneous
-			for(auto& comp : wpacket_.components()) {
-				stepT_params(h,comp.parameters());
-			}
-		}
-		
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Non-Quadratic Potential Energy Operator W
+/////////////////////////////////////////////////////////////////////////////////
+
+	protected:
 		/**
 		 * \brief single step with potential energy remainder W
 		 */
@@ -250,7 +264,7 @@ class Propagator {
 			complex_t factor(0,-h/(wpacket_.eps()*wpacket_.eps());
 			CVector<Eigen::Dynamic> coefs;
 			PacketConverter<Packet_t>::PackToCoef(packet,coefs)
-			coefs = (factor*F_).exp() * coefs; ///> c = exp(-i*h/eps^2 * F) * c
+			coefs = (factor*F_).exp() * coefs; ///< c = exp(-i*h/eps^2 * F) * c
 			PacketConverter<Packet_t>::CoefToPack(coefs,packet)
 			*/
 
@@ -259,10 +273,77 @@ class Propagator {
 			buildF(); // TODO: hom/inhom
 			CVector<Eigen::Dynamic> coefs = utils::PacketToCoefficients<Packet_t>::to(wpacket_); // get coefficients from packet
 			complex_t factor(0,-h/(wpacket_.eps()*wpacket_.eps()));
-			coefs = (factor*F_).exp() * coefs; ///> c = exp(-i*h/eps^2 * F) * c
+			coefs = (factor*F_).exp() * coefs; ///< c = exp(-i*h/eps^2 * F) * c
 			utils::PacketToCoefficients<Packet_t>::from(coefs,wpacket_); // update packet from coefficients
 		}
 
+		void buildF() {
+			buildF(F_);
+		}
+
+		// N>1
+        template <int N_LEVELS=N>
+        typename std::enable_if<(N_LEVELS>1),void>::type
+		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
+
+			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q, const dim_t i, const dim_t j)
+				{
+					///< R: order of the quadrature rule
+					///< x: nodal points of quadrature rule (dimension DxR)
+					///< q: position (dimension Dx1)
+					const dim_t R = x.cols(); ///< Order of the quadrature rule
+					CMatrix<1,Eigen::Dynamic> f(1,R); ///< Result f(x,[q_1,...,q_R])
+
+					// #pragma omp parallel for schedule(guided)
+					for(int r=0; r<R; ++r) {
+						f(0,r) = V_.evaluate_local_remainder_at(
+						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
+						     	    utils::Squeeze<D,CVector<D>>::apply(complex_t(1,0)*q)
+						     	   ) (i,j);
+					}
+					return f;
+				};
+
+			M = innerproducts::VectorInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
+
+		}
+
+		// N=1
+        template <int N_LEVELS=N>
+        typename std::enable_if<(N_LEVELS==1),void>::type
+		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
+
+			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q)
+				{
+					///< R: order of the quadrature rule
+					///< x: nodal points of quadrature rule (dimension DxR)
+					///< q: position (dimension Dx1)
+					const dim_t R = x.cols(); ///< Order of the quadrature rule
+					CMatrix<1,Eigen::Dynamic> f(1,R); ///< Result f(x,[q_1,...,q_R])
+
+					// #pragma omp parallel for schedule(guided)
+					for(int r=0; r<R; ++r) {
+						f(0,r) = V_.evaluate_local_remainder_at(
+						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
+						     	    utils::Squeeze<D,CVector<D>>::apply(complex_t(1,0)*q)
+						     	   );
+					}
+					return f;
+				};
+
+			M = innerproducts::HomogeneousInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
+		}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Int-Split
+/////////////////////////////////////////////////////////////////////////////////
+
+	protected:
+		/**
+		 * \brief split the timestep of size Dt into M smaller timesteps
+		 */
 		void intSplit(const real_t Dt, const unsigned M) {
 			real_t dt = Dt/M;
 			const std::vector<real_t> a = { 1,2,3 };
@@ -298,36 +379,8 @@ class Propagator {
 			}
 		}
 
-	
-	private:
-
-		/**
-		 * \brief update q,Q,S according to kinetic operator T
-		 */
-		void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
-			// NB: remove mass if not required
-			RMatrix<Eigen::Dynamic,Eigen::Dynamic> Minv = RMatrix<D,D>::Identity();
-			params.updateq( +h * Minv*params.p() ); ///> q = q + h * M^{-1} * p
-			params.updateQ( +h * Minv*params.P() ); ///> Q = Q + h * M^{-1} * P
-			params.updateS( +.5f*h * params.p().dot(Minv*params.p()) ); ///> S = S + h/2 * p^T M p
-		}
-
-		/**
-		 * \brief update p,P,S according to quadratic potential operator U
-		 */
-		template <typename V_T, typename DV_T, typename DDV_T>
-		void stepU_params(const real_t h, wavepackets::HaWpParamSet<D>& params, const V_T& potential, const DV_T& jacobian, const DDV_T& hessian) {
-			///> taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
-			// TODO: what does get_leading_level do???
-			//  --> get leading level for homogeneous packets only // TODO: check this for inhom
-			//  TODO: consider passing Level& as an additional parameter
-			params.updatep( -h * utils::Unsqueeze<D,RVector<D>>::apply(jacobian.real()) ); ///> p = p - h * jac(V(q))
-			params.updateP( -h * hessian*params.Q() ); ///> P = P - h * hess(V(q)) * Q
-			params.updateS( -h * potential ); ///> S = S - h * V(q)
-		}
-
 };
-
+	
 
 } // namespace propagators
 } // namespace waveblocks
