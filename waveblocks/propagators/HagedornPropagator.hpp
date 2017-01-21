@@ -1,6 +1,7 @@
 #pragma once
 
 #include "waveblocks/propagators/Propagator.hpp"
+#include "waveblocks/propagators/SplittingParameters.hpp"
 
 namespace waveblocks {
 namespace propagators {
@@ -11,7 +12,7 @@ namespace utils = utilities;
  * \brief Implements the Hagedorn Propagator
  */
 template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t, typename Packet_t>
-class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Packet_t> /* TODO: implement SplittingParameters , public SplittingParameters */ /* TODO: make CRTP */ {
+class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Packet_t>, public SplittingParameters /* TODO: make CRTP */ {
 
 	public:
 
@@ -29,19 +30,14 @@ class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Pac
 			this->stepW(Dt);
 			this->stepT(Dt/2);
 
-			const auto splitCoefs = std::pair<std::array<real_t,5>,std::array<real_t,4>>(
-				{ 1, 2, 3, 2, 1 },
-				{ 1.5, 1.5, 1.5, 1.5 }
-			);
-
 			// Semiclassical
 			// TODO: compute M
 			// TODO: make sure that M is even, otherwise M/2 + M/2 != M
-			int M = 20;
+			int M = 4;
 			assert(M%2==0);
-			this->intSplit(*this,Dt/2,M/2,splitCoefs);
+			this->intSplit(*this,Dt/2,M/2,coefKL10);
 			this->stepW(Dt);
-			this->intSplit(*this,Dt/2,M/2,splitCoefs);
+			this->intSplit(*this,Dt/2,M/2,coefKL10);
 
 
 			// // Magnus
