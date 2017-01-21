@@ -1,8 +1,9 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
+#include <array>
 #include <functional>
+#include <iomanip>
+#include <iostream>
 #include <type_traits>
 
 #include "../innerproducts/homogeneous_inner_product.hpp"
@@ -344,40 +345,69 @@ class Propagator {
 		/**
 		 * \brief split the timestep of size Dt into M smaller timesteps
 		 */
-		void intSplit(const real_t Dt, const unsigned M) {
-			real_t dt = Dt/M;
-			const std::vector<real_t> a = { 1,2,3 };
-			const std::vector<real_t> b = { 4,5,6 };
+		template <typename PROPAGATOR, const std::size_t S_A, const std::size_t S_B>
+		void intSplit(PROPAGATOR& prop, const real_t Dt, const unsigned M, const std::pair<std::array<real_t,S_A>,std::array<real_t,S_B>>& coefs) {
+			// TODO: consider providing intSplitTU, intSplitUT
+			static_assert(S_A==S_B || S_A==S_B+1,"invalid combination of coefficient array sizes");
+			const real_t dt = Dt/M;
 			for(unsigned m=0; m<M; ++m) {
-				// TODO: do this properly!! With weights!!
-				// alternating templates!!
-				splitTU(a,b,dt);
+				TU<PROPAGATOR,0,0,S_A,S_B>::split(prop,coefs.first,coefs.second,dt);
 			}
 		}
 		
+		template <typename PROPAGATOR, std::size_t N_T, std::size_t N_U, std::size_t S_T, std::size_t S_U> struct TU;
+		template <typename PROPAGATOR, std::size_t N_U, std::size_t N_T, std::size_t S_U, std::size_t S_T> struct UT;
+
+		// termination condition
+		template <typename PROPAGATOR, std::size_t S_T, std::size_t S_U>
+		struct TU<PROPAGATOR,S_T,S_U,S_T,S_U> {
+			static void split(PROPAGATOR& prop, const std::array<real_t,S_T>& coefT, const std::array<real_t,S_U>& coefU, const real_t dt) {
+				(void) prop; (void) coefT; (void) coefU; (void) dt;
+			}
+		};
+
+		// termination condition
+		template <typename PROPAGATOR, std::size_t S_U, std::size_t S_T>
+		struct UT<PROPAGATOR,S_U,S_T,S_U,S_T> {
+			static void split(PROPAGATOR& prop, const std::array<real_t,S_U>& coefU, const std::array<real_t,S_T>& coefT, const real_t dt) {
+				(void) prop; (void) coefT; (void) coefU; (void) dt;
+			}
+		};
+
+
 		/**
 		 * \brief alternately apply T and U, starting with T
 		 */
-		void splitTU(const std::vector<real_t>& w_T, const std::vector<real_t>& w_U, const real_t dt) {
-			assert(w_T.size() == w_U.size() || w_T.size() == w_U.size()+1);
-			if(w_T.size()>0) {
-				stepT(w_T.at(0)*dt); // do a step of size w_T[0]
-				std::vector<real_t> w_T_new(w_T.begin()+1,w_T.end()); // pass on all element but first w_T[1..N-1]
-				splitUT(dt,w_U,w_T_new);
+		template <typename PROPAGATOR, std::size_t N_T, std::size_t N_U, std::size_t S_T, std::size_t S_U>
+		struct TU {
+			static void split(PROPAGATOR& prop, const std::array<real_t,S_T>& coefT, const std::array<real_t,S_U>& coefU, const real_t dt) {
+
+				static_assert(N_T==N_U || N_T==N_U-1,"ERROR: invalid alternating index pair for TU");
+				std::cout << "\nTU - (" << N_T << "," << N_U << ")";
+
+				// Apply Steps
+				/* T     */ prop.stepT(coefT.at(N_T));
+				/* UT... */ UT<PROPAGATOR,N_U,N_T+1,S_U,S_T>::split(prop,coefU,coefT,dt);
+
 			}
-		}
-		
+		};
+
 		/**
 		 * \brief alternately apply T and U, starting with U
 		 */
-		void splitUT(const std::vector<real_t>& w_U, const std::vector<real_t>& w_T, const real_t dt) {
-			assert(w_U.size() == w_T.size() || w_U.size() == w_T.size()+1);
-			if(w_U.size()>0) {
-				stepU(w_U.at(0)*dt); // do a step of size w_U[0]
-				std::vector<real_t> w_U_new(w_U.begin()+1,w_U.end()); // pass on all element but first w_U[1..N-1]
-				splitTU(dt,w_T,w_U_new);
+		template <typename PROPAGATOR, std::size_t N_U, std::size_t N_T, std::size_t S_U, std::size_t S_T>
+		struct UT {
+			static void split(PROPAGATOR& prop, const std::array<real_t,S_U>& coefU, const std::array<real_t,S_T>& coefT, const real_t dt) {
+
+				static_assert(N_U==N_T || N_U==N_T-1,"ERROR: invalid alternating index pair for UT");
+				std::cout << "\nUT - (" << N_U << "," << N_T << ")";
+
+				// Apply Steps
+				/* U     */ prop.stepU(coefU.at(N_U));
+				/* TU... */ TU<PROPAGATOR,N_T,N_U+1,S_T,S_U>::split(prop,coefT,coefU,dt);
+
 			}
-		}
+		};
 
 };
 	

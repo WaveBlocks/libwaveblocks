@@ -29,15 +29,19 @@ class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Pac
 			this->stepW(Dt);
 			this->stepT(Dt/2);
 
+			const auto splitCoefs = std::pair<std::array<real_t,5>,std::array<real_t,4>>(
+				{ 1, 2, 3, 2, 1 },
+				{ 1.5, 1.5, 1.5, 1.5 }
+			);
 
-			// // Semiclassical
-			// // TODO: compute M
-			// // TODO: make sure that M is even, otherwise M/2 + M/2 != M
-			// int M = 2;
-			// assert(M%2==0);
-			// this->intSplit(Dt/2,M/2);
-			// this->stepW(Dt);
-			// this->intSplit(Dt/2,M/2);
+			// Semiclassical
+			// TODO: compute M
+			// TODO: make sure that M is even, otherwise M/2 + M/2 != M
+			int M = 20;
+			assert(M%2==0);
+			this->intSplit(*this,Dt/2,M/2,splitCoefs);
+			this->stepW(Dt);
+			this->intSplit(*this,Dt/2,M/2,splitCoefs);
 
 
 			// // Magnus
