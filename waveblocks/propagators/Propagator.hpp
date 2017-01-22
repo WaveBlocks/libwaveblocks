@@ -12,10 +12,9 @@
 #include "../potentials/potentials.hpp"
 #include "../types.hpp"
 #include "../utilities/adaptors.hpp"
-#include "../utilities/squeeze.hpp"
 #include "../utilities/prettyprint.hpp"
-#include "waveblocks/observables/energy.hpp"
-#include "waveblocks/io/hdf5writer.hpp"
+#include "../utilities/squeeze.hpp"
+#include "waveblocks/propagators/SplittingParameters.hpp"
 
 /** \file
  * \brief Abstract Propagator Class
@@ -44,7 +43,7 @@ namespace utils = utilities;
 template <typename Propagator_t, int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t>
 class Propagator {
 	
-	private:
+	protected:
 
 		Packet_t& wpacket_; ///< wave packet to be propagated
 		Potential_t& V_; ///< potential energy
@@ -419,7 +418,7 @@ class Propagator {
 		 *     it must hold that S_T==S_U OR S_T == S_U+1
 		 */
 		template <const std::size_t S_T, const std::size_t S_U>
-		void intSplit(const real_t Dt, const unsigned M, const std::pair<std::array<real_t,S_T>,std::array<real_t,S_U>>& coefs) {
+		void intSplit(const real_t Dt, const unsigned M, const std::pair<std::array<real_t,S_T>,std::array<real_t,S_U>> coefs) {
 			static_assert(S_T==S_U || S_T==S_U+1,"invalid combination of coefficient array sizes");
 			const real_t dt = Dt/M;
 			for(unsigned m=0; m<M; ++m) {
@@ -469,7 +468,7 @@ class Propagator {
 			 */
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_T>& coefT, const std::array<real_t,S_U>& coefU, const real_t dt) {
 				static_assert(N_T==N_U || N_T==N_U-1,"ERROR: invalid alternating index pair for TU");
-				print::pair("TU",std::to_string(N_T)+",",std::to_string(N_U));
+				// print::pair("TU",std::to_string(N_T)+","+std::to_string(N_U));
 				/* T     */ prop.stepT(coefT.at(N_T));
 				/* UT... */ UT<PROPAGATOR,N_U,N_T+1,S_U,S_T>::split(prop,coefU,coefT,dt);
 			}
@@ -497,7 +496,7 @@ class Propagator {
 			 */
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_U>& coefU, const std::array<real_t,S_T>& coefT, const real_t dt) {
 				static_assert(N_U==N_T || N_U==N_T-1,"ERROR: invalid alternating index pair for UT");
-				print::pair("UT",std::to_string(N_U)+",",std::to_string(N_T));
+				// print::pair("UT",std::to_string(N_U)+","+std::to_string(N_T));
 				/* U     */ prop.stepU(coefU.at(N_U));
 				/* TU... */ TU<PROPAGATOR,N_T,N_U+1,S_T,S_U>::split(prop,coefT,coefU,dt);
 			}

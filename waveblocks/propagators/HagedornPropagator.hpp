@@ -14,7 +14,7 @@ namespace utils = utilities;
  * This class implements the (pre-/post-)propagate functions for the Hagedorn Propagator
  */
 template <int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t>
-class HagedornPropagator : public Propagator<HagedornPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>, public SplittingParameters {
+class HagedornPropagator : public Propagator<HagedornPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t> {
 
 	public:
 
