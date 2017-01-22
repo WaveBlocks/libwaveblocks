@@ -41,15 +41,14 @@ namespace utils = utilities;
  * \tparam Packet_t Type of the Wavepacket to be propagated
  */
 
-// TODO: consider making Potential_t a parameter of propagate only (but then needs to be passed around a lot, right?)
 template <typename Propagator_t, int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t>
 class Propagator {
 	
 	private:
 
-		Packet_t& wpacket_;
-		Potential_t& V_;
-		CMatrix<Eigen::Dynamic,Eigen::Dynamic> F_; // TODO: consider renaming from F_ to something more "correct"
+		Packet_t& wpacket_; ///< wave packet to be propagated
+		Potential_t& V_; ///< potential energy
+		CMatrix<Eigen::Dynamic,Eigen::Dynamic> F_;
 
 
 	public:
@@ -59,6 +58,7 @@ class Propagator {
 		 *
 		 * Constructs a propagator for N=1 energy levels
 		 *
+		 * \tparam U Dummy template parameter, neccessary for enable_if
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
 		 */
@@ -75,6 +75,7 @@ class Propagator {
 		 *
 		 * Constructs a propagator for N>1 energy levels, resizes the matrix F_ to the correct size for future computations
 		 *
+		 * \tparam U Dummy template parameter, neccessary for enable_if
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
 		 */
@@ -99,27 +100,28 @@ class Propagator {
 
 		/**
 		 * \brief function for time evolution
+		 *
+		 * \param T Size of total time interval
+		 * \param Dt Size of each time step
 		 * \param callback An optional callback function that is called before doing any time step and at the end of the propagation
 		 *  The callback function must take two arguments: the index of the current iteration (unsigned integer) and the current time (real_t)
 		 */
-		void evolve(const real_t T, const real_t Dt,
-				const std::function<void(unsigned, real_t)> callback = [](unsigned,real_t) {}) {
+		void evolve(const real_t T, const real_t Dt, const std::function<void(unsigned, real_t)> callback = [](unsigned,real_t) {}) {
 
 			if(T<0) return;
 
 			real_t t = 0;
 
-			// TODO: ifdef verbose
 			{
 				const bool scalar = std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value;
+				const bool hom = std::is_same<Packet_t,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value;
 				std::cout << "\n\n";
 				print::title(getName() + " Propagator");
-				print::pair((scalar ? "Scalar" : "Vectorial") + std::string(" Wave Packet"),"");
-				// TODO: homogeneous / inhomogeneous?
+				print::pair("Wave Packet",(scalar ? "Scalar" : (std::string("Vectorial") + (hom ? ", Homogeneous" : ", Inhomogeneous"))));
 				print::pair("D (number of dimensions)",D);
 				print::pair("N (number of energy levels)",N);
-				print::pair("Quadrature Rule","TODO: which quadrature rule");
-				print::pair("Order of the scheme","TODO: order of method");
+				// print::pair("Quadrature Rule","MDQR");
+				// print::pair("Order of the scheme","ORDER");
 				print::separator();
 				print::pair("Time Span T",T);
 				print::pair("Stepsize Dt",Dt);
@@ -152,21 +154,31 @@ class Propagator {
 
 	protected:
 
-		/** get the name of the current propagator */
+		/** \brief get the name of the current propagator */
 		std::string getName() { return static_cast<Propagator_t*>(this)->getName(); }
 
-		/** do the main propagation loop */
+		/**
+		 * \brief do the main propagation loop
+		 * 
+		 * \param Dt Size of timestep to be performed
+		 */
 		void propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->propagate(Dt); }
 
-		/** pre-propagation work */
+		/**
+		 * \brief pre-propagation work
+		 *
+		 * \param Dt Size of timestep to be performed
+		 */
 		void pre_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->pre_propagate(Dt); }
 
-		/** post-propagation work */
+		/**
+		 * \brief post-propagation work
+		 *
+		 * \param Dt Size of timestep to be performed
+		 */
 		void post_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->post_propagate(Dt); }
 
 
-		// TODO: is this inlined as a template?? cause it is a normal function!!
-		// TODO: make this inline // template <typename T=void>
 
 /////////////////////////////////////////////////////////////////////////////////
 // Kinetic Energy Operator T
@@ -174,7 +186,12 @@ class Propagator {
 
 	protected:
 		/**
-		 * \brief single step with kinetic energy operator T
+		 * \brief single step with kinetic energy operator T, homogeneous wave packet
+		 *
+		 * Carry out a single timestep of size h with the kinetic energy operator T for a homogeneous wavepacket.
+		 * Calls stepT_params on the complete wavepacket
+		 *
+		 * \param h Size of timestep
 		 */
 		// Homogeneous
         template <typename P=Packet_t>
@@ -183,7 +200,14 @@ class Propagator {
 			// Homogeneous
 			stepT_params(h,wpacket_.parameters());
 		}
-		// Inhomogeneous
+		/**
+		 * \brief single step with kinetic energy operator T, inhomogeneous wave packet
+		 *
+		 * Carry out a single timestep of size h with the kinetic energy operator T for an inhomogeneous wavepacket.
+		 * Calls stepT_params on each component (energy level) of the wavepacket
+		 *
+		 * \param h Size of timestep
+		 */
         template <typename P=Packet_t>
         typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepT(const real_t h) {
@@ -196,6 +220,9 @@ class Propagator {
 	private:
 		/**
 		 * \brief update q,Q,S according to kinetic operator T
+		 *
+		 * \param h Size of timestep
+		 * \param params Wave packet parameters to be updated
 		 */
 		void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
 			// NB: remove mass if not required
@@ -213,9 +240,13 @@ class Propagator {
 		
 	protected:
 		/**
-		 * \brief single step with quadratic potential energy U 
+		 * \brief single step with quadratic potential energy operator U, homogeneous wave packet
+		 *
+		 * Carry out a single timestep of size h with the quadratic potential energy operator U for a homogeneous wavepacket.
+		 * Calls stepU_params on the complete wavepacket
+		 *
+		 * \param h Size of timestep
 		 */
-		// Homogeneous
         template <typename P=Packet_t>
         typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
@@ -225,7 +256,14 @@ class Propagator {
 			const auto& taylorV = V_.get_leading_level().taylor_at(/* q = */ complex_t(1,0) * utils::Squeeze<D,RVector<D>>::apply(params.q()));
 			stepU_params(h,params,std::get<0>(taylorV),std::get<1>(taylorV),std::get<2>(taylorV));
 		}
-		// Inhomogeneous
+		/**
+		 * \brief single step with quadratic potential energy operator U, inhomogeneous wave packet
+		 *
+		 * Carry out a single timestep of size h with the quadratic potential energy operator U for an inhomogeneous wavepacket.
+		 * Calls stepU_params on each component (energy level) of the wavepacket
+		 *
+		 * \param h Size of timestep
+		 */
         template <typename P=Packet_t>
         typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
@@ -244,6 +282,16 @@ class Propagator {
 	private:
 		/**
 		 * \brief update p,P,S according to quadratic potential operator U
+		 *
+		 * \tparam V_T Evaluation type for the potential
+		 * \tparam DV_T Evaluation type for the jacobian
+		 * \tparam DDV_T Evaluation type for the hessian
+		 *
+		 * \param h Size of timestep
+		 * \param params Wave packet parameters to be updated
+		 * \param potential Evaluation of the Potential
+		 * \param jacobian Evaluation of the Jacobian of the potential
+		 * \param hessian Evaluation of the Hessian of the potential
 		 */
 		template <typename V_T, typename DV_T, typename DDV_T>
 		void stepU_params(const real_t h, wavepackets::HaWpParamSet<D>& params, const V_T& potential, const DV_T& jacobian, const DDV_T& hessian) {
@@ -261,6 +309,9 @@ class Propagator {
 	protected:
 		/**
 		 * \brief single step with potential energy remainder W
+		 * Carry out a single timestep of size h with the potential energy remainder W=V-U
+		 * 
+		 * \param h Size of timestep
 		 */
 		void stepW(const real_t h) {
 			/*
@@ -274,22 +325,23 @@ class Propagator {
 			PacketConverter<Packet_t>::CoefToPack(coefs,packet)
 			*/
 
-			// TODO: Pi' = ?
-			// TODO: Pi_i' = ? for all i=0,..,N-1
-			buildF(); // TODO: hom/inhom
+			buildF();
 			CVector<Eigen::Dynamic> coefs = utils::PacketToCoefficients<Packet_t>::to(wpacket_); // get coefficients from packet
 			complex_t factor(0,-h/(wpacket_.eps()*wpacket_.eps()));
 			coefs = (factor*F_).exp() * coefs; ///< c = exp(-i*h/eps^2 * F) * c
 			utils::PacketToCoefficients<Packet_t>::from(coefs,wpacket_); // update packet from coefficients
 		}
 
-		void buildF() {
-			buildF(F_);
-		}
+		/** \brief convenience function that calls buildF(F_) */
+		void buildF() { buildF(F_); }
 
-		// N>1
+		/**
+		 * \brief build the interaction matrix F for a multi-level system
+		 *
+		 * \param M Result matrix
+		 */
         template <int N_LEVELS=N>
-        typename std::enable_if<(N_LEVELS>1),void>::type
+        typename std::enable_if<(N_LEVELS>1),void>::type // N>1
 		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
 
 			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q, const dim_t i, const dim_t j)
@@ -314,9 +366,13 @@ class Propagator {
 
 		}
 
-		// N=1
+		/**
+		 * \brief build the interaction matrix F for a 1-level system
+		 *
+		 * \param M Result matrix
+		 */
         template <int N_LEVELS=N>
-        typename std::enable_if<(N_LEVELS==1),void>::type
+        typename std::enable_if<(N_LEVELS==1),void>::type // N=1
 		buildF(CMatrix<Eigen::Dynamic,Eigen::Dynamic>& M) {
 
 			auto op = [&] (const CMatrix<D,Eigen::Dynamic>& x, const RMatrix<D,1>& q)
@@ -349,27 +405,41 @@ class Propagator {
 	protected:
 		/**
 		 * \brief split the timestep of size Dt into M smaller timesteps
+		 *
+		 * Splits the timestep Dt into M smaller intervals of size dt=Dt/M and propagates
+		 * the wavepacket in an alternating way with the operators T and U (starting with T).
+		 * The coefficients of the splitting are given by a splitting scheme.
+		 *
+		 * \tparam S_T Size of the array of coefficients for operator T
+		 * \tparam S_U Size of the array of coefficients for operator U
+		 * \param Dt Size of time interval
+		 * \param M Number of sub-intervals
+		 * \param coefs A pair of arrays of size S_T and S_U respectively.
+		 *     Since the operators T and U are applied alternately (starting with T),
+		 *     it must hold that S_T==S_U OR S_T == S_U+1
 		 */
-		template <typename PROPAGATOR, const std::size_t S_A, const std::size_t S_B>
-		void intSplit(PROPAGATOR& prop, const real_t Dt, const unsigned M, const std::pair<std::array<real_t,S_A>,std::array<real_t,S_B>>& coefs) {
-			// TODO: consider providing intSplitTU, intSplitUT
-			static_assert(S_A==S_B || S_A==S_B+1,"invalid combination of coefficient array sizes");
+		template <const std::size_t S_T, const std::size_t S_U>
+		void intSplit(const real_t Dt, const unsigned M, const std::pair<std::array<real_t,S_T>,std::array<real_t,S_U>>& coefs) {
+			static_assert(S_T==S_U || S_T==S_U+1,"invalid combination of coefficient array sizes");
 			const real_t dt = Dt/M;
 			for(unsigned m=0; m<M; ++m) {
-				TU<PROPAGATOR,0,0,S_A,S_B>::split(prop,coefs.first,coefs.second,dt);
+				TU<Propagator_t,0,0,S_T,S_U>::split(*static_cast<Propagator_t*>(this),coefs.first,coefs.second,dt);
 			}
 		}
 		
+		// forward declarations
+		/** \brief templated struct for splitting into T and remainder */
 		template <typename PROPAGATOR, std::size_t N_T, std::size_t N_U, std::size_t S_T, std::size_t S_U> struct TU;
+		/** \brief templated struct for splitting into U and remainder */
 		template <typename PROPAGATOR, std::size_t N_U, std::size_t N_T, std::size_t S_U, std::size_t S_T> struct UT;
 
-		// termination condition
+		// termination conditions
+		/** \brief termination condition N_T == S_T and N_U == S_U */
 		template <typename PROPAGATOR, std::size_t S_T, std::size_t S_U>
 		struct TU<PROPAGATOR,S_T,S_U,S_T,S_U> {
 			static void split(PROPAGATOR&, const std::array<real_t,S_T>&, const std::array<real_t,S_U>&, const real_t) {}
 		};
-
-		// termination condition
+		/** \brief termination condition N_T == S_T and N_U == S_U */
 		template <typename PROPAGATOR, std::size_t S_U, std::size_t S_T>
 		struct UT<PROPAGATOR,S_U,S_T,S_U,S_T> {
 			static void split(PROPAGATOR&, const std::array<real_t,S_U>&, const std::array<real_t,S_T>&, const real_t) {}
@@ -377,36 +447,59 @@ class Propagator {
 
 
 		/**
-		 * \brief alternately apply T and U, starting with T
+		 * A templated struct with one static function that alternately applies the operators T and U, starting with T
+		 * Neccessary since partial specialization of function templates is not allowed in cpp
+		 * (only partial specialization of types/classes)
+		 *
+		 * \tparam PROPAGATOR type of the propagator
+		 * \tparam N_T current index of coefficient for operator T
+		 * \tparam N_U current index of coefficient for operator U
+		 * \tparam S_T size of coefficient array coefT
+		 * \tparam S_U size of coefficient array coefU
 		 */
 		template <typename PROPAGATOR, std::size_t N_T, std::size_t N_U, std::size_t S_T, std::size_t S_U>
 		struct TU {
+			/**
+			 * \brief alternately apply T and U, starting with U
+			 *
+			 * \param prop Reference to the current propagator (this pointer is not available from within nested classes)
+			 * \param coefT Array of coefficients for propagation with operator T
+			 * \param coefU Array of coefficients for propagation with operator U
+			 * \param dt Size of the current timestep sub-interval
+			 */
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_T>& coefT, const std::array<real_t,S_U>& coefU, const real_t dt) {
-
 				static_assert(N_T==N_U || N_T==N_U-1,"ERROR: invalid alternating index pair for TU");
-				std::cout << "\nTU - (" << N_T << "," << N_U << ")";
-
-				// Apply Steps
+				print::pair("TU",std::to_string(N_T)+",",std::to_string(N_U));
 				/* T     */ prop.stepT(coefT.at(N_T));
 				/* UT... */ UT<PROPAGATOR,N_U,N_T+1,S_U,S_T>::split(prop,coefU,coefT,dt);
-
 			}
 		};
-
 		/**
-		 * \brief alternately apply T and U, starting with U
+		 * A templated struct with one static function that alternately applies the operators U and T, starting with U
+		 * Neccessary since partial specialization of function templates is not allowed in cpp
+		 * (only partial specialization of types/classes)
+		 *
+		 * \tparam PROPAGAUOR type of the propagator
+		 * \tparam N_U current index of coefficient for operator U
+		 * \tparam N_T current index of coefficient for operator T
+		 * \tparam S_U size of coefficient array coefU
+		 * \tparam S_T size of coefficient array coefT
 		 */
 		template <typename PROPAGATOR, std::size_t N_U, std::size_t N_T, std::size_t S_U, std::size_t S_T>
 		struct UT {
+			/**
+			 * \brief alternately apply U and T, starting with U
+			 *
+			 * \param prop Reference to the current propagator (this pointer is not available from within nested classes)
+			 * \param coefU Array of coefficients for propagation with operator U
+			 * \param coefT Array of coefficients for propagation with operator T
+			 * \param dt Size of the current timestep sub-interval
+			 */
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_U>& coefU, const std::array<real_t,S_T>& coefT, const real_t dt) {
-
 				static_assert(N_U==N_T || N_U==N_T-1,"ERROR: invalid alternating index pair for UT");
-				std::cout << "\nUT - (" << N_U << "," << N_T << ")";
-
-				// Apply Steps
+				print::pair("UT",std::to_string(N_U)+",",std::to_string(N_T));
 				/* U     */ prop.stepU(coefU.at(N_U));
 				/* TU... */ TU<PROPAGATOR,N_T,N_U+1,S_T,S_U>::split(prop,coefT,coefU,dt);
-
 			}
 		};
 
