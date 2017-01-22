@@ -35,6 +35,5 @@ class HagedornPropagator : public Propagator<HagedornPropagator<N,D,MultiIndex_t
 
 };
 
-
 } // namespace propagators
 } // namespace waveblocks

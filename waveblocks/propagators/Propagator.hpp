@@ -505,6 +505,5 @@ class Propagator {
 
 };
 	
-
 } // namespace propagators
 } // namespace waveblocks
