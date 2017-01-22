@@ -27,3 +27,7 @@ add_executable(nonsense_2N_1D nonsense_2N_1D.cpp)
 add_executable(nonsense_2N_1D_inhom nonsense_2N_1D_inhom.cpp)
 add_executable(nonsense_2N_2D nonsense_2N_2D.cpp)
 add_executable(nonsense_2N_2D_inhom nonsense_2N_2D_inhom.cpp)
+
+# Testing different Propagators
+add_executable(propagatortest_anharmonic_1D propagatortest_anharmonic_1D.cpp)
+target_link_libraries(propagatortest_anharmonic_1D ${LINK_LIBS})

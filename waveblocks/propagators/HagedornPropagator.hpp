@@ -11,18 +11,18 @@ namespace utils = utilities;
 /** \file
  * \brief Implements the Hagedorn Propagator
  */
-template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t, typename Packet_t>
-class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Packet_t>, public SplittingParameters /* TODO: make CRTP */ {
+template <int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t>
+class HagedornPropagator : public Propagator<HagedornPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>, public SplittingParameters {
 
 	public:
 
-		using Propagator<N,D,MultiIndex,MDQR,Potential_t,Packet_t>::Propagator; // inherit constructor
+		using Propagator<HagedornPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>::Propagator; // inherit constructor
 
-		std::string getName() const override {
+		std::string getName() {
 			return "Hagedorn";
 		}
 
-		void propagate(const real_t Dt) override {
+		void propagate(const real_t Dt) {
 
 			// Hagedorn
 			this->stepT(Dt/2);
@@ -33,11 +33,11 @@ class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Pac
 			// Semiclassical
 			// TODO: compute M
 			// TODO: make sure that M is even, otherwise M/2 + M/2 != M
-			int M = 4;
-			assert(M%2==0);
-			this->intSplit(*this,Dt/2,M/2,coefKL10);
-			this->stepW(Dt);
-			this->intSplit(*this,Dt/2,M/2,coefKL10);
+			// int M = 4;
+			// assert(M%2==0);
+			// this->intSplit(*this,Dt/2,M/2,coefKL10);
+			// this->stepW(Dt);
+			// this->intSplit(*this,Dt/2,M/2,coefKL10);
 
 
 			// // Magnus
@@ -100,6 +100,9 @@ class HagedornPropagator : public Propagator<N,D,MultiIndex,MDQR,Potential_t,Pac
 			// this->intSplit(a_[2]*Dt,M);
 
 		}
+
+		void pre_propagate(const real_t) {}
+		void post_propagate(const real_t) {}
 
 };
 

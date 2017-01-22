@@ -35,14 +35,14 @@ namespace utils = utilities;
  *
  * \tparam N Number of energy levels
  * \tparam D Dimension of space
- * \tparam MultiIndex Type of multi index used in the basis shape
- * \tparam MDQR Multi-dimensional quadrature rule
+ * \tparam MultiIndex_t Type of multi index used in the basis shape
+ * \tparam MDQR_t Multi-dimensional quadrature rule
  * \tparam Potential_t Type of the Potential to be used
  * \tparam Packet_t Type of the Wavepacket to be propagated
  */
 
 // TODO: consider making Potential_t a parameter of propagate only (but then needs to be passed around a lot, right?)
-template <int N, int D, typename MultiIndex, typename MDQR, typename Potential_t, typename Packet_t>
+template <typename Propagator_t, int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t>
 class Propagator {
 	
 	private:
@@ -62,7 +62,7 @@ class Propagator {
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
 		 */
-		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex>>::value,int>::type = 0>
+		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V)
 		 : wpacket_(pack)
 		 , V_(V)
@@ -78,7 +78,7 @@ class Propagator {
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
 		 */
-		template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,ScalarHaWp<D,MultiIndex>>::value,int>::type = 0>
+		template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V)
 		 : wpacket_(pack)
 		 , V_(V)
@@ -103,7 +103,7 @@ class Propagator {
 		 *  The callback function must take two arguments: the index of the current iteration (unsigned integer) and the current time (real_t)
 		 */
 		void evolve(const real_t T, const real_t Dt,
-				const std::function<void(unsigned, real_t)> callback = [](unsigned i, real_t t) { (void)i; (void)t; }) {
+				const std::function<void(unsigned, real_t)> callback = [](unsigned,real_t) {}) {
 
 			if(T<0) return;
 
@@ -111,7 +111,7 @@ class Propagator {
 
 			// TODO: ifdef verbose
 			{
-				const bool scalar = std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex>>::value;
+				const bool scalar = std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value;
 				std::cout << "\n\n";
 				print::title(getName() + " Propagator");
 				print::pair((scalar ? "Scalar" : "Vectorial") + std::string(" Wave Packet"),"");
@@ -150,16 +150,21 @@ class Propagator {
 // Functions to be provided by derived classes (CRTP)
 /////////////////////////////////////////////////////////////////////////////////
 
-	// TODO: make CRTP instead
 	protected:
-		virtual std::string getName() const = 0; ///< get the name of the current propagator
-		virtual void propagate(const real_t) = 0; ///< do the main propagation loop
-		virtual void pre_propagate(const real_t) {} ///< pre-propagation work
-		virtual void post_propagate(const real_t) {} ///< post-propagation work
+
+		/** get the name of the current propagator */
+		std::string getName() { return static_cast<Propagator_t*>(this)->getName(); }
+
+		/** do the main propagation loop */
+		void propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->propagate(Dt); }
+
+		/** pre-propagation work */
+		void pre_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->pre_propagate(Dt); }
+
+		/** post-propagation work */
+		void post_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->post_propagate(Dt); }
 
 
-
-		
 		// TODO: is this inlined as a template?? cause it is a normal function!!
 		// TODO: make this inline // template <typename T=void>
 
@@ -173,14 +178,14 @@ class Propagator {
 		 */
 		// Homogeneous
         template <typename P=Packet_t>
-        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepT(const real_t h) {
 			// Homogeneous
 			stepT_params(h,wpacket_.parameters());
 		}
 		// Inhomogeneous
         template <typename P=Packet_t>
-        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepT(const real_t h) {
 			// Inhomogeneous
 			for(auto& comp : wpacket_.components()) {
@@ -212,7 +217,7 @@ class Propagator {
 		 */
 		// Homogeneous
         template <typename P=Packet_t>
-        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
 			// Homogeneous
 			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
@@ -222,7 +227,7 @@ class Propagator {
 		}
 		// Inhomogeneous
         template <typename P=Packet_t>
-        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex>>::value,void>::type
+        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
 			// Inhomogeneous
 			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
@@ -305,7 +310,7 @@ class Propagator {
 					return f;
 				};
 
-			M = innerproducts::VectorInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
+			M = innerproducts::VectorInnerProduct<D,MultiIndex_t,MDQR_t>::build_matrix(wpacket_,op);
 
 		}
 
@@ -332,7 +337,7 @@ class Propagator {
 					return f;
 				};
 
-			M = innerproducts::HomogeneousInnerProduct<D,MultiIndex,MDQR>::build_matrix(wpacket_,op);
+			M = innerproducts::HomogeneousInnerProduct<D,MultiIndex_t,MDQR_t>::build_matrix(wpacket_,op);
 		}
 
 
@@ -361,17 +366,13 @@ class Propagator {
 		// termination condition
 		template <typename PROPAGATOR, std::size_t S_T, std::size_t S_U>
 		struct TU<PROPAGATOR,S_T,S_U,S_T,S_U> {
-			static void split(PROPAGATOR& prop, const std::array<real_t,S_T>& coefT, const std::array<real_t,S_U>& coefU, const real_t dt) {
-				(void) prop; (void) coefT; (void) coefU; (void) dt;
-			}
+			static void split(PROPAGATOR&, const std::array<real_t,S_T>&, const std::array<real_t,S_U>&, const real_t) {}
 		};
 
 		// termination condition
 		template <typename PROPAGATOR, std::size_t S_U, std::size_t S_T>
 		struct UT<PROPAGATOR,S_U,S_T,S_U,S_T> {
-			static void split(PROPAGATOR& prop, const std::array<real_t,S_U>& coefU, const std::array<real_t,S_T>& coefT, const real_t dt) {
-				(void) prop; (void) coefT; (void) coefU; (void) dt;
-			}
+			static void split(PROPAGATOR&, const std::array<real_t,S_U>&, const std::array<real_t,S_T>&, const real_t) {}
 		};
 
 
