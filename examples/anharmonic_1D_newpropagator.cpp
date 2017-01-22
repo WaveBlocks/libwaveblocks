@@ -14,6 +14,7 @@
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/propagators/HagedornPropagator.hpp"
+#include "waveblocks/propagators/SemiclassicalPropagator.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/io/hdf5writer.hpp"
 
@@ -100,7 +101,8 @@ int main() {
 	// Define propagator
 
 	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> propagator(packet,V); // <typename Remain> propagator(packet,V);
+	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pHagedorn(packet,V); // <typename Remain> propagator(packet,V);
+	propagators::SemiclassicalPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pSemiclassical(packet,V); // <typename Remain> propagator(packet,V);
 
 
 	////////////////////////////////////////////////////
@@ -130,7 +132,8 @@ int main() {
 	//////////////////////////////////////////////////////////////////////////////
 
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
-	propagator.evolve(T,Dt,callback);
+	// pHagedorn.evolve(T,Dt,callback);
+	pSemiclassical.evolve(T,Dt,callback);
 	mywriter.poststructuring();
 
 	return 0;
