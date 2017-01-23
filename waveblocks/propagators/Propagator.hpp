@@ -40,13 +40,14 @@ namespace utils = utilities;
  * \tparam Packet_t Type of the Wavepacket to be propagated
  */
 
-template <typename Propagator_t, int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t>
+template <typename Propagator_t, int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t, typename Coef_t>
 class Propagator {
 	
 	protected:
 
 		Packet_t& wpacket_; ///< wave packet to be propagated
 		Potential_t& V_; ///< potential energy
+		Coef_t splitCoef_;
 		CMatrix<Eigen::Dynamic,Eigen::Dynamic> F_;
 
 
@@ -62,9 +63,10 @@ class Propagator {
 		 * \param V potential to use for propagation
 		 */
 		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
-		Propagator(Packet_t& pack, Potential_t& V)
+		Propagator(Packet_t& pack, Potential_t& V, Coef_t coef = SplitCoefs<0,0>({},{}))
 		 : wpacket_(pack)
 		 , V_(V)
+		 , splitCoef_(coef)
 		{
 			static_assert(N==1,"Scalar wave packets must have N==1");
 		}
@@ -418,11 +420,11 @@ class Propagator {
 		 *     it must hold that S_T==S_U OR S_T == S_U+1
 		 */
 		template <const std::size_t S_T, const std::size_t S_U>
-		void intSplit(const real_t Dt, const unsigned M, const std::pair<std::array<real_t,S_T>,std::array<real_t,S_U>> coefs) {
+		void intSplit(const real_t Dt, const unsigned M, const SplitCoefs<S_T,S_U> coefs) {
 			static_assert(S_T==S_U || S_T==S_U+1,"invalid combination of coefficient array sizes");
 			const real_t dt = Dt/M;
 			for(unsigned m=0; m<M; ++m) {
-				TU<Propagator_t,0,0,S_T,S_U>::split(*static_cast<Propagator_t*>(this),coefs.first,coefs.second,dt);
+				TU<Propagator_t,0,0,S_T,S_U>::split(*static_cast<Propagator_t*>(this),coefs.a,coefs.b,dt);
 			}
 		}
 		

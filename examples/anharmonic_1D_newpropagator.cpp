@@ -15,6 +15,9 @@
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/propagators/HagedornPropagator.hpp"
 #include "waveblocks/propagators/SemiclassicalPropagator.hpp"
+#include "waveblocks/propagators/MagnusPropagator.hpp"
+// #include "waveblocks/propagators/Pre764Propagator.hpp"
+// #include "waveblocks/propagators/McL42Propagator.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/io/hdf5writer.hpp"
 
@@ -48,6 +51,7 @@ struct Remain : public potentials::modules::localRemainder::Abstract<Remain, 1,1
     }
 };
 
+namespace split = propagators::splitting_parameters;
 
 int main() {
 
@@ -101,8 +105,11 @@ int main() {
 	// Define propagator
 
 	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pHagedorn(packet,V); // <typename Remain> propagator(packet,V);
-	propagators::SemiclassicalPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pSemiclassical(packet,V); // <typename Remain> propagator(packet,V);
+	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pHagedorn(packet,V);
+	propagators::SemiclassicalPropagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
+	propagators::MagnusPropagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMagnus(packet,V,split::coefLT);
+	// propagators::Pre764Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
+	// propagators::McL42Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
 
 
 	////////////////////////////////////////////////////
@@ -134,6 +141,9 @@ int main() {
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
 	// pHagedorn.evolve(T,Dt,callback);
 	pSemiclassical.evolve(T,Dt,callback);
+	pMagnus.evolve(T,Dt,callback);
+	// pPre764.evolve(T,Dt,callback);
+	// pMcL42.evolve(T,Dt,callback);
 	mywriter.poststructuring();
 
 	return 0;

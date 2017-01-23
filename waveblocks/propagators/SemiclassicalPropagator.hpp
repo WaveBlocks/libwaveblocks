@@ -11,28 +11,27 @@ namespace utils = utilities;
 /** \file
  * \brief implements the Semiclassical Propagator
  *
- * This class implements the (pre-/post-)propagate functions for the Hagedorn Propagator
+ * This class implements the (pre-/post-)propagate functions for the Semiclassical Propagator
  */
-template <int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t>
-class SemiclassicalPropagator : public Propagator<SemiclassicalPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t> {
+template <int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t, typename Coef_t = SplitCoefs<0,0>>
+class SemiclassicalPropagator : public Propagator<SemiclassicalPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t> {
 
 	public:
 
 		// inherit constructor
-		using Propagator<SemiclassicalPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t>::Propagator;
+		using Propagator<SemiclassicalPropagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t>::Propagator;
 
 		std::string getName() { return "Semiclassical"; }
 
-		template <typename T=std::pair<std::array<real_t,1>,std::array<real_t,1>>>
 		void propagate(const real_t Dt) {
 
 			auto& packet = this->wpacket_;
 			int M = std::ceil(1 + Dt/(std::pow(packet.eps(),.75)));
 			if(M%2) M++; // make sure M is even such that M/2 + M/2 = M
 
-			this->intSplit(Dt/2,M/2,splitting_parameters::coefLT);
+			this->intSplit(Dt/2,M/2,this->splitCoef_);
 			this->stepW(Dt);
-			this->intSplit(Dt/2,M/2,splitting_parameters::coefLT);
+			this->intSplit(Dt/2,M/2,this->splitCoef_);
 
 		}
 
