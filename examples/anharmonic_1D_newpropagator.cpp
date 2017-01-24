@@ -61,7 +61,7 @@ int main() {
     const int D = 1;
     const int K = 128;
 
-    const real_t T = 6;
+    const real_t T = 1;
     const real_t Dt = 0.01;
 
     const real_t eps = 0.1;
@@ -125,9 +125,10 @@ int main() {
 	//////////////////////////////////////////////////////////////////////////////
 	
 	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned i, real_t t) {
-		(void) i; // avoid unused variable warning
-		(void) t; // avoid unused variable warning 
+		// (void) i; // avoid unused variable warning
+		// (void) t; // avoid unused variable warning 
 
+		std::cout << "i: " << i << "  t: " << t << "\n";
 		// Write Data
 		// TODO: provide getekin, getepot functions here in propagator
 		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
