@@ -14,14 +14,9 @@
 #include "../utilities/adaptors.hpp"
 #include "../utilities/prettyprint.hpp"
 #include "../utilities/squeeze.hpp"
-#include "waveblocks/propagators/SplittingParameters.hpp"
+#include "waveblocks/propagators/Parameters.hpp"
 
-/** \file
- * \brief Abstract Propagator Class
- * 
- * \tparam Type of wave packet
- * 
- */
+/** \file */
 
 namespace waveblocks {
 namespace propagators {
@@ -30,7 +25,7 @@ namespace print = utilities::prettyprint;
 namespace utils = utilities;
 
 /**
- * \brief generic propagator class for Hagedorn Wave Packets
+ * \brief generic abstract propagator class for Hagedorn Wave Packets
  *
  * \tparam N Number of energy levels
  * \tparam D Dimension of space
@@ -39,7 +34,6 @@ namespace utils = utilities;
  * \tparam Potential_t Type of the Potential to be used
  * \tparam Packet_t Type of the Wavepacket to be propagated
  */
-
 template <typename Propagator_t, int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t, typename Coef_t>
 class Propagator {
 	
@@ -61,6 +55,7 @@ class Propagator {
 		 * \tparam U Dummy template parameter, neccessary for enable_if
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
+		 * \param coef Tuple of splitting coefficients to be applied for intsplit
 		 */
 		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V, Coef_t coef = SplitCoefs<0,0>({},{}))
