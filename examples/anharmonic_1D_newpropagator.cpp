@@ -124,7 +124,7 @@ int main() {
 	mywriter.set_write_energies(true);
 	//////////////////////////////////////////////////////////////////////////////
 	
-	std::function<void(unsigned,real_t)> callback = [&](unsigned i, real_t t) {
+	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned i, real_t t) {
 		(void) i; // avoid unused variable warning
 		(void) t; // avoid unused variable warning 
 
@@ -138,15 +138,18 @@ int main() {
 		mywriter.store_norm(packet);
 		mywriter.store_energies(epot,ekin);
 	};
+	
+	std::function<void(unsigned,real_t)> emptycallback = [&](unsigned,real_t) {};
+
 	//////////////////////////////////////////////////////////////////////////////
 
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
-	pHagedorn.evolve(T,Dt,callback);
-	pSemiclassical.evolve(T,Dt,callback);
-	pMagnus.evolve(T,Dt,callback);
-	pPre764.evolve(T,Dt,callback);
-	pMcL42.evolve(T,Dt,callback);
-	pMcL84.evolve(T,Dt,callback);
+	pHagedorn.evolve(T,Dt,writeenergies);
+	pSemiclassical.evolve(T,Dt,emptycallback);
+	pMagnus.evolve(T,Dt,emptycallback);
+	pPre764.evolve(T,Dt,emptycallback);
+	pMcL42.evolve(T,Dt,emptycallback);
+	pMcL84.evolve(T,Dt,emptycallback);
 	mywriter.poststructuring();
 
 	return 0;

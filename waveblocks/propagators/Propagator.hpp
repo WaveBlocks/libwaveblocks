@@ -134,13 +134,13 @@ class Propagator {
 			unsigned M = std::round(T/Dt);
 			pre_propagate(Dt);
 
-			for(unsigned m=0; m<M; ++m) {
+			callback(0,t);
+			for(unsigned m=1; m<=M; ++m) {
 				t += Dt;
+				propagate(Dt);
 				callback(m,t);
 				print::pair("Time t",t,"\r");
-				propagate(Dt);
 			}
-			callback(M,t);
 
 			timer.stop(); // -------------------------------- TIMER STOP
 
