@@ -31,10 +31,8 @@ class McL42Propagator : public Propagator<McL42Propagator<N,D,MultiIndex_t,MDQR_
 			int r = 2; // TODO: r = innerorder
             real_t alpha = 2.;
             real_t beta = 2.;
-            int M = std::pow(Dt,r-beta) / std::pow(std::pow(packet.eps(),alpha+2.) , (1./r));
-			print::separator();
-			print::pair("M",M);
-			print::separator();
+            const int M = std::pow(Dt,r-beta) / std::pow(std::pow(packet.eps(),alpha+2.) , (1./r));
+
 			this->intSplit(a_.at(0)*Dt,M,this->splitCoef_);
 			this->stepW(b_.at(0)*Dt);
 			this->intSplit(a_.at(1)*Dt,M,this->splitCoef_);
