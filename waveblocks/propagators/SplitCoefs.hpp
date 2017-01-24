@@ -9,13 +9,11 @@ namespace propagators {
 template <std::size_t S_A=0, std::size_t S_B=S_A>
 struct SplitCoefs {
 	SplitCoefs(std::array<real_t,S_A> coefA, std::array<real_t,S_B> coefB)
-	 : coefs_(coefA,coefB)
-	 , a(coefs_.first)
-	 , b(coefs_.second)
+	 : a(coefA)
+	 , b(coefB)
 	{}
-	const std::pair<std::array<real_t,S_A>,std::array<real_t,S_B>> coefs_;
-	const std::array<real_t,S_A>& a;
-	const std::array<real_t,S_B>& b;
+	const std::array<real_t,S_A> a;
+	const std::array<real_t,S_B> b;
 };
 
 } // namespace waveblocks

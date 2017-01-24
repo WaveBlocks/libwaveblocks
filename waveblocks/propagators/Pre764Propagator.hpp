@@ -18,54 +18,68 @@ template <int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potenti
 class Pre764Propagator : public Propagator<Pre764Propagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t> {
 
 	public:
-
+	
 		// inherit constructor
 		using Propagator<Pre764Propagator<N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t>,N,D,MultiIndex_t,MDQR_t,Potential_t,Packet_t,Coef_t>::Propagator;
 
 		std::string getName() { return "Pre764"; }
 
 		void propagate(const real_t Dt) {
+			
+			constexpr auto& alpha = processing_splitting_parameters::coefBCR764.a;
+			constexpr auto& beta = processing_splitting_parameters::coefBCR764.b;
+
+			static_assert(alpha.size() == k_, "Incorrect size of coefficient array alpha");
+			static_assert(beta.size() == k_,"Incorrect size of coefficient array beta");
 
 			auto& packet = this->wpacket_;
 			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
 
 			for(unsigned j=0; j<k_; ++j) {
-				this->stepW(alpha_[j]*Dt);
-				this->intSplit(beta_[j]*Dt,M,this->splitCoef_);
+				this->stepW(alpha[j]*Dt);
+				this->intSplit(beta[j]*Dt,M,this->splitCoef_);
 			}
 
 		}
 
 		void pre_propagate(const real_t Dt) {
 
+			constexpr auto& y = processing_splitting_parameters::prepostBCR764.a;
+			constexpr auto& z = processing_splitting_parameters::prepostBCR764.b;
+
+			static_assert(y.size() == v_,"Incorrect size of coefficient array Y");
+			static_assert(z.size() == v_,"Incorrect size of coefficient array Z");
+
 			auto& packet = this->wpacket_;
 			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
 
 			for(unsigned j=0; j<v_; ++j) {
-				this->intSplit(-Z_[j]*Dt,M,this->splitCoef_);
-				this->stepW(-Y_[j]*Dt);
+				this->intSplit(-z[j]*Dt,M,this->splitCoef_);
+				this->stepW(-y[j]*Dt);
 			}
 
 		}
 
 		void post_propagate(const real_t Dt) {
 			
+			constexpr auto& y = processing_splitting_parameters::prepostBCR764.a;
+			constexpr auto& z = processing_splitting_parameters::prepostBCR764.b;
+
+			static_assert(y.size() == v_,"Incorrect size of coefficient array Y");
+			static_assert(z.size() == v_,"Incorrect size of coefficient array Z");
+
 			auto& packet = this->wpacket_;
 			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
 
 			for(unsigned j=0; j<v_; ++j) {
-				this->stepW(Y_[j]*Dt);
-				this->intSplit(Z_[j]*Dt,M,this->splitCoef_);
+				this->stepW(y[j]*Dt);
+				this->intSplit(z[j]*Dt,M,this->splitCoef_);
 			}
 
 		}
 			
 		static const int k_ = 4;
 		static const int v_ = 6;
-		static constexpr std::array<real_t,k_> alpha_ = { 0.0, 1.5171479707207228, -2.0342959414414454, 1.5171479707207228 };
-		static constexpr std::array<real_t,k_> beta_ = { 0.5600879810924619, -0.06008798109246194, -0.06008798109246194, 0.5600879810924619 };
-		static constexpr std::array<real_t,v_> Y_ = { -1.621810118086801, 0.0061709468110142, 0.8348493592472594, -0.0511253369989315, 0.5633782670698199, -0.5 };
-		static constexpr std::array<real_t,v_> Z_ = { -0.3346222298730, 1.097567990732164, -1.038088746096783, 0.6234776317921379, -1.102753206303191, -0.0141183222088869 };
 
 };
 

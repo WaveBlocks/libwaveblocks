@@ -4,6 +4,7 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <type_traits>
 
 #include "../innerproducts/homogeneous_inner_product.hpp"
@@ -14,6 +15,7 @@
 #include "../utilities/adaptors.hpp"
 #include "../utilities/prettyprint.hpp"
 #include "../utilities/squeeze.hpp"
+#include "../utilities/timer.hpp"
 #include "waveblocks/propagators/Parameters.hpp"
 
 /** \file */
@@ -113,7 +115,7 @@ class Propagator {
 				const bool hom = std::is_same<Packet_t,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value;
 				std::cout << "\n\n";
 				print::title(getName() + " Propagator");
-				print::pair("Wave Packet",(scalar ? "Scalar" : (std::string("Vectorial") + (hom ? ", Homogeneous" : ", Inhomogeneous"))));
+				print::pair("Wave Packet",(scalar ? "Single-Level" : (std::string("Multi-Level") + (hom ? ", Homogeneous" : ", Inhomogeneous"))));
 				print::pair("D (number of dimensions)",D);
 				print::pair("N (number of energy levels)",N);
 				// print::pair("Quadrature Rule","MDQR");
@@ -125,6 +127,10 @@ class Propagator {
 				std::cout << "\n";
 			}
 
+			utilities::Timer timer;
+
+			timer.start(); // ------------------------------- TIMER START
+
 			unsigned M = std::round(T/Dt);
 			pre_propagate(Dt);
 
@@ -135,7 +141,12 @@ class Propagator {
 				propagate(Dt);
 			}
 			callback(M,t);
+
+			timer.stop(); // -------------------------------- TIMER STOP
+
 			print::pair("","COMPLETE","\r");
+			print::separator();
+			print::pair("Computation time [s]",timer.seconds());
 			print::separator();
 
 			post_propagate(Dt);
