@@ -4,6 +4,7 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <type_traits>
 
 #include "../innerproducts/homogeneous_inner_product.hpp"
@@ -14,14 +15,10 @@
 #include "../utilities/adaptors.hpp"
 #include "../utilities/prettyprint.hpp"
 #include "../utilities/squeeze.hpp"
-#include "waveblocks/propagators/SplittingParameters.hpp"
+#include "../utilities/timer.hpp"
+#include "waveblocks/propagators/Parameters.hpp"
 
-/** \file
- * \brief Abstract Propagator Class
- * 
- * \tparam Type of wave packet
- * 
- */
+/** \file */
 
 namespace waveblocks {
 namespace propagators {
@@ -30,7 +27,7 @@ namespace print = utilities::prettyprint;
 namespace utils = utilities;
 
 /**
- * \brief generic propagator class for Hagedorn Wave Packets
+ * \brief generic abstract propagator class for Hagedorn Wave Packets
  *
  * \tparam N Number of energy levels
  * \tparam D Dimension of space
@@ -39,7 +36,6 @@ namespace utils = utilities;
  * \tparam Potential_t Type of the Potential to be used
  * \tparam Packet_t Type of the Wavepacket to be propagated
  */
-
 template <typename Propagator_t, int N, int D, typename MultiIndex_t, typename MDQR_t, typename Potential_t, typename Packet_t, typename Coef_t>
 class Propagator {
 	
@@ -61,6 +57,7 @@ class Propagator {
 		 * \tparam U Dummy template parameter, neccessary for enable_if
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
+		 * \param coef Tuple of splitting coefficients to be applied for intsplit
 		 */
 		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V, Coef_t coef = SplitCoefs<0,0>({},{}))
@@ -118,7 +115,7 @@ class Propagator {
 				const bool hom = std::is_same<Packet_t,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value;
 				std::cout << "\n\n";
 				print::title(getName() + " Propagator");
-				print::pair("Wave Packet",(scalar ? "Scalar" : (std::string("Vectorial") + (hom ? ", Homogeneous" : ", Inhomogeneous"))));
+				print::pair("Wave Packet",(scalar ? "Single-Level" : (std::string("Multi-Level") + (hom ? ", Homogeneous" : ", Inhomogeneous"))));
 				print::pair("D (number of dimensions)",D);
 				print::pair("N (number of energy levels)",N);
 				// print::pair("Quadrature Rule","MDQR");
@@ -130,6 +127,10 @@ class Propagator {
 				std::cout << "\n";
 			}
 
+			utilities::Timer timer;
+
+			timer.start(); // ------------------------------- TIMER START
+
 			unsigned M = std::round(T/Dt);
 			pre_propagate(Dt);
 
@@ -140,7 +141,12 @@ class Propagator {
 				propagate(Dt);
 			}
 			callback(M,t);
+
+			timer.stop(); // -------------------------------- TIMER STOP
+
 			print::pair("","COMPLETE","\r");
+			print::separator();
+			print::pair("Computation time [s]",timer.seconds());
 			print::separator();
 
 			post_propagate(Dt);

@@ -142,11 +142,11 @@ int main() {
 
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
 	pHagedorn.evolve(T,Dt,callback);
-	// pSemiclassical.evolve(T,Dt,callback);
-	// pMagnus.evolve(T,Dt,callback);
-	// pPre764.evolve(T,Dt,callback);
-	// pMcL42.evolve(T,Dt,callback);
-	// pMcL84.evolve(T,Dt,callback);
+	pSemiclassical.evolve(T,Dt,callback);
+	pMagnus.evolve(T,Dt,callback);
+	pPre764.evolve(T,Dt,callback);
+	pMcL42.evolve(T,Dt,callback);
+	pMcL84.evolve(T,Dt,callback);
 	mywriter.poststructuring();
 
 	return 0;

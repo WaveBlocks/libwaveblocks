@@ -1,14 +1,15 @@
 #pragma once
 
 #include "waveblocks/propagators/Propagator.hpp"
-#include "waveblocks/propagators/SplittingParameters.hpp"
+
+/** \file */
 
 namespace waveblocks {
 namespace propagators {
 
 namespace utils = utilities;
 
-/** \file
+/**
  * \brief implements the Magnus Propagator
  *
  * This class implements the (pre-/post-)propagate functions for the Magnus Propagator
