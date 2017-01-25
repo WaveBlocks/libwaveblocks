@@ -140,7 +140,7 @@ class Propagator {
 				t += Dt;
 				propagate(Dt);
 				callback(m,t);
-				// print::pair("Time t",t,"\r");
+				print::pair("Time t",t,"\r");
 			}
 
 			timer.stop(); // -------------------------------- TIMER STOP

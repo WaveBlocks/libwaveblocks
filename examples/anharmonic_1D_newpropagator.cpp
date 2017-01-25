@@ -117,6 +117,7 @@ int main() {
 	////////////////////////////////////////////////////
 	// Callback Function - writing to file
 	////////////////////////////////////////////////////
+
 	// set up writer
 	// Preparing the file and I/O writer
 	io::hdf5writer<D> mywriter("data.hdf5");
@@ -125,15 +126,12 @@ int main() {
 	//////////////////////////////////////////////////////////////////////////////
 	
 	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned i, real_t t) {
-		// (void) i; // avoid unused variable warning
-		// (void) t; // avoid unused variable warning 
+		(void) i; // avoid unused variable warning
+		(void) t; // avoid unused variable warning 
 
-		std::cout << "i: " << i << "  t: " << t << "\n";
 		// Write Data
-		// TODO: provide getekin, getepot functions here in propagator
 		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
 		real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
-		// TODO: pre/post processing requires applying transformations before measuring
 
 		mywriter.store_packet(packet);
 		mywriter.store_norm(packet);
