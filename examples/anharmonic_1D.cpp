@@ -53,7 +53,7 @@ int main() {
     const int D = 1;
     const int K = 128;
 
-    const real_t T = 6;
+    const real_t T = 1;
     const real_t dt = 0.01;
 
     const real_t eps = 0.1;

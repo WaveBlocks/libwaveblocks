@@ -61,7 +61,7 @@ int main() {
     const int D = 1;
     const int K = 128;
 
-    const real_t T = 6;
+    const real_t T = 1;
     const real_t Dt = 0.01;
 
     const real_t eps = 0.1;
@@ -117,6 +117,7 @@ int main() {
 	////////////////////////////////////////////////////
 	// Callback Function - writing to file
 	////////////////////////////////////////////////////
+
 	// set up writer
 	// Preparing the file and I/O writer
 	io::hdf5writer<D> mywriter("data.hdf5");
@@ -124,29 +125,30 @@ int main() {
 	mywriter.set_write_energies(true);
 	//////////////////////////////////////////////////////////////////////////////
 	
-	std::function<void(unsigned,real_t)> callback = [&](unsigned i, real_t t) {
+	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned i, real_t t) {
 		(void) i; // avoid unused variable warning
 		(void) t; // avoid unused variable warning 
 
 		// Write Data
-		// TODO: provide getekin, getepot functions here in propagator
 		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
 		real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
-		// TODO: pre/post processing requires applying transformations before measuring
 
 		mywriter.store_packet(packet);
 		mywriter.store_norm(packet);
 		mywriter.store_energies(epot,ekin);
 	};
+	
+	std::function<void(unsigned,real_t)> emptycallback = [&](unsigned,real_t) {};
+
 	//////////////////////////////////////////////////////////////////////////////
 
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
-	pHagedorn.evolve(T,Dt,callback);
-	pSemiclassical.evolve(T,Dt,callback);
-	pMagnus.evolve(T,Dt,callback);
-	pPre764.evolve(T,Dt,callback);
-	pMcL42.evolve(T,Dt,callback);
-	pMcL84.evolve(T,Dt,callback);
+	pHagedorn.evolve(T,Dt,writeenergies);
+	pSemiclassical.evolve(T,Dt,emptycallback);
+	pMagnus.evolve(T,Dt,emptycallback);
+	pPre764.evolve(T,Dt,emptycallback);
+	pMcL42.evolve(T,Dt,emptycallback);
+	pMcL84.evolve(T,Dt,emptycallback);
 	mywriter.poststructuring();
 
 	return 0;

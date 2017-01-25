@@ -109,6 +109,7 @@ class Propagator {
 			if(T<0) return;
 
 			real_t t = 0;
+			unsigned M = std::round(T/Dt);
 
 			{
 				const bool scalar = std::is_same<Packet_t,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value;
@@ -123,6 +124,7 @@ class Propagator {
 				print::separator();
 				print::pair("Time Span T",T);
 				print::pair("Stepsize Dt",Dt);
+				print::pair("Number of Timesteps",M);
 				print::separator();
 				std::cout << "\n";
 			}
@@ -131,16 +133,15 @@ class Propagator {
 
 			timer.start(); // ------------------------------- TIMER START
 
-			unsigned M = std::round(T/Dt);
 			pre_propagate(Dt);
 
-			for(unsigned m=0; m<M; ++m) {
+			callback(0,t);
+			for(unsigned m=1; m<=M; ++m) {
 				t += Dt;
+				propagate(Dt);
 				callback(m,t);
 				print::pair("Time t",t,"\r");
-				propagate(Dt);
 			}
-			callback(M,t);
 
 			timer.stop(); // -------------------------------- TIMER STOP
 
