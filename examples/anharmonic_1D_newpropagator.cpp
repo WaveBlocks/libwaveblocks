@@ -15,7 +15,7 @@
 #include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/propagators/HagedornPropagator.hpp"
 #include "waveblocks/propagators/SemiclassicalPropagator.hpp"
-#include "waveblocks/propagators/MagnusPropagator.hpp"
+#include "waveblocks/propagators/MG4Propagator.hpp"
 #include "waveblocks/propagators/Pre764Propagator.hpp"
 #include "waveblocks/propagators/McL42Propagator.hpp"
 #include "waveblocks/propagators/McL84Propagator.hpp"
@@ -108,7 +108,7 @@ int main() {
 	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
 	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pHagedorn(packet,V);
 	propagators::SemiclassicalPropagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
-	propagators::MagnusPropagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMagnus(packet,V,split::coefLT);
+	propagators::MG4Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
 	propagators::Pre764Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
 	propagators::McL42Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
 	propagators::McL84Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
@@ -145,7 +145,7 @@ int main() {
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
 	pHagedorn.evolve(T,Dt,writeenergies);
 	pSemiclassical.evolve(T,Dt,emptycallback);
-	pMagnus.evolve(T,Dt,emptycallback);
+	pMG4.evolve(T,Dt,emptycallback);
 	pPre764.evolve(T,Dt,emptycallback);
 	pMcL42.evolve(T,Dt,emptycallback);
 	pMcL84.evolve(T,Dt,emptycallback);

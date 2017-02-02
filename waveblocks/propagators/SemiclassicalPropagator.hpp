@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "waveblocks/propagators/Propagator.hpp"
 
 /** \file */
@@ -27,7 +29,7 @@ class SemiclassicalPropagator : public Propagator<SemiclassicalPropagator<N,D,Mu
 		void propagate(const real_t Dt) {
 
 			auto& packet = this->wpacket_;
-			int M = std::ceil(1 + std::sqrt{Dt}/(std::pow(packet.eps(),.75)));
+			int M = std::ceil(1. + std::sqrt(Dt)/(std::pow(packet.eps(),.75)));
 			if(M%2) M++; // make sure M is even such that M/2 + M/2 = M
 
 			this->intSplit(Dt/2,M/2,this->splitCoef_);
