@@ -23,12 +23,14 @@
 
 using namespace waveblocks;
 
+namespace split = propagators::splitting_parameters;
+
 int main() {
 
-
-	// TODO: implement with new propagator
-
+	////////////////////////////////////////////////////
     // General parameters
+	////////////////////////////////////////////////////
+
     const int N = 1;
     const int D = 2;
     const int K = 4;
@@ -37,13 +39,31 @@ int main() {
     const real_t sigma_y = 0.5;
 
     const real_t T = 12;
-    const real_t dt = 0.01;
+    const real_t Dt = 0.01;
 
     const real_t eps = 0.1;
 
-    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
 
-    // The parameter set of the initial wavepacket
+	////////////////////////////////////////////////////
+    // Composed Types
+	////////////////////////////////////////////////////
+
+    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
+    using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<K+4>,
+                                               innerproducts::GaussHermiteQR<K+4>>;
+	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
+	using Potential_t = ScalarMatrixPotential<D>;
+
+
+	/////////////////////////////////////////////////////
+	// Building the WavePacket
+	/////////////////////////////////////////////////////
+
+    // basis shapes
+    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
+
+    // initial parameters
     CMatrix<D,D> Q = CMatrix<D,D>::Identity();
     CMatrix<D,D> P = complex_t(0,1) * CMatrix<D,D>::Identity();
     RVector<D> q = {-3.0, 0.0};
@@ -51,22 +71,23 @@ int main() {
     complex_t S = 0.0;
     wavepackets::HaWpParamSet<D> param_set(q,p,Q,P,S);
 
-    // Basis shape
-    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
-    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
-
-    // Gaussian Wavepacket phi_00 with c_00 = 1
-    Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
+	// initial coefficients
+    // Gaussian wave packet phi_00 with c_00 = 1
+    Coefficients coeffs = Coefficients::Zero(std::pow(K,D),1);
     coeffs[0] = 1.0;
 
-    // Assemble packet
-    wavepackets::ScalarHaWp<D,MultiIndex> packet;
+	// assemble packet
+    Packet_t packet;
     packet.eps() = eps;
-    packet.parameters() = param_set;
     packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.parameters() = param_set;
     packet.coefficients() = coeffs;
 
+
+	/////////////////////////////////////////////////////
     // Defining the potential
+	/////////////////////////////////////////////////////
+
     typename CanonicalBasis<N,D>::potential_type potential =
         [sigma_x,sigma_y](CVector<D> x) {
         return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
@@ -84,44 +105,54 @@ int main() {
         return res;
     };
 
-    ScalarMatrixPotential<D> V(potential,leading_level,leading_jac,leading_hess);
+    Potential_t V(potential,leading_level,leading_jac,leading_hess);
 
-    // Quadrature rules
-    using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<K+4>,
-                                               innerproducts::GaussHermiteQR<K+4>>;
 
-    // Defining the propagator
-    propagators::Hagedorn<N,D,MultiIndex,TQR> propagator;
+	////////////////////////////////////////////////////
+	// Defining the Propagator
+	////////////////////////////////////////////////////
 
-    // Preparing the file and I/O writer
-    io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
+	propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> pHagedorn(packet,V);
+	propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
+	propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
+	propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
+	propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
+	propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
+
+
+	////////////////////////////////////////////////////
+	// Defining Callback Function
+	////////////////////////////////////////////////////
+
+	// set up writer: preparing the file and I/O writer
+    io::hdf5writer<D> mywriter2("harmonic_2D_newpropagator.hdf5");
     mywriter2.set_write_norm(true);
     mywriter2.set_write_energies(true);
-    mywriter2.prestructuring<MultiIndex>(packet,dt);
+	
+	// Write Data Callback
+	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned,real_t) {
+		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+		real_t epot = observables::potential_energy<Potential_t,D,MultiIndex,TQR>(packet,V);
+		mywriter2.store_packet(packet);
+		mywriter2.store_norm(packet);
+		mywriter2.store_energies(epot,ekin);
+	};
+	
 
-    // Write at time = 0
-    std::cout << "Time: " << 0 << std::endl;
+	////////////////////////////////////////////////////
+	// Propagate
+	////////////////////////////////////////////////////
 
-    real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-    real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
+    mywriter2.prestructuring<MultiIndex>(packet,Dt);
 
-    mywriter2.store_packet(packet);
-    mywriter2.store_norm(packet);
-    mywriter2.store_energies(epot,ekin);
+	pHagedorn.evolve(T,Dt,writeenergies);
+	pSemiclassical.evolve(T,Dt);
+	pMG4.evolve(T,Dt);
+	pPre764.evolve(T,Dt);
+	pMcL42.evolve(T,Dt);
+	pMcL84.evolve(T,Dt);
 
-    // Propagation
-    for (real_t t = dt; t < T; t += dt) {
-        std::cout << "Time: " << t << std::endl;
-
-        // Propagate
-        propagator.propagate(packet,dt,V);
-
-        real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-        real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
-
-        mywriter2.store_packet(packet);
-        mywriter2.store_norm(packet);
-        mywriter2.store_energies(epot,ekin);
-    }
     mywriter2.poststructuring();
+
+    return 0;
 }

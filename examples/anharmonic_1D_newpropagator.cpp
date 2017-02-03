@@ -24,6 +24,8 @@
 
 using namespace waveblocks;
 
+namespace split = propagators::splitting_parameters;
+
 struct Level : public potentials::modules::taylor::Abstract<Level,CanonicalBasis<1,1>> {
     template <template <typename...> class Tuple = std::tuple>
         Tuple<potential_evaluation_type, jacobian_evaluation_type, hessian_evaluation_type> taylor_at_implementation( const argument_type &x ) const {
@@ -51,11 +53,12 @@ struct Remain : public potentials::modules::localRemainder::Abstract<Remain, 1,1
     }
 };
 
-namespace split = propagators::splitting_parameters;
-
 int main() {
 
+	////////////////////////////////////////////////////
     // General parameters
+	////////////////////////////////////////////////////
+
     const int N = 1;
     const int D = 1;
     const int K = 128;
@@ -64,85 +67,94 @@ int main() {
     const real_t Dt = 0.01;
 
     const real_t eps = 0.1;
+	
+
+	////////////////////////////////////////////////////
+    // Composed Types
+	////////////////////////////////////////////////////
 
     using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
+    using QR = innerproducts::GaussHermiteQR<K+4>;
+	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
+	using Potential_t = Remain;
 
 
 	/////////////////////////////////////////////////////
-	// Building the WavePacket
+	// Building the Wave Packet
 	/////////////////////////////////////////////////////
-
-    wavepackets::ScalarHaWp<D,MultiIndex> packet;
-    packet.eps() = eps;
-
-    // Initial Parameter Set
-	wavepackets::HaWpParamSet<D> param_set;
-	param_set.p(RVector<D>::Ones()); // set p - give momentum
-    packet.parameters() = param_set;
-
-    // Basis Shapes
+	
+    // basis shapes
     wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
     wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
-    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
 
-    // Set Coefficients: Gaussian Wavepacket phi_0 with c_0 = 1
-    Coefficients coefs = Coefficients::Zero(std::pow(K, D), 1);
+    // initial parameters
+	wavepackets::HaWpParamSet<D> param_set;
+	param_set.p(RVector<D>::Ones()); // set p - give momentum
+
+	// initial coefficients
+    // Gaussian wave packet phi_0 with c_0 = 1
+    Coefficients coefs = Coefficients::Zero(std::pow(K,D),1);
     coefs[0] = 1.0;
+
+	// assemble packet
+    Packet_t packet;
+    packet.eps() = eps;
+    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
+    packet.parameters() = param_set;
     packet.coefficients() = coefs;
 
 
 	/////////////////////////////////////////////////////
-	// Defining the Propagator
+    // Defining the potential
 	/////////////////////////////////////////////////////
 
-    Remain V;                                               // Potential
-    using QR = innerproducts::GaussHermiteQR<K+4>;          // Quadrature rule
-
-	// Define propagator
-	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pHagedorn(packet,V);
-	propagators::SemiclassicalPropagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
-	propagators::MG4Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
-	propagators::Pre764Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
-	propagators::McL42Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
-	propagators::McL84Propagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
+    Potential_t V;
 
 
 	////////////////////////////////////////////////////
-	// Callback Function - writing to file
+	// Defining the Propagator
 	////////////////////////////////////////////////////
 
-	// set up writer
-	// Preparing the file and I/O writer
+	propagators::HagedornPropagator<N,D,MultiIndex,QR,Potential_t,Packet_t> pHagedorn(packet,V);
+	propagators::SemiclassicalPropagator<N,D,MultiIndex,QR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
+	propagators::MG4Propagator<N,D,MultiIndex,QR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
+	propagators::Pre764Propagator<N,D,MultiIndex,QR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
+	propagators::McL42Propagator<N,D,MultiIndex,QR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
+	propagators::McL84Propagator<N,D,MultiIndex,QR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
+
+
+	////////////////////////////////////////////////////
+	// Defining Callback Function
+	////////////////////////////////////////////////////
+
+	// set up writer: preparing the file and I/O writer
 	io::hdf5writer<D> mywriter("anharmonic_1D_newpropagator.hdf5");
 	mywriter.set_write_norm(true);
 	mywriter.set_write_energies(true);
-	//////////////////////////////////////////////////////////////////////////////
 	
-	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned i, real_t t) {
-		(void) i; // avoid unused variable warning
-		(void) t; // avoid unused variable warning 
-
-		// Write Data
+	// Write Data Callback
+	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned,real_t) {
 		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-		real_t epot = observables::potential_energy<Remain,D,MultiIndex,QR>(packet,V);
-
+		real_t epot = observables::potential_energy<Potential_t,D,MultiIndex,QR>(packet,V);
 		mywriter.store_packet(packet);
 		mywriter.store_norm(packet);
 		mywriter.store_energies(epot,ekin);
 	};
 	
-	std::function<void(unsigned,real_t)> emptycallback = [&](unsigned,real_t) {};
 
-	//////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////
+	// Propagate
+	////////////////////////////////////////////////////
 
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
+
 	pHagedorn.evolve(T,Dt,writeenergies);
 	pSemiclassical.evolve(T,Dt);
 	pMG4.evolve(T,Dt);
 	pPre764.evolve(T,Dt);
 	pMcL42.evolve(T,Dt);
 	pMcL84.evolve(T,Dt);
+
 	mywriter.poststructuring();
 
 	return 0;
