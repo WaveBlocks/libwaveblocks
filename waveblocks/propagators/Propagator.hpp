@@ -22,7 +22,7 @@
 
 namespace waveblocks {
 namespace propagators {
-
+        
 namespace print = utilities::prettyprint;
 namespace utils = utilities;
 
@@ -59,7 +59,7 @@ class Propagator {
 		 * \param V potential to use for propagation
 		 * \param coef Tuple of splitting coefficients to be applied for intsplit
 		 */
-		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
+		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V, Coef_t coef = SplitCoefs<0,0>({},{}))
 		 : wpacket_(pack)
 		 , V_(V)
@@ -77,7 +77,7 @@ class Propagator {
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
 		 */
-		template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
+		template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V)
 		 : wpacket_(pack)
 		 , V_(V)
@@ -203,7 +203,7 @@ class Propagator {
 		 */
 		// Homogeneous
         template <typename P=Packet_t>
-        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<!std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepT(const real_t h) {
 			// Homogeneous
 			stepT_params(h,wpacket_.parameters());
@@ -217,7 +217,7 @@ class Propagator {
 		 * \param h Size of timestep
 		 */
         template <typename P=Packet_t>
-        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepT(const real_t h) {
 			// Inhomogeneous
 			for(auto& comp : wpacket_.components()) {
@@ -256,7 +256,7 @@ class Propagator {
 		 * \param h Size of timestep
 		 */
         template <typename P=Packet_t>
-        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<!std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
 			// Homogeneous
 			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
@@ -273,7 +273,7 @@ class Propagator {
 		 * \param h Size of timestep
 		 */
         template <typename P=Packet_t>
-        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
 			// Inhomogeneous
 			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]

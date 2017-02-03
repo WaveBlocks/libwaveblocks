@@ -12,7 +12,6 @@
 #include "waveblocks/wavepackets/shapes/shape_hypercubic.hpp"
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/propagators/Hagedorn.hpp"
 #include "waveblocks/propagators/HagedornPropagator.hpp"
 #include "waveblocks/propagators/SemiclassicalPropagator.hpp"
 #include "waveblocks/propagators/MG4Propagator.hpp"
@@ -99,12 +98,7 @@ int main() {
     Remain V;                                               // Potential
     using QR = innerproducts::GaussHermiteQR<K+4>;          // Quadrature rule
 
-	// TODO: consider having Potential as an argument to propagate
-    // propagators::Hagedorn<N,D,MultiIndex,QR> propagator;
-
-
 	// Define propagator
-
 	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
 	propagators::HagedornPropagator<N,D,MultiIndex,QR,Remain,Packet_t> pHagedorn(packet,V);
 	propagators::SemiclassicalPropagator<N,D,MultiIndex,QR,Remain,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
@@ -144,11 +138,11 @@ int main() {
 
 	mywriter.prestructuring<MultiIndex>(packet,Dt);
 	pHagedorn.evolve(T,Dt,writeenergies);
-	pSemiclassical.evolve(T,Dt,emptycallback);
-	pMG4.evolve(T,Dt,emptycallback);
-	pPre764.evolve(T,Dt,emptycallback);
-	pMcL42.evolve(T,Dt,emptycallback);
-	pMcL84.evolve(T,Dt,emptycallback);
+	pSemiclassical.evolve(T,Dt);
+	pMG4.evolve(T,Dt);
+	pPre764.evolve(T,Dt);
+	pMcL42.evolve(T,Dt);
+	pMcL84.evolve(T,Dt);
 	mywriter.poststructuring();
 
 	return 0;
