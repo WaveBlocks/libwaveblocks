@@ -120,7 +120,7 @@ int main() {
 
 	// set up writer
 	// Preparing the file and I/O writer
-	io::hdf5writer<D> mywriter("data.hdf5");
+	io::hdf5writer<D> mywriter("anharmonic_1D_newpropagator.hdf5");
 	mywriter.set_write_norm(true);
 	mywriter.set_write_energies(true);
 	//////////////////////////////////////////////////////////////////////////////
