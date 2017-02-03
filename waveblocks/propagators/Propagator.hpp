@@ -50,46 +50,54 @@ class Propagator {
 	public:
 
 		/**
-		 * \brief Propagator constructor for scalar wave packets
+		 * \brief Propagator constructor
 		 *
-		 * Constructs a propagator for N=1 energy levels
-		 *
-		 * \tparam U Dummy template parameter, neccessary for enable_if
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
-		 * \param coef Tuple of splitting coefficients to be applied for intsplit
 		 */
-		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V, Coef_t coef = SplitCoefs<0,0>({},{}))
 		 : wpacket_(pack)
 		 , V_(V)
 		 , splitCoef_(coef)
 		{
-			static_assert(N==1,"Scalar wave packets must have N==1");
+			this->onConstruct();
 		}
 
 		/**
-		 * \brief Propagator constructor for multi-level wave packets
+		 * \brief Helper for constructing propagator for scalar wave packets
 		 *
-		 * Constructs a propagator for N>1 energy levels, resizes the matrix F_ to the correct size for future computations
+		 * This function is needed because enable_if does not work on constructors
+		 * Asserts that number of levels is compatible with the packet.
 		 *
 		 * \tparam U Dummy template parameter, neccessary for enable_if
-		 * \param pack wave packet to be propagated
-		 * \param V potential to use for propagation
 		 */
-		template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
-		Propagator(Packet_t& pack, Potential_t& V)
-		 : wpacket_(pack)
-		 , V_(V)
-		{
+		template <typename U=Packet_t>
+		typename std::enable_if<std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,void>::type
+		onConstruct() {
+			static_assert(N==1,"Scalar wave packets must have N==1");
+		}
+
+
+		/**
+		 * \brief Helper for constructing propagator for multi-level wave packets
+		 *
+		 * This function is needed because enable_if does not work on constructors.
+		 *
+		 * Asserts that number of levels is compatible with the packet and
+		 * resizes the matrix F_ to the correct size for future computations.
+		 *
+		 * \tparam U Dummy template parameter, neccessary for enable_if
+		 */
+		template <typename U=Packet_t>
+		typename std::enable_if<!std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,void>::type
+		onConstruct() {
 			static_assert(N>1,"Multi-Level wave packets must have N>1");
 			unsigned size = 0;
 			for(auto& comp : wpacket_.components()) {
-				size += comp.coefficients.size();
+				size += comp.coefficients().size();
 			}
 			F_.resize(size,size);
 		}
-
 
 
 /////////////////////////////////////////////////////////////////////////////////
