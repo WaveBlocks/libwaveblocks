@@ -12,7 +12,12 @@
 #include "waveblocks/wavepackets/shapes/shape_hypercubic.hpp"
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/propagators/Hagedorn.hpp"
+#include "waveblocks/propagators/HagedornPropagator.hpp"
+#include "waveblocks/propagators/SemiclassicalPropagator.hpp"
+#include "waveblocks/propagators/MG4Propagator.hpp"
+#include "waveblocks/propagators/Pre764Propagator.hpp"
+#include "waveblocks/propagators/McL42Propagator.hpp"
+#include "waveblocks/propagators/McL84Propagator.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/io/hdf5writer.hpp"
 
