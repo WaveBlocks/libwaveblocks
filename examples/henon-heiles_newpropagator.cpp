@@ -64,12 +64,12 @@ int main() {
     wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
 
     // initial parameters
-    CMatrix<D,D> Q = CMatrix<D,D>::Zeros();
+    CMatrix<D,D> Q = CMatrix<D,D>::Zero();
     float_t a = std::sqrt(2.*0.56);
     float_t b = std::sqrt(2.*0.24); 
     Q(0,0) = complex_t(a);
     Q(1,1) = complex_t(b);
-    CMatrix<D,D> P = CMatrix<D,D>::Zeros();
+    CMatrix<D,D> P = CMatrix<D,D>::Zero();
     P(0,0) = complex_t(0,1./a);
     P(1,1) = complex_t(0,1./b);
     RVector<D> q = {1.8, 0.0};
