@@ -96,18 +96,18 @@ int main() {
 
     typename CanonicalBasis<N,D>::potential_type potential =
         [sigma_harm,sigma_mix](CVector<D> x) {
-			complex_t sum_j = 0;
+			complex_t sum_harm = 0;
         	complex_t sum_mix = 0;
-			for(unsigned j=0; j<N; ++j) {
-				sum_j += sigma_harm * x[j] * x[j];
+			for(unsigned j=0; j<D; ++j) {
+				sum_harm += sigma_harm * x[j] * x[j];
 			}
-			for(unsigned j=0; j<N-1; ++j) {
+			for(unsigned j=0; j<D-1; ++j) {
 				sum_mix += (
 					x[j] * (x[j+1]*x[j+1] - 1./3.*x[j]*x[j]) +
 					0.0625 * sigma_mix * (x[j]*x[j] + x[j+1]*x[j+1]) * (x[j]*x[j] + x[j+1]*x[j+1])
 				);
 			}
-        return .5*sum_j + sigma_mix*sum_mix;
+        return .5*sum_harm + sigma_mix*sum_mix;
     };
     typename ScalarLeadingLevel<D>::potential_type leading_level = potential;
     typename ScalarLeadingLevel<D>::jacobian_type leading_jac =
@@ -117,11 +117,11 @@ int main() {
 					sigma_mix * (
 						( i==0 ? 0. : 2.*x[i-1]*x[i] ) -
 						x[i]*x[i] +
-						( i==N-1 ? 0. : x[i+1]*x[i+1]) +
+						( i==D-1 ? 0. : x[i+1]*x[i+1]) +
 						.25*sigma_mix*x[i] * (
 							( i==0 ? 0. : x[i-1]*x[i-1] ) +
 							2.*x[i]*x[i] +
-							( i==N-1 ? 0. : x[i+1]*x[i+1] )
+							( i==D-1 ? 0. : x[i+1]*x[i+1] )
 						)
 					);
 			};
@@ -133,7 +133,6 @@ int main() {
     };
     typename ScalarLeadingLevel<D>::hessian_type leading_hess =
         [sigma_harm,sigma_mix](CVector<D> x) {
-        CMatrix<D,D> res;
 
 		auto hess = [&](unsigned k, unsigned l) {
 			if(k==l-1) {
@@ -162,6 +161,7 @@ int main() {
 			return complex_t(0.,0.);
 		};
 
+        CMatrix<D,D> res;
 		for(unsigned k=0; k<D; ++k) {
 			for(unsigned l=0; l<D; ++l) {
 				res(k,l) = hess(k,l);

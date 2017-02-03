@@ -54,8 +54,11 @@ target_link_libraries(nonsense_2N_1D_inhom_newpropagator ${LINK_LIBS})
 add_executable(nonsense_2N_2D_newpropagator nonsense_2N_2D_newpropagator.cpp)
 target_link_libraries(nonsense_2N_2D_newpropagator ${LINK_LIBS})
 
-add_executable(henon-heiles_newpropagator henon-heiles_newpropagator.cpp)
-target_link_libraries(henon-heiles_newpropagator ${LINK_LIBS})
+add_executable(harmonic_XD_newpropagator harmonic_XD_newpropagator.cpp)
+target_link_libraries(harmonic_XD_newpropagator ${LINK_LIBS})
+
+add_executable(henon-heiles_2D_newpropagator henon-heiles_2D_newpropagator.cpp)
+target_link_libraries(henon-heiles_2D_newpropagator ${LINK_LIBS})
 
 add_executable(nonsense_2N_2D_inhom_newpropagator nonsense_2N_2D_inhom_newpropagator.cpp)
 target_link_libraries(nonsense_2N_2D_inhom_newpropagator ${LINK_LIBS})
