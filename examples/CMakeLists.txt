@@ -32,15 +32,15 @@ include_directories("../")
 # Testing new propagators
 ############################################
 # TODO: remove
-# add_executable(anharmonic_1D_newpropagator anharmonic_1D_newpropagator.cpp)
-# target_link_libraries(anharmonic_1D_newpropagator ${LINK_LIBS})
+add_executable(anharmonic_1D_newpropagator anharmonic_1D_newpropagator.cpp)
+target_link_libraries(anharmonic_1D_newpropagator ${LINK_LIBS})
 
 # add all executables ending with _newpropagator.cpp
 # file( GLOB APP_SOURCES RELATIVE app/*.cxx )
-file( GLOB SRC_NEWPROPAGATOR examples/*_newpropagator.cpp )
+file( GLOB SRC_NEWPROPAGATOR RELATIVE "*_newpropagator.cpp" )
 foreach( newexamplesrc ${SRC_NEWPROPAGATOR} )
 
-    string( REPLACE "_newpropagator.cpp" ".cpp" oldexamplesrc ${examplesrc} ) # old propagator file
+    string( REPLACE "_newpropagator.cpp" ".cpp" oldexamplesrc ${newexamplesrc} ) # old propagator file
     string( REPLACE ".cpp" "" newexampleexe ${newexamplesrc} ) # new propagator file
     string( REPLACE ".cpp" "" oldexampleexe ${oldexamplesrc} ) # new propagator file
 
@@ -50,4 +50,4 @@ foreach( newexamplesrc ${SRC_NEWPROPAGATOR} )
     add_executable( ${oldexampleexe} ${oldexamplesrc} )
 	target_link_libraries( ${oldexampleexe} ${LINK_LIBS} )
 
-endforeach( examplesrc ${SRC_NEWPROPAGATOR} )
+endforeach( newexamplesrc ${SRC_NEWPROPAGATOR} )
