@@ -125,17 +125,17 @@ int main() {
 	////////////////////////////////////////////////////
 
 	// set up writer: preparing the file and I/O writer
-    io::hdf5writer<D> mywriter2("harmonic_2D_newpropagator.hdf5");
-    mywriter2.set_write_norm(true);
-    mywriter2.set_write_energies(true);
+    io::hdf5writer<D> mywriter("harmonic_2D_newpropagator.hdf5");
+    mywriter.set_write_norm(true);
+    mywriter.set_write_energies(true);
 	
 	// Write Data Callback
 	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned,real_t) {
 		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
 		real_t epot = observables::potential_energy<Potential_t,D,MultiIndex,TQR>(packet,V);
-		mywriter2.store_packet(packet);
-		mywriter2.store_norm(packet);
-		mywriter2.store_energies(epot,ekin);
+		mywriter.store_packet(packet);
+		mywriter.store_norm(packet);
+		mywriter.store_energies(epot,ekin);
 	};
 	
 
@@ -143,7 +143,7 @@ int main() {
 	// Propagate
 	////////////////////////////////////////////////////
 
-    mywriter2.prestructuring<MultiIndex>(packet,Dt);
+    mywriter.prestructuring<MultiIndex>(packet,Dt);
 
 	pHagedorn.evolve(T,Dt,writeenergies);
 	pSemiclassical.evolve(T,Dt);
@@ -152,7 +152,7 @@ int main() {
 	pMcL42.evolve(T,Dt);
 	pMcL84.evolve(T,Dt);
 
-    mywriter2.poststructuring();
+    mywriter.poststructuring();
 
     return 0;
 }
