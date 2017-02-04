@@ -486,7 +486,7 @@ class Propagator {
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_T>& coefT, const std::array<real_t,S_U>& coefU, const real_t dt) {
 				static_assert(N_T==N_U || N_T==N_U-1,"ERROR: invalid alternating index pair for TU");
 				// print::pair("TU",std::to_string(N_T)+","+std::to_string(N_U));
-				/* T     */ prop.stepT(coefT.at(N_T));
+				/* T     */ prop.stepT(coefT.at(N_T)*dt);
 				/* UT... */ UT<PROPAGATOR,N_U,N_T+1,S_U,S_T>::split(prop,coefU,coefT,dt);
 			}
 		};
@@ -514,7 +514,7 @@ class Propagator {
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_U>& coefU, const std::array<real_t,S_T>& coefT, const real_t dt) {
 				static_assert(N_U==N_T || N_U==N_T-1,"ERROR: invalid alternating index pair for UT");
 				// print::pair("UT",std::to_string(N_U)+","+std::to_string(N_T));
-				/* U     */ prop.stepU(coefU.at(N_U));
+				/* U     */ prop.stepU(coefU.at(N_U)*dt);
 				/* TU... */ TU<PROPAGATOR,N_T,N_U+1,S_T,S_U>::split(prop,coefT,coefU,dt);
 			}
 		};
