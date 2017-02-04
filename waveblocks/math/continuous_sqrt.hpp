@@ -114,8 +114,6 @@ namespace waveblocks {
              */
             std::complex<T> operator()(std::complex<T> input)
             {
-            	/*
-            	// TODO: uncomment this again to re-introduce comples square root
                 if (empty_) {
                     state_ = 0.5*std::arg(input); // choose principal solution
                     empty_ = false;
@@ -124,8 +122,6 @@ namespace waveblocks {
                 }
 
                 sqrt_ = std::polar(std::sqrt(std::abs(input)), state_);
-                */
-                sqrt_ = std::complex<T>(std::sqrt(std::abs(input)),0);
 
                 return sqrt_;
             }

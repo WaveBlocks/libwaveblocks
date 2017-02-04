@@ -3,13 +3,13 @@ include_directories("../")
 # add_executable(hawp_gradient hawp_gradient.cpp)
 # target_link_libraries(hawp_gradient yaml-cpp waveblocks-static)
 
-add_executable(hawp_homogen hawp_homogen.cpp)
+#add_executable(hawp_homogen hawp_homogen.cpp)
 
-add_executable(hawp_inhomogen hawp_inhomogen.cpp)
+#add_executable(hawp_inhomogen hawp_inhomogen.cpp)
 
-add_executable(hawp_eval hawp_eval.cpp)
+#add_executable(hawp_eval hawp_eval.cpp)
 
-#add_executable(hawp_t hawp_t.cpp)
+##add_executable(hawp_t hawp_t.cpp)
 
 add_executable(anharmonic_1D anharmonic_1D.cpp)
 target_link_libraries(anharmonic_1D ${LINK_LIBS})
