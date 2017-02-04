@@ -22,7 +22,7 @@
 
 namespace waveblocks {
 namespace propagators {
-
+        
 namespace print = utilities::prettyprint;
 namespace utils = utilities;
 
@@ -50,46 +50,54 @@ class Propagator {
 	public:
 
 		/**
-		 * \brief Propagator constructor for scalar wave packets
+		 * \brief Propagator constructor
 		 *
-		 * Constructs a propagator for N=1 energy levels
-		 *
-		 * \tparam U Dummy template parameter, neccessary for enable_if
 		 * \param pack wave packet to be propagated
 		 * \param V potential to use for propagation
-		 * \param coef Tuple of splitting coefficients to be applied for intsplit
 		 */
-		template <typename U=Packet_t, typename std::enable_if<std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
 		Propagator(Packet_t& pack, Potential_t& V, Coef_t coef = SplitCoefs<0,0>({},{}))
 		 : wpacket_(pack)
 		 , V_(V)
 		 , splitCoef_(coef)
 		{
-			static_assert(N==1,"Scalar wave packets must have N==1");
+			this->onConstruct();
 		}
 
 		/**
-		 * \brief Propagator constructor for multi-level wave packets
+		 * \brief Helper for constructing propagator for scalar wave packets
 		 *
-		 * Constructs a propagator for N>1 energy levels, resizes the matrix F_ to the correct size for future computations
+		 * This function is needed because enable_if does not work on constructors
+		 * Asserts that number of levels is compatible with the packet.
 		 *
 		 * \tparam U Dummy template parameter, neccessary for enable_if
-		 * \param pack wave packet to be propagated
-		 * \param V potential to use for propagation
 		 */
-		template <typename U=Packet_t, typename std::enable_if<!std::is_same<U,ScalarHaWp<D,MultiIndex_t>>::value,int>::type = 0>
-		Propagator(Packet_t& pack, Potential_t& V)
-		 : wpacket_(pack)
-		 , V_(V)
-		{
+		template <typename U=Packet_t>
+		typename std::enable_if<std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,void>::type
+		onConstruct() {
+			static_assert(N==1,"Scalar wave packets must have N==1");
+		}
+
+
+		/**
+		 * \brief Helper for constructing propagator for multi-level wave packets
+		 *
+		 * This function is needed because enable_if does not work on constructors.
+		 *
+		 * Asserts that number of levels is compatible with the packet and
+		 * resizes the matrix F_ to the correct size for future computations.
+		 *
+		 * \tparam U Dummy template parameter, neccessary for enable_if
+		 */
+		template <typename U=Packet_t>
+		typename std::enable_if<!std::is_same<U,wavepackets::ScalarHaWp<D,MultiIndex_t>>::value,void>::type
+		onConstruct() {
 			static_assert(N>1,"Multi-Level wave packets must have N>1");
 			unsigned size = 0;
 			for(auto& comp : wpacket_.components()) {
-				size += comp.coefficients.size();
+				size += comp.coefficients().size();
 			}
 			F_.resize(size,size);
 		}
-
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -203,7 +211,7 @@ class Propagator {
 		 */
 		// Homogeneous
         template <typename P=Packet_t>
-        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<!std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepT(const real_t h) {
 			// Homogeneous
 			stepT_params(h,wpacket_.parameters());
@@ -217,7 +225,7 @@ class Propagator {
 		 * \param h Size of timestep
 		 */
         template <typename P=Packet_t>
-        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepT(const real_t h) {
 			// Inhomogeneous
 			for(auto& comp : wpacket_.components()) {
@@ -256,7 +264,7 @@ class Propagator {
 		 * \param h Size of timestep
 		 */
         template <typename P=Packet_t>
-        typename std::enable_if<!std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<!std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
 			// Homogeneous
 			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
@@ -273,7 +281,7 @@ class Propagator {
 		 * \param h Size of timestep
 		 */
         template <typename P=Packet_t>
-        typename std::enable_if<std::is_same<P,InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
+        typename std::enable_if<std::is_same<P,wavepackets::InhomogeneousHaWp<D,MultiIndex_t>>::value,void>::type
 		stepU(const real_t h) {
 			// Inhomogeneous
 			// taylorV[0,1,2] = [V,DV,DDV] = [evaluation,jacobian,hessian]
@@ -478,7 +486,7 @@ class Propagator {
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_T>& coefT, const std::array<real_t,S_U>& coefU, const real_t dt) {
 				static_assert(N_T==N_U || N_T==N_U-1,"ERROR: invalid alternating index pair for TU");
 				// print::pair("TU",std::to_string(N_T)+","+std::to_string(N_U));
-				/* T     */ prop.stepT(coefT.at(N_T));
+				/* T     */ prop.stepT(coefT.at(N_T)*dt);
 				/* UT... */ UT<PROPAGATOR,N_U,N_T+1,S_U,S_T>::split(prop,coefU,coefT,dt);
 			}
 		};
@@ -506,7 +514,7 @@ class Propagator {
 			static void split(PROPAGATOR& prop, const std::array<real_t,S_U>& coefU, const std::array<real_t,S_T>& coefT, const real_t dt) {
 				static_assert(N_U==N_T || N_U==N_T-1,"ERROR: invalid alternating index pair for UT");
 				// print::pair("UT",std::to_string(N_U)+","+std::to_string(N_T));
-				/* U     */ prop.stepU(coefU.at(N_U));
+				/* U     */ prop.stepU(coefU.at(N_U)*dt);
 				/* TU... */ TU<PROPAGATOR,N_T,N_U+1,S_T,S_U>::split(prop,coefT,coefU,dt);
 			}
 		};
