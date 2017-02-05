@@ -32,10 +32,10 @@ int main() {
 	////////////////////////////////////////////////////
 
     const int N = 1;
-    const int D = 2;
+    const int D = 5;
     const int K = 4;
 
-    const real_t T = 12;
+    const real_t T = 1;
     const real_t Dt = 0.01;
 
     const real_t eps = 0.1;
@@ -46,11 +46,10 @@ int main() {
 	////////////////////////////////////////////////////
 
     using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
-    using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<K+4>,
-                                               innerproducts::GaussHermiteQR<K+4>>;
+    using QR = innerproducts::GaussHermiteQR<K+4>;
+    using TQR = innerproducts::TensorProductQR<QR,QR,QR,QR,QR>;
 	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
 	using Potential_t = ScalarMatrixPotential<D>;
-
 
 	/////////////////////////////////////////////////////
 	// Building the WavePacket
@@ -63,7 +62,6 @@ int main() {
     // initial parameters
     CMatrix<D,D> Q = CMatrix<D,D>::Identity();
     CMatrix<D,D> P = complex_t(0,1) * CMatrix<D,D>::Identity();
-    // TODO: give right values
     const float_t norm_q = .5;
     const float_t norm_p = .8;
     RVector<D> q = RVector<D>::Zero();
@@ -98,16 +96,16 @@ int main() {
 			for(unsigned i=0; i<D; ++i) {
 				sum += x[i]*x[i];
 			}
-        return sum;
+			return .5*sum.real();
     };
     typename ScalarLeadingLevel<D>::potential_type leading_level = potential;
     typename ScalarLeadingLevel<D>::jacobian_type leading_jac =
         [](CVector<D> x) {
-        return 2.*x;
+        return x;
     };
     typename ScalarLeadingLevel<D>::hessian_type leading_hess =
         [](CVector<D> /*x*/) {
-        return 2.*CMatrix<D,D>::Identity();
+        return CMatrix<D,D>::Identity();
     };
 
     Potential_t V(potential,leading_level,leading_jac,leading_hess);
@@ -148,16 +146,16 @@ int main() {
 	// Propagate
 	////////////////////////////////////////////////////
 
-    mywriter.prestructuring<MultiIndex>(packet,Dt);
+    // mywriter.prestructuring<MultiIndex>(packet,Dt);
 
-	pHagedorn.evolve(T,Dt,writeenergies);
+	// pHagedorn.evolve(T,Dt);
 	pSemiclassical.evolve(T,Dt);
-	pMG4.evolve(T,Dt);
-	pPre764.evolve(T,Dt);
-	pMcL42.evolve(T,Dt);
-	pMcL84.evolve(T,Dt);
+	// pMG4.evolve(T,Dt);
+	// pPre764.evolve(T,Dt);
+	// pMcL42.evolve(T,Dt);
+	// pMcL84.evolve(T,Dt);
 
-    mywriter.poststructuring();
+    // mywriter.poststructuring();
 
     return 0;
 }

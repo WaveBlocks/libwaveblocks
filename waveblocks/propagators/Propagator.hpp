@@ -112,7 +112,7 @@ class Propagator {
 		 * \param callback An optional callback function that is called before doing any time step and at the end of the propagation
 		 *  The callback function must take two arguments: the index of the current iteration (unsigned integer) and the current time (real_t)
 		 */
-		void evolve(const real_t T, const real_t Dt, const std::function<void(unsigned, real_t)> callback = [](unsigned,real_t) {}) {
+		inline void evolve(const real_t T, const real_t Dt, const std::function<void(unsigned, real_t)> callback = [](unsigned,real_t) {}) {
 
 			if(T<0) return;
 
@@ -178,21 +178,21 @@ class Propagator {
 		 * 
 		 * \param Dt Size of timestep to be performed
 		 */
-		void propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->propagate(Dt); }
+		inline void propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->propagate(Dt); }
 
 		/**
 		 * \brief pre-propagation work
 		 *
 		 * \param Dt Size of timestep to be performed
 		 */
-		void pre_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->pre_propagate(Dt); }
+		inline void pre_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->pre_propagate(Dt); }
 
 		/**
 		 * \brief post-propagation work
 		 *
 		 * \param Dt Size of timestep to be performed
 		 */
-		void post_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->post_propagate(Dt); }
+		inline void post_propagate(const real_t Dt) { static_cast<Propagator_t*>(this)->post_propagate(Dt); }
 
 
 
@@ -240,7 +240,7 @@ class Propagator {
 		 * \param h Size of timestep
 		 * \param params Wave packet parameters to be updated
 		 */
-		void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
+		inline void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
 			// NB: remove mass if not required
 			RMatrix<Eigen::Dynamic,Eigen::Dynamic> Minv = RMatrix<D,D>::Identity();
 			params.updateq( +h * Minv*params.p() ); ///< q = q + h * M^{-1} * p
@@ -329,7 +329,7 @@ class Propagator {
 		 * 
 		 * \param h Size of timestep
 		 */
-		void stepW(const real_t h) {
+		inline void stepW(const real_t h) {
 			/*
 			// IMPROVEMENT SUGGESTION: change signature of PacketToCoefficients
 			//  --> this would be much more readable + self explanatory with the syntax
@@ -349,7 +349,7 @@ class Propagator {
 		}
 
 		/** \brief convenience function that calls buildF(F_) */
-		void buildF() { buildF(F_); }
+		inline void buildF() { buildF(F_); }
 
 		/**
 		 * \brief build the interaction matrix F for a multi-level system
@@ -368,7 +368,7 @@ class Propagator {
 					const dim_t R = x.cols(); ///< Order of the quadrature rule
 					CMatrix<1,Eigen::Dynamic> f(1,R); ///< Result f(x,[q_1,...,q_R])
 
-					// #pragma omp parallel for schedule(guided)
+					#pragma omp parallel for schedule(guided)
 					for(int r=0; r<R; ++r) {
 						f(0,r) = V_.evaluate_local_remainder_at(
 						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
@@ -399,7 +399,7 @@ class Propagator {
 					const dim_t R = x.cols(); ///< Order of the quadrature rule
 					CMatrix<1,Eigen::Dynamic> f(1,R); ///< Result f(x,[q_1,...,q_R])
 
-					// #pragma omp parallel for schedule(guided)
+					#pragma omp parallel for schedule(guided)
 					for(int r=0; r<R; ++r) {
 						f(0,r) = V_.evaluate_local_remainder_at(
 						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
@@ -443,6 +443,9 @@ class Propagator {
 			}
 		}
 		
+
+	private:
+
 		// forward declarations
 		/** \brief templated struct for splitting into T and remainder */
 		template <typename PROPAGATOR, std::size_t N_T, std::size_t N_U, std::size_t S_T, std::size_t S_U> struct TU;
