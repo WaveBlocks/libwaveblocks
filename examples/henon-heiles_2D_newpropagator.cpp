@@ -190,7 +190,7 @@ int main() {
 	////////////////////////////////////////////////////
 
 	// set up writer: preparing the file and I/O writer
-    io::hdf5writer<D> mywriter("harmonic_2D_newpropagator.hdf5");
+    io::hdf5writer<D> mywriter("henon-heiles_2D_newpropagator.hdf5");
     mywriter.set_write_norm(true);
     mywriter.set_write_energies(true);
 	
@@ -211,11 +211,11 @@ int main() {
     mywriter.prestructuring<MultiIndex>(packet,Dt);
 
 	pHagedorn.evolve(T,Dt,writeenergies);
-	// pSemiclassical.evolve(T,Dt);
-	// pMG4.evolve(T,Dt);
-	// pPre764.evolve(T,Dt);
-	// pMcL42.evolve(T,Dt);
-	// pMcL84.evolve(T,Dt);
+	pSemiclassical.evolve(T,Dt,writeenergies);
+	pMG4.evolve(T,Dt,writeenergies);
+	pPre764.evolve(T,Dt,writeenergies);
+	pMcL42.evolve(T,Dt,writeenergies);
+	pMcL84.evolve(T,Dt,writeenergies);
 
     mywriter.poststructuring();
 
