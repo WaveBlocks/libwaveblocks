@@ -21,12 +21,12 @@ namespace prettyprint {
 	 *        The default value is a line break "\n".
 	 *        If the previous line should be overwritten, set s0="\r"
 	 */
-	template <typename T>
-	inline void pair(const std::string&& s, const T v, const std::string&& s0="\n") {
+	template <typename T, typename S>
+	inline void pair(const T key, const S val, const std::string&& s0="\n") {
 		std::streamsize default_precision = std::cout.precision();
 		std::cout << s0 << "\t"
-			<< std::setw(WIDTH/2) << std::left << s
-			<< std::setw(WIDTH/2) << std::right << std::fixed << std::setprecision(4) << v
+			<< std::setw(WIDTH/2) << std::left << key
+			<< std::setw(WIDTH/2) << std::right << std::fixed << std::setprecision(4) << val
 			<< std::scientific << std::setprecision(default_precision) << std::flush;
 	}
 	
