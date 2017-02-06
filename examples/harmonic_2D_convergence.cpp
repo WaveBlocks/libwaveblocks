@@ -159,12 +159,12 @@ int main() {
 		propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
 
 		// evolve
-		pHagedorn.evolve(T,Dt);
+		// pHagedorn.evolve(T,Dt);
 		// pSemiclassical.evolve(T,Dt);
 		// pMG4.evolve(T,Dt);
 		// pPre764.evolve(T,Dt);
 		// pMcL42.evolve(T,Dt);
-		// pMcL84.evolve(T,Dt);
+		pMcL84.evolve(T,Dt);
 
 		// Compute L2 error
 		const CArray<1,G> eval_this = packet.evaluate(grid);

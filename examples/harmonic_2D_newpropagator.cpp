@@ -38,8 +38,8 @@ int main() {
     const real_t sigma_x = 0.5;
     const real_t sigma_y = 0.5;
 
-    const real_t T = 100;
-    const real_t Dt = 0.01;
+    const real_t T = 10;
+    const real_t Dt = 0.001;
 
     const real_t eps = 0.1;
 
@@ -112,12 +112,12 @@ int main() {
 	// Defining the Propagator
 	////////////////////////////////////////////////////
 
-	// propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> pHagedorn(packet,V);
-	propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
-	// propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
-	// propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
-	// propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
-	// propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
+	propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> pHagedorn(packet,V);
+	propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pSemiclassical(packet,V,split::coefY4);
+	propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pMG4(packet,V,split::coefY4);
+	propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pPre764(packet,V,split::coefY4);
+	propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pMcL42(packet,V,split::coefY4);
+	propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pMcL84(packet,V,split::coefY4);
 
 
 	////////////////////////////////////////////////////
@@ -146,11 +146,11 @@ int main() {
     mywriter.prestructuring<MultiIndex>(packet,Dt);
 
 	// pHagedorn.evolve(T,Dt,writeenergies);
-	pSemiclassical.evolve(T,Dt);
+	// pSemiclassical.evolve(T,Dt,writeenergies);
 	// pMG4.evolve(T,Dt,writeenergies);
 	// pPre764.evolve(T,Dt,writeenergies);
 	// pMcL42.evolve(T,Dt,writeenergies);
-	// pMcL84.evolve(T,Dt,writeenergies);
+	pMcL84.evolve(T,Dt,writeenergies);
 
     mywriter.poststructuring();
 
