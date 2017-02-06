@@ -62,3 +62,9 @@ target_link_libraries(harmonic_XD_newpropagator ${LINK_LIBS})
 
 add_executable(henon-heiles_2D_newpropagator henon-heiles_2D_newpropagator.cpp)
 target_link_libraries(henon-heiles_2D_newpropagator ${LINK_LIBS})
+
+add_executable(harmonic_2D_convergence harmonic_2D_convergence.cpp)
+target_link_libraries(harmonic_2D_convergence ${LINK_LIBS})
+
+add_executable(anharmonic_1D_convergence anharmonic_1D_convergence.cpp)
+target_link_libraries(anharmonic_1D_convergence ${LINK_LIBS})

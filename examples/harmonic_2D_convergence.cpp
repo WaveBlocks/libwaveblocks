@@ -39,7 +39,7 @@ int main() {
     const real_t sigma_y = 0.5;
 
     const real_t T = 10;
-    const real_t Dt = 0.001;
+    real_t Dt;
 
     const real_t eps = 0.1;
 
@@ -76,13 +76,6 @@ int main() {
     Coefficients coeffs = Coefficients::Zero(std::pow(K,D),1);
     coeffs[0] = 1.0;
 
-	// assemble packet
-    Packet_t packet;
-    packet.eps() = eps;
-    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
-    packet.parameters() = param_set;
-    packet.coefficients() = coeffs;
-
 
 	/////////////////////////////////////////////////////
     // Defining the potential
@@ -108,51 +101,83 @@ int main() {
     Potential_t V(potential,leading_level,leading_jac,leading_hess);
 
 
-	////////////////////////////////////////////////////
-	// Defining the Propagator
-	////////////////////////////////////////////////////
-
-	propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> pHagedorn(packet,V);
-	propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pSemiclassical(packet,V,split::coefY4);
-	propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pMG4(packet,V,split::coefY4);
-	propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pPre764(packet,V,split::coefY4);
-	propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pMcL42(packet,V,split::coefY4);
-	propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<4,4>> pMcL84(packet,V,split::coefY4);
-
 
 	////////////////////////////////////////////////////
-	// Defining Callback Function
+	// Convergence Study
 	////////////////////////////////////////////////////
-
-	// set up writer: preparing the file and I/O writer
-    io::hdf5writer<D> mywriter("harmonic_2D_newpropagator.hdf5");
-    mywriter.set_write_norm(true);
-    mywriter.set_write_energies(true);
 	
-	// Write Data Callback
-	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned,real_t) {
-		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-		real_t epot = observables::potential_energy<Potential_t,D,MultiIndex,TQR>(packet,V);
-		mywriter.store_packet(packet);
-		mywriter.store_norm(packet);
-		mywriter.store_energies(epot,ekin);
-	};
+	// define a grid for evaluation
+    const int G = 1000;
+    RMatrix<D, G> grid(D,G);
+    for (int d = 0; d < D; d++) {
+        for (int i = 0; i < G; i++) {
+            grid(d,i) = (-1.0 + 2.0*(d+1)/float(D)) * (i+1)/G;
+        }
+    }
+
 	
+	// compute reference solution
 
-	////////////////////////////////////////////////////
-	// Propagate
-	////////////////////////////////////////////////////
+	Dt = 0.001;
 
-    mywriter.prestructuring<MultiIndex>(packet,Dt);
+	// build gold packet (reference solution)
+	Packet_t gold_packet;
+	gold_packet.eps() = eps;
+	gold_packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
+	gold_packet.parameters() = param_set;
+	gold_packet.coefficients() = coeffs;
 
-	// pHagedorn.evolve(T,Dt,writeenergies);
-	// pSemiclassical.evolve(T,Dt,writeenergies);
-	// pMG4.evolve(T,Dt,writeenergies);
-	// pPre764.evolve(T,Dt,writeenergies);
-	// pMcL42.evolve(T,Dt,writeenergies);
-	pMcL84.evolve(T,Dt,writeenergies);
+	// define the high-precision propagator and evolve
+	propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<34,34>> pGold(gold_packet,V,split::coefKL10);
+	pGold.evolve(T,Dt);
 
-    mywriter.poststructuring();
+	// evaluate gold solution on grid
+	const CArray<1,G> eval_gold = gold_packet.evaluate(grid);
+
+
+	// Convergence study
+	// Start with large stepsize, then gradually refine
+    
+	Dt = 1;
+	for(unsigned i=0; i<10; ++i) {
+
+		Dt /= 2;
+
+		// assemble new packet
+		Packet_t packet;
+		packet.eps() = eps;
+		packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
+		packet.parameters() = param_set;
+		packet.coefficients() = coeffs;
+	
+		// Defining the Propagator
+		propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> pHagedorn(packet,V);
+		propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
+		propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
+		propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
+		propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
+		propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
+
+		// evolve
+		// pHagedorn.evolve(T,Dt);
+		// pSemiclassical.evolve(T,Dt);
+		// pMG4.evolve(T,Dt);
+		// pPre764.evolve(T,Dt);
+		// pMcL42.evolve(T,Dt);
+		pMcL84.evolve(T,Dt);
+
+		// Compute L2 error
+		const CArray<1,G> eval_this = packet.evaluate(grid);
+		real_t error = 0;
+		for(unsigned i=0; i<G; ++i) {
+			real_t diff = std::abs(eval_this[i] - eval_gold[i]);
+			error += diff*diff;
+		}
+		error = std::sqrt(error);
+		std::cout << "\n\tDt: " << Dt;
+		std::cout << "\n\tError: " << error;
+
+	}
 
     return 0;
 }
