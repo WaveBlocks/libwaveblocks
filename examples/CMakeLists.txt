@@ -68,3 +68,22 @@ target_link_libraries(harmonic_2D_convergence ${LINK_LIBS})
 
 add_executable(anharmonic_1D_convergence anharmonic_1D_convergence.cpp)
 target_link_libraries(anharmonic_1D_convergence ${LINK_LIBS})
+
+
+
+### Examples for Propagator Paper
+
+add_executable(harmonic_1D harmonic_1D.cpp)
+target_link_libraries(harmonic_1D ${LINK_LIBS})
+# add_executable(harmonic_1D_convergence harmonic_1D_convergence.cpp)
+# target_link_libraries(harmonic_1D_convergence ${LINK_LIBS})
+
+add_executable(torsional_1D torsional_1D.cpp)
+target_link_libraries(torsional_1D ${LINK_LIBS})
+# add_executable(torsional_1D_convergence torsional_1D_convergence.cpp)
+# target_link_libraries(torsional_1D_convergence ${LINK_LIBS})
+
+add_executable(morse_1D morse_1D.cpp)
+target_link_libraries(morse_1D ${LINK_LIBS})
+# add_executable(morse_1D_convergence morse_1D_convergence.cpp)
+# target_link_libraries(morse_1D_convergence ${LINK_LIBS})
