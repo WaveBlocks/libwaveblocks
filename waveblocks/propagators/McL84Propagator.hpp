@@ -41,33 +41,14 @@ class McL84Propagator : public Propagator<McL84Propagator<N,D,MultiIndex_t,MDQR_
 			this->stepW(b_.at(1)*Dt);
 			this->intSplit(a_.at(2)*Dt,M,this->splitCoef_);
 			this->stepW(b_.at(2)*Dt);
-			this->intSplit(a_.at(3)*Dt,M,this->splitCoef_);
-			this->stepW(b_.at(3)*Dt);
-			this->intSplit(a_.at(4)*Dt,M,this->splitCoef_);
-			this->stepW(b_.at(4)*Dt);
-			this->intSplit(a_.at(5)*Dt,M,this->splitCoef_);
 
 		}
 
 		void pre_propagate(const real_t) { /* nothing to do */ }
 		void post_propagate(const real_t) { /* nothing to do */ }
 
-		static constexpr std::array<real_t,6> a_ = {
-			0.07534696026989288842,
-			0.51791685468825678230,
-			-0.09326381495814967072,
-			-0.09326381495814967072,
-			0.51791685468825678230,
-			0.07534696026989288842
-		};
-
-		static constexpr std::array<real_t,5> b_ = {
-			0.19022593937367661925,
-			0.84652407044352625706,
-			-1.07350001963440575260,
-			0.84652407044352625706,
-			0.19022593937367661925
-		};
+		static constexpr std::array<real_t,3> a_ = {0.07534696026989288842,0.51791685468825678230,-0.09326381495814967072};
+		static constexpr std::array<real_t,3> b_ = {0.19022593937367661925,0.84652407044352625706,-1.07350001963440575260};
 
 };
 

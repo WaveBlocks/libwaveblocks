@@ -242,10 +242,10 @@ class Propagator {
 		 */
 		inline void stepT_params(const real_t h, wavepackets::HaWpParamSet<D>& params) {
 			// NB: remove mass if not required
-			// RMatrix<Eigen::Dynamic,Eigen::Dynamic> Minv = RMatrix<D,D>::Identity();
-			params.updateq( +h * /*Minv*/params.p() ); ///< q = q + h * M^{-1} * p
-			params.updateQ( +h * /*Minv*/params.P() ); ///< Q = Q + h * M^{-1} * P
-			params.updateS( +.5f*h * params.p().dot(/*Minv*/params.p()) ); ///< S = S + h/2 * p^T M p
+			RMatrix<Eigen::Dynamic,Eigen::Dynamic> Minv = RMatrix<D,D>::Identity();
+			params.updateq( +h * Minv*params.p() ); ///< q = q + h * M^{-1} * p
+			params.updateQ( +h * Minv*params.P() ); ///< Q = Q + h * M^{-1} * P
+			params.updateS( +.5f*h * params.p().dot(Minv*params.p()) ); ///< S = S + h/2 * p^T M p
 		}
 
 
