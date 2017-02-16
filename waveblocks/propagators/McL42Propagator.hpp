@@ -29,11 +29,11 @@ class McL42Propagator : public Propagator<McL42Propagator<N,D,MultiIndex_t,MDQR_
 		void propagate(const real_t Dt) {
 
 			auto& packet = this->wpacket_;
-			int r = 2; // TODO: r = innerorder
-            real_t alpha = 2.;
-            real_t beta = 2.;
-            const int M = std::pow(Dt,r-beta) / std::pow(std::pow(packet.eps(),alpha+2.) , (1./r));
-            // const int M = std::pow( (std::pow(Dt,4) / std::pow(packet.eps(),3) ), 0.125); // this does not work very well
+			// int r = 2; // TODO: r = innerorder
+            // real_t alpha = 2.;
+            // real_t beta = 2.;
+            // const int M = std::pow(Dt,r-beta) / std::pow(std::pow(packet.eps(),alpha+2.) , (1./r));
+            const int M = std::pow( (std::pow(Dt,4) / std::pow(packet.eps(),3) ), 0.125);
 
 			this->intSplit(a_.at(0)*Dt,M,this->splitCoef_);
 			this->stepW(b_.at(0)*Dt);

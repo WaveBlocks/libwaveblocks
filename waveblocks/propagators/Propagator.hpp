@@ -368,7 +368,7 @@ class Propagator {
 					const dim_t R = x.cols(); ///< Order of the quadrature rule
 					CMatrix<1,Eigen::Dynamic> f(1,R); ///< Result f(x,[q_1,...,q_R])
 
-					#pragma omp parallel for schedule(guided)
+					// #pragma omp parallel for schedule(guided)
 					for(int r=0; r<R; ++r) {
 						f(0,r) = V_.evaluate_local_remainder_at(
 						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
@@ -399,7 +399,7 @@ class Propagator {
 					const dim_t R = x.cols(); ///< Order of the quadrature rule
 					CMatrix<1,Eigen::Dynamic> f(1,R); ///< Result f(x,[q_1,...,q_R])
 
-					#pragma omp parallel for schedule(guided)
+					// #pragma omp parallel for schedule(guided)
 					for(int r=0; r<R; ++r) {
 						f(0,r) = V_.evaluate_local_remainder_at(
 						            utils::Squeeze<D,CMatrix<D,Eigen::Dynamic>>::apply(x,r),
