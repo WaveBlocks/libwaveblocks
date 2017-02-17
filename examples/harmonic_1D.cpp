@@ -34,71 +34,44 @@ class Parameters_Harmonic_1D {
 		static const int D = 1;
 		static const int K = 16;
 		
-
-		struct Potential : public potentials::modules::evaluation::Abstract<Potential,CanonicalBasis<N,D>>,		                   
+		class Potential : public potentials::modules::evaluation::Abstract<Potential,CanonicalBasis<N,D>>,		                   
 		                   public potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>,
 		                   public potentials::modules::localRemainder::Abstract<Potential,N,D>,
 		                   public LeadingLevelOwner<potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>> {
 
-			using Taylor = potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>;
+			public:
 
-			Potential() : sigma_x(1.) {}
+				using Taylor = potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>;
 
-			Taylor::potential_evaluation_type evalV(const complex_t& x) const {
-				return 0.5*(sigma_x*x*x).real();
-			}
-			
-			Taylor::jacobian_evaluation_type evalJ(const complex_t& x) const {
-				return sigma_x*x;
-			}
-			
-			Taylor::hessian_evaluation_type evalH(const complex_t& /*x*/) const {
-				return sigma_x;
-			}
+				inline Taylor::potential_evaluation_type evalV(const Taylor::argument_type& x) const {
+					return 0.5*(x*x).real();
+				}
+				
+				inline Taylor::jacobian_evaluation_type evalJ(const Taylor::argument_type& x) const {
+					return x;
+				}
+				
+				inline Taylor::hessian_evaluation_type evalH(const Taylor::argument_type& /*x*/) const {
+					return 1.;
+				}
 
-			complex_t evaluate_at_implementation(const complex_t& x) const {
-				return evalV(x);
-			}
+				complex_t evaluate_at_implementation(const Taylor::argument_type& x) const {
+					return evalV(x);
+				}
 
-			template <template <typename...> class Tuple = std::tuple>
-				Tuple<Taylor::potential_evaluation_type, Taylor::jacobian_evaluation_type, Taylor::hessian_evaluation_type>
-				taylor_at_implementation( const Taylor::argument_type &x ) const {
-					return Tuple<Taylor::potential_evaluation_type,Taylor::jacobian_evaluation_type,Taylor::hessian_evaluation_type>
-						(evalV(x), evalJ(x), evalH(x));
-			}
+				template <template <typename...> class Tuple = std::tuple>
+					Tuple<Taylor::potential_evaluation_type, Taylor::jacobian_evaluation_type, Taylor::hessian_evaluation_type>
+					taylor_at_implementation( const Taylor::argument_type &x ) const {
+						return Tuple<Taylor::potential_evaluation_type,Taylor::jacobian_evaluation_type,Taylor::hessian_evaluation_type>
+							(evalV(x), evalJ(x), evalH(x));
+				}
 
-			complex_t evaluate_local_remainder_at( const complex_t &x, const complex_t &q ) const {
-				const auto xmq = x - q;
-				const auto V = 0.5*(sigma_x*x*x).real();
-				const auto U = 0.5*(sigma_x*q*q).real();
-				const auto J = sigma_x*q;
-				const auto H = sigma_x;
-				return V - U - J*xmq - 0.5*xmq*H*xmq;
-			}
-
-			const real_t sigma_x;
+				complex_t evaluate_local_remainder_at( const complex_t &x, const complex_t &q ) const {
+					const auto xmq = x - q;
+					return evalV(x) - evalV(q) - evalJ(q)*xmq - 0.5*xmq*evalH(q)*xmq;
+				}
 
 		};
-
-				/*
-				typename CanonicalBasis<Parameters_Harmonic_1D::N,Parameters_Harmonic_1D::D>::potential_type potential = [sigma_x](complex_t x) {
-					return 0.5*(sigma_x*x*x).real();
-				};
-				typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::potential_type leading_level = potential;
-				typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::jacobian_type leading_jac = [sigma_x](complex_t x) {
-					return sigma_x*x;
-				};
-				typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::hessian_type leading_hess = [sigma_x](complex_t x) {
-					return sigma_x;
-				};
-				*/
-		//////////////////////////////////////////////////////////
-
-
-
-
-
-
 
 
 		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
