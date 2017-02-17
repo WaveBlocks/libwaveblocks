@@ -34,10 +34,76 @@ class Parameters_Harmonic_1D {
 		static const int D = 1;
 		static const int K = 16;
 		
+
+		struct Potential : public potentials::modules::evaluation::Abstract<Potential,CanonicalBasis<N,D>>,		                   
+		                   public potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>,
+		                   public potentials::modules::localRemainder::Abstract<Potential,N,D>,
+		                   public LeadingLevelOwner<potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>> {
+
+			using Taylor = potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>;
+
+			Potential() : sigma_x(1.) {}
+
+			Taylor::potential_evaluation_type evalV(const complex_t& x) const {
+				return 0.5*(sigma_x*x*x).real();
+			}
+			
+			Taylor::jacobian_evaluation_type evalJ(const complex_t& x) const {
+				return sigma_x*x;
+			}
+			
+			Taylor::hessian_evaluation_type evalH(const complex_t& /*x*/) const {
+				return sigma_x;
+			}
+
+			complex_t evaluate_at_implementation(const complex_t& x) const {
+				return evalV(x);
+			}
+
+			template <template <typename...> class Tuple = std::tuple>
+				Tuple<Taylor::potential_evaluation_type, Taylor::jacobian_evaluation_type, Taylor::hessian_evaluation_type>
+				taylor_at_implementation( const Taylor::argument_type &x ) const {
+					return Tuple<Taylor::potential_evaluation_type,Taylor::jacobian_evaluation_type,Taylor::hessian_evaluation_type>
+						(evalV(x), evalJ(x), evalH(x));
+			}
+
+			complex_t evaluate_local_remainder_at( const complex_t &x, const complex_t &q ) const {
+				const auto xmq = x - q;
+				const auto V = 0.5*(sigma_x*x*x).real();
+				const auto U = 0.5*(sigma_x*q*q).real();
+				const auto J = sigma_x*q;
+				const auto H = sigma_x;
+				return V - U - J*xmq - 0.5*xmq*H*xmq;
+			}
+
+			const real_t sigma_x;
+
+		};
+
+				/*
+				typename CanonicalBasis<Parameters_Harmonic_1D::N,Parameters_Harmonic_1D::D>::potential_type potential = [sigma_x](complex_t x) {
+					return 0.5*(sigma_x*x*x).real();
+				};
+				typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::potential_type leading_level = potential;
+				typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::jacobian_type leading_jac = [sigma_x](complex_t x) {
+					return sigma_x*x;
+				};
+				typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::hessian_type leading_hess = [sigma_x](complex_t x) {
+					return sigma_x;
+				};
+				*/
+		//////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 		using QR = innerproducts::GaussHermiteQR<K+4>;
 		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-		using Potential_t = ScalarMatrixPotential<D>;
 		using SplitCoefs_t = propagators::SplitCoefs<4,4>;
 
 		// general parameters
@@ -47,6 +113,7 @@ class Parameters_Harmonic_1D {
 		const real_t eps;
 
 		// wave packet
+		Potential V;
 		Packet_t packet;
 
 		// initial values
@@ -99,6 +166,15 @@ class Parameters_Harmonic_1D {
 			writer.poststructuring();
 		}
 
+		void callback(unsigned /*m*/, real_t /*t*/) {
+			real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+			real_t epot = observables::potential_energy<Potential,D,MultiIndex,QR>(packet,V);
+			writer.store_packet(packet);
+			writer.store_norm(packet);
+			writer.store_energies(epot,ekin);
+		}
+
+
 };
 
 // TODO: move more stuff into parameter class for convenience!
@@ -106,41 +182,12 @@ class Parameters_Harmonic_1D {
 
 int main() {
 
-	/////////////////////////////////////////////////////
-    // Defining the potential
-	/////////////////////////////////////////////////////
+	using P = Parameters_Harmonic_1D; // all the parameters for the simulation are contained in this class
 
-    typename CanonicalBasis<Parameters_Harmonic_1D::N,Parameters_Harmonic_1D::D>::potential_type potential = [/*sigma_x*/](complex_t x) {
-		return 0.5*(/*sigma_x*/x*x).real();
-    };
-    typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::potential_type leading_level = potential;
-    typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::jacobian_type leading_jac = [/*sigma_x*/](complex_t x) {
-        return /*sigma_x*/x;
-    };
-    typename ScalarLeadingLevel<Parameters_Harmonic_1D::D>::hessian_type leading_hess = [/*sigma_x*/](complex_t /*x*/) {
-        return 0; // sigma_x;
-    };
-
-	Parameters_Harmonic_1D::Potential_t V(potential,leading_level,leading_jac,leading_hess);
-
-
-	////////////////////////////////////////////////////
-	// Propagate
-	////////////////////////////////////////////////////
-
-	// Semiclassical
-	{
-	Parameters_Harmonic_1D param("Semiclassical");
-	auto write = [&](io::hdf5writer<Parameters_Harmonic_1D::D>& writer,unsigned,real_t) {
-		real_t ekin = observables::kinetic_energy<Parameters_Harmonic_1D::D,Parameters_Harmonic_1D::MultiIndex>(param.packet);
-		real_t epot = observables::potential_energy<Parameters_Harmonic_1D::Potential_t,Parameters_Harmonic_1D::D,Parameters_Harmonic_1D::MultiIndex,Parameters_Harmonic_1D::QR>(param.packet,V);
-		writer.store_packet(param.packet);
-		writer.store_norm(param.packet);
-		writer.store_energies(epot,ekin);
-	};
-	propagators::SemiclassicalPropagator<Parameters_Harmonic_1D::N,Parameters_Harmonic_1D::D,Parameters_Harmonic_1D::MultiIndex,Parameters_Harmonic_1D::QR,Parameters_Harmonic_1D::Potential_t,Parameters_Harmonic_1D::Packet_t,Parameters_Harmonic_1D::SplitCoefs_t> pSemiclassical(param.packet,V,param.splitCoefs);
-	pSemiclassical.evolve(param.T,param.Dt,std::bind(write,std::ref(param.writer),_1,_2));
-	// pSemiclassical.evolve(param.T,param.Dt,std::bind(&Parameters_Harmonic_1D::callback,param,_1,_2));
+	{ // Semiclassical
+		Parameters_Harmonic_1D param("Semiclassical");
+		propagators::SemiclassicalPropagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pSemiclassical(param.packet,param.V,param.splitCoefs);
+		pSemiclassical.evolve(param.T,param.Dt,std::bind(&P::callback,std::ref(param),_1,_2));
 	}
 
     return 0;
