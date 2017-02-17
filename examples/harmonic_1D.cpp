@@ -66,8 +66,9 @@ class Parameters_Harmonic_1D {
 		wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
 		wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum;
 
+		io::hdf5writer<D> writer;
 
-		Parameters_Harmonic_1D()
+		Parameters_Harmonic_1D(std::string name)
 		 : sigma_x(1.)
 		 , T(10)
 		 , Dt(0.05)
@@ -81,19 +82,37 @@ class Parameters_Harmonic_1D {
 		 , coeffs(Coefficients::Zero(std::pow(K,D),1))
 		 , splitCoefs(propagators::splitting_parameters::coefY4)
 		 , shape_enum(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K)))
+		 , writer("harmonic_1D_" + name + ".hdf5")
 		{
 			coeffs[0] = 1.0;
 			packet.eps() = eps;
 			packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
 			packet.parameters() = param_set;
 			packet.coefficients() = coeffs;
+
+			writer.set_write_norm(true);
+			writer.set_write_energies(true);
+			writer.prestructuring<MultiIndex>(packet,Dt);
 		}
 
+		~Parameters_Harmonic_1D() {
+			writer.poststructuring();
+		}
+
+		void callback(unsigned m, real_t t) {
+			real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+			// real_t epot = observables::potential_energy<Potential_t,D,MultiIndex,QR>(packet,V);
+			writer.store_packet(packet);
+			writer.store_norm(packet);
+			// writer.store_energies(epot,ekin);
+		}
 
 };
 
 // TODO: move more stuff into parameter class for convenience!
 // TODO: keep testing on the go
+//
+// TODO: move sigma_x to main, pass V to callback function via bind
 
 int main() {
 
@@ -121,19 +140,9 @@ int main() {
 
 	// Semiclassical
 	{
-	Parameters_Harmonic_1D param;
-	auto write = [&](io::hdf5writer<Parameters_Harmonic_1D::D>& writer,unsigned,real_t) {
-		real_t ekin = observables::kinetic_energy<Parameters_Harmonic_1D::D,Parameters_Harmonic_1D::MultiIndex>(param.packet);
-		real_t epot = observables::potential_energy<Parameters_Harmonic_1D::Potential_t,Parameters_Harmonic_1D::D,Parameters_Harmonic_1D::MultiIndex,Parameters_Harmonic_1D::QR>(param.packet,V);
-		writer.store_packet(param.packet);
-		writer.store_norm(param.packet);
-		writer.store_energies(epot,ekin);
-	};
+	Parameters_Harmonic_1D param("Semiclassical");
 	propagators::SemiclassicalPropagator<Parameters_Harmonic_1D::N,Parameters_Harmonic_1D::D,Parameters_Harmonic_1D::MultiIndex,Parameters_Harmonic_1D::QR,Parameters_Harmonic_1D::Potential_t,Parameters_Harmonic_1D::Packet_t,Parameters_Harmonic_1D::SplitCoefs_t> pSemiclassical(param.packet,V,param.splitCoefs);
-    io::hdf5writer<Parameters_Harmonic_1D::D> writerSemiclassical("harmonic_1D_Semiclassical.hdf5"); writerSemiclassical.set_write_norm(true); writerSemiclassical.set_write_energies(true);
-    writerSemiclassical.prestructuring<Parameters_Harmonic_1D::MultiIndex>(param.packet,param.Dt);
-	pSemiclassical.evolve(param.T,param.Dt,std::bind(write,std::ref(writerSemiclassical),_1,_2));
-    writerSemiclassical.poststructuring();
+	pSemiclassical.evolve(param.T,param.Dt,std::bind(&Parameters_Harmonic_1D::callback,param,_1,_2));
 	}
 
     return 0;
