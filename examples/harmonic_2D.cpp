@@ -142,7 +142,7 @@ class Parameters_Harmonic_2D {
 
 		void callback(unsigned /*m*/, real_t /*t*/) {
 			real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-			real_t epot = observables::potential_energy<Potential,D,MultiIndex,TQR>(packet,V); // TODO: causes segfault - investigate
+			real_t epot = observables::potential_energy<Potential,D,MultiIndex,TQR>(packet,V);
 			writer.store_packet(packet);
 			writer.store_norm(packet);
 			writer.store_energies(epot,ekin);
