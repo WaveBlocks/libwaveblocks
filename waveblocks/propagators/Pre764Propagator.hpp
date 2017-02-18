@@ -32,8 +32,8 @@ class Pre764Propagator : public Propagator<Pre764Propagator<N,D,MultiIndex_t,MDQ
 			static_assert(alpha.size() == k_, "Incorrect size of coefficient array alpha");
 			static_assert(beta.size() == k_,"Incorrect size of coefficient array beta");
 
-			auto& packet = this->wpacket_;
-			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
+			// auto& packet = this->wpacket_;
+			const int M = 4; // 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
 
 			for(unsigned j=0; j<k_; ++j) {
 				this->stepW(alpha[j]*Dt);

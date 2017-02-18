@@ -31,8 +31,8 @@ class MG4Propagator : public Propagator<MG4Propagator<N,D,MultiIndex_t,MDQR_t,Po
 			// Gauss Legendre coefficients on [0,Dt]:
 			real_t h1 = (3.-std::sqrt(3.))/6. * Dt;
 			real_t h2 = 2.*std::sqrt(3.)/6. * Dt;
-			int M1 = std::ceil(1 + std::sqrt(h1*std::pow(packet.eps(),-3./8.)));
-			int M2 = std::ceil(1 + std::sqrt(h2*std::pow(packet.eps(),-3./8.)));
+			int M1 = 4; // std::ceil(1 + std::sqrt(h1*std::pow(packet.eps(),-3./8.)));
+			int M2 = 4; // std::ceil(1 + std::sqrt(h2*std::pow(packet.eps(),-3./8.)));
 
 			this->intSplit(h1,M1,this->splitCoef_);
 			this->buildF(A1);

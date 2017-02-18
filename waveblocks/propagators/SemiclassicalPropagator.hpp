@@ -28,13 +28,12 @@ class SemiclassicalPropagator : public Propagator<SemiclassicalPropagator<N,D,Mu
 
 		void propagate(const real_t Dt) {
 
-			auto& packet = this->wpacket_;
-			int M = std::ceil(1. + std::sqrt(Dt)/(std::pow(packet.eps(),.75)));
-			if(M%2) M++; // make sure M is even such that M/2 + M/2 = M
+			// auto& packet = this->wpacket_;
+			int M = 4; // std::ceil(1. + std::sqrt(Dt)/(std::pow(packet.eps(),.75)));
 
-			this->intSplit(Dt/2,M/2,this->splitCoef_);
+			this->intSplit(Dt/2,M,this->splitCoef_);
 			this->stepW(Dt);
-			this->intSplit(Dt/2,M/2,this->splitCoef_);
+			this->intSplit(Dt/2,M,this->splitCoef_);
 
 		}
 
