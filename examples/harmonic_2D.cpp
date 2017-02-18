@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <functional>
 
 #include "waveblocks/types.hpp"
 #include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
@@ -11,108 +12,185 @@
 #include "waveblocks/wavepackets/shapes/shape_hypercubic.hpp"
 #include "waveblocks/innerproducts/gauss_hermite_qr.hpp"
 #include "waveblocks/innerproducts/tensor_product_qr.hpp"
-#include "waveblocks/propagators/Hagedorn.hpp"
+#include "waveblocks/propagators/HagedornPropagator.hpp"
+#include "waveblocks/propagators/SemiclassicalPropagator.hpp"
+#include "waveblocks/propagators/MG4Propagator.hpp"
+#include "waveblocks/propagators/Pre764Propagator.hpp"
+#include "waveblocks/propagators/McL42Propagator.hpp"
+#include "waveblocks/propagators/McL84Propagator.hpp"
 #include "waveblocks/observables/energy.hpp"
 #include "waveblocks/io/hdf5writer.hpp"
 
 
 using namespace waveblocks;
+using namespace std::placeholders;
+
+
+class Parameters_Harmonic_2D {
+
+	public:
+
+		static const int N = 1;
+		static const int D = 2;
+		static const int K = 16;
+		
+		class Potential : public potentials::modules::evaluation::Abstract<Potential,CanonicalBasis<N,D>>,		                   
+		                   public potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>,
+		                   public potentials::modules::localRemainder::Abstract<Potential,N,D>,
+		                   public LeadingLevelOwner<potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>> {
+
+			public:
+
+				using Taylor = potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>;
+
+				inline Taylor::potential_evaluation_type evalV(const Taylor::argument_type& x) const {
+					return 0.5*(x[0]*x[0]+x[1]*x[1]).real();
+				}
+				
+				inline Taylor::jacobian_evaluation_type evalJ(const Taylor::argument_type& x) const {
+					return x;
+				}
+				
+				inline Taylor::hessian_evaluation_type evalH(const Taylor::argument_type& /*x*/) const {
+					return CMatrix<D,D>::Identity();
+				}
+
+				Taylor::potential_evaluation_type evaluate_at_implementation(const Taylor::argument_type& x) const {
+					return evalV(x);
+				}
+
+				template <template <typename...> class Tuple = std::tuple>
+					Tuple<Taylor::potential_evaluation_type, Taylor::jacobian_evaluation_type, Taylor::hessian_evaluation_type>
+					taylor_at_implementation( const Taylor::argument_type &x ) const {
+						return Tuple<Taylor::potential_evaluation_type,Taylor::jacobian_evaluation_type,Taylor::hessian_evaluation_type>
+							(evalV(x), evalJ(x), evalH(x));
+				}
+
+				Taylor::potential_evaluation_type evaluate_local_remainder_at( const Taylor::argument_type &x, const Taylor::argument_type &q ) const {
+					const auto xmq = x - q;
+					return evalV(x) - evalV(q) - xmq.dot(evalJ(q)) - 0.5*xmq.dot(evalH(q)*xmq);
+				}
+
+		};
+
+
+		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
+		using QR = innerproducts::GaussHermiteQR<K+4>;
+		using TQR = innerproducts::TensorProductQR<QR,QR>;
+		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
+		using SplitCoefs_t = propagators::SplitCoefs<4,4>;
+
+		// general parameters
+		const real_t sigma_x;
+		const real_t T;
+		const real_t Dt;
+		const real_t eps;
+
+		// wave packet
+		Potential V;
+		Packet_t packet;
+
+		// initial values
+		CMatrix<D,D> Q;
+		CMatrix<D,D> P;
+		RVector<D> q;
+		RVector<D> p;
+		complex_t S;
+		wavepackets::HaWpParamSet<D> param_set;
+
+		// initial coefficients 
+		Coefficients coeffs;
+
+		const SplitCoefs_t splitCoefs;
+
+		// basis shapes
+		wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+		wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum;
+
+		io::hdf5writer<D> writer;
+
+		Parameters_Harmonic_2D(std::string name)
+		 : sigma_x(1.)
+		 , T(4)
+		 , Dt(0.05)
+		 , eps(0.01)
+		 , Q(CMatrix<D,D>::Identity())
+		 , P(complex_t(0,1) * CMatrix<D,D>::Identity())
+		 , q({-3.0, 0.0})
+		 , p({ 0.0, 0.5})
+		 , S(0.)
+		 , param_set(q,p,Q,P,S)
+		 , coeffs(Coefficients::Zero(std::pow(K,D),1))
+		 , splitCoefs(propagators::splitting_parameters::coefY4)
+		 , shape_enum(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K)))
+		 , writer("harmonic_2D_" + name + ".hdf5")
+		{
+			coeffs[0] = 1.0;
+			packet.eps() = eps;
+			packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
+			packet.parameters() = param_set;
+			packet.coefficients() = coeffs;
+
+			writer.set_write_norm(true);
+			writer.set_write_energies(true);
+			writer.prestructuring<MultiIndex>(packet,Dt);
+		}
+
+		~Parameters_Harmonic_2D() {
+			writer.poststructuring();
+		}
+
+		void callback(unsigned /*m*/, real_t /*t*/) {
+			real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+			real_t epot = observables::potential_energy<Potential,D,MultiIndex,TQR>(packet,V); // TODO: causes segfault - investigate
+			writer.store_packet(packet);
+			writer.store_norm(packet);
+			writer.store_energies(epot,ekin);
+		}
+
+
+};
 
 int main() {
-    // General parameters
-    const int N = 1;
-    const int D = 2;
-    const int K = 4;
 
-    const real_t sigma_x = 0.5;
-    const real_t sigma_y = 0.5;
+	using P = Parameters_Harmonic_2D; // all the parameters for the simulation are contained in this class
 
-    const real_t T = 12;
-    const real_t dt = 0.01;
+	{ // Hagedorn
+		Parameters_Harmonic_2D param_Hagedorn("Hagedorn");
+		propagators::HagedornPropagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t> pHagedorn(param_Hagedorn.packet,param_Hagedorn.V);
+		pHagedorn.evolve(param_Hagedorn.T,param_Hagedorn.Dt,std::bind(&P::callback,std::ref(param_Hagedorn),_1,_2));
+	}
 
-    const real_t eps = 0.1;
+	{ // Semiclassical
+		Parameters_Harmonic_2D param_Semiclassical("Semiclassical");
+		propagators::SemiclassicalPropagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pSemiclassical(param_Semiclassical.packet,param_Semiclassical.V,param_Semiclassical.splitCoefs);
+		pSemiclassical.evolve(param_Semiclassical.T,param_Semiclassical.Dt,std::bind(&P::callback,std::ref(param_Semiclassical),_1,_2));
+	}
+	
+	{ // MG4
+		Parameters_Harmonic_2D param_MG4("MG4");
+		propagators::MG4Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMG4(param_MG4.packet,param_MG4.V,param_MG4.splitCoefs);
+		pMG4.evolve(param_MG4.T,param_MG4.Dt,std::bind(&P::callback,std::ref(param_MG4),_1,_2));
+	}
 
-    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
+	{ // McL42
+		Parameters_Harmonic_2D param_McL42("McL42");
+		propagators::McL42Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL42(param_McL42.packet,param_McL42.V,param_McL42.splitCoefs);
+		pMcL42.evolve(param_McL42.T,param_McL42.Dt,std::bind(&P::callback,std::ref(param_McL42),_1,_2));
+	}
 
-    // The parameter set of the initial wavepacket
-    CMatrix<D,D> Q = CMatrix<D,D>::Identity();
-    CMatrix<D,D> P = complex_t(0,1) * CMatrix<D,D>::Identity();
-    RVector<D> q = {-3.0, 0.0};
-    RVector<D> p = { 0.0, 0.5};
-    complex_t S = 0.0;
-    wavepackets::HaWpParamSet<D> param_set(q,p,Q,P,S);
+	{ // McL84
+		Parameters_Harmonic_2D param_McL84("McL84");
+		propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL84(param_McL84.packet,param_McL84.V,param_McL84.splitCoefs);
+		pMcL84.evolve(param_McL84.T,param_McL84.Dt,std::bind(&P::callback,std::ref(param_McL84),_1,_2));
+	}
 
-    // Basis shape
-    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
-    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
+	{ // Pre764
+		Parameters_Harmonic_2D param_Pre764("Pre764");
+		propagators::Pre764Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pPre764(param_Pre764.packet,param_Pre764.V,param_Pre764.splitCoefs);
+		pPre764.evolve(param_Pre764.T,param_Pre764.Dt,std::bind(&P::callback,std::ref(param_Pre764),_1,_2));
+	}
 
-    // Gaussian Wavepacket phi_00 with c_00 = 1
-    Coefficients coeffs = Coefficients::Zero(std::pow(K, D), 1);
-    coeffs[0] = 1.0;
 
-    // Assemble packet
-    wavepackets::ScalarHaWp<D,MultiIndex> packet;
-    packet.eps() = eps;
-    packet.parameters() = param_set;
-    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
-    packet.coefficients() = coeffs;
-
-    // Defining the potential
-    typename CanonicalBasis<N,D>::potential_type potential =
-        [sigma_x,sigma_y](CVector<D> x) {
-        return 0.5*(sigma_x*x[0]*x[0] + sigma_y*x[1]*x[1]).real();
-    };
-    typename ScalarLeadingLevel<D>::potential_type leading_level = potential;
-    typename ScalarLeadingLevel<D>::jacobian_type leading_jac =
-        [sigma_x,sigma_y](CVector<D> x) {
-        return CVector<D>{sigma_x*x[0], sigma_y*x[1]};
-    };
-    typename ScalarLeadingLevel<D>::hessian_type leading_hess =
-        [sigma_x,sigma_y](CVector<D> /*x*/) {
-        CMatrix<D,D> res;
-        res(0,0) = sigma_x;
-        res(1,1) = sigma_y;
-        return res;
-    };
-
-    ScalarMatrixPotential<D> V(potential,leading_level,leading_jac,leading_hess);
-
-    // Quadrature rules
-    using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<K+4>,
-                                               innerproducts::GaussHermiteQR<K+4>>;
-
-    // Defining the propagator
-    propagators::Hagedorn<N,D,MultiIndex,TQR> propagator;
-
-    // Preparing the file and I/O writer
-    io::hdf5writer<D> mywriter2("harmonic_2D_cpp.hdf5");
-    mywriter2.set_write_norm(true);
-    mywriter2.set_write_energies(true);
-    mywriter2.prestructuring<MultiIndex>(packet,dt);
-
-    // Write at time = 0
-    std::cout << "Time: " << 0 << std::endl;
-
-    real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-    real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
-
-    mywriter2.store_packet(packet);
-    mywriter2.store_norm(packet);
-    mywriter2.store_energies(epot,ekin);
-
-    // Propagation
-    for (real_t t = dt; t < T; t += dt) {
-        std::cout << "Time: " << t << std::endl;
-
-        // Propagate
-        propagator.propagate(packet,dt,V);
-
-        real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-        real_t epot = observables::potential_energy<ScalarMatrixPotential<D>,D,MultiIndex,TQR>(packet,V);
-
-        mywriter2.store_packet(packet);
-        mywriter2.store_norm(packet);
-        mywriter2.store_energies(epot,ekin);
-    }
-    mywriter2.poststructuring();
+    return 0;
 }

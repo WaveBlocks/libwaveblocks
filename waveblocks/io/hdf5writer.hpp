@@ -10,9 +10,11 @@
 
 #include <Eigen/Core>
 
+#include "waveblocks/types.hpp"
+#include "waveblocks/utilities/squeeze.hpp"
+#include "waveblocks/utilities/adaptors.hpp"
 #include "waveblocks/wavepackets/hawp_commons.hpp"
 #include "waveblocks/wavepackets/hawp_paramset.hpp"
-#include "waveblocks/types.hpp"
 #include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
 
 namespace waveblocks
