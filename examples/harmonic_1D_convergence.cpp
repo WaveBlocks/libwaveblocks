@@ -130,7 +130,7 @@ int main() {
 
 	using P = Parameters_Harmonic_1D;
 
-	const real_t Dt_gold = 2e-4;
+	const real_t Dt_gold = 1e-3;
 
 	// define a grid for evaluation
     const int G = 1000;

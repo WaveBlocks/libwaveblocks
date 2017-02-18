@@ -156,7 +156,7 @@ int main() {
 	{ // Hagedorn
 		Parameters_Morse_1D param_Hagedorn("Hagedorn");
 		propagators::HagedornPropagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t> propagator_Hagedorn(param_Hagedorn.packet,param_Hagedorn.V);
-		_goldpropagator_Hagedorn.evolve(param_Hagedorn.T,param_Hagedorn.Dt,std::bind(&P::callback,std::ref(param_Hagedorn),_1,_2));
+		propagator_Hagedorn.evolve(param_Hagedorn.T,param_Hagedorn.Dt,std::bind(&P::callback,std::ref(param_Hagedorn),_1,_2));
 	}
 
 	{ // Semiclassical
