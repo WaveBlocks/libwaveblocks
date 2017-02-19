@@ -31,8 +31,8 @@ class Parameters_Torsional_2D {
 	public:
 
 		static const int N = 1;
-		static const int D = 2;
-		static const int K = 16;
+		static const int D = 5;
+		static const int K = 4;
 		
 		class Potential : public potentials::modules::evaluation::Abstract<Potential,CanonicalBasis<N,D>>,		                   
 		                   public potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>,
@@ -44,17 +44,26 @@ class Parameters_Torsional_2D {
 				using Taylor = potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>;
 
 				inline Taylor::potential_evaluation_type evalV(const Taylor::argument_type& x) const {
-					return (2.-std::cos(x[0])-std::cos(x[1])).real();
+					Taylor::potential_evaluation_type res = 0;
+					for(int d=0; d<D; ++d) {
+						res += 1.-std::cos(x[d]);
+					}
+					return res;
 				}
 				
 				inline Taylor::jacobian_evaluation_type evalJ(const Taylor::argument_type& x) const {
-					return { std::sin(x[0]), std::sin(x[1]) };
+					CVector<D> jac = CVector<D>::Zero();
+					for(int d=0; d<D; ++d) {
+						jac[d] = std::sin(x[d]);
+					}
+					return jac;
 				}
 				
 				inline Taylor::hessian_evaluation_type evalH(const Taylor::argument_type& x) const {
 					CMatrix<D,D> hess = CMatrix<D,D>::Zero();
-					hess(0,0) = std::cos(x[0]);
-					hess(1,1) = std::cos(x[1]);
+					for(int d=0; d<D; ++d) {
+						hess(d,d) = std::cos(x[d]);
+					}
 					return hess;
 				}
 
@@ -79,9 +88,9 @@ class Parameters_Torsional_2D {
 
 		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 		using QR = innerproducts::GaussHermiteQR<K+4>;
-		using TQR = innerproducts::TensorProductQR<QR,QR>;
+		using TQR = innerproducts::TensorProductQR<QR,QR,QR,QR,QR>;
 		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-		using SplitCoefs_t = propagators::SplitCoefs<34,34>;
+		using SplitCoefs_t = propagators::SplitCoefs<1,1>;
 
 		// general parameters
 		const real_t sigma_x;
@@ -114,19 +123,19 @@ class Parameters_Torsional_2D {
 
 		Parameters_Torsional_2D(std::string name)
 		 : sigma_x(1.)
-		 , T(4)
-		 , Dt(0.005)
+		 , T(1)
+		 , Dt(0.01)
 		 , eps(0.01)
 		 , Q(CMatrix<D,D>::Identity())
 		 , P(complex_t(0,1) * CMatrix<D,D>::Identity())
-		 , q({1.0, 0.0})
-		 , p({0.0, 0.0})
+		 , q(RVector<D>::Ones())
+		 , p(RVector<D>::Zero())
 		 , S(0.)
 		 , param_set(q,p,Q,P,S)
 		 , coeffs(Coefficients::Zero(std::pow(K,D),1))
-		 , splitCoefs(propagators::splitting_parameters::coefKL10)
+		 , splitCoefs(propagators::splitting_parameters::coefLT)
 		 , shape_enum(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K)))
-		 , writer("torsional_2D_" + name + ".hdf5")
+		 , writer("torsional_XD_" + name + ".hdf5")
 		{
 			coeffs[0] = 1.0;
 			packet.eps() = eps;
@@ -151,48 +160,48 @@ class Parameters_Torsional_2D {
 			writer.store_energies(epot,ekin);
 		}
 
-
 };
 
 int main() {
 
 	using P = Parameters_Torsional_2D; // all the parameters for the simulation are contained in this class
 
-	{ // Hagedorn
-		Parameters_Torsional_2D param_Hagedorn("Hagedorn");
-		propagators::HagedornPropagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t> pHagedorn(param_Hagedorn.packet,param_Hagedorn.V);
-		pHagedorn.evolve(param_Hagedorn.T,param_Hagedorn.Dt,std::bind(&P::callback,std::ref(param_Hagedorn),_1,_2));
-	}
+	// { // Hagedorn
+	// 	Parameters_Torsional_2D param_Hagedorn("Hagedorn");
+	// 	propagators::HagedornPropagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t> pHagedorn(param_Hagedorn.packet,param_Hagedorn.V);
+	// 	pHagedorn.evolve(param_Hagedorn.T,param_Hagedorn.Dt,std::bind(&P::callback,std::ref(param_Hagedorn),_1,_2));
+	// }
 
 	{ // Semiclassical
 		Parameters_Torsional_2D param_Semiclassical("Semiclassical");
 		propagators::SemiclassicalPropagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pSemiclassical(param_Semiclassical.packet,param_Semiclassical.V,param_Semiclassical.splitCoefs);
-		pSemiclassical.evolve(param_Semiclassical.T,param_Semiclassical.Dt,std::bind(&P::callback,std::ref(param_Semiclassical),_1,_2));
+		// pSemiclassical.evolve(param_Semiclassical.T,param_Semiclassical.Dt,std::bind(&P::callback,std::ref(param_Semiclassical),_1,_2));
+		pSemiclassical.evolve(param_Semiclassical.T,param_Semiclassical.Dt);
 	}
 	
-	{ // MG4
-		Parameters_Torsional_2D param_MG4("MG4");
-		propagators::MG4Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMG4(param_MG4.packet,param_MG4.V,param_MG4.splitCoefs);
-		pMG4.evolve(param_MG4.T,param_MG4.Dt,std::bind(&P::callback,std::ref(param_MG4),_1,_2));
-	}
+	// { // MG4
+	// 	Parameters_Torsional_2D param_MG4("MG4");
+	// 	propagators::MG4Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMG4(param_MG4.packet,param_MG4.V,param_MG4.splitCoefs);
+	// 	pMG4.evolve(param_MG4.T,param_MG4.Dt,std::bind(&P::callback,std::ref(param_MG4),_1,_2));
+	// }
 
-	{ // McL42
-		Parameters_Torsional_2D param_McL42("McL42");
-		propagators::McL42Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL42(param_McL42.packet,param_McL42.V,param_McL42.splitCoefs);
-		pMcL42.evolve(param_McL42.T,param_McL42.Dt,std::bind(&P::callback,std::ref(param_McL42),_1,_2));
-	}
+	// { // McL42
+	// 	Parameters_Torsional_2D param_McL42("McL42");
+	// 	propagators::McL42Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL42(param_McL42.packet,param_McL42.V,param_McL42.splitCoefs);
+	// 	pMcL42.evolve(param_McL42.T,param_McL42.Dt,std::bind(&P::callback,std::ref(param_McL42),_1,_2));
+	// }
 
-	{ // McL84
-		Parameters_Torsional_2D param_McL84("McL84");
-		propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL84(param_McL84.packet,param_McL84.V,param_McL84.splitCoefs);
-		pMcL84.evolve(param_McL84.T,param_McL84.Dt,std::bind(&P::callback,std::ref(param_McL84),_1,_2));
-	}
+	// { // McL84
+	// 	Parameters_Torsional_2D param_McL84("McL84");
+	// 	propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL84(param_McL84.packet,param_McL84.V,param_McL84.splitCoefs);
+	// 	pMcL84.evolve(param_McL84.T,param_McL84.Dt,std::bind(&P::callback,std::ref(param_McL84),_1,_2));
+	// }
 
-	{ // Pre764
-		Parameters_Torsional_2D param_Pre764("Pre764");
-		propagators::Pre764Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pPre764(param_Pre764.packet,param_Pre764.V,param_Pre764.splitCoefs);
-		pPre764.evolve(param_Pre764.T,param_Pre764.Dt,std::bind(&P::callback,std::ref(param_Pre764),_1,_2));
-	}
+	// { // Pre764
+	// 	Parameters_Torsional_2D param_Pre764("Pre764");
+	// 	propagators::Pre764Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pPre764(param_Pre764.packet,param_Pre764.V,param_Pre764.splitCoefs);
+	// 	pPre764.evolve(param_Pre764.T,param_Pre764.Dt,std::bind(&P::callback,std::ref(param_Pre764),_1,_2));
+	// }
 
 
     return 0;

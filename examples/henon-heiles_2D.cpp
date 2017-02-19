@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <functional>
 
 #include "waveblocks/types.hpp"
 #include "waveblocks/wavepackets/shapes/tiny_multi_index.hpp"
@@ -22,202 +23,184 @@
 
 
 using namespace waveblocks;
+using namespace std::placeholders;
 
-namespace split = propagators::splitting_parameters;
+
+class Parameters_HenonHeiles_2D {
+
+	public:
+
+		static const int N = 1;
+		static const int D = 2;
+		static const int K = 32;
+		
+		class Potential : public potentials::modules::evaluation::Abstract<Potential,CanonicalBasis<N,D>>,		                   
+		                   public potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>,
+		                   public potentials::modules::localRemainder::Abstract<Potential,N,D>,
+		                   public LeadingLevelOwner<potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>> {
+
+			public:
+
+				using Taylor = potentials::modules::taylor::Abstract<Potential,CanonicalBasis<N,D>>;
+
+				inline Taylor::potential_evaluation_type evalV(const Taylor::argument_type& x) const {
+					return .5*(x[0]*x[0]+x[1]*x[1]) + 0.2*(x[0]*x[0]*x[1]-(1./3.)*x[1]*x[1]*x[1]);
+				}
+				
+				inline Taylor::jacobian_evaluation_type evalJ(const Taylor::argument_type& x) const {
+					return {
+						x[0] + 2.*0.2*x[0]*x[1],
+						x[1] + 0.2*(x[0]*x[0]+x[1]*x[1])
+					};
+				}
+				
+				inline Taylor::hessian_evaluation_type evalH(const Taylor::argument_type& x) const {
+					CMatrix<D,D> hess = CMatrix<D,D>::Zero();
+					hess(0,0) = 1. + 2.*0.2*x[1];
+					hess(1,0) = 2.*0.2*x[0];
+					hess(0,1) = 2.*0.2*x[0];
+					hess(1,1) = 1. + 2.*0.2*x[1];
+					return hess;
+				}
+
+				Taylor::potential_evaluation_type evaluate_at_implementation(const Taylor::argument_type& x) const {
+					return evalV(x);
+				}
+
+				template <template <typename...> class Tuple = std::tuple>
+					Tuple<Taylor::potential_evaluation_type, Taylor::jacobian_evaluation_type, Taylor::hessian_evaluation_type>
+					taylor_at_implementation( const Taylor::argument_type &x ) const {
+						return Tuple<Taylor::potential_evaluation_type,Taylor::jacobian_evaluation_type,Taylor::hessian_evaluation_type>
+							(evalV(x), evalJ(x), evalH(x));
+				}
+
+				Taylor::potential_evaluation_type evaluate_local_remainder_at( const Taylor::argument_type &x, const Taylor::argument_type &q ) const {
+					const auto xmq = x - q;
+					return evalV(x) - evalV(q) - xmq.dot(evalJ(q)) - 0.5*xmq.dot(evalH(q)*xmq);
+				}
+
+		};
+
+
+		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
+		using QR = innerproducts::GaussHermiteQR<K+4>;
+		using TQR = innerproducts::TensorProductQR<QR,QR>;
+		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
+		using SplitCoefs_t = propagators::SplitCoefs<34,34>;
+
+		// general parameters
+		const real_t sigma_x;
+		const real_t T;
+		const real_t Dt;
+		const real_t eps;
+
+		// wave packet
+		Potential V;
+		Packet_t packet;
+
+		// initial values
+		CMatrix<D,D> Q;
+		CMatrix<D,D> P;
+		RVector<D> q;
+		RVector<D> p;
+		complex_t S;
+		wavepackets::HaWpParamSet<D> param_set;
+
+		// initial coefficients 
+		Coefficients coeffs;
+
+		const SplitCoefs_t splitCoefs;
+
+		// basis shapes
+		wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
+		wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum;
+
+		io::hdf5writer<D> writer;
+
+		Parameters_HenonHeiles_2D(std::string name)
+		 : sigma_x(1.)
+		 , T(4)
+		 , Dt(0.005)
+		 , eps(0.01)
+		 , Q((CMatrix<D,D>() << std::sqrt(2*0.56), 0, 0, std::sqrt(2*.24)).finished())
+		 , P((CMatrix<D,D>() << complex_t(0.,1.)/std::sqrt(2*0.56), 0, 0, complex_t(0.,1.)/std::sqrt(2*.24)).finished())
+		 , q({1.8, 0.0})
+		 , p({0.0, 1.2})
+		 , S(0.)
+		 , param_set(q,p,Q,P,S)
+		 , coeffs(Coefficients::Zero(std::pow(K,D),1))
+		 , splitCoefs(propagators::splitting_parameters::coefKL10)
+		 , shape_enum(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K)))
+		 , writer("henon-heiles_2D_" + name + ".hdf5")
+		{
+
+			coeffs[0] = 1.0;
+			packet.eps() = eps;
+			packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
+			packet.parameters() = param_set;
+			packet.coefficients() = coeffs;
+
+			writer.set_write_norm(true);
+			writer.set_write_energies(true);
+			writer.prestructuring<MultiIndex>(packet,Dt);
+		}
+
+		~Parameters_HenonHeiles_2D() {
+			writer.poststructuring();
+		}
+
+		void callback(unsigned /*m*/, real_t /*t*/) {
+			real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
+			real_t epot = observables::potential_energy<Potential,D,MultiIndex,TQR>(packet,V);
+			writer.store_packet(packet);
+			writer.store_norm(packet);
+			writer.store_energies(epot,ekin);
+		}
+
+
+};
 
 int main() {
 
-	////////////////////////////////////////////////////
-    // General parameters
-	////////////////////////////////////////////////////
+	using P = Parameters_HenonHeiles_2D; // all the parameters for the simulation are contained in this class
 
-    const int N = 1;
-    const int D = 2;
-    const int K = 4;
+	// { // Hagedorn
+	// 	Parameters_HenonHeiles_2D param_Hagedorn("Hagedorn");
+	// 	propagators::HagedornPropagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t> pHagedorn(param_Hagedorn.packet,param_Hagedorn.V);
+	// 	pHagedorn.evolve(param_Hagedorn.T,param_Hagedorn.Dt,std::bind(&P::callback,std::ref(param_Hagedorn),_1,_2));
+	// }
 
-    const real_t sigma_harm = 1.;
-    const real_t sigma_mix = 0.2;
-
-    const real_t T = 12;
-    const real_t Dt = 0.01;
-
-    const real_t eps = 0.1;
-
-
-	////////////////////////////////////////////////////
-    // Composed Types
-	////////////////////////////////////////////////////
-
-    using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned long, D>;
-    using TQR = innerproducts::TensorProductQR<innerproducts::GaussHermiteQR<K+4>,
-                                               innerproducts::GaussHermiteQR<K+4>>;
-	using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-	using Potential_t = ScalarMatrixPotential<D>;
-
-
-	/////////////////////////////////////////////////////
-	// Building the WavePacket
-	/////////////////////////////////////////////////////
-
-    // basis shapes
-    wavepackets::shapes::ShapeEnumerator<D, MultiIndex> enumerator;
-    wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum = enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K));
-
-    // initial parameters
-    CMatrix<D,D> Q = CMatrix<D,D>::Zero();
-    float_t a = std::sqrt(2.*0.56);
-    float_t b = std::sqrt(2.*0.24); 
-    Q(0,0) = complex_t(a);
-    Q(1,1) = complex_t(b);
-    CMatrix<D,D> P = CMatrix<D,D>::Zero();
-    P(0,0) = complex_t(0,1./a);
-    P(1,1) = complex_t(0,1./b);
-    RVector<D> q = {1.8, 0.0};
-    RVector<D> p = { 0.0, 1.2};
-    complex_t S = 0.0;
-    wavepackets::HaWpParamSet<D> param_set(q,p,Q,P,S);
-
-	// initial coefficients
-    // Gaussian wave packet phi_00 with c_00 = 1
-    Coefficients coeffs = Coefficients::Zero(std::pow(K,D),1);
-    coeffs[0] = 1.0;
-
-	// assemble packet
-    Packet_t packet;
-    packet.eps() = eps;
-    packet.shape() = std::make_shared<wavepackets::shapes::ShapeEnum<D,MultiIndex>>(shape_enum);
-    packet.parameters() = param_set;
-    packet.coefficients() = coeffs;
-
-
-	/////////////////////////////////////////////////////
-    // Defining the potential
-	/////////////////////////////////////////////////////
-
-    typename CanonicalBasis<N,D>::potential_type potential =
-        [sigma_harm,sigma_mix](CVector<D> x) {
-			complex_t sum_harm = 0;
-        	complex_t sum_mix = 0;
-			for(unsigned j=0; j<D; ++j) {
-				sum_harm += sigma_harm * x[j] * x[j];
-			}
-			for(unsigned j=0; j<D-1; ++j) {
-				sum_mix += (
-					x[j] * (x[j+1]*x[j+1] - 1./3.*x[j]*x[j]) +
-					0.0625 * sigma_mix * (x[j]*x[j] + x[j+1]*x[j+1]) * (x[j]*x[j] + x[j+1]*x[j+1])
-				);
-			}
-        return .5*sum_harm + sigma_mix*sum_mix;
-    };
-    typename ScalarLeadingLevel<D>::potential_type leading_level = potential;
-    typename ScalarLeadingLevel<D>::jacobian_type leading_jac =
-        [sigma_harm,sigma_mix](CVector<D> x) {
-			auto jac = [&](unsigned i) {
-				return sigma_harm * x[i] +
-					sigma_mix * (
-						( i==0 ? 0. : 2.*x[i-1]*x[i] ) -
-						x[i]*x[i] +
-						( i==D-1 ? 0. : x[i+1]*x[i+1]) +
-						.25*sigma_mix*x[i] * (
-							( i==0 ? 0. : x[i-1]*x[i-1] ) +
-							2.*x[i]*x[i] +
-							( i==D-1 ? 0. : x[i+1]*x[i+1] )
-						)
-					);
-			};
-			CVector<D> res;
-			for(unsigned i=0; i<D; ++i) {
-				res[i] = jac(i);
-			}
-        return res;
-    };
-    typename ScalarLeadingLevel<D>::hessian_type leading_hess =
-        [sigma_harm,sigma_mix](CVector<D> x) {
-
-		auto hess = [&](unsigned k, unsigned l) {
-			if(k==l-1) {
-				return sigma_mix * (
-					k==D-1 ? 0. :
-					2.*x[k+1] + .5*sigma_mix*x[k+1]*x[k]
-				);
-			}
-			if(k==l) {
-				return sigma_harm + sigma_mix * (
-					( k==0 ? 0. : 2.*x[k-1] ) -
-					2.*x[k] + 
-					.25*sigma_mix * (
-						( k==0 ? 0. : x[k-1]*x[k-1] ) +
-						6.*x[k]*x[k] +
-						( k==D-1 ? 0. : x[k+1]*x[k+1] )
-					)
-				);
-			}
-			if(k==(l+1)) {
-				return sigma_mix * (
-					2.*x[k] +
-					(k==0 ? 0. : .5*sigma_mix*x[k-1]*x[k])
-				);
-			}
-			return complex_t(0.,0.);
-		};
-
-        CMatrix<D,D> res;
-		for(unsigned k=0; k<D; ++k) {
-			for(unsigned l=0; l<D; ++l) {
-				res(k,l) = hess(k,l);
-			}
-		}
-        return res;
-    };
-
-    Potential_t V(potential,leading_level,leading_jac,leading_hess);
-
-
-	////////////////////////////////////////////////////
-	// Defining the Propagator
-	////////////////////////////////////////////////////
-
-	propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> pHagedorn(packet,V);
-	propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
-	propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
-	propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
-	propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
-	propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
-
-
-	////////////////////////////////////////////////////
-	// Defining Callback Function
-	////////////////////////////////////////////////////
-
-	// set up writer: preparing the file and I/O writer
-    io::hdf5writer<D> mywriter("henon-heiles_2D_newpropagator.hdf5");
-    mywriter.set_write_norm(true);
-    mywriter.set_write_energies(true);
+	// { // Semiclassical
+	// 	Parameters_HenonHeiles_2D param_Semiclassical("Semiclassical");
+	// 	propagators::SemiclassicalPropagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pSemiclassical(param_Semiclassical.packet,param_Semiclassical.V,param_Semiclassical.splitCoefs);
+	// 	pSemiclassical.evolve(param_Semiclassical.T,param_Semiclassical.Dt,std::bind(&P::callback,std::ref(param_Semiclassical),_1,_2));
+	// }
 	
-	// Write Data Callback
-	std::function<void(unsigned,real_t)> writeenergies = [&](unsigned,real_t) {
-		real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-		real_t epot = observables::potential_energy<Potential_t,D,MultiIndex,TQR>(packet,V);
-		mywriter.store_packet(packet);
-		mywriter.store_norm(packet);
-		mywriter.store_energies(epot,ekin);
-	};
-	
+	{ // MG4
+		Parameters_HenonHeiles_2D param_MG4("MG4");
+		propagators::MG4Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMG4(param_MG4.packet,param_MG4.V,param_MG4.splitCoefs);
+		pMG4.evolve(param_MG4.T,param_MG4.Dt,std::bind(&P::callback,std::ref(param_MG4),_1,_2));
+	}
 
-	////////////////////////////////////////////////////
-	// Propagate
-	////////////////////////////////////////////////////
+	// { // McL42
+	// 	Parameters_HenonHeiles_2D param_McL42("McL42");
+	// 	propagators::McL42Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL42(param_McL42.packet,param_McL42.V,param_McL42.splitCoefs);
+	// 	pMcL42.evolve(param_McL42.T,param_McL42.Dt,std::bind(&P::callback,std::ref(param_McL42),_1,_2));
+	// }
 
-    mywriter.prestructuring<MultiIndex>(packet,Dt);
+	// { // McL84
+	// 	Parameters_HenonHeiles_2D param_McL84("McL84");
+	// 	propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL84(param_McL84.packet,param_McL84.V,param_McL84.splitCoefs);
+	// 	pMcL84.evolve(param_McL84.T,param_McL84.Dt,std::bind(&P::callback,std::ref(param_McL84),_1,_2));
+	// }
 
-	pHagedorn.evolve(T,Dt,writeenergies);
-	pSemiclassical.evolve(T,Dt,writeenergies);
-	pMG4.evolve(T,Dt,writeenergies);
-	pPre764.evolve(T,Dt,writeenergies);
-	pMcL42.evolve(T,Dt,writeenergies);
-	pMcL84.evolve(T,Dt,writeenergies);
+	// { // Pre764
+	// 	Parameters_HenonHeiles_2D param_Pre764("Pre764");
+	// 	propagators::Pre764Propagator<P::N,P::D,P::MultiIndex,P::TQR,P::Potential,P::Packet_t,P::SplitCoefs_t> pPre764(param_Pre764.packet,param_Pre764.V,param_Pre764.splitCoefs);
+	// 	pPre764.evolve(param_Pre764.T,param_Pre764.Dt,std::bind(&P::callback,std::ref(param_Pre764),_1,_2));
+	// }
 
-    mywriter.poststructuring();
 
     return 0;
 }
+

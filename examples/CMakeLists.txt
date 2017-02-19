@@ -42,18 +42,17 @@ target_link_libraries(morse_1D_convergence ${LINK_LIBS})
 
 add_executable(harmonic_2D harmonic_2D.cpp)
 target_link_libraries(harmonic_2D ${LINK_LIBS})
-add_executable(harmonic_2D_convergence harmonic_2D_convergence.cpp)
-target_link_libraries(harmonic_2D_convergence ${LINK_LIBS})
+
+add_executable(henon-heiles_2D henon-heiles_2D.cpp)
+target_link_libraries(henon-heiles_2D ${LINK_LIBS})
 
 add_executable(torsional_2D torsional_2D.cpp)
 target_link_libraries(torsional_2D ${LINK_LIBS})
 add_executable(torsional_2D_convergence torsional_2D_convergence.cpp)
 target_link_libraries(torsional_2D_convergence ${LINK_LIBS})
 
-add_executable(henon-heiles_2D henon-heiles_2D.cpp)
-target_link_libraries(henon-heiles_2D ${LINK_LIBS})
-add_executable(henon-heiles_2D_convergence henon-heiles_2D_convergence.cpp)
-target_link_libraries(henon-heiles_2D_convergence ${LINK_LIBS})
+add_executable(torsional_1D_coefs torsional_1D_coefs.cpp)
+target_link_libraries(torsional_1D_coefs ${LINK_LIBS})
 
-add_executable(harmonic_XD harmonic_XD.cpp)
-target_link_libraries(harmonic_XD ${LINK_LIBS})
+add_executable(torsional_XD torsional_XD.cpp)
+target_link_libraries(torsional_XD ${LINK_LIBS})
