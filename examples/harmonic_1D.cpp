@@ -111,7 +111,7 @@ class Parameters_Harmonic_1D {
 		Parameters_Harmonic_1D(std::string name)
 		 : sigma_x(1.)
 		 , T(10)
-		 , Dt(0.05)
+		 , Dt(0.001)
 		 , eps(0.01)
 		 , Q(CMatrix<D,D>::Identity())
 		 , P(complex_t(0,1) * CMatrix<D,D>::Identity())
@@ -141,7 +141,7 @@ class Parameters_Harmonic_1D {
 
 		void callback(unsigned /*m*/, real_t /*t*/) {
 			real_t ekin = observables::kinetic_energy<D,MultiIndex>(packet);
-			real_t epot = observables::potential_energy<Potential,D,MultiIndex,QR>(packet,V); // TODO: causes segfault - investigate
+			real_t epot = observables::potential_energy<Potential,D,MultiIndex,QR>(packet,V);
 			writer.store_packet(packet);
 			writer.store_norm(packet);
 			writer.store_energies(epot,ekin);
@@ -160,35 +160,35 @@ int main() {
 		pHagedorn.evolve(param_Hagedorn.T,param_Hagedorn.Dt,std::bind(&P::callback,std::ref(param_Hagedorn),_1,_2));
 	}
 
-	// { // Semiclassical
-	// 	Parameters_Harmonic_1D param_Semiclassical("Semiclassical");
-	// 	propagators::SemiclassicalPropagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pSemiclassical(param_Semiclassical.packet,param_Semiclassical.V,param_Semiclassical.splitCoefs);
-	// 	pSemiclassical.evolve(param_Semiclassical.T,param_Semiclassical.Dt,std::bind(&P::callback,std::ref(param_Semiclassical),_1,_2));
-	// }
+	{ // Semiclassical
+		Parameters_Harmonic_1D param_Semiclassical("Semiclassical");
+		propagators::SemiclassicalPropagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pSemiclassical(param_Semiclassical.packet,param_Semiclassical.V,param_Semiclassical.splitCoefs);
+		pSemiclassical.evolve(param_Semiclassical.T,param_Semiclassical.Dt,std::bind(&P::callback,std::ref(param_Semiclassical),_1,_2));
+	}
 	
-	// { // MG4
-	// 	Parameters_Harmonic_1D param_MG4("MG4");
-	// 	propagators::MG4Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMG4(param_MG4.packet,param_MG4.V,param_MG4.splitCoefs);
-	// 	pMG4.evolve(param_MG4.T,param_MG4.Dt,std::bind(&P::callback,std::ref(param_MG4),_1,_2));
-	// }
+	{ // MG4
+		Parameters_Harmonic_1D param_MG4("MG4");
+		propagators::MG4Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMG4(param_MG4.packet,param_MG4.V,param_MG4.splitCoefs);
+		pMG4.evolve(param_MG4.T,param_MG4.Dt,std::bind(&P::callback,std::ref(param_MG4),_1,_2));
+	}
 
-	// { // McL42
-	// 	Parameters_Harmonic_1D param_McL42("McL42");
-	// 	propagators::McL42Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL42(param_McL42.packet,param_McL42.V,param_McL42.splitCoefs);
-	// 	pMcL42.evolve(param_McL42.T,param_McL42.Dt,std::bind(&P::callback,std::ref(param_McL42),_1,_2));
-	// }
+	{ // McL42
+		Parameters_Harmonic_1D param_McL42("McL42");
+		propagators::McL42Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL42(param_McL42.packet,param_McL42.V,param_McL42.splitCoefs);
+		pMcL42.evolve(param_McL42.T,param_McL42.Dt,std::bind(&P::callback,std::ref(param_McL42),_1,_2));
+	}
 
-	// { // McL84
-	// 	Parameters_Harmonic_1D param_McL84("McL84");
-	// 	propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL84(param_McL84.packet,param_McL84.V,param_McL84.splitCoefs);
-	// 	pMcL84.evolve(param_McL84.T,param_McL84.Dt,std::bind(&P::callback,std::ref(param_McL84),_1,_2));
-	// }
+	{ // McL84
+		Parameters_Harmonic_1D param_McL84("McL84");
+		propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pMcL84(param_McL84.packet,param_McL84.V,param_McL84.splitCoefs);
+		pMcL84.evolve(param_McL84.T,param_McL84.Dt,std::bind(&P::callback,std::ref(param_McL84),_1,_2));
+	}
 
-	// { // Pre764
-	// 	Parameters_Harmonic_1D param_Pre764("Pre764");
-	// 	propagators::Pre764Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pPre764(param_Pre764.packet,param_Pre764.V,param_Pre764.splitCoefs);
-	// 	pPre764.evolve(param_Pre764.T,param_Pre764.Dt,std::bind(&P::callback,std::ref(param_Pre764),_1,_2));
-	// }
+	{ // Pre764
+		Parameters_Harmonic_1D param_Pre764("Pre764");
+		propagators::Pre764Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> pPre764(param_Pre764.packet,param_Pre764.V,param_Pre764.splitCoefs);
+		pPre764.evolve(param_Pre764.T,param_Pre764.Dt,std::bind(&P::callback,std::ref(param_Pre764),_1,_2));
+	}
 
 
     return 0;

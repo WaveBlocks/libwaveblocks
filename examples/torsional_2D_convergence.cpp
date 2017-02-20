@@ -18,8 +18,6 @@
 #include "waveblocks/propagators/Pre764Propagator.hpp"
 #include "waveblocks/propagators/McL42Propagator.hpp"
 #include "waveblocks/propagators/McL84Propagator.hpp"
-#include "waveblocks/observables/energy.hpp"
-#include "waveblocks/io/hdf5writer.hpp"
 
 
 using namespace waveblocks;
@@ -84,6 +82,7 @@ class Parameters_Torsional_2D {
 		using SplitCoefs_t = propagators::SplitCoefs<34,34>;
 
 		// general parameters
+		const real_t sigma_x;
 		const real_t T;
 		const real_t eps;
 
@@ -109,7 +108,8 @@ class Parameters_Torsional_2D {
 		wavepackets::shapes::ShapeEnum<D, MultiIndex> shape_enum;
 
 		Parameters_Torsional_2D()
-		 : T(4)
+		 : sigma_x(1.)
+		 , T(4)
 		 , eps(0.01)
 		 , Q(CMatrix<D,D>::Identity())
 		 , P(complex_t(0,1) * CMatrix<D,D>::Identity())
@@ -134,7 +134,7 @@ int main() {
 
 	using P = Parameters_Torsional_2D;
 
-	const real_t Dt_gold = 1e-3;
+	const real_t Dt_gold = 1e-2;
 
 	// define a grid for evaluation
     const int G = 1000;
@@ -154,6 +154,7 @@ int main() {
 	const CArray<1,G> eval_gold = param_gold.packet.evaluate(grid);
 	real_t norm_gold = 0;
 	for(unsigned i=0; i<G; i++) {
+		std::cout << "\nphi: " << eval_gold[i];
 		real_t x = std::abs(eval_gold[i]);
 		norm_gold += x*x;
 	}

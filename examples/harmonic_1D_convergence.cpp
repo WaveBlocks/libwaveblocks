@@ -75,7 +75,7 @@ class Parameters_Harmonic_1D {
 		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 		using QR = innerproducts::GaussHermiteQR<K+4>;
 		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-		using SplitCoefs_t = propagators::SplitCoefs<4,4>;
+		using SplitCoefs_t = propagators::SplitCoefs<1,1>;
 
 		// general parameters
 		const real_t sigma_x;
@@ -114,7 +114,7 @@ class Parameters_Harmonic_1D {
 		 , S(0.)
 		 , param_set(q,p,Q,P,S)
 		 , coeffs(Coefficients::Zero(std::pow(K,D),1))
-		 , splitCoefs(propagators::splitting_parameters::coefY4)
+		 , splitCoefs(propagators::splitting_parameters::coefLT)
 		 , shape_enum(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K)))
 		{
 			coeffs[0] = 1.0;
@@ -130,7 +130,7 @@ int main() {
 
 	using P = Parameters_Harmonic_1D;
 
-	const real_t Dt_gold = 1e-3;
+	const real_t Dt_gold = 1e-4;
 
 	// define a grid for evaluation
     const int G = 1000;

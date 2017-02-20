@@ -75,12 +75,11 @@ class Parameters_Torsional_1D {
 		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 		using QR = innerproducts::GaussHermiteQR<K+4>;
 		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-		using SplitCoefs_t = propagators::SplitCoefs<4,4>;
+		using SplitCoefs_t = propagators::SplitCoefs<1,1>;
 
 		// general parameters
 		const real_t sigma_x;
 		const real_t T;
-		const real_t Dt;
 		const real_t eps;
 
 		// wave packet
@@ -107,7 +106,6 @@ class Parameters_Torsional_1D {
 		Parameters_Torsional_1D()
 		 : sigma_x(1.)
 		 , T(10)
-		 , Dt(0.05)
 		 , eps(0.01)
 		 , Q(CMatrix<D,D>::Identity())
 		 , P(complex_t(0,1) * CMatrix<D,D>::Identity())
@@ -116,7 +114,7 @@ class Parameters_Torsional_1D {
 		 , S(0.)
 		 , param_set(q,p,Q,P,S)
 		 , coeffs(Coefficients::Zero(std::pow(K,D),1))
-		 , splitCoefs(propagators::splitting_parameters::coefY4)
+		 , splitCoefs(propagators::splitting_parameters::coefLT)
 		 , shape_enum(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K)))
 		{
 			coeffs[0] = 1.0;
@@ -132,7 +130,7 @@ int main() {
 
 	using P = Parameters_Torsional_1D;
 
-	const real_t Dt_gold = 1e-3;
+	const real_t Dt_gold = 1e-4;
 
 	// define a grid for evaluation
     const int G = 1000;
