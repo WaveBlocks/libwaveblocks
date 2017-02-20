@@ -32,10 +32,10 @@ class Pre764Propagator : public Propagator<Pre764Propagator<N,D,MultiIndex_t,MDQ
 			static_assert(alpha.size() == k_, "Incorrect size of coefficient array alpha");
 			static_assert(beta.size() == k_,"Incorrect size of coefficient array beta");
 
-			auto& packet = this->wpacket_;
-			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
+			// auto& packet = this->wpacket_;
+			const int M = 4; // 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
 
-			for(unsigned j=0; j<k_; ++j) {
+			for(int j=0; j<k_; ++j) {
 				this->stepW(alpha[j]*Dt);
 				this->intSplit(beta[j]*Dt,M,this->splitCoef_);
 			}
@@ -50,10 +50,10 @@ class Pre764Propagator : public Propagator<Pre764Propagator<N,D,MultiIndex_t,MDQ
 			static_assert(y.size() == v_,"Incorrect size of coefficient array Y");
 			static_assert(z.size() == v_,"Incorrect size of coefficient array Z");
 
-			auto& packet = this->wpacket_;
-			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
+			// auto& packet = this->wpacket_;
+			const int M = 4; // 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
 
-			for(unsigned j=0; j<v_; ++j) {
+			for(int j=0; j<v_; ++j) {
 				this->intSplit(-z[j]*Dt,M,this->splitCoef_);
 				this->stepW(-y[j]*Dt);
 			}
@@ -68,10 +68,10 @@ class Pre764Propagator : public Propagator<Pre764Propagator<N,D,MultiIndex_t,MDQ
 			static_assert(y.size() == v_,"Incorrect size of coefficient array Y");
 			static_assert(z.size() == v_,"Incorrect size of coefficient array Z");
 
-			auto& packet = this->wpacket_;
-			const int M = 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
+			// auto& packet = this->wpacket_;
+			const int M = 4; // 1 + std::floor(std::sqrt(Dt*std::pow(packet.eps(),-.75)));
 
-			for(unsigned j=0; j<v_; ++j) {
+			for(int j=(v_-1); j>=0; --j) {
 				this->stepW(y[j]*Dt);
 				this->intSplit(z[j]*Dt,M,this->splitCoef_);
 			}

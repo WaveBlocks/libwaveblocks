@@ -151,20 +151,20 @@ int main() {
 		packet.coefficients() = coeffs;
 	
 		// Defining the Propagator
-		propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> pHagedorn(packet,V);
-		propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pSemiclassical(packet,V,split::coefLT);
-		propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMG4(packet,V,split::coefLT);
-		propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pPre764(packet,V,split::coefLT);
-		propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL42(packet,V,split::coefLT);
-		propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> pMcL84(packet,V,split::coefLT);
+		propagators::HagedornPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t> propagator_Hagedorn(packet,V);
+		propagators::SemiclassicalPropagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> propagator_Semiclassical(packet,V,split::coefLT);
+		propagators::MG4Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> propagator_MG4(packet,V,split::coefLT);
+		propagators::Pre764Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> propagator_Pre764(packet,V,split::coefLT);
+		propagators::McL42Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> propagator_McL42(packet,V,split::coefLT);
+		propagators::McL84Propagator<N,D,MultiIndex,TQR,Potential_t,Packet_t,propagators::SplitCoefs<1,1>> propagator_McL84(packet,V,split::coefLT);
 
 		// evolve
-		// pHagedorn.evolve(T,Dt);
-		// pSemiclassical.evolve(T,Dt);
-		// pMG4.evolve(T,Dt);
-		// pPre764.evolve(T,Dt);
-		// pMcL42.evolve(T,Dt);
-		pMcL84.evolve(T,Dt);
+		// propagator_Hagedorn.evolve(T,Dt);
+		// propagator_Semiclassical.evolve(T,Dt);
+		// propagator_MG4.evolve(T,Dt);
+		// propagator_Pre764.evolve(T,Dt);
+		// propagator_McL42.evolve(T,Dt);
+		propagator_McL84.evolve(T,Dt);
 
 		// Compute L2 error
 		const CArray<1,G> eval_this = packet.evaluate(grid);
