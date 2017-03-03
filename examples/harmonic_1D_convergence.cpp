@@ -75,7 +75,7 @@ class Parameters_Harmonic_1D {
 		using MultiIndex = wavepackets::shapes::TinyMultiIndex<unsigned short, D>;
 		using QR = innerproducts::GaussHermiteQR<K+4>;
 		using Packet_t = wavepackets::ScalarHaWp<D,MultiIndex>;
-		using SplitCoefs_t = propagators::SplitCoefs<1,1>;
+		using SplitCoefs_t = propagators::SplitCoefs<4,4>;
 
 		// general parameters
 		const real_t sigma_x;
@@ -114,7 +114,7 @@ class Parameters_Harmonic_1D {
 		 , S(0.)
 		 , param_set(q,p,Q,P,S)
 		 , coeffs(Coefficients::Zero(std::pow(K,D),1))
-		 , splitCoefs(propagators::splitting_parameters::coefLT)
+		 , splitCoefs(propagators::splitting_parameters::coefY4)
 		 , shape_enum(enumerator.generate(wavepackets::shapes::HyperCubicShape<D>(K)))
 		{
 			coeffs[0] = 1.0;
@@ -142,7 +142,7 @@ int main() {
     }
 
 	// define the high-precision propagator and evolve
-	Parameters_Harmonic_1D param_gold;
+	P param_gold;
 	propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,propagators::SplitCoefs<34,34>> pGold(param_gold.packet,param_gold.V,propagators::splitting_parameters::coefKL10);
 	pGold.evolve(param_gold.T,Dt_gold);
 
@@ -168,53 +168,86 @@ int main() {
 
 	real_t Dt = .25;
 
+	std::ofstream file_Hagedorn, file_Semiclassical, file_MG4, file_McL42, file_McL84, file_Pre764;
+	file_Hagedorn.open("harmonic_1D_error_Hagedorn.csv");
+	file_Semiclassical.open("harmonic_1D_error_Semiclassical.csv");
+	file_MG4.open("harmonic_1D_error_MG4.csv");
+	file_McL42.open("harmonic_1D_error_McL42.csv");
+	file_McL84.open("harmonic_1D_error_McL84.csv");
+	file_Pre764.open("harmonic_1D_error_Pre764.csv");
+	file_Hagedorn << "# Propagator, split coefs, T\nHagedorn" << ", " << "Y4" << ", " << param_gold.T << "\n\n# Step size, error\n";
+	file_Semiclassical << "# Propagator, split coefs, T\nSemiclassical" << ", " << "Y4" << ", " << param_gold.T << "\n\n# Step size, error\n";
+	file_MG4 << "# Propagator, split coefs, T\nMG4" << ", " << "Y4" << ", " << param_gold.T << "\n\n# Step size, error\n";
+	file_McL42 << "# Propagator, split coefs, T\nMcL42" << ", " << "Y4" << ", " << param_gold.T << "\n\n# Step size, error\n";
+	file_McL84 << "# Propagator, split coefs, T\nMcL84" << ", " << "Y4" << ", " << param_gold.T << "\n\n# Step size, error\n";
+	file_Pre764 << "# Propagator, split coefs, T\nPre764" << ", " << "Y4" << ", " << param_gold.T << "\n\n# Step size, error\n";
+
 	while(Dt>=2*Dt_gold) {
 
 		{ // Hagedorn
-			Parameters_Harmonic_1D param_Hagedorn;
+			P param_Hagedorn;
 			propagators::HagedornPropagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t> propagator_Hagedorn(param_Hagedorn.packet,param_Hagedorn.V);
 			propagator_Hagedorn.evolve(param_Hagedorn.T,Dt);
-			std::cout << "\nHagedorn - Dt: " << std::fixed << Dt << "\tError: " << std::scientific << errorL2(param_Hagedorn.packet) << "\n";
+			real_t err = errorL2(param_Hagedorn.packet);
+			file_Hagedorn << Dt << ", " << err << "\n";
+			std::cout << "\n\tError: " << std::scientific << err << "\n";
 		}
 		
 		{ // Semiclassical
-			Parameters_Harmonic_1D param_Semiclassical;
+			P param_Semiclassical;
 			propagators::SemiclassicalPropagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> propagator_Semiclassical(param_Semiclassical.packet,param_Semiclassical.V,param_Semiclassical.splitCoefs);
 			propagator_Semiclassical.evolve(param_Semiclassical.T,Dt);
-			std::cout << "\nSemiclassical - Dt: " << std::fixed << Dt << "\tError: " << std::scientific << errorL2(param_Semiclassical.packet) << "\n";
+			real_t err = errorL2(param_Semiclassical.packet);
+			file_Semiclassical << Dt << ", " << err << "\n";
+			std::cout << "\n\tError: " << std::scientific << err << "\n";
 		}
 
 		{ // MG4
-			Parameters_Harmonic_1D param_MG4;
+			P param_MG4;
 			propagators::MG4Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> propagator_MG4(param_MG4.packet,param_MG4.V,param_MG4.splitCoefs);
 			propagator_MG4.evolve(param_MG4.T,Dt);
-			std::cout << "\nMG4 - Dt: " << std::fixed << Dt << "\tError: " << std::scientific << errorL2(param_MG4.packet) << "\n";
+			real_t err = errorL2(param_MG4.packet);
+			file_MG4 << Dt << ", " << err << "\n";
+			std::cout << "\n\tError: " << std::scientific << err << "\n";
 		}
 
 		{ // McL42
-			Parameters_Harmonic_1D param_McL42;
+			P param_McL42;
 			propagators::McL42Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> propagator_McL42(param_McL42.packet,param_McL42.V,param_McL42.splitCoefs);
 			propagator_McL42.evolve(param_McL42.T,Dt);
-			std::cout << "\nMcL42 - Dt: " << std::fixed << Dt << "\tError: " << std::scientific << errorL2(param_McL42.packet) << "\n";
+			real_t err = errorL2(param_McL42.packet);
+			file_McL42 << Dt << ", " << err << "\n";
+			std::cout << "\n\tError: " << std::scientific << err << "\n";
 		}
 
 		{ // McL84
-			Parameters_Harmonic_1D param_McL84;
+			P param_McL84;
 			propagators::McL84Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> propagator_McL84(param_McL84.packet,param_McL84.V,param_McL84.splitCoefs);
 			propagator_McL84.evolve(param_McL84.T,Dt);
-			std::cout << "\nMcL84 - Dt: " << std::fixed << Dt << "\tError: " << std::scientific << errorL2(param_McL84.packet) << "\n";
+			real_t err = errorL2(param_McL84.packet);
+			file_McL84 << Dt << ", " << err << "\n";
+			std::cout << "\n\tError: " << std::scientific << err << "\n";
 		}
 
 		{ // Pre764
-			Parameters_Harmonic_1D param_Pre764;
+			P param_Pre764;
 			propagators::Pre764Propagator<P::N,P::D,P::MultiIndex,P::QR,P::Potential,P::Packet_t,P::SplitCoefs_t> propagator_Pre764(param_Pre764.packet,param_Pre764.V,param_Pre764.splitCoefs);
 			propagator_Pre764.evolve(param_Pre764.T,Dt);
-			std::cout << "\nPre764 - Dt: " << std::fixed << Dt << "\tError: " << std::scientific << errorL2(param_Pre764.packet) << "\n";
+			real_t err = errorL2(param_Pre764.packet);
+			file_Pre764 << Dt << ", " << err << "\n";
+			std::cout << "\n\tError: " << std::scientific << err << "\n";
 		}
 
 		Dt /= 2;
 
 	}
+
+	file_Hagedorn.close();
+	file_Semiclassical.close();
+	file_MG4.close();
+	file_McL42.close();
+	file_McL84.close();
+	file_Pre764.close();
 
     return 0;
 }
