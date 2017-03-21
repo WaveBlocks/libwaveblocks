@@ -41,12 +41,11 @@ add_library(waveblocks-static STATIC
   waveblocks/utilities/complexnumber_parser.cpp
   ${WAVBLOCK_HEADERS})
 
-
 include(FindPkgConfig)
 if(PKG_CONFIG_FOUND)
   pkg_search_module(EIGEN REQUIRED eigen3)
   if(EIGEN_FOUND)
-    include_directories(${EIGEN_INCLUDE_DIRS})
+	include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
     message("EIGEN_INCLUDE_DIRS" ${EIGEN_INCLUDE_DIRS})
   endif()
 endif()
@@ -101,5 +100,5 @@ if (YAMLCPP_FOUND)
 endif()
 
 
-add_subdirectory(test)
+# add_subdirectory(test)
 add_subdirectory(examples)

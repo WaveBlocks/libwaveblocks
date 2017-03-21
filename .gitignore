@@ -55,3 +55,7 @@ Session.vim
 # 
 main.cpp
 *~
+
+# Swap files
+*.swp
+*.swo
